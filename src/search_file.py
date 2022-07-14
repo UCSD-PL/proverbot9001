@@ -1854,136 +1854,141 @@ def bfs_beam_proof_search(lemma_statement: str,
                                      ProofContext([], [], [], [])), None)
     nodes_todo: List[Tuple[BFSNode, List[int], int]] = \
         [(start_node, subgoals_stack_start, 0)]
-    while len(nodes_todo) > 0:
-        next_nodes_todo: List[Tuple[BFSNode, List[int], int]] = []
+
+    total_nodes = numNodesInTree(args.search_width,
+                                 args.search_depth + 2) - 1
+    with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
+              desc=lemma_name, disable=(not args.progress),
+              leave=False,
+              position=bar_idx + 1,
+              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         while len(nodes_todo) > 0:
-            next_node, subgoal_distance_stack, extra_depth = nodes_todo.pop()
-            next_node_history = [item for replay_node in node_path(next_node)[1:]
-                                 for item in [replay_node.prediction.prediction] + replay_node.postfix]
-            cur_node_history = coq.tactic_history.getFullHistory()[initial_history_len:]
-            # Get the number of commands common to the beginning of the current
-            # history and the history of the next node
-            common_prefix_len = 0
-            for item1, item2, in zip(next_node_history, cur_node_history):
-                if item1 != item2:
-                    break
-                common_prefix_len += 1
-            # Return to the place where the current history and the history of
-            # the next node diverged.
-            while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
-                coq.cancel_last()
-            # Run the next nodes history from that point.
-            for cmd in next_node_history[common_prefix_len:]:
-                coq.run_stmt(cmd)
+            next_nodes_todo: List[Tuple[BFSNode, List[int], int]] = []
+            while len(nodes_todo) > 0:
+                next_node, subgoal_distance_stack, extra_depth = nodes_todo.pop()
+                pbar.update()
+                next_node_history = [item for replay_node in node_path(next_node)[1:]
+                                     for item in [replay_node.prediction.prediction] + replay_node.postfix]
+                cur_node_history = coq.tactic_history.getFullHistory()[initial_history_len:]
+                # Get the number of commands common to the beginning of the current
+                # history and the history of the next node
+                common_prefix_len = 0
+                for item1, item2, in zip(next_node_history, cur_node_history):
+                    if item1 != item2:
+                        break
+                    common_prefix_len += 1
+                # Return to the place where the current history and the history of
+                # the next node diverged.
+                while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
+                    coq.cancel_last()
+                # Run the next nodes history from that point.
+                for cmd in next_node_history[common_prefix_len:]:
+                    coq.run_stmt(cmd)
 
-            full_context_before = FullContext(relevant_lemmas,
-                                              coq.prev_tactics,
-                                              unwrap(coq.proof_context))
-            num_successful_predictions = 0
-            predictions = predictor.predictKTactics(
-                truncate_tactic_context(full_context_before.as_tcontext(),
-                                        args.max_term_length),
-                        args.max_attempts)
-            for prediction in predictions:
-                if num_successful_predictions >= args.search_width:
-                    break
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  node_total_time(next_node))
+                full_context_before = FullContext(relevant_lemmas,
+                                                  coq.prev_tactics,
+                                                  unwrap(coq.proof_context))
+                num_successful_predictions = 0
+                predictions = predictor.predictKTactics(
+                    truncate_tactic_context(full_context_before.as_tcontext(),
+                                            args.max_term_length),
+                            args.max_attempts)
+                for prediction in predictions:
+                    if num_successful_predictions >= args.search_width:
+                        break
+                    context_after, num_stmts, \
+                        subgoals_closed, subgoals_opened, \
+                        error, time_taken, unshelved = \
+                        tryPrediction(args, coq, prediction.prediction,
+                                      node_total_time(next_node))
 
-                postfix = []
-                if unshelved:
-                    postfix.append("Unshelve.")
-                postfix += ["}"] * subgoals_closed
-                postfix += ["{"] * subgoals_opened
+                    postfix = []
+                    if unshelved:
+                        postfix.append("Unshelve.")
+                    postfix += ["}"] * subgoals_closed
+                    postfix += ["{"] * subgoals_opened
 
 
-                if args.scoring_function == "certainty":
-                    state_score = next_node.score * prediction.certainty
-                elif args.scoring_function == "pickled":
-                    state_score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
-                else:
-                    assert args.scoring_function == "lstd"
-                    state_score = state_estimator.estimateVal(
-                                      features_extractor.state_features(
-                                          TacticContext(full_context_before.relevant_lemmas,
-                                                        full_context_before.prev_tactics,
-                                                        context_after.focused_hyps,
-                                                        context_after.focused_goal)))
-                prediction_node = BFSNode(
-                    prediction,
-                    state_score,
-                    time_taken, postfix, full_context_before, next_node)
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    prediction_node.color = "red"
-                    continue
-                if contextIsBig(context_after) or \
-                        contextInHistory(context_after, prediction_node):
-                    # if contextIsBig(context_after):
-                        # eprint(f"Context is too big!")
-                    #if contextInHistory(context_after, prediction_node):
-                        # eprint(f"Context is in history")
-                    if args.count_softfail_predictions:
-                        num_successful_predictions += 1
-                    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                    prediction_node.color = "orange"
+                    if args.scoring_function == "certainty":
+                        state_score = next_node.score * prediction.certainty
+                    elif args.scoring_function == "pickled":
+                        state_score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
+                    else:
+                        assert args.scoring_function == "lstd"
+                        state_score = state_estimator.estimateVal(
+                                          features_extractor.state_features(
+                                              TacticContext(full_context_before.relevant_lemmas,
+                                                            full_context_before.prev_tactics,
+                                                            context_after.focused_hyps,
+                                                            context_after.focused_goal)))
+                    prediction_node = BFSNode(
+                        prediction,
+                        state_score,
+                        time_taken, postfix, full_context_before, next_node)
+                    if error:
+                        if args.count_failing_predictions:
+                            num_successful_predictions += 1
+                        prediction_node.color = "red"
+                        continue
+                    if contextIsBig(context_after) or \
+                            contextInHistory(context_after, prediction_node):
+                        if args.count_softfail_predictions:
+                            num_successful_predictions += 1
+                        eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                        prediction_node.color = "orange"
+                        for _ in range(num_stmts):
+                            coq.cancel_last()
+                        continue
+                    if completed_proof(coq):
+                        prediction_node.color = "green"
+                        start_node.draw_graph(graph_file)
+                        return SearchResult(SearchStatus.SUCCESS,
+                                            node_interactions(prediction_node)[1:])
+
+                    num_successful_predictions += 1
+
+                    if subgoals_closed > 0:
+                        prediction_node.color = "blue"
+                        # Prune unexplored nodes from the tree that are trying to
+                        # solve the subgoal(s) we just solved.
+                        prunable_nodes = get_prunable_nodes(prediction_node)
+                        # Prune them from nodes_todo, which are nodes at the
+                        # current level which we haven't explored yet.
+                        nodes_todo = [node for node in nodes_todo if node[0] not in prunable_nodes]
+                        # Prune them from next_nodes_todo, which are new children
+                        # of nodes at the current level which we already explored.
+                        next_nodes_todo = [node for node in next_nodes_todo if node[0] not in prunable_nodes]
+
+                    # ### 1.
+                    if subgoal_distance_stack:
+                        new_distance_stack = (subgoal_distance_stack[:-1] +
+                                              [subgoal_distance_stack[-1]+1])
+                    else:
+                        new_distance_stack = []
+
+                    # ### 2.
+                    new_extra_depth = extra_depth
+                    for _ in range(subgoals_closed):
+                        closed_goal_distance = new_distance_stack.pop()
+                        new_extra_depth += closed_goal_distance
+
+                    # ### 3.
+                    new_distance_stack += [0] * subgoals_opened
+
+                    next_nodes_todo.append((prediction_node, new_distance_stack,
+                                            new_extra_depth))
+
                     for _ in range(num_stmts):
                         coq.cancel_last()
-                    continue
-                if completed_proof(coq):
-                    prediction_node.color = "green"
-                    start_node.draw_graph(graph_file)
-                    return SearchResult(SearchStatus.SUCCESS,
-                                        node_interactions(prediction_node)[1:])
-
-                num_successful_predictions += 1
-
-                if subgoals_closed > 0:
-                    prediction_node.color = "blue"
-                    # Prune unexplored nodes from the tree that are trying to
-                    # solve the subgoal(s) we just solved.
-                    prunable_nodes = get_prunable_nodes(prediction_node)
-                    # Prune them from nodes_todo, which are nodes at the
-                    # current level which we haven't explored yet.
-                    nodes_todo = [node for node in nodes_todo if node[0] not in prunable_nodes]
-                    # Prune them from next_nodes_todo, which are new children
-                    # of nodes at the current level which we already explored.
-                    next_nodes_todo = [node for node in next_nodes_todo if node[0] not in prunable_nodes]
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
+                    if subgoals_closed > 0:
+                        break
+            next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
+            while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
+                next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
+                if len(node_path(next_node)) <= args.search_depth + extra_depth:
+                    nodes_todo.append((next_node, subgoal_distance_stack, extra_depth))
                 else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-
-                next_nodes_todo.append((prediction_node, new_distance_stack,
-                                        new_extra_depth))
-
-                for _ in range(num_stmts):
-                    coq.cancel_last()
-                if subgoals_closed > 0:
-                    break
-        next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
-        while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
-            next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
-            if len(node_path(next_node)) <= args.search_depth + extra_depth:
-                nodes_todo.append((next_node, subgoal_distance_stack, extra_depth))
-            else:
-                hasUnexploredNode = True
+                    hasUnexploredNode = True
 
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
