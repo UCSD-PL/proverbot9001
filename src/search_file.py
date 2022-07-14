@@ -460,7 +460,7 @@ class Worker:
         module_name = serapi_instance.get_module_from_filename(filename)
         self.coq.run_stmt(f"Module {module_name}.")
         self.remaining_commands = serapi_instance.load_commands_preserve(
-            self.args, 0, self.args.prelude / self.cur_project / filename)
+            self.args, 1, self.args.prelude / self.cur_project / filename)
 
     def run_into_job(self, job: ReportJob, restart: bool = True) -> None:
         assert self.coq
