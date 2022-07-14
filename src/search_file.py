@@ -1758,6 +1758,12 @@ class BFSNode:
         with nostderr():
             graph.draw(path, prog="dot")
 
+    def pp(self) -> str:
+        if not self.previous:
+            return f" -> {self.prediction.prediction}"
+        else:
+            return f"{self.previous.prediction.prediction} => {self.prediction.prediction}"
+
 
 def node_commands(node: BFSNode) -> List[str]:
     return [node.prediction.prediction for node in
