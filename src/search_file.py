@@ -1910,21 +1910,9 @@ def bfs_beam_proof_search(lemma_statement: str,
                     postfix += ["{"] * subgoals_opened
 
 
-                    if args.scoring_function == "certainty":
-                        state_score = next_node.score * prediction.certainty
-                    elif args.scoring_function == "pickled":
-                        state_score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
-                    else:
-                        assert args.scoring_function == "lstd"
-                        state_score = state_estimator.estimateVal(
-                                          features_extractor.state_features(
-                                              TacticContext(full_context_before.relevant_lemmas,
-                                                            full_context_before.prev_tactics,
-                                                            context_after.focused_hyps,
-                                                            context_after.focused_goal)))
                     prediction_node = BFSNode(
                         prediction,
-                        state_score,
+                        0,
                         time_taken, postfix, full_context_before, next_node)
                     if error:
                         if args.count_failing_predictions:
@@ -1945,6 +1933,19 @@ def bfs_beam_proof_search(lemma_statement: str,
                         start_node.draw_graph(graph_file)
                         return SearchResult(SearchStatus.SUCCESS,
                                             node_interactions(prediction_node)[1:])
+
+                    if args.scoring_function == "certainty":
+                        prediction_node.score = next_node.score * prediction.certainty
+                    elif args.scoring_function == "pickled":
+                        prediction_node.score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
+                    else:
+                        assert args.scoring_function == "lstd"
+                        prediction_node.score = state_estimator.estimateVal(
+                                          features_extractor.state_features(
+                                              TacticContext(full_context_before.relevant_lemmas,
+                                                            full_context_before.prev_tactics,
+                                                            context_after.focused_hyps,
+                                                            context_after.focused_goal)))
 
                     num_successful_predictions += 1
 
