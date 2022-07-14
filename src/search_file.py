@@ -1790,11 +1790,10 @@ def get_leaf_descendents(node: BFSNode) -> List[BFSNode]:
             for node in nodelist]
 
 def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
-    print("Looking for prunable nodes from {node.prediction}")
     num_closes = len([cmd for cmd in node.postfix if cmd == "}"])
     if num_closes == 0:
         return []
-    num_opens = 0
+    num_opens = len([cmd for cmd in node.postfix if cmd == "{"])
     significant_parent = node
     while num_opens <= num_closes:
         assert significant_parent.previous is not None, (num_opens, num_closes)
@@ -1926,6 +1925,11 @@ def bfs_beam_proof_search(lemma_statement: str,
                     for _ in range(num_stmts):
                         coq.cancel_last()
                     continue
+                if completed_proof(coq):
+                    prediction_node.color = "green"
+                    start_node.draw_graph(graph_file)
+                    return SearchResult(SearchStatus.SUCCESS,
+                                        node_interactions(prediction_node)[1:])
 
                 num_successful_predictions += 1
 
@@ -1936,10 +1940,10 @@ def bfs_beam_proof_search(lemma_statement: str,
                     prunable_nodes = get_prunable_nodes(prediction_node)
                     # Prune them from nodes_todo, which are nodes at the
                     # current level which we haven't explored yet.
-                    node_todo = [node for node in nodes_todo if node not in prunable_nodes]
+                    nodes_todo = [node for node in nodes_todo if node[0] not in prunable_nodes]
                     # Prune them from next_nodes_todo, which are new children
                     # of nodes at the current level which we already explored.
-                    next_nodes_todo = [node for node in next_nodes_todo if node not in prunable_nodes]
+                    next_nodes_todo = [node for node in next_nodes_todo if node[0] not in prunable_nodes]
 
                 # ### 1.
                 if subgoal_distance_stack:
@@ -1957,17 +1961,13 @@ def bfs_beam_proof_search(lemma_statement: str,
                 # ### 3.
                 new_distance_stack += [0] * subgoals_opened
 
-                if completed_proof(coq):
-                    prediction_node.color = "green"
-                    start_node.draw_graph(graph_file)
-                    return SearchResult(SearchStatus.SUCCESS,
-                                        node_interactions(prediction_node)[1:])
-
                 next_nodes_todo.append((prediction_node, new_distance_stack,
                                         new_extra_depth))
 
                 for _ in range(num_stmts):
                     coq.cancel_last()
+                if subgoals_closed > 0:
+                    break
         next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
         while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
             next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
