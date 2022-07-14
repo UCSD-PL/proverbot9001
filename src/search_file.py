@@ -581,7 +581,7 @@ class Worker:
                              self.coq.sm_prefix,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             0, self.predictor)
+                             self.widx, self.predictor)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
