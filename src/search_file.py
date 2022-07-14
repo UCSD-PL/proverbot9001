@@ -496,6 +496,7 @@ class Worker:
                 if restart:
                     self.restart_coq()
                     self.reset_file_state()
+                    self.enter_file(job_file)
                     eprint(f"Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, restart=False)
@@ -595,6 +596,7 @@ class Worker:
             if restart:
                 self.restart_coq()
                 self.reset_file_state()
+                self.enter_file(job_file)
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
             else:
