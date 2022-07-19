@@ -253,7 +253,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--search-type", choices=['dfs', 'beam-bfs'], default='dfs')
-    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled"], default="certainty")
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const"], default="certainty")
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
@@ -1943,6 +1943,8 @@ def bfs_beam_proof_search(lemma_statement: str,
                         prediction_node.score = next_node.score * prediction.certainty
                     elif args.scoring_function == "pickled":
                         prediction_node.score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
+                    elif args.scoring_function == "const":
+                        prediction_node.score = 1.0
                     else:
                         assert args.scoring_function == "lstd"
                         prediction_node.score = state_estimator.estimateVal(
