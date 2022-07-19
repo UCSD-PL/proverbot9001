@@ -34,9 +34,11 @@ import traceback
 import subprocess
 import cProfile
 import copy
+import pickle
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
+from shutil import copyfile
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
@@ -53,14 +55,19 @@ import search_report
 import multi_project_report
 import util
 import tokenizer
-from dataclasses import dataclass
 
+from lemma_models import Lemma
+
+from dataclasses import dataclass
 from tqdm import tqdm
 from yattag import Doc
 from pathlib_revised import Path2
+from pathlib import Path
 from enum import Enum
 import pygraphviz as pgv
 import torch
+
+from value_estimator import Estimator
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
@@ -153,37 +160,37 @@ def main(arg_list: List[str]) -> None:
         util.cuda_device = f"cuda:{args.gpu}"
 
     predictor = get_predictor(parser, args)
-    base = Path2(os.path.dirname(os.path.abspath(__file__)))
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
-        args.output_dir.makedirs()
+        os.makedirs(str(args.output_dir))
     if args.splits_file:
         with args.splits_file.open('r') as splits_f:
             project_dicts = json.loads(splits_f.read())
         for project_dict in project_dicts:
-            (args.output_dir / project_dict["project_name"]).makedirs(exist_ok=True)
+            os.makedirs(args.output_dir / project_dict["project_name"], exist_ok=True)
             for filename in [details_css, details_javascript]:
                 destpath = args.output_dir / project_dict["project_name"] / filename
                 if not destpath.exists():
                     srcpath = base.parent / 'reports' / filename
-                    srcpath.copyfile(destpath)
+                    copyfile(srcpath, destpath)
     else:
         for filename in [details_css, details_javascript]:
             destpath = args.output_dir / filename
             if not destpath.exists():
                 srcpath = base.parent / 'reports' / filename
-                srcpath.copyfile(destpath)
+                copyfile(srcpath, destpath)
 
 
     search_file_multithreaded(args, predictor)
 
 
 def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
-    parser.add_argument("--prelude", default=".", type=Path2)
+    parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
                         default="search-report",
-                        type=Path2)
+                        type=Path)
     parser.add_argument("--no-generate-report", dest="generate_report",
                         action="store_false")
     parser.add_argument("--verbose", "-v", help="verbose output",
@@ -198,7 +205,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--weightsfile', default=None, type=Path2)
+    parser.add_argument('--weightsfile', default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -208,6 +215,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-width", type=int, default=5)
     parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument("--search-depth", type=int, default=6)
+    parser.add_argument("--beam-width", type=int, default=16)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=100)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
@@ -223,10 +231,10 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         type=float, default=300)
     parser.add_argument("--max-tactic-time", type=float, default=2)
     parser.add_argument("--linearize", action='store_true')
-    parser.add_argument("--proof-times", default=None, type=Path2)
+    parser.add_argument("--proof-times", default=None, type=Path)
     parser.add_argument('filenames', help="proof file name (*.v)",
-                        nargs='+', type=Path2)
-    parser.add_argument("--splits-file", default=None, type=Path2)
+                        nargs='+', type=Path)
+    parser.add_argument("--splits-file", default=None, type=Path)
     parser.add_argument("--use-hammer",
                         help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
@@ -243,16 +251,22 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
+    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs'], default='dfs')
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled"], default="certainty")
+    parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-    parser.add_argument("--log-anomalies", type=Path2, default=None)
-    parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
+    parser.add_argument("--log-anomalies", type=Path, default=None)
+    parser.add_argument("--log-hard-anomalies", type=Path, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
     parser.add_argument("--max-term-length", type=int, default=256)
-    parser.add_argument("--add-env-lemmas", type=Path2, default=None)
-    parser.add_argument("--add-axioms", type=Path2, default=None)
+    parser.add_argument("--add-env-lemmas", type=Path, default=None)
+    parser.add_argument("--add-axioms", type=Path, default=None)
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
+    parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
+    parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
+    parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -261,6 +275,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
         description="Produce an html report from attempting "
         "to complete proofs using Proverbot9001.")
     add_args_to_parser(parser)
+
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
         unknown_args = []
@@ -352,9 +367,10 @@ def search_file_worker_profiled(
         done:
         'multiprocessing.Queue['
         '  Tuple[Tuple[str, str, str], SearchResult]]',
-        worker_idx: int) -> None:
+        worker_idx: int,
+        device: str) -> None:
     cProfile.runctx('search_file_worker(args, predictor, '
-                    'predictor_lock, jobs, done, worker_idx)',
+                    'predictor_lock, jobs, done, worker_idx, device)',
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
 Job = Tuple[str, str, str]
@@ -445,7 +461,7 @@ class Worker:
         module_name = serapi_instance.get_module_from_filename(filename)
         self.coq.run_stmt(f"Module {module_name}.")
         self.remaining_commands = serapi_instance.load_commands_preserve(
-            self.args, 0, self.args.prelude / self.cur_project / filename)
+            self.args, 1, self.args.prelude / self.cur_project / filename)
 
     def run_into_job(self, job: ReportJob, restart: bool = True) -> None:
         assert self.coq
@@ -473,16 +489,19 @@ class Worker:
         while True:
             try:
                 if not self.coq.proof_context:
-                    rest_commands, run_commands = unwrap(self.coq.run_into_next_proof(
-                        self.remaining_commands))
+                    rest_commands, run_commands = unwrap(cast(Optional[Tuple[List[str], List[str]]],
+                                                              self.coq.run_into_next_proof(
+                            self.remaining_commands)))
                     assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except serapi_instance.CoqAnomaly:
                 if restart:
                     self.restart_coq()
                     self.reset_file_state()
+                    self.enter_file(job_file)
                     eprint(f"Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, restart=False)
+                    return
                 else:
                     assert False
             except serapi_instance.SerapiException:
@@ -555,7 +574,7 @@ class Worker:
         assert self.coq
         job_project, job_file, job_module, job_lemma = job
         self.run_into_job(job, restart=restart)
-        initial_context = unwrap(self.coq.proof_context)
+        initial_context: ProofContext = unwrap(self.coq.proof_context)
         empty_context = ProofContext([], [], [], [])
         try:
             search_status, tactic_solution = \
@@ -563,15 +582,10 @@ class Worker:
                              self.coq.sm_prefix,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             0, self.predictor)
+                             self.widx, self.predictor)
         except KilledException:
-            solution = [
-                TacticInteraction("Proof.", initial_context),
-                TacticInteraction("Admitted.", initial_context)
-                ]
-
-            return SearchResult(SearchStatus.INCOMPLETE,
-                                solution)
+            tactic_solution = None
+            search_status = SearchStatus.INCOMPLETE
         except serapi_instance.CoqAnomaly:
             if self.args.hardfail:
                 raise
@@ -583,6 +597,7 @@ class Worker:
             if restart:
                 self.restart_coq()
                 self.reset_file_state()
+                self.enter_file(job_file)
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
             else:
@@ -593,13 +608,9 @@ class Worker:
                             f"{job_file}:{job_lemma}",
                             file=f)
                         traceback.print_exc(file=f)
-                solution = [
-                    TacticInteraction("Proof.", initial_context),
-                    TacticInteraction("Admitted.", initial_context)
-                    ]
 
-                return SearchResult(SearchStatus.SKIPPED,
-                                    solution)
+                search_status = SearchStatus.SKIPPED
+                tactic_solution = None
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -666,7 +677,7 @@ def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
             project_dicts = json.loads(f.read())
     else:
         project_dicts = [{"project_name": ".",
-                          "test_files": args.filenames}]
+                          "test_files": [str(filename) for filename in args.filenames]}]
     return project_dicts
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
@@ -690,8 +701,8 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
             proofs_file = (args.output_dir / project_dict["project_name"] /
-                           (util.safe_abbrev(Path2(filename),
-                                             [Path2(filename) for filename in
+                           (util.safe_abbrev(Path(filename),
+                                             [Path(filename) for filename in
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
@@ -747,6 +758,8 @@ def search_file_multithreaded(args: argparse.Namespace,
         solved_jobs = get_already_done_jobs(args)
         all_jobs = get_all_jobs(args)
         todo_jobs = [job for job in all_jobs if job not in solved_jobs]
+        assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
+          f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
 
 
         for job in todo_jobs:
@@ -785,7 +798,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             worker.start()
         num_already_done = len(solved_jobs)
         with tqdm(total=len(todo_jobs) + num_already_done,
-                  dynamic_ncols=True) as bar:
+                  dynamic_ncols=True, desc="Searching proofs") as bar:
             bar.update(n=num_already_done)
             bar.refresh()
             for _ in range(len(todo_jobs)):
@@ -795,12 +808,12 @@ def search_file_multithreaded(args: argparse.Namespace,
                         project_dicts = json.loads(splits_f.read())
                     for project_dict in project_dicts:
                         if project_dict["project_name"] == done_project:
-                            filenames = project_dict["test_files"]
+                            filenames = [Path(fname) for fname in project_dict["test_files"]]
                             break
                 else:
                     filenames = args.filenames
                 proofs_file = (args.output_dir / done_project /
-                               (util.safe_abbrev(Path2(done_file),
+                               (util.safe_abbrev(Path(done_file),
                                                  filenames)
                                 + "-proofs.txt"))
                 with proofs_file.open('a') as f:
@@ -823,12 +836,12 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor) -> Non
             for filename in project_dict["test_files"]:
                 file_solutions = []
                 output_file_prefix = args.output_dir / project_dict["project_name"] / \
-                      (util.safe_abbrev(Path2(filename),
-                                        [Path2(path) for path in
+                      (util.safe_abbrev(Path(filename),
+                                        [Path(path) for path in
                                          project_dict["test_files"]]))
                 source_file = args.prelude / project_dict["project_name"] / filename
                 try:
-                    with (Path2(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
+                    with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
                         for line in f:
                             job, sol = json.loads(line)
                             file_solutions.append((job, SearchResult.from_dict(sol)))
@@ -1155,31 +1168,42 @@ def attempt_search(args: argparse.Namespace,
                           for lemma_name in f]
     else:
         env_lemmas = []
-    timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
-    timer.start()
+    if args.relevant_lemmas == "local":
+        relevant_lemmas = coq.local_lemmas[:-1]
+    elif args.relevant_lemmas == "hammer":
+        relevant_lemmas = coq.get_hammer_premises()
+    elif args.relevant_lemmas == "searchabout":
+        relevant_lemmas = coq.get_lemmas_about_head()
+    else:
+        assert False, args.relevant_lemmas
+
+    if args.max_search_time_per_lemma:
+        timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
+        timer.start()
     try:
-        result = dfs_proof_search_with_graph(lemma_statement, module_name,
-                                             env_lemmas, coq, output_dir,
-                                             args, bar_idx, predictor)
-    except:
-        raise KilledException("Lemma timeout")
+        if args.search_type == 'dfs':
+            result = dfs_proof_search_with_graph(lemma_statement, module_name,
+                                                 env_lemmas + relevant_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor)
+        elif args.search_type == 'beam-bfs':
+            result = bfs_beam_proof_search(lemma_statement, module_name,
+                                           env_lemmas + relevant_lemmas, coq,
+                                           args, bar_idx, predictor)
+        else:
+            assert False, args.search_type
+    except KeyboardInterrupt:
+        if args.max_search_time_per_lemma:
+            raise KilledException("Lemma timeout")
+        else:
+            raise
     finally:
-        timer.cancel()
+        if args.max_search_time_per_lemma:
+            timer.cancel()
     return result
 
 
 T = TypeVar('T')
-
-
-def emap_lookup(emap: Dict[T, int], size: int, item: T):
-    if item in emap:
-        return emap[item]
-    elif len(emap) < size - 1:
-        emap[item] = len(emap) + 1
-        return emap[item]
-    else:
-        return 0
-
 
 class FeaturesExtractor:
     tactic_map: Dict[str, int]
@@ -1187,24 +1211,28 @@ class FeaturesExtractor:
     _num_tactics: int
     _num_tokens: int
 
-    def __init__(self) -> None:
-        self._num_tactics = 32
-        self._num_tokens = 32
+    def __init__(self, tacticsfile: str, tokensfile: str) -> None:
         self.tactic_map = {}
         self.token_map = {}
+        with open(tacticsfile, 'r') as f:
+            for idx, line in enumerate(f, start=2):
+                self.tactic_map[line.strip()] = idx
+        with open(tokensfile, 'r') as f:
+            for idx, line in enumerate(f, start=2):
+                self.token_map[line.strip()] = idx
+        self._num_tactics = len(self.tactic_map)
+        self._num_tokens = len(self.token_map)
 
     def state_features(self, context: TacticContext) -> \
             Tuple[List[int], List[float]]:
         if len(context.prev_tactics) > 1:
             prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
-            prev_tactic_index = emap_lookup(self.tactic_map, self._num_tactics,
-                                            prev_tactic)
+            prev_tactic_index = self.tactic_map.get(prev_tactic, 1)
         else:
             prev_tactic_index = 0
 
         if context.goal != "":
-            goal_head_index = emap_lookup(self.token_map, self._num_tokens,
-                                          tokenizer.get_words(context.goal)[0])
+            goal_head_index = self.token_map.get(tokenizer.get_words(context.goal)[0], 1)
         else:
             goal_head_index = 0
 
@@ -1221,7 +1249,7 @@ class FeaturesExtractor:
                         action: str, certainty: float) \
             -> Tuple[List[int], List[float]]:
         stem, argument = serapi_instance.split_tactic(action)
-        stem_idx = emap_lookup(self.tactic_map, self._num_tactics, stem)
+        stem_idx = self.tactic_map.get(stem, 1)
         all_premises = context.hypotheses + context.relevant_lemmas
         stripped_arg = argument.strip(".").strip()
         if stripped_arg == "":
@@ -1232,13 +1260,12 @@ class FeaturesExtractor:
             if stripped_arg in index_hyp_vars:
                 hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]
                                                  ].partition(":")
-                arg_idx = emap_lookup(self.token_map, self._num_tokens,
-                                      tokenizer.get_words(rest)[0]) + 2
+                arg_idx = self.token_map.get(tokenizer.get_words(rest)[0], 1) + 2
             else:
                 goal_symbols = tokenizer.get_symbols(context.goal)
                 if stripped_arg in goal_symbols:
-                    arg_idx = emap_lookup(self.token_map, self._num_tokens,
-                                          stripped_arg) + self._num_tokens + 2
+                    arg_idx = self.token_map.get(stripped_arg, 1) \
+                                         + self._num_tokens + 2
                 else:
                     arg_idx = 1
         return [stem_idx, arg_idx], [certainty]
@@ -1264,7 +1291,7 @@ class SearchGraph:
     feature_extractor: FeaturesExtractor
     start_node: LabeledNode
 
-    def __init__(self, lemma_name: str) -> None:
+    def __init__(self, tactics_file: Path2, tokens_file: Path2, lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
@@ -1272,16 +1299,25 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor()
+        self.feature_extractor = FeaturesExtractor(str(tactics_file),
+                                                   str(tokens_file))
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
+
+        tooltip = ""
+        for hyp in context_before.obligations.focused_hyps:
+            tooltip += hyp[:64] + "&#10;"
+        tooltip += "-" * 64 + "&#10;"
+        tooltip += context_before.obligations.focused_goal[:64]
+
         self.__graph.add_node(self.__next_node_id,
                               label="{}\n({:.2f})".format(
                                   prediction.prediction,
                                   prediction.certainty),
+                              tooltip=tooltip,
                               **kwargs)
         self.__next_node_id += 1
         newNode = LabeledNode(prediction.prediction, prediction.certainty,
@@ -1311,8 +1347,11 @@ class SearchGraph:
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
-        node_handle.attr["fillcolor"] = color
-        node_handle.attr["style"] = "filled"
+        if node_handle.attr["fillcolor"] != None and node_handle.attr["fillcolor"] != "":
+            node_handle.attr["fillcolor"] += (":" + color)
+        else:
+            node_handle.attr["fillcolor"] = color
+            node_handle.attr["style"] = "filled"
 
     def draw(self, filename: str) -> None:
         with nostderr():
@@ -1343,12 +1382,13 @@ class SearchGraph:
             f.write("\n")
             for child in node.children:
                 write_node(child, f)
-        with Path2(filename).open('w') as f:
+        with Path(filename).open('w') as f:
             json.dump({"state_features_max_values":
                        self.feature_extractor.state_features_bounds(),
                        "action_features_max_values":
                        self.feature_extractor.action_features_bounds()},
                       f)
+            f.write("\n")
             write_node(self.start_node, f)
 
 
@@ -1381,11 +1421,11 @@ def time_on_path(node: LabeledNode) -> float:
 def tryPrediction(args: argparse.Namespace,
                   coq: serapi_instance.SerapiInstance,
                   prediction: str,
-                  previousNode: LabeledNode) \
+                  previousTime: float) \
                   -> Tuple[ProofContext, int, int, int,
                            Optional[Exception], float, bool]:
     coq.quiet = True
-    time_left = max(args.max_proof_time - time_on_path(previousNode), 0)
+    time_left = max(args.max_proof_time - previousTime, 0)
     start_time = time.time()
     time_per_command = (coq.hammer_timeout + args.max_tactic_time
                         if coq.use_hammer else args.max_tactic_time)
@@ -1460,7 +1500,7 @@ class TqdmSpy(tqdm):
 
 def dfs_proof_search_with_graph(lemma_statement: str,
                                 module_name: Optional[str],
-                                extra_env_lemmas: List[str],
+                                relevant_lemmas: List[str],
                                 coq: serapi_instance.SerapiInstance,
                                 output_dir: Path2,
                                 args: argparse.Namespace,
@@ -1470,16 +1510,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
     global unnamed_goal_number
     unnamed_goal_number = 0
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-    g = SearchGraph(lemma_name)
-
-    if args.relevant_lemmas == "local":
-        relevant_lemmas = coq.local_lemmas[:-1] + extra_env_lemmas
-    elif args.relevant_lemmas == "hammer":
-        relevant_lemmas = coq.get_hammer_premises() + extra_env_lemmas
-    elif args.relevant_lemmas == "searchabout":
-        relevant_lemmas = coq.get_lemmas_about_head() + extra_env_lemmas
-    else:
-        assert False, args.relevant_lemmas
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
@@ -1516,7 +1547,7 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                     subgoals_closed, subgoals_opened, \
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
-                                  current_path[-1])
+                                  time_on_path(current_path[-1]))
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
@@ -1627,12 +1658,18 @@ def dfs_proof_search_with_graph(lemma_statement: str,
     desc_name = lemma_name
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
+
     with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
                  desc=desc_name, disable=(not args.progress),
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        command_list, _ = search(pbar, [g.start_node], [], 0)
+        command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
         pbar.clear()
     if module_name:
         module_prefix = escape_lemma_name(module_name)
@@ -1660,6 +1697,306 @@ def completed_proof(coq: serapi_instance.SerapiInstance) -> bool:
             coq.tactic_history.curDepth() == 0
     else:
         return False
+
+
+@dataclass
+class BFSNode:
+    prediction: Prediction
+    postfix: List[str]
+    score: float
+    time_taken: float
+    context_before: FullContext
+    previous: Optional["BFSNode"]
+    children: List["BFSNode"]
+    color: Optional[str]
+
+    def __init__(self, prediction: Prediction, score: float, time_taken: float,
+                 postfix: List[str], context_before: FullContext, previous: Optional["BFSNode"],
+                 color: Optional[str] = None) -> None:
+        self.prediction = prediction
+        self.score = score
+        self.time_taken = time_taken
+        self.postfix = postfix
+        self.context_before = context_before
+        self.previous = previous
+        self.children = []
+        if self.previous:
+            self.previous.children.append(self)
+        self.color = color
+        pass
+
+    def draw_graph(self, path: str) -> None:
+        graph = pgv.AGraph(directed=True)
+        next_node_id = 0
+        def add_subgraph(root: "BFSNode") -> int:
+            nonlocal graph
+            nonlocal next_node_id
+            label=f"{root.prediction.prediction}\n{root.score:.2e}"
+            if root.color:
+                fillcolor = root.color
+                style="filled"
+            else:
+                fillcolor = "lightgrey"
+                style=""
+
+            tooltip = ""
+            for hyp in root.context_before.obligations.focused_hyps:
+                tooltip += hyp[:64] + "&#10;"
+            tooltip += "-" * 64 + "&#10;"
+            tooltip += root.context_before.obligations.focused_goal[:64]
+
+
+            graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
+                           tooltip=tooltip)
+
+            root_node_id = next_node_id
+            next_node_id += 1
+            for child in root.children:
+                child_id = add_subgraph(child)
+                graph.add_edge(root_node_id, child_id)
+            return root_node_id
+        add_subgraph(self)
+        with nostderr():
+            graph.draw(path, prog="dot")
+
+    def pp(self) -> str:
+        if not self.previous:
+            return f" -> {self.prediction.prediction}"
+        else:
+            return f"{self.previous.prediction.prediction} => {self.prediction.prediction}"
+
+
+def node_commands(node: BFSNode) -> List[str]:
+    return [node.prediction.prediction for node in
+            node_path(node)]
+
+
+def node_interactions(node: BFSNode) -> List[TacticInteraction]:
+    return [TacticInteraction(n.prediction.prediction,
+                              n.context_before.obligations)
+            for n in node_path(node)]
+
+
+def node_total_time(node: BFSNode) -> float:
+    return sum(node.time_taken for node in
+               node_path(node))
+
+
+def node_path(node: BFSNode) -> List[BFSNode]:
+    if node.previous is None:
+        return [node]
+    else:
+        return node_path(node.previous) + [node]
+
+
+def contextInHistory(full_context: ProofContext, node: BFSNode):
+    return any([serapi_instance.contextSurjective(full_context,
+                                                  n.context_before.obligations)
+                for n in node_path(node)[1:]])
+
+def get_leaf_descendents(node: BFSNode) -> List[BFSNode]:
+    if len(node.children) == 0:
+        return [node]
+    return [node for nodelist in [get_leaf_descendents(node) for node in node.children]
+            for node in nodelist]
+
+def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
+    num_closes = len([cmd for cmd in node.postfix if cmd == "}"])
+    if num_closes == 0:
+        return []
+    num_opens = len([cmd for cmd in node.postfix if cmd == "{"])
+    significant_parent = node
+    while num_opens < num_closes and significant_parent.previous is not None:
+        num_opens += len([cmd for cmd in significant_parent.previous.postfix if cmd == "{"])
+        num_closes += len([cmd for cmd in significant_parent.previous.postfix if cmd == "}"])
+        significant_parent = significant_parent.previous
+
+    return [leaf for leaf in get_leaf_descendents(significant_parent) if leaf != node]
+
+def bfs_beam_proof_search(lemma_statement: str,
+                          module_name: Optional[str],
+                          relevant_lemmas: List[str],
+                          coq: serapi_instance.SerapiInstance,
+                          args: argparse.Namespace,
+                          bar_idx: int,
+                          predictor: TacticPredictor) \
+                          -> SearchResult:
+    global unnamed_goal_number
+    unnamed_goal_number = 0
+    hasUnexploredNode = False
+    if module_name:
+        module_prefix = escape_lemma_name(module_name)
+    else:
+        module_prefix = ""
+    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+    if lemma_name == "":
+        unnamed_goal_number += 1
+        graph_file = f"{args.output_dir}/{module_prefix}"\
+                     f"{unnamed_goal_number}.svg"
+    else:
+        graph_file = f"{args.output_dir}/{module_prefix}"\
+                     f"{lemma_name}.svg"
+
+    features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
+    if args.scoring_function == "lstd":
+        state_estimator = Estimator(args.beta_file)
+    elif args.scoring_function == "pickled":
+        with args.pickled_estimator.open('rb') as f:
+            john_model = pickle.load(f)
+
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
+    initial_history_len = len(coq.tactic_history.getFullHistory())
+    start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
+                         FullContext([], [],
+                                     ProofContext([], [], [], [])), None)
+    nodes_todo: List[Tuple[BFSNode, List[int], int]] = \
+        [(start_node, subgoals_stack_start, 0)]
+
+    total_nodes = numNodesInTree(args.search_width,
+                                 args.search_depth + 2) - 1
+    with tqdm(total=total_nodes, unit="pred", file=sys.stdout,
+              desc=lemma_name, disable=(not args.progress),
+              leave=False,
+              position=bar_idx + 1,
+              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
+        while len(nodes_todo) > 0:
+            next_nodes_todo: List[Tuple[BFSNode, List[int], int]] = []
+            while len(nodes_todo) > 0:
+                next_node, subgoal_distance_stack, extra_depth = nodes_todo.pop()
+                pbar.update()
+                next_node_history = [item for replay_node in node_path(next_node)[1:]
+                                     for item in [replay_node.prediction.prediction] + replay_node.postfix]
+                cur_node_history = coq.tactic_history.getFullHistory()[initial_history_len:]
+                # Get the number of commands common to the beginning of the current
+                # history and the history of the next node
+                common_prefix_len = 0
+                for item1, item2, in zip(next_node_history, cur_node_history):
+                    if item1 != item2:
+                        break
+                    common_prefix_len += 1
+                # Return to the place where the current history and the history of
+                # the next node diverged.
+                while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
+                    coq.cancel_last()
+                # Run the next nodes history from that point.
+                for cmd in next_node_history[common_prefix_len:]:
+                    coq.run_stmt(cmd)
+
+                full_context_before = FullContext(relevant_lemmas,
+                                                  coq.prev_tactics,
+                                                  unwrap(coq.proof_context))
+                num_successful_predictions = 0
+                predictions = predictor.predictKTactics(
+                    truncate_tactic_context(full_context_before.as_tcontext(),
+                                            args.max_term_length),
+                            args.max_attempts)
+                for prediction in predictions:
+                    if num_successful_predictions >= args.search_width:
+                        break
+                    context_after, num_stmts, \
+                        subgoals_closed, subgoals_opened, \
+                        error, time_taken, unshelved = \
+                        tryPrediction(args, coq, prediction.prediction,
+                                      node_total_time(next_node))
+
+                    postfix = []
+                    if unshelved:
+                        postfix.append("Unshelve.")
+                    postfix += ["}"] * subgoals_closed
+                    postfix += ["{"] * subgoals_opened
+
+
+                    prediction_node = BFSNode(
+                        prediction,
+                        0,
+                        time_taken, postfix, full_context_before, next_node)
+                    if error:
+                        if args.count_failing_predictions:
+                            num_successful_predictions += 1
+                        prediction_node.color = "red"
+                        continue
+                    if contextIsBig(context_after) or \
+                            contextInHistory(context_after, prediction_node):
+                        if args.count_softfail_predictions:
+                            num_successful_predictions += 1
+                        eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                        prediction_node.color = "orange"
+                        for _ in range(num_stmts):
+                            coq.cancel_last()
+                        continue
+                    if completed_proof(coq):
+                        prediction_node.color = "green"
+                        start_node.draw_graph(graph_file)
+                        return SearchResult(SearchStatus.SUCCESS,
+                                            node_interactions(prediction_node)[1:])
+
+                    if args.scoring_function == "certainty":
+                        prediction_node.score = next_node.score * prediction.certainty
+                    elif args.scoring_function == "pickled":
+                        prediction_node.score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
+                    else:
+                        assert args.scoring_function == "lstd"
+                        prediction_node.score = state_estimator.estimateVal(
+                                          features_extractor.state_features(
+                                              TacticContext(full_context_before.relevant_lemmas,
+                                                            full_context_before.prev_tactics,
+                                                            context_after.focused_hyps,
+                                                            context_after.focused_goal)))
+
+                    num_successful_predictions += 1
+
+                    if subgoals_closed > 0:
+                        prediction_node.color = "blue"
+                        # Prune unexplored nodes from the tree that are trying to
+                        # solve the subgoal(s) we just solved.
+                        prunable_nodes = get_prunable_nodes(prediction_node)
+                        # Prune them from nodes_todo, which are nodes at the
+                        # current level which we haven't explored yet.
+                        nodes_todo = [node for node in nodes_todo if node[0] not in prunable_nodes]
+                        # Prune them from next_nodes_todo, which are new children
+                        # of nodes at the current level which we already explored.
+                        next_nodes_todo = [node for node in next_nodes_todo if node[0] not in prunable_nodes]
+
+                    # ### 1.
+                    if subgoal_distance_stack:
+                        new_distance_stack = (subgoal_distance_stack[:-1] +
+                                              [subgoal_distance_stack[-1]+1])
+                    else:
+                        new_distance_stack = []
+
+                    # ### 2.
+                    new_extra_depth = extra_depth
+                    for _ in range(subgoals_closed):
+                        closed_goal_distance = new_distance_stack.pop()
+                        new_extra_depth += closed_goal_distance
+
+                    # ### 3.
+                    new_distance_stack += [0] * subgoals_opened
+
+                    next_nodes_todo.append((prediction_node, new_distance_stack,
+                                            new_extra_depth))
+
+                    for _ in range(num_stmts):
+                        coq.cancel_last()
+                    if subgoals_closed > 0:
+                        break
+            next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
+            while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
+                next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
+                if len(node_path(next_node)) <= args.search_depth + extra_depth:
+                    nodes_todo.append((next_node, subgoal_distance_stack, extra_depth))
+                else:
+                    hasUnexploredNode = True
+
+    start_node.draw_graph(graph_file)
+    if hasUnexploredNode:
+        return SearchResult(SearchStatus.INCOMPLETE, None)
+    else:
+        return SearchResult(SearchStatus.FAILURE, None)
 
 
 if __name__ == "__main__":

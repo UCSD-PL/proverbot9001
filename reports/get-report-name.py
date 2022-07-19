@@ -30,7 +30,7 @@ def get_line(command):
     return (check_output(command, shell=True).decode('utf-8').strip())
 
 def get_report_name(report_dir):
-    with open(report_dir + "/report.html") as f:
+    with open(report_dir + "/index.html") as f:
         contents = f.read()
         datestring = re.search(r"Run on (\d+-\d+-\d+ \d+:\d+:\d+.\d+)", contents).group(1)
         date = datetime.strptime(datestring, "%Y-%m-%d %H:%M:%S.%f")
