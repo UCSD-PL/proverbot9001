@@ -27,8 +27,9 @@ import sys
 import json
 import subprocess
 import signal
+import shutil
 from tqdm import tqdm
-from pathlib_revised import Path2
+from pathlib import Path
 
 from typing import List, NamedTuple
 
@@ -47,8 +48,8 @@ def main(arg_list: List[str]) -> None:
 
     add_args_to_parser(arg_parser)
     arg_parser.add_argument("--num-workers", default=32, type=int)
-    arg_parser.add_argument("--workers-output-dir", default=Path2("output"),
-                            type=Path2)
+    arg_parser.add_argument("--workers-output-dir", default=Path("output"),
+                            type=Path)
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
@@ -60,26 +61,25 @@ def main(arg_list: List[str]) -> None:
         args.splits_file = args.filenames[0]
         args.filenames = []
     predictor = get_predictor(arg_parser, args)
-    base = Path2(os.path.dirname(os.path.abspath(__file__)))
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
 
-    if not args.output_dir.exists():
-        args.output_dir.makedirs()
+    os.makedirs(str(args.output_dir), exist_ok=True)
     if args.splits_file:
         with args.splits_file.open('r') as splits_f:
             project_dicts = json.loads(splits_f.read())
         for project_dict in project_dicts:
-            (args.output_dir / project_dict["project_name"]).makedirs(exist_ok=True)
+            os.makedirs(str(args.output_dir / project_dict["project_name"]), exist_ok=True)
             for filename in [details_css, details_javascript]:
                 destpath = args.output_dir / project_dict["project_name"] / filename
                 if not destpath.exists():
                     srcpath = base.parent / 'reports' / filename
-                    srcpath.copyfile(destpath)
+                    shutil.copyfile(srcpath, destpath)
     else:
         for filename in [details_css, details_javascript]:
             destpath = args.output_dir / filename
             if not destpath.exists():
                 srcpath = base.parent / 'reports' / filename
-                srcpath.copyfile(destpath)
+                shutil.copyfile(srcpath, destpath)
 
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
@@ -143,7 +143,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
             time.sleep(0.2)
 
 
-def setup_jobsstate(output_dir: Path2, all_jobs: List[ReportJob],
+def setup_jobsstate(output_dir: Path, all_jobs: List[ReportJob],
                     solved_jobs: List[ReportJob]) -> None:
     with (output_dir / "taken.txt").open("w") as f:
         pass

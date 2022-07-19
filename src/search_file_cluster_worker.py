@@ -30,7 +30,7 @@ import re
 from os import environ
 from typing import List, Optional
 
-from pathlib_revised import Path2
+from pathlib import Path
 import torch
 
 from search_file import (add_args_to_parser, get_predictor, Worker)
@@ -46,8 +46,8 @@ def main(arg_list: List[str]) -> None:
 
     add_args_to_parser(arg_parser)
     arg_parser.add_argument("--num-workers", default=32, type=int)
-    arg_parser.add_argument("--workers-output-dir", default=Path2("output"),
-                            type=Path2)
+    arg_parser.add_argument("--workers-output-dir", default=Path("output"),
+                            type=Path)
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
@@ -110,7 +110,7 @@ def run_worker(args: argparse.Namespace, workerid: int,
             solution = worker.run_job(current_job)
             job_project, job_file, _, _ = current_job
             with (args.output_dir / job_project /
-                  (util.safe_abbrev(Path2(job_file), args.filenames) + "-proofs.txt")
+                  (util.safe_abbrev(Path(job_file), args.filenames) + "-proofs.txt")
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
                 print(json.dumps((current_job, solution.to_dict())), file=f)

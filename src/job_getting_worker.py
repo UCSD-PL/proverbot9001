@@ -4,7 +4,7 @@ import json
 import sys
 import multiprocessing
 
-from pathlib_revised import Path2
+from pathlib import Path
 
 from search_file import get_file_jobs
 from util import FileLock
@@ -13,20 +13,20 @@ from typing import List, cast, Tuple
 
 def main(arg_list: List[str]) -> None:
     arg_parser = argparse.ArgumentParser()
-    arg_parser.add_argument("--prelude", default=".", type=Path2)
+    arg_parser.add_argument("--prelude", default=".", type=Path)
     arg_parser.add_argument("--output", "-o", dest="output_dir",
                             help="output data folder name",
                             default="search-report",
-                            type=Path2)
+                            type=Path)
     arg_parser.add_argument("--include-proof-relevant", action="store_true")
     arg_parser.add_argument("-j", "--num-threads", type=int, default=5)
     proofsGroup = arg_parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-    arg_parser.add_argument("proj_files_file", type=Path2)
-    arg_parser.add_argument("proj_files_taken_file", type=Path2)
-    arg_parser.add_argument("proj_files_scanned_file", type=Path2)
-    arg_parser.add_argument("jobs_file", type=Path2)
+    arg_parser.add_argument("proj_files_file", type=Path)
+    arg_parser.add_argument("proj_files_taken_file", type=Path)
+    arg_parser.add_argument("proj_files_scanned_file", type=Path)
+    arg_parser.add_argument("jobs_file", type=Path)
     args = arg_parser.parse_args()
 
     workers = [multiprocessing.Process(target=run_worker,
