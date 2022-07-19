@@ -81,6 +81,7 @@ class SearchStatus(str, Enum):
     INCOMPLETE = 'INCOMPLETE'
     SKIPPED = 'SKIPPED'
     FAILURE = 'FAILURE'
+    CRASHED = 'CRASHED'
 
 
 class VernacBlock(NamedTuple):
@@ -609,7 +610,7 @@ class Worker:
                             file=f)
                         traceback.print_exc(file=f)
 
-                search_status = SearchStatus.SKIPPED
+                search_status = SearchStatus.CRASHED
                 tactic_solution = None
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
@@ -1119,8 +1120,12 @@ def classFromSearchStatus(status: SearchStatus) -> str:
         return 'okay'
     elif status == SearchStatus.SKIPPED:
         return 'skipped'
-    else:
+    elif status == SearchStatus.FAILURE:
         return 'bad'
+    elif status == SearchStatus.CRASHED:
+        return 'bad'
+    else:
+        assert False
 
 
 def try_run_prelude(args: argparse.Namespace, coq: SerapiInstance):
