@@ -666,7 +666,7 @@ def search_file_worker(args: argparse.Namespace,
                 next_job = jobs.get_nowait()
             except queue.Empty:
                 return
-            solution = worker.run_job(next_job)
+            solution = worker.run_job(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
 
 def recover_sol(sol: Dict[str, Any]) -> SearchResult:
