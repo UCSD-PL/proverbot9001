@@ -118,6 +118,6 @@ with tag('html'):
                     else:
                         assert os.path.exists(f + "/report.html")
                         with tag('td', klass="link"):
-                            line('a', 'link', href=(f + "report.html"))
+                            line('a', 'link', href=(f + "/report.html"))
 with open('index.html', 'w') as index_file:
     index_file.write(doc.getvalue())
