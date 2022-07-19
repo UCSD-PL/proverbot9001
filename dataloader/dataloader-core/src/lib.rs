@@ -259,6 +259,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         let num_indices = indexer.num_indices();
         (fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)), num_indices)
     }
+    #[pyfn(m, "get_all_tactics")]
+    fn get_all_tactics(_py: Python, metadata: PickleableFPAMetadata) -> Vec<String> {
+	let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
+	indexer.get_all_tactics()
+    }
     #[pyfn(m, "get_word_feature_vocab_sizes")]
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
         let (_indexer, _tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
