@@ -101,6 +101,8 @@ def main(arg_list: List[str]) -> None:
     generate_report(args, predictor)
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
+    if (args.output_dir / "all_jobs.txt").exists():
+        return
     project_dicts = project_dicts_from_args(args)
     projfiles = [(project_dict["project_name"], filename)
                  for project_dict in project_dicts
