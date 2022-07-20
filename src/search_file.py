@@ -220,6 +220,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--beam-width", type=int, default=16)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=100)
+    parser.add_argument("--max-subgoals", type=int, default=16)
     parser.add_argument("--no-resume", dest="resume", action='store_false')
     parser.add_argument("--overwrite-mismatch", dest="overwrite_mismatch",
                         action='store_true')
@@ -1930,6 +1931,13 @@ def bfs_beam_proof_search(lemma_statement: str,
                         if args.count_softfail_predictions:
                             num_successful_predictions += 1
                         eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                        prediction_node.color = "orange"
+                        for _ in range(num_stmts):
+                            coq.cancel_last()
+                        continue
+                    if len(coq.proof_context.all_goals) > args.max_subgoals:
+                        if args.count_softfail_predictions:
+                            num_successful_predictions += 1
                         prediction_node.color = "orange"
                         for _ in range(num_stmts):
                             coq.cancel_last()
