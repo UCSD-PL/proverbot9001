@@ -56,7 +56,8 @@ import multi_project_report
 import util
 import tokenizer
 
-from lemma_models import Lemma
+if sys.version_info >= (3, 10):
+    from lemma_models import Lemma
 
 from dataclasses import dataclass
 from tqdm import tqdm
@@ -1942,6 +1943,7 @@ def bfs_beam_proof_search(lemma_statement: str,
                     if args.scoring_function == "certainty":
                         prediction_node.score = next_node.score * prediction.certainty
                     elif args.scoring_function == "pickled":
+                        assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                         prediction_node.score = -float(john_model.predict(Lemma("", coq.get_sexp_goal())))
                     elif args.scoring_function == "const":
                         prediction_node.score = 1.0
