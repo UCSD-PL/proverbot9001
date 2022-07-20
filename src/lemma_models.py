@@ -61,9 +61,11 @@ class NaiveMeanLearner(ILearner):
 
 class LinRegressionLearner(ILearner):
 
+  _model : LinearRegression
+
   def __init__(self) -> None:
     super().__init__()
-    self._model : LinearRegression = LinearRegression()
+    self._model = LinearRegression()
 
   def learn(self, lemmas):
     lems, ys = zip(*lemmas)
@@ -80,6 +82,7 @@ class LinRegressionLearner(ILearner):
 
 
 class SVRLength(ILearner):
+
 
   def __init__(self) -> None:
     super().__init__()
@@ -100,8 +103,6 @@ class SVRLength(ILearner):
 
 class SVRIdent(ILearner):
 
-  _model : Any
-
   def __init__(self) -> None:
     super().__init__()
     self._model : Any = make_pipeline(StandardScaler(), SVR(C=1.0, epsilon=0.2))
@@ -120,8 +121,6 @@ class SVRIdent(ILearner):
     return "SVR idents"
 
 class SVRIdentLength(ILearner):
-
-  _model : Any
 
   def __init__(self) -> None:
     super().__init__()
@@ -146,7 +145,7 @@ def ranges(N: int):
 def find_quantile(buckets: list[float], x: float):
   for i, buck in enumerate(buckets):
     if x <= buck: return i-1
-  return len(buckets) - 1
+  return i-1
 
 def make_ident_vector(lem: Lemma, idxs: dict[str, int]) -> list[float]:
   idents = {x for x in lemma_idents(lem)}
@@ -263,14 +262,15 @@ def strip_toplevel(e: Sexpr) -> Optional[Sexpr]:
     case _ :
       return None
 
-def gather_idents(e: Sexpr) -> set[Sexpr]:
+def gather_idents(e: Sexpr) -> set[str]:
   match e:
     case [name, *args]:
       if name == Symbol("Ind"):
         return gather_idents(args[0][0][0])
       elif name == Symbol("Prod"):
         match e:
-          case [_, _, typ, bod]: return gather_idents(typ) | gather_idents(bod)
+          case [_, nme_binding, typ, bod]:
+            return gather_idents(nme_binding[0]) | gather_idents(typ) | gather_idents(bod)
           case _ : raise UnhandledExpr(e)
       elif name == Symbol("Const"):
         match e:
@@ -283,12 +283,35 @@ def gather_idents(e: Sexpr) -> set[Sexpr]:
         for inner in es:
           res |= gather_idents(inner)
         return res
+      elif name == Symbol('binder_name'): 
+        # [Symbol('binder_name'), [Symbol('Name'), [Symbol('Id'), Symbol('notin')]]]
+        if args == [Symbol('Anonymous')]:
+            return set()
+        inner = conv_id(args[0][1])
+        if inner:
+          return {inner}
+        else:
+          return set()
       elif name == Symbol("LetIn"):
         # let arg0 : arg1 = arg2 in arg3
         return gather_idents(args[1]) | gather_idents(args[2]) | gather_idents(args[3])
       elif name == Symbol("Lambda"):
         # \ arg0 : arg1 . arg2
-        return gather_idents(args[1]) | gather_idents(args[2])
+        return gather_idents(args[0][0]) | gather_idents(args[1]) | gather_idents(args[2])
+      elif name == Symbol("Fix"):
+        ret = set()
+        # fixpoints are complicated, see https://coq.github.io/doc/master/api/coq-core/Constr/index.html for the structure
+        _, inner = args[0]
+        print("args:", args)
+        print("inner:", inner)
+        binders, types, bodies = inner
+        for nme, _ in binders:
+          ret |= gather_idents(nme)
+        for type in types:
+          ret |= gather_idents(type)
+        for body in bodies:
+          ret |= gather_idents(body)
+        return ret
       elif name == Symbol("Rel") or name == Symbol("Var") or name == Symbol("Sort") or name == Symbol("MPbound"):
         return set()
       elif name == Symbol("Construct"):
@@ -314,6 +337,8 @@ def gather_idents(e: Sexpr) -> set[Sexpr]:
         else:
           return set()
 
+      elif name == Symbol('Evar'):
+          return set()
       else:
         print("unrecognized symbol", name)
         raise UnhandledExpr(e)
