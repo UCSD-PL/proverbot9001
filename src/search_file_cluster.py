@@ -97,7 +97,7 @@ def main(arg_list: List[str]) -> None:
         with util.sighandler_context(signal.SIGINT, cancel_workers):
             show_progress(args)
     else:
-        assert len(solved_jobs) == len(jobs)
+        assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
     generate_report(args, predictor)
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
