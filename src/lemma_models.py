@@ -302,8 +302,6 @@ def gather_idents(e: Sexpr) -> set[str]:
         ret = set()
         # fixpoints are complicated, see https://coq.github.io/doc/master/api/coq-core/Constr/index.html for the structure
         _, inner = args[0]
-        print("args:", args)
-        print("inner:", inner)
         binders, types, bodies = inner
         for nme, _ in binders:
           ret |= gather_idents(nme)
