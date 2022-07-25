@@ -1767,34 +1767,29 @@ class BFSNode:
         else:
             return f"{self.previous.prediction.prediction} => {self.prediction.prediction}"
 
+    def commands(self) -> List[str]:
+        return [node.prediction.prediction for node in
+                self.path()]
+    def interactions(self) -> List[TacticInteraction]:
+        return [TacticInteraction(n.prediction.prediction,
+                                  n.context_before.obligations)
+                for n in self.path()]
+    def total_time(self) -> float:
+        return sum(node.time_taken for node in
+                   self.path())
 
-def node_commands(node: BFSNode) -> List[str]:
-    return [node.prediction.prediction for node in
-            node_path(node)]
+    def path(self) -> List[BFSNode]:
+        if self.previous is None:
+            return [self]
+        else:
+            return self.previous.path() + [self]
 
-
-def node_interactions(node: BFSNode) -> List[TacticInteraction]:
-    return [TacticInteraction(n.prediction.prediction,
-                              n.context_before.obligations)
-            for n in node_path(node)]
-
-
-def node_total_time(node: BFSNode) -> float:
-    return sum(node.time_taken for node in
-               node_path(node))
-
-
-def node_path(node: BFSNode) -> List[BFSNode]:
-    if node.previous is None:
-        return [node]
-    else:
-        return node_path(node.previous) + [node]
 
 
 def contextInHistory(full_context: ProofContext, node: BFSNode):
     return any([serapi_instance.contextSurjective(full_context,
                                                   n.context_before.obligations)
-                for n in node_path(node)[1:]])
+                for n in node.path()[1:]])
 
 def get_leaf_descendents(node: BFSNode) -> List[BFSNode]:
     if len(node.children) == 0:
@@ -1859,7 +1854,7 @@ def bfs_beam_proof_search(lemma_name: str,
             while len(nodes_todo) > 0:
                 next_node, subgoal_distance_stack, extra_depth = nodes_todo.pop()
                 pbar.update()
-                next_node_history = [item for replay_node in node_path(next_node)[1:]
+                next_node_history = [item for replay_node in next_node.path()[1:]
                                      for item in [replay_node.prediction.prediction] + replay_node.postfix]
                 cur_node_history = coq.tactic_history.getFullHistory()[initial_history_len:]
                 # Get the number of commands common to the beginning of the current
@@ -1892,7 +1887,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         subgoals_closed, subgoals_opened, \
                         error, time_taken, unshelved = \
                         tryPrediction(args, coq, prediction.prediction,
-                                      node_total_time(next_node))
+                                      next_node.total_time())
 
                     postfix = []
                     if unshelved:
@@ -1930,7 +1925,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         prediction_node.color = "green"
                         start_node.draw_graph(graph_file)
                         return SearchResult(SearchStatus.SUCCESS,
-                                            node_interactions(prediction_node)[1:])
+                                            prediction_node.interactions()[1:])
 
                     if args.scoring_function == "certainty":
                         prediction_node.score = next_node.score * prediction.certainty
@@ -1995,7 +1990,7 @@ def bfs_beam_proof_search(lemma_name: str,
             next_nodes_todo.sort(key=lambda n: n[0].score, reverse=True)
             while len(nodes_todo) < args.beam_width and len(next_nodes_todo) > 0:
                 next_node, subgoal_distance_stack, extra_depth = next_nodes_todo.pop(0)
-                if len(node_path(next_node)) <= args.search_depth + extra_depth:
+                if len(next_node.path()) <= args.search_depth + extra_depth:
                     nodes_todo.append((next_node, subgoal_distance_stack, extra_depth))
                 else:
                     hasUnexploredNode = True
