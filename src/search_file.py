@@ -1188,17 +1188,22 @@ def attempt_search(args: argparse.Namespace,
     else:
         module_prefix = ""
 
+    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+    if lemma_name == "":
+        unnamed_goal_number += 1
+        lemma_name = f"Obligation{unnamed_goal_number}"
+
     if args.max_search_time_per_lemma:
         timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
         timer.start()
     try:
         if args.search_type == 'dfs':
-            result = dfs_proof_search_with_graph(lemma_statement, module_prefix,
+            result = dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  env_lemmas + relevant_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor)
         elif args.search_type == 'beam-bfs':
-            result = bfs_beam_proof_search(lemma_statement, module_prefix,
+            result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            env_lemmas + relevant_lemmas, coq,
                                            args, bar_idx, predictor)
         else:
@@ -1509,7 +1514,7 @@ class TqdmSpy(tqdm):
         super().update(value)
 
 
-def dfs_proof_search_with_graph(lemma_statement: str,
+def dfs_proof_search_with_graph(lemma_name: str,
                                 module_prefix: str,
                                 relevant_lemmas: List[str],
                                 coq: serapi_instance.SerapiInstance,
@@ -1520,7 +1525,6 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                 -> SearchResult:
     global unnamed_goal_number
     unnamed_goal_number = 0
-    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
@@ -1678,14 +1682,9 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
         pbar.clear()
-    if lemma_name == "":
-        unnamed_goal_number += 1
-        g.draw(f"{output_dir}/{module_prefix}"
-               f"{unnamed_goal_number}.svg")
-    else:
-        g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
+    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    g.write_feat_json(f"{output_dir}/{module_prefix}"
+                      f"{lemma_name}.json")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
@@ -1816,7 +1815,7 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
 
     return [leaf for leaf in get_leaf_descendents(significant_parent) if leaf != node]
 
-def bfs_beam_proof_search(lemma_statement: str,
+def bfs_beam_proof_search(lemma_name: str,
                           module_prefix: str,
                           relevant_lemmas: List[str],
                           coq: serapi_instance.SerapiInstance,
@@ -1827,14 +1826,7 @@ def bfs_beam_proof_search(lemma_statement: str,
     global unnamed_goal_number
     unnamed_goal_number = 0
     hasUnexploredNode = False
-    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
-    if lemma_name == "":
-        unnamed_goal_number += 1
-        graph_file = f"{args.output_dir}/{module_prefix}"\
-                     f"{unnamed_goal_number}.svg"
-    else:
-        graph_file = f"{args.output_dir}/{module_prefix}"\
-                     f"{lemma_name}.svg"
+    graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
 
     features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
     if args.scoring_function == "lstd":
