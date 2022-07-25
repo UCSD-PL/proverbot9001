@@ -1183,18 +1183,22 @@ def attempt_search(args: argparse.Namespace,
         relevant_lemmas = coq.get_lemmas_about_head()
     else:
         assert False, args.relevant_lemmas
+    if module_name:
+        module_prefix = escape_lemma_name(module_name)
+    else:
+        module_prefix = ""
 
     if args.max_search_time_per_lemma:
         timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
         timer.start()
     try:
         if args.search_type == 'dfs':
-            result = dfs_proof_search_with_graph(lemma_statement, module_name,
+            result = dfs_proof_search_with_graph(lemma_statement, module_prefix,
                                                  env_lemmas + relevant_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor)
         elif args.search_type == 'beam-bfs':
-            result = bfs_beam_proof_search(lemma_statement, module_name,
+            result = bfs_beam_proof_search(lemma_statement, module_prefix,
                                            env_lemmas + relevant_lemmas, coq,
                                            args, bar_idx, predictor)
         else:
@@ -1506,7 +1510,7 @@ class TqdmSpy(tqdm):
 
 
 def dfs_proof_search_with_graph(lemma_statement: str,
-                                module_name: Optional[str],
+                                module_prefix: str,
                                 relevant_lemmas: List[str],
                                 coq: serapi_instance.SerapiInstance,
                                 output_dir: Path2,
@@ -1644,10 +1648,6 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                                           full_context_before,
                                           current_path[-1])
                 g.setNodeColor(predictionNode, "grey25")
-                if module_name:
-                    module_prefix = escape_lemma_name(module_name)
-                else:
-                    module_prefix = ""
                 if lemma_name == "":
                     unnamed_goal_number += 1
                     g.draw(f"{output_dir}/{module_prefix}"
@@ -1678,10 +1678,6 @@ def dfs_proof_search_with_graph(lemma_statement: str,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
         pbar.clear()
-    if module_name:
-        module_prefix = escape_lemma_name(module_name)
-    else:
-        module_prefix = ""
     if lemma_name == "":
         unnamed_goal_number += 1
         g.draw(f"{output_dir}/{module_prefix}"
@@ -1821,7 +1817,7 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
     return [leaf for leaf in get_leaf_descendents(significant_parent) if leaf != node]
 
 def bfs_beam_proof_search(lemma_statement: str,
-                          module_name: Optional[str],
+                          module_prefix: str,
                           relevant_lemmas: List[str],
                           coq: serapi_instance.SerapiInstance,
                           args: argparse.Namespace,
@@ -1831,10 +1827,6 @@ def bfs_beam_proof_search(lemma_statement: str,
     global unnamed_goal_number
     unnamed_goal_number = 0
     hasUnexploredNode = False
-    if module_name:
-        module_prefix = escape_lemma_name(module_name)
-    else:
-        module_prefix = ""
     lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
     if lemma_name == "":
         unnamed_goal_number += 1
