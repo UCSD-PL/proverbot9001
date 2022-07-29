@@ -395,7 +395,7 @@ class Worker:
     cur_project: Optional[str]
     cur_file: Optional[str]
     last_program_statement: Optional[str]
-    lemmas_encountered: List[str]
+    lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
 
     def __init__(self, args: argparse.Namespace, worker_idx: int,
@@ -408,7 +408,7 @@ class Worker:
         self.cur_file: Optional[str] = None
         self.cur_project: Optional[str] = None
         self.last_program_statement: Optional[str] = None
-        self.lemmas_encountered: List[str] = []
+        self.lemmas_encountered: List[ReportJob] = []
         self.remaining_commands: List[str] = []
         self.switch_dict = switch_dict
 
@@ -468,6 +468,7 @@ class Worker:
 
     def run_into_job(self, job: ReportJob, restart: bool = True) -> None:
         assert self.coq
+        assert job not in self.lemmas_encountered, "Jobs are out of order!"
         job_project, job_file, job_module, job_lemma = job
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
@@ -477,10 +478,8 @@ class Worker:
             self.set_switch_from_proj()
             self.restart_coq()
             self.enter_file(job_file)
-        # If the job is in a different file, or earlier in this same file, load
-        # the jobs file from scratch.
-        if job_file != self.cur_file or \
-          job_lemma in self.lemmas_encountered:
+        # If the job is in a different file load the jobs file from scratch.
+        if job_file != self.cur_file:
             if self.cur_file:
                 for sec_or_mod, _ in reversed(self.coq.sm_stack):
                     self.coq.run_stmt(f"End {sec_or_mod}.", timeout=240)
@@ -535,7 +534,9 @@ class Worker:
                 return
             else:
                 self.skip_proof(lemma_statement)
-                self.lemmas_encountered.append(unique_lemma_statement)
+                self.lemmas_encountered.append(ReportJob(self.cur_project, self.cur_file,
+                                                         self.coq.sm_prefix,
+                                                         unique_lemma_statement))
 
     def skip_proof(self, lemma_statement: str) -> None:
         assert self.coq
