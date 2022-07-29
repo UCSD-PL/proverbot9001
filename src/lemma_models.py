@@ -337,6 +337,8 @@ def gather_idents(e: Sexpr) -> set[str]:
 
       elif name == Symbol('Evar'):
           return set()
+      elif name == Symbol('Cast'):
+          return gather_idents(args[0]) | gather_idents(args[2])
       else:
         print("unrecognized symbol", name)
         raise UnhandledExpr(e)
