@@ -35,6 +35,7 @@ import subprocess
 import cProfile
 import copy
 import pickle
+import heapq
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
@@ -59,8 +60,8 @@ import tokenizer
 if sys.version_info >= (3, 10):
     from lemma_models import Lemma, UnhandledExpr
 
-from dataclasses import dataclass
-from tqdm import tqdm
+from dataclasses import dataclass, field
+from tqdm import tqdm, trange
 from yattag import Doc
 from pathlib_revised import Path2
 from pathlib import Path
@@ -146,7 +147,7 @@ class SearchResult(NamedTuple):
 
 DocumentBlock = Union[VernacBlock, ProofBlock]
 
-unnamed_goal_number: int
+unnamed_goal_number: int = 0
 
 
 def main(arg_list: List[str]) -> None:
@@ -254,7 +255,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs', 'astar'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const"], default="certainty")
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
@@ -1169,6 +1170,7 @@ def attempt_search(args: argparse.Namespace,
                    bar_idx: int,
                    predictor: TacticPredictor) \
         -> SearchResult:
+    global unnamed_goal_number
     if args.add_env_lemmas:
         with args.add_env_lemmas.open('r') as f:
             env_lemmas = [get_lemma_declaration_from_name(coq,
@@ -1207,6 +1209,10 @@ def attempt_search(args: argparse.Namespace,
             result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            env_lemmas + relevant_lemmas, coq,
                                            args, bar_idx, predictor)
+        elif args.search_type == 'astar':
+            result = astar_proof_search(lemma_name, module_prefix,
+                                        env_lemmas + relevant_lemmas, coq,
+                                        args, bar_idx, predictor)
         else:
             assert False, args.search_type
     except KeyboardInterrupt:
@@ -1524,8 +1530,6 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                 bar_idx: int,
                                 predictor: TacticPredictor) \
                                 -> SearchResult:
-    global unnamed_goal_number
-    unnamed_goal_number = 0
     g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
@@ -1728,6 +1732,22 @@ class BFSNode:
         self.color = color
         pass
 
+    def setNodeColor(self, color: str) -> None:
+        if self.color != None and self.color != "":
+            self.color += (":" + color)
+        else:
+            self.color = color
+
+    def mkQED(self) -> None:
+        qed_node = BFSNode(Prediction("QED", 1.0), 100, 0, [],
+                           FullContext(
+                            [], [], ProofContext([], [], [], [])),
+                           self, "green")
+        cur_node = self
+        while cur_node.previous != None:
+            cur_node.setNodeColor("palegreen1")
+            cur_node = cur_node.previous
+
     def draw_graph(self, path: str) -> None:
         graph = pgv.AGraph(directed=True)
         next_node_id = 0
@@ -1779,12 +1799,32 @@ class BFSNode:
         return sum(node.time_taken for node in
                    self.path())
 
-    def path(self) -> List[BFSNode]:
+    def path(self) -> List['BFSNode']:
         if self.previous is None:
             return [self]
         else:
             return self.previous.path() + [self]
 
+    def traverse_to(self, coq: SerapiInstance, initial_history_len: int) -> None:
+        # Get both the current and target histories
+        full_cur_history = coq.tactic_history.getFullHistory()[initial_history_len:]
+        full_node_history = [item for replay_node in self.path()[1:]
+                             for item in [replay_node.prediction.prediction] + replay_node.postfix]
+        # Get the number of commands common to the beginning of the current
+        # history and the history of the target node
+        common_prefix_len = 0
+        for item1, item2, in zip(full_node_history, full_cur_history):
+            if item1 != item2:
+                break
+            common_prefix_len += 1
+        # Return to the place where the current history and the history of
+        # the target node diverged.
+        while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
+            coq.cancel_last()
+        # Run the next nodes history from that point.
+        for cmd in full_node_history[common_prefix_len:]:
+            coq.run_stmt(cmd)
+        return
 
 
 def contextInHistory(full_context: ProofContext, node: BFSNode):
@@ -1819,8 +1859,6 @@ def bfs_beam_proof_search(lemma_name: str,
                           bar_idx: int,
                           predictor: TacticPredictor) \
                           -> SearchResult:
-    global unnamed_goal_number
-    unnamed_goal_number = 0
     hasUnexploredNode = False
     graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
 
@@ -1855,23 +1893,7 @@ def bfs_beam_proof_search(lemma_name: str,
             while len(nodes_todo) > 0:
                 next_node, subgoal_distance_stack, extra_depth = nodes_todo.pop()
                 pbar.update()
-                next_node_history = [item for replay_node in next_node.path()[1:]
-                                     for item in [replay_node.prediction.prediction] + replay_node.postfix]
-                cur_node_history = coq.tactic_history.getFullHistory()[initial_history_len:]
-                # Get the number of commands common to the beginning of the current
-                # history and the history of the next node
-                common_prefix_len = 0
-                for item1, item2, in zip(next_node_history, cur_node_history):
-                    if item1 != item2:
-                        break
-                    common_prefix_len += 1
-                # Return to the place where the current history and the history of
-                # the next node diverged.
-                while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
-                    coq.cancel_last()
-                # Run the next nodes history from that point.
-                for cmd in next_node_history[common_prefix_len:]:
-                    coq.run_stmt(cmd)
+                next_node.traverse_to(coq, initial_history_len)
 
                 full_context_before = FullContext(relevant_lemmas,
                                                   coq.prev_tactics,
@@ -1904,26 +1926,26 @@ def bfs_beam_proof_search(lemma_name: str,
                     if error:
                         if args.count_failing_predictions:
                             num_successful_predictions += 1
-                        prediction_node.color = "red"
+                        prediction_node.setNodeColor("red")
                         continue
                     if contextIsBig(context_after) or \
                             contextInHistory(context_after, prediction_node):
                         if args.count_softfail_predictions:
                             num_successful_predictions += 1
                         eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                        prediction_node.color = "orange"
+                        prediction_node.setNodeColor("orange")
                         for _ in range(num_stmts):
                             coq.cancel_last()
                         continue
                     if len(coq.proof_context.all_goals) > args.max_subgoals:
                         if args.count_softfail_predictions:
                             num_successful_predictions += 1
-                        prediction_node.color = "orange"
+                        prediction_node.setNodeColor("orange")
                         for _ in range(num_stmts):
                             coq.cancel_last()
                         continue
                     if completed_proof(coq):
-                        prediction_node.color = "green"
+                        prediction_node.mkQED()
                         start_node.draw_graph(graph_file)
                         return SearchResult(SearchStatus.SUCCESS,
                                             prediction_node.interactions()[1:])
@@ -1954,7 +1976,7 @@ def bfs_beam_proof_search(lemma_name: str,
                     num_successful_predictions += 1
 
                     if subgoals_closed > 0:
-                        prediction_node.color = "blue"
+                        prediction_node.setNodeColor("blue")
                         # Prune unexplored nodes from the tree that are trying to
                         # solve the subgoal(s) we just solved.
                         prunable_nodes = get_prunable_nodes(prediction_node)
@@ -1996,6 +2018,148 @@ def bfs_beam_proof_search(lemma_name: str,
                 else:
                     hasUnexploredNode = True
 
+    start_node.draw_graph(graph_file)
+    if hasUnexploredNode:
+        return SearchResult(SearchStatus.INCOMPLETE, None)
+    else:
+        return SearchResult(SearchStatus.FAILURE, None)
+
+@dataclass(order=True)
+class AStarTask:
+    f_score: float
+    node: BFSNode=field(compare=False)
+
+
+def astar_proof_search(lemma_name: str,
+                       module_prefix: Optional[str],
+                       relevant_lemmas: List[str],
+                       coq: serapi_instance.SerapiInstance,
+                       args: argparse.Namespace,
+                       bar_idx: int,
+                       predictor: TacticPredictor) \
+                       -> SearchResult:
+    assert args.scoring_function in ["pickled", "const"], "only pickled and const scorers are currently compatible with A* search"
+    with args.pickled_estimator.open('rb') as f:
+        john_model = pickle.load(f)
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
+    graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
+    initial_history_len = len(coq.tactic_history.getFullHistory())
+    start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
+                         FullContext([], [],
+                                     ProofContext([], [], [], [])), None)
+    nodes_todo: List[AStarTask] = [AStarTask(0, start_node)]
+
+    total_steps = 1024
+    desc_name = lemma_name
+    if len(desc_name) > 25:
+        desc_name = desc_name[:22] + "..."
+    for step in trange(total_steps, unit="pred", file=sys.stdout,
+                       desc=desc_name, disable=(not args.progress),
+                       leave=False, position=bar_idx + 1,
+                       dynamic_ncols=True, bar_format=mybarfmt):
+        if len(nodes_todo) == 0:
+            break
+        next_node = heapq.heappop(nodes_todo)
+        next_node.node.traverse_to(coq, initial_history_len)
+
+        full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          unwrap(coq.proof_context))
+        num_successful_predictions = 0
+        predictions = predictor.predictKTactics(
+            truncate_tactic_context(full_context_before.as_tcontext(),
+                                    args.max_term_length),
+            args.max_attempts)
+
+        for prediction in predictions:
+            if num_successful_predictions >= args.search_width:
+                break
+            context_after, num_stmts, \
+                subgoals_closed, subgoals_opened, \
+                error, time_taken, unshelved = \
+                tryPrediction(args, coq, prediction.prediction,
+                             next_node.node.total_time())
+
+            postfix = []
+            if unshelved:
+                postfix.append("Unshelve.")
+            postfix += ["}"] * subgoals_closed
+            postfix += ["{"] * subgoals_opened
+
+            prediction_node = BFSNode(
+                prediction,
+                0,
+                time_taken, postfix, full_context_before, next_node.node)
+            if error:
+                if args.count_failing_predictions:
+                    num_successful_predictions += 1
+                prediction_node.setNodeColor("red")
+                continue
+            else:
+                num_successful_predictions += 1
+            # Check if we've gone in circles
+            if contextInHistory(context_after, prediction_node):
+                if args.count_softfail_predictions:
+                    num_successful_predictions += 1
+                eprint(f"Prediction in history", guard=args.verbose >= 2)
+                prediction_node.setNodeColor("orange")
+                for _ in range(num_stmts):
+                    coq.cancel_last()
+                continue
+            # Check if the resulting context is too big
+            if len(coq.proof_context.all_goals) > args.max_subgoals or \
+              contextIsBig(context_after):
+                if args.count_softfail_predictions:
+                    num_successful_predictions += 1
+                prediction_node.setNodeColor("orange")
+                for _ in range(num_stmts):
+                    coq.cancel_last()
+                continue
+            # Check if the proof is done
+            if completed_proof(coq):
+                prediction_node.mkQED()
+                start_node.draw_graph(graph_file)
+                return SearchResult(SearchStatus.SUCCESS,
+                                    prediction_node.interactions()[1:])
+            # Calculate the A* f_score
+            g_score = len(prediction_node.path())
+            if args.scoring_function == "const":
+                h_score = 1
+            else:
+                assert args.scoring_function == "pickled"
+                h_score = 0
+                for idx, goal in enumerate(coq.get_all_sexp_goals()):
+                    try:
+                        h_score += john_model.predict(Lemma("", goal))
+                    except UnhandledExpr:
+                        print(f"Goal failed to be handled: {coq.proof_context.all_goals[idx]}")
+                        raise
+            f_score = g_score + h_score
+
+            # Put our new prediction node in our priority queue
+            heapq.heappush(nodes_todo, AStarTask(f_score, prediction_node))
+            # Return us to before running the prediction, so we're ready for
+            # the next one.
+            for _ in range(num_stmts):
+                coq.cancel_last()
+            # If we solved the subgoal...
+            if subgoals_closed > 0:
+                prediction_node.setNodeColor("blue")
+                # Get unexplored nodes from the tree that are trying to
+                # solve the subgoal(s) we just solved.
+                prunable_nodes = get_prunable_nodes(prediction_node)
+                # Prune them from the frontier nodes
+                nodes_todo = [node for node in nodes_todo
+                              if node.node not in prunable_nodes]
+                heapq.heapify(nodes_todo)
+                # Don't run the rest of the predictions at this state
+                break
+
+    hasUnexploredNode = len(nodes_todo) > 0
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, None)
