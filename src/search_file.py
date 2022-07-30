@@ -492,9 +492,10 @@ class Worker:
         while True:
             try:
                 if not self.coq.proof_context:
-                    rest_commands, run_commands = unwrap(cast(Optional[Tuple[List[str], List[str]]],
-                                                              self.coq.run_into_next_proof(
-                            self.remaining_commands)))
+                    rest_commands, run_commands = \
+                      unwrap(cast(Optional[Tuple[List[str], List[str]]],
+                                  self.coq.run_into_next_proof(
+                                      self.remaining_commands)))
                     assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except serapi_instance.CoqAnomaly:
                 if restart:
@@ -577,8 +578,8 @@ class Worker:
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
-        job_project, job_file, job_module, job_lemma = job
         self.run_into_job(job, restart=restart)
+        job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         empty_context = ProofContext([], [], [], [])
         try:
