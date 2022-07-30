@@ -45,6 +45,7 @@ from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import coq_serapy as serapi_instance
+import coq_serapy
 from coq_serapy import (ProofContext, Obligation, SerapiInstance)
 
 import data
@@ -599,9 +600,9 @@ class Worker:
                     print(f"ANOMALY at {job_file}:{job_lemma}",
                           file=f)
                     traceback.print_exc(file=f)
+            self.restart_coq()
+            self.reset_file_state()
             if restart:
-                self.restart_coq()
-                self.reset_file_state()
                 self.enter_file(job_file)
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
@@ -615,7 +616,11 @@ class Worker:
                         traceback.print_exc(file=f)
 
                 search_status = SearchStatus.CRASHED
-                tactic_solution = None
+                solution = []
+                eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
+                       "due to multiple failures",
+                       guard=self.args.verbose >= 1)
+                return SearchResult(search_status, solution)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
