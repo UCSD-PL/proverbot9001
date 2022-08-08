@@ -40,6 +40,7 @@ from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
 import interactive_predictor
+from pathlib import Path
 from pathlib_revised import Path2
 import dataloader
 
@@ -78,7 +79,7 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
                                            "hyps+goal+tactic", "tacvector",
                                            "scrapefile-rd", "scrapefile"])
-    parser.add_argument("scrape_file", type=Path2)
+    parser.add_argument("scrape_file", type=Path)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
@@ -192,11 +193,12 @@ def get_tactics(args: List[str]):
                         dest='normalize_numeric_args')
     parser.add_argument("--context-filter", dest="context_filter", default="goal-changes")
     parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
-    parser.add_argument("scrape_file", type=Path2)
+    parser.add_argument("scrape_file", type=Path)
     parser.add_argument("dest")
     arg_values = parser.parse_args(args)
 
-    raw_data = list(data.get_text_data(arg_values))
+    with print_time("Getting data"):
+        raw_data = list(data.get_text_data(arg_values))
 
     count = Counter()
     for _, _, _, tactic in raw_data:
@@ -216,7 +218,7 @@ def get_tokens(args: List[str]):
     parser.add_argument("-n", "--num-keywords", type=int, default=120)
     parser.add_argument("-s", "--num-samples", type=int, default=2000)
     parser.add_argument("-j", "--num-threads", type=int, default=None)
-    parser.add_argument("scrapefile", type=Path2)
+    parser.add_argument("scrapefile", type=Path)
     parser.add_argument("dest")
     arg_values = parser.parse_args(args)
 

@@ -58,7 +58,6 @@ from models.tactic_predictor import TacticPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
-base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
 details_css = ["details.css"]
 details_javascript = ["details.js"]
@@ -670,6 +669,7 @@ def write_summary(output_dir : Path2, num_jobs : int, cur_commit : str,
 
     extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
 
+    base = Path(os.path.dirname(os.path.abspath(__file__)) + "/..")
     for filename in extra_files:
         (base / "reports" / filename).copyfile(output_dir / filename)
 
