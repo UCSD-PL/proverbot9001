@@ -198,11 +198,13 @@ def get_tactics(args: List[str]):
     arg_values = parser.parse_args(args)
 
     with print_time("Getting data"):
-        raw_data = list(data.get_text_data(arg_values))
+        # raw_data = list(data.get_text_data(arg_values))
+        raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                        arg_values.max_tuples)
 
     count = Counter()
-    for _, _, _, tactic in raw_data:
-        stem = coq_serapy.get_stem(tactic)
+    for scraped in raw_data:
+        stem = coq_serapy.get_stem(scraped.tactic)
         if stem != "":
             count[stem] += 1
     with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
