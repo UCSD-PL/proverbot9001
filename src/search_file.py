@@ -256,8 +256,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const"], default="certainty")
     parser.add_argument("--search-type", choices=['dfs', 'beam-bfs', 'astar', 'best-first'], default='dfs')
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty"], default="certainty")
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
@@ -2045,7 +2045,7 @@ def best_first_proof_search(lemma_name: str,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const"], "only pickled and const scorers are currently compatible with A* search"
+    assert args.scoring_function in ["pickled", "const"] or not args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
     with args.pickled_estimator.open('rb') as f:
         john_model = pickle.load(f)
     if coq.count_fg_goals() > 1:
