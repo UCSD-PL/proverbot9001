@@ -537,7 +537,8 @@ class Worker:
                 return
             else:
                 self.skip_proof(lemma_statement)
-                self.lemmas_encountered.append(ReportJob(self.cur_project, self.cur_file,
+                self.lemmas_encountered.append(ReportJob(self.cur_project,
+                                                         unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
                                                          unique_lemma_statement))
 
