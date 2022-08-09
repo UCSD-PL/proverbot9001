@@ -36,6 +36,7 @@ import cProfile
 import copy
 import pickle
 import heapq
+import math
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
@@ -255,8 +256,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs', 'astar'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const"], default="certainty")
+    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs', 'astar', 'best-first'], default='dfs')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
@@ -1214,10 +1215,10 @@ def attempt_search(args: argparse.Namespace,
             result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            env_lemmas + relevant_lemmas, coq,
                                            args, bar_idx, predictor)
-        elif args.search_type == 'astar':
-            result = astar_proof_search(lemma_name, module_prefix,
-                                        env_lemmas + relevant_lemmas, coq,
-                                        args, bar_idx, predictor)
+        elif args.search_type == 'astar' or args.search_type == 'best-first':
+            result = best_first_proof_search(lemma_name, module_prefix,
+                                             env_lemmas + relevant_lemmas, coq,
+                                             args, bar_idx, predictor)
         else:
             assert False, args.search_type
     except KeyboardInterrupt:
@@ -1959,7 +1960,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         prediction_node.score = next_node.score * prediction.certainty
                     elif args.scoring_function == "pickled":
                         assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
-                        score = 0
+                        score = 0.
                         for idx, goal in enumerate(coq.get_all_sexp_goals()):
                             try:
                                 score += -float(john_model.predict(Lemma("", goal)))
@@ -2035,7 +2036,7 @@ class AStarTask:
     node: BFSNode=field(compare=False)
 
 
-def astar_proof_search(lemma_name: str,
+def best_first_proof_search(lemma_name: str,
                        module_prefix: Optional[str],
                        relevant_lemmas: List[str],
                        coq: serapi_instance.SerapiInstance,
@@ -2130,23 +2131,30 @@ def astar_proof_search(lemma_name: str,
                 start_node.draw_graph(graph_file)
                 return SearchResult(SearchStatus.SUCCESS,
                                     prediction_node.interactions()[1:])
-            # Calculate the A* f_score
-            g_score = len(prediction_node.path())
             if args.scoring_function == "const":
-                h_score = 1
+                h_score = 1.
+            elif args.scoring_function == "certainty":
+                h_score = -(next_node.f_score * prediction.certainty)
+            elif args.scoring_function == "norm-certainty":
+                h_score = -math.sqrt(next_node.f_score * prediction.certainty)
             else:
                 assert args.scoring_function == "pickled"
-                h_score = 0
+                h_score = 0.
                 for idx, goal in enumerate(coq.get_all_sexp_goals()):
                     try:
                         h_score += john_model.predict(Lemma("", goal))
                     except UnhandledExpr:
                         print(f"Goal failed to be handled: {coq.proof_context.all_goals[idx]}")
                         raise
-            f_score = g_score + h_score
+            if args.search_type == "astar":
+                # Calculate the A* f_score
+                g_score = len(prediction_node.path())
+                score = g_score + h_score
+            else:
+                score = h_score
 
             # Put our new prediction node in our priority queue
-            heapq.heappush(nodes_todo, AStarTask(f_score, prediction_node))
+            heapq.heappush(nodes_todo, AStarTask(score, prediction_node))
             # Return us to before running the prediction, so we're ready for
             # the next one.
             for _ in range(num_stmts):
