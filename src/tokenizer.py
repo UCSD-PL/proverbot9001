@@ -28,6 +28,7 @@ import functools
 from typing import Dict, List, Tuple, Callable, Union, Iterable, cast, \
     Set, Any, Counter, Sequence, Optional
 from abc import ABCMeta, abstractmethod
+from tqdm import tqdm
 
 from util import *
 
@@ -152,37 +153,40 @@ def get_relevant_k_keywords2(examplePairs : Iterable[Tuple[str, int]], k : int,
         common_words.remove(word)
         keywords.append(word)
 
-    while len(keywords) < k:
-        if len(pools) == 0:
-            print("Returning early with {} keywords: "
-                  "ran out of  pools".format(len(keywords)))
-            return keywords
-        highest_entropy_pool, leader, pool_entropy = \
-            max(pools, key=lambda pool_pair: pool_pair[-1])
+    with tqdm(total=k, file=sys.stdout, desc="Generating tokens", leave=False,
+              dynamic_ncols=True, bar_format=mybarfmt) as pbar:
+        while len(keywords) < k:
+            if len(pools) == 0:
+                print("Returning early with {} keywords: "
+                      "ran out of  pools".format(len(keywords)))
+                return keywords
+            highest_entropy_pool, leader, pool_entropy = \
+                max(pools, key=lambda pool_pair: pool_pair[-1])
 
-        with multiprocessing.Pool(num_threads) as process_pool:
-            word_entropy_pairs = list(
-                process_pool.imap_unordered(
-                    functools.partial(
-                        get_relevant_k_keywords_worker__,
-                        [(context, 1
-                         if tactic == leader
-                         else 0)
-                         for context, tactic in highest_entropy_pool]),
-                    common_words))
-            word, word_partitioned_entropy = min(word_entropy_pairs,
-                                                 key=lambda x: x[1])
-            if word_partitioned_entropy >= pool_entropy:
-                pools.remove((highest_entropy_pool, leader, pool_entropy))
-                continue
-        if word in keywords:
-            print("Returning early with {} keywords: "
-                  "ran out of samples that could be differentiated "
-                  "with the presence of keywords in {} most common"
-                  .format(len(keywords), k**2))
-            return keywords
-        keywords.append(word)
-        pools = split_pools(pools, word)
+            with multiprocessing.Pool(num_threads) as process_pool:
+                word_entropy_pairs = list(
+                    process_pool.imap_unordered(
+                        functools.partial(
+                            get_relevant_k_keywords_worker__,
+                            [(context, 1
+                             if tactic == leader
+                             else 0)
+                             for context, tactic in highest_entropy_pool]),
+                        common_words))
+                word, word_partitioned_entropy = min(word_entropy_pairs,
+                                                     key=lambda x: x[1])
+                if word_partitioned_entropy >= pool_entropy:
+                    pools.remove((highest_entropy_pool, leader, pool_entropy))
+                    continue
+            if word in keywords:
+                print("Returning early with {} keywords: "
+                      "ran out of samples that could be differentiated "
+                      "with the presence of keywords in {} most common"
+                      .format(len(keywords), k**2))
+                return keywords
+            keywords.append(word)
+            pbar.update()
+            pools = split_pools(pools, word)
     return keywords
 
 def word_partitioned_entropy(examplePairs : Sequence[Tuple[str, int]], word : str) \
