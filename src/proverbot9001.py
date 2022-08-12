@@ -225,19 +225,23 @@ def get_tokens(args: List[str]):
     parser.add_argument("-n", "--num-keywords", type=int, default=120)
     parser.add_argument("-s", "--num-samples", type=int, default=2000)
     parser.add_argument("-j", "--num-threads", type=int, default=None)
+    parser.add_argument("--context-filter", default="default")
+    parser.add_argument("--max-term-length", default=30, type=int)
     parser.add_argument("scrapefile", type=Path)
     parser.add_argument("dest")
     arg_values = parser.parse_args(args)
 
     with print_time("Reading scraped data", guard=arg_values.verbose):
-        raw_data = list(data.read_text_data(arg_values.scrapefile))
+        raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrapefile),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
+                                                        None)
     embedding = SimpleEmbedding()
-    subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
-    relevance_pairs = [(context.focused_goal,
+    subset = random.sample(raw_data, arg_values.num_samples)
+    relevance_pairs = [(scraped.context.fg_goals[0].goal,
                         embedding.encode_token(
-                            coq_serapy.get_stem(tactic)))
-                       for relevant_lemmas, prev_tactics, context, tactic
-                       in subset]
+                            coq_serapy.get_stem(scraped.tactic)))
+                       for scraped in subset]
     with print_time("Calculating keywords", guard=arg_values.verbose):
         keywords = get_relevant_k_keywords2(relevance_pairs,
                                             arg_values.num_keywords,
