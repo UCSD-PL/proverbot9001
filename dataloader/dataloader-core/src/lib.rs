@@ -350,7 +350,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         );
         let transition_iter = scraped_transition_iter(raw_iter);
         let filtered_iter = transition_iter
-            .filter(|transition| apply_filter(args, &filter, &transition.scraped_before()));
+            .filter(|transition| apply_filter(args.max_length, &filter, &transition.scraped_before()));
         Ok(filtered_iter.take(num_tactics).collect::<Vec<_>>())
     }
 

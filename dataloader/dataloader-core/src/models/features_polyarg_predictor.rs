@@ -95,7 +95,7 @@ pub fn features_polyarg_tensors(
             ScrapedData::Tactic(t) => Some(t),
         })
         .map(preprocess_datum)
-        .filter(|datum| apply_filter(&args, &filter, datum));
+        .filter(|datum| apply_filter(args.max_length, &filter, datum));
     let mut raw_data: Vec<ScrapedTactic> = match args.max_tuples {
         Some(max) => raw_data_iter.take(max).collect(),
         None => raw_data_iter.collect(),
