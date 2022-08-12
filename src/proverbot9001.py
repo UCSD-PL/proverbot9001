@@ -105,6 +105,8 @@ def get_data(args : List[str]) -> None:
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
         scraped_tactics = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                               arg_values.context_filter,
+                                                               arg_values.max_length,
                                                                arg_values.max_tuples)
         terms = [term
                  for scraped in scraped_tactics if len(scraped.context.fg_goals) > 0
@@ -193,6 +195,7 @@ def get_tactics(args: List[str]):
                         dest='normalize_numeric_args')
     parser.add_argument("--context-filter", dest="context_filter", default="goal-changes")
     parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
+    parser.add_argument("--max-term-length", default=30, type=int)
     parser.add_argument("scrape_file", type=Path)
     parser.add_argument("dest")
     arg_values = parser.parse_args(args)
@@ -200,6 +203,8 @@ def get_tactics(args: List[str]):
     with print_time("Getting data"):
         # raw_data = list(data.get_text_data(arg_values))
         raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
                                                         arg_values.max_tuples)
 
     count = Counter()

@@ -320,8 +320,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn _scraped_tactics_from_file(
         _py: Python,
         filename: String,
-        num_tactics: Option<usize>,
+	filter_spec: String,
+	max_term_length: usize,
+	num_tactics: Option<usize>,
     ) -> PyResult<Vec<ScrapedTactic>> {
+	let filter = parse_filter(&filter_spec);
         let iter = scraped_from_file(
             File::open(filename)
                 .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
@@ -329,7 +332,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
-        });
+        }).filter(|datum| apply_filter(max_term_length, &filter, datum));
         match num_tactics {
             Some(num) => Ok(iter.take(num).collect()),
             None => Ok(iter.collect()),

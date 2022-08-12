@@ -98,6 +98,8 @@ def features_to_total_distances_tensors_with_map(args: DataloaderArgs,
 
 
 def scraped_tactics_from_file(filename: str,
+                              filter_spec: str,
+                              max_term_length: int,
                               num_tactics: Optional[int]) \
                               -> List[ScrapedTactic]:
     ...
