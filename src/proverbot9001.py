@@ -207,15 +207,14 @@ def get_tactics(args: List[str]):
                                                         arg_values.max_term_length,
                                                         arg_values.max_tuples)
 
-    count = Counter()
+    count: Counter[str] = Counter()
     for scraped in raw_data:
         stem = coq_serapy.get_stem(scraped.tactic)
         if stem != "":
             count[stem] += 1
     with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
           else contextlib.nullcontext(sys.stdout)) as f:
-        for tactic, count in count.most_common(arg_values.num_tactics):
-            print(tactic)
+        for tactic, tac_count in count.most_common(arg_values.num_tactics):
             f.write(tactic + "\n")
 
 def get_tokens(args: List[str]):
