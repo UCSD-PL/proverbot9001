@@ -34,7 +34,7 @@ use lalrpop_util::lalrpop_mod;
 lalrpop_mod!(context_filter_parser);
 
 pub fn filter_data_by_key<A: Send>(
-    args: &DataloaderArgs,
+    max_term_length: usize,
     filter_spec: &str,
     data: Vec<A>,
     key: fn(&A) -> &ScrapedTactic,
@@ -43,12 +43,12 @@ pub fn filter_data_by_key<A: Send>(
         .parse(filter_spec)
         .expect(&format!("Invalid context filter: {}", filter_spec));
     data.into_par_iter()
-        .filter(|datum| apply_filter(args, &parsed_filter, key(datum)))
+        .filter(|datum| apply_filter(max_term_length, &parsed_filter, key(datum)))
         .collect()
 }
 
 pub fn filter_data(
-    args: &DataloaderArgs,
+    max_term_length: usize,
     filter_spec: &str,
     data: Vec<ScrapedTactic>,
 ) -> Vec<ScrapedTactic> {
@@ -56,7 +56,7 @@ pub fn filter_data(
         .parse(filter_spec)
         .expect(&format!("Invalid context filter: {}", filter_spec));
     data.into_par_iter()
-        .filter(|datum| apply_filter(args, &parsed_filter, datum))
+        .filter(|datum| apply_filter(max_term_length, &parsed_filter, datum))
         .collect()
 }
 
@@ -67,23 +67,22 @@ pub fn parse_filter(filter_spec: &str) -> ContextFilterAST {
 }
 
 pub fn apply_filter(
-    args: &DataloaderArgs,
+    max_term_length: usize,
     parsed_filter: &ContextFilterAST,
     scraped: &ScrapedTactic,
 ) -> bool {
     match parsed_filter {
         ContextFilterAST::And(subfilters) => subfilters
             .iter()
-            .all(|subfilter| apply_filter(args, subfilter, scraped)),
+            .all(|subfilter| apply_filter(max_term_length, subfilter, scraped)),
         ContextFilterAST::Or(subfilters) => subfilters
             .iter()
-            .any(|subfilter| apply_filter(args, subfilter, scraped)),
+            .any(|subfilter| apply_filter(max_term_length, subfilter, scraped)),
         ContextFilterAST::None => false,
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
             let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
                 .into_iter()
-                .take(args.max_length)
                 .collect();
             let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
