@@ -193,7 +193,7 @@ def get_tactics(args: List[str]):
                         dest='use_substitutions')
     parser.add_argument("--no-normalize-numeric-args", action='store_false',
                         dest='normalize_numeric_args')
-    parser.add_argument("--context-filter", dest="context_filter", default="goal-changes")
+    parser.add_argument("--context-filter", default="default")
     parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
     parser.add_argument("--max-term-length", default=30, type=int)
     parser.add_argument("scrape_file", type=Path)
