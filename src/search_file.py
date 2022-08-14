@@ -2046,9 +2046,10 @@ def best_first_proof_search(lemma_name: str,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const"] or not args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
-    with args.pickled_estimator.open('rb') as f:
-        john_model = pickle.load(f)
+    assert args.scoring_function in ["pickled", "const"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    if args.scoring_function == "pickled":
+        with args.pickled_estimator.open('rb') as f:
+            john_model = pickle.load(f)
     if coq.count_fg_goals() > 1:
         coq.run_stmt("{")
         subgoals_stack_start = [0]
