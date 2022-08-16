@@ -132,7 +132,7 @@ def blocks_from_scrape_and_sols(
         cur_lemma_stmt = ""
         unique_lemma_stmt = ""
 
-        sm_stack = serapi_instance.initial_sm_stack(src_filename)
+        sm_stack = coq_serapy.initial_sm_stack(src_filename)
 
         tactics_interactions_batch: List[TacticInteraction] = []
         vernac_cmds_batch: List[str] = []
@@ -150,7 +150,7 @@ def blocks_from_scrape_and_sols(
             nonlocal obl_num
             nonlocal last_program_statement
 
-            sm_prefix = serapi_instance.sm_prefix_from_stack(sm_stack)
+            sm_prefix = coq_serapy.sm_prefix_from_stack(sm_stack)
             batch_without_brackets = [t for t in tactics_interactions_batch
                                       if t.tactic.strip() != "{" and
                                       t.tactic.strip() != "}"]
@@ -176,7 +176,7 @@ def blocks_from_scrape_and_sols(
                 assert not in_proof
                 cur_lemma_stmt = vernac_cmds_batch[-1]
                 if re.match(r"\s*Next\s+Obligation\s*\.\s*",
-                            serapi_instance.kill_comments(
+                            coq_serapy.kill_comments(
                                 cur_lemma_stmt).strip()):
                     unique_lemma_stmt = \
                       f"{last_program_statement} Obligation {obl_num}."
@@ -190,10 +190,10 @@ def blocks_from_scrape_and_sols(
                     interaction_from_scraped(interaction))
                 in_proof = True
             if isinstance(interaction, str):
-                sm_stack = serapi_instance.update_sm_stack(sm_stack, interaction)
+                sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
                 vernac_cmds_batch.append(interaction)
                 if re.match(r"\s*Program\s+.*",
-                            serapi_instance.kill_comments(interaction).strip()):
+                            coq_serapy.kill_comments(interaction).strip()):
                     last_program_statement = interaction
                     obl_num = 0
         if in_proof:
