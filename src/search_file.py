@@ -160,7 +160,7 @@ def main(arg_list: List[str]) -> None:
     # with util.silent():
 
     if not args.gpus and util.use_cuda:
-        torch.cuda.set_device(f"cuda:{args.gpu}")
+        torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
     predictor = get_predictor(parser, args)
@@ -284,7 +284,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
 
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
-        unknown_args = []
+        unknown_args: List[str] = []
     else:
         known_args, unknown_args = parser.parse_known_args(args_list)
     if known_args.filenames[0].suffix == ".json":
@@ -551,7 +551,7 @@ class Worker:
             self.args.careful
         if proof_relevant:
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
-                self.remaining_commands))
+                self.remaining_commands)) # type: ignore
         else:
             try:
                 serapi_instance.admit_proof(self.coq, lemma_statement, ending_command)
@@ -630,7 +630,7 @@ class Worker:
         ending_command = self.remaining_commands.pop(0)
         serapi_instance.admit_proof(self.coq, job_lemma, ending_command)
 
-        self.lemmas_encountered.append(job_lemma)
+        self.lemmas_encountered.append(job)
         return SearchResult(search_status, solution)
 
 def search_file_worker(args: argparse.Namespace,
@@ -645,7 +645,7 @@ def search_file_worker(args: argparse.Namespace,
     sys.setrecursionlimit(100000)
     # util.use_cuda = False
     if util.use_cuda:
-        torch.cuda.set_device(device)
+        torch.cuda.set_device(device) # type: ignore
     util.cuda_device = device
 
     if args.splits_file:
@@ -763,8 +763,8 @@ def search_file_multithreaded(args: argparse.Namespace,
         worker_predictors = [copy.deepcopy(predictor)
                              for device in worker_devices]
         for predictor, device in zip(worker_predictors, worker_devices):
-            predictor.to_device(device)
-            predictor.share_memory()
+            predictor.to_device(device) # type: ignore
+            predictor.share_memory() # type: ignore
         # This cast appears to be needed due to a buggy type stub on
         # multiprocessing.Manager()
         predictor_locks = [cast(multiprocessing.managers.SyncManager,
@@ -1711,8 +1711,9 @@ class BFSNode:
         pass
 
     def setNodeColor(self, color: str) -> None:
+        assert color
         if self.color != None and self.color != "":
-            self.color += (":" + color)
+            self.color = (unwrap(self.color) + ":" + color)
         else:
             self.color = color
 
@@ -1724,7 +1725,7 @@ class BFSNode:
         cur_node = self
         while cur_node.previous != None:
             cur_node.setNodeColor("palegreen1")
-            cur_node = cur_node.previous
+            cur_node = unwrap(cur_node.previous)
 
     def draw_graph(self, path: str) -> None:
         graph = pgv.AGraph(directed=True)
