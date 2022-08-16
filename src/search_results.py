@@ -11,6 +11,28 @@ class ReportStats(NamedTuple):
     num_proofs_completed: int
 
 
+class SearchStatus(str, Enum):
+    SUCCESS = 'SUCCESS'
+    INCOMPLETE = 'INCOMPLETE'
+    SKIPPED = 'SKIPPED'
+    FAILURE = 'FAILURE'
+    CRASHED = 'CRASHED'
+
+class TacticInteraction(NamedTuple):
+    tactic: str
+    context_before: ProofContext
+
+    @classmethod
+    def from_dict(cls, data):
+        tactic = data['tactic']
+        context_before = ProofContext.from_dict(data['context_before'])
+        return cls(tactic, context_before)
+
+    def to_dict(self):
+        return {"tactic": self.tactic,
+                "context_before": self.context_before.to_dict()}
+
+
 class SearchResult(NamedTuple):
     status: SearchStatus
     commands: Optional[List[TacticInteraction]]
@@ -30,35 +52,8 @@ class SearchResult(NamedTuple):
                 'commands': list(map(TacticInteraction.to_dict,
                                      self.commands))}
 
-
-DocumentBlock = Union[VernacBlock, ProofBlock]
-
-class SearchStatus(str, Enum):
-    SUCCESS = 'SUCCESS'
-    INCOMPLETE = 'INCOMPLETE'
-    SKIPPED = 'SKIPPED'
-    FAILURE = 'FAILURE'
-    CRASHED = 'CRASHED'
-
-
 class VernacBlock(NamedTuple):
     commands: List[str]
-
-
-class TacticInteraction(NamedTuple):
-    tactic: str
-    context_before: ProofContext
-
-    @classmethod
-    def from_dict(cls, data):
-        tactic = data['tactic']
-        context_before = ProofContext.from_dict(data['context_before'])
-        return cls(tactic, context_before)
-
-    def to_dict(self):
-        return {"tactic": self.tactic,
-                "context_before": self.context_before.to_dict()}
-
 
 class ProofBlock(NamedTuple):
     lemma_statement: str
@@ -67,6 +62,7 @@ class ProofBlock(NamedTuple):
     predicted_tactics: List[TacticInteraction]
     original_tactics: List[TacticInteraction]
 
+DocumentBlock = Union[VernacBlock, ProofBlock]
 
 class ArgsMismatchException(Exception):
     pass
