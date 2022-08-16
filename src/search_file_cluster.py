@@ -33,10 +33,11 @@ from pathlib import Path
 
 from typing import List, NamedTuple
 
-from search_file import (add_args_to_parser, ReportJob,
-                         generate_report, get_predictor,
+from search_file import (add_args_to_parser, get_predictor,
                          get_already_done_jobs,
                          project_dicts_from_args)
+from search_worker import ReportJob
+from search_report import generate_report
 import coq_serapy
 import util
 
