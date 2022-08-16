@@ -352,19 +352,6 @@ def get_predictor(parser: argparse.ArgumentParser,
     return predictor
 
 
-# A few functions for profiling
-def reset_times(args: argparse.Namespace):
-    if args.proof_times:
-        with args.proof_times.open('w'):
-            pass
-
-
-def append_time(args: argparse.Namespace, action: str, seconds: float):
-    if args.proof_times:
-        with args.proof_times.open('a') as f:
-            f.write(f"{action}: {datetime.timedelta(seconds=seconds)}\n")
-
-
 def search_file_worker_profiled(
         args: argparse.Namespace,
         predictor: TacticPredictor,
@@ -680,9 +667,6 @@ def search_file_worker(args: argparse.Namespace,
                 return
             solution = worker.run_job(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
-
-def recover_sol(sol: Dict[str, Any]) -> SearchResult:
-    return SearchResult.from_dict(sol)
 
 def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
     if args.splits_file:
