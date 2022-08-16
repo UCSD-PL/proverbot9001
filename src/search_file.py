@@ -677,20 +677,6 @@ def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
                           "test_files": [str(filename) for filename in args.filenames]}]
     return project_dicts
 
-def remove_already_done_jobs(args: argparse.Namespace) -> None:
-    project_dicts = project_dicts_from_args(args)
-    for project_dict in project_dicts:
-        for filename in project_dict["test_files"]:
-            proofs_file = (args.output_dir / project_dict["project_name"] /
-                           (util.safe_abbrev(Path2(filename),
-                                             [Path2(filename) for filename in
-                                              project_dict["test_files"]])
-                            + "-proofs.txt"))
-            try:
-                os.remove(proofs_file)
-            except FileNotFoundError:
-                pass
-
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []
 
