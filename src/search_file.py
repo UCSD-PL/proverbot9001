@@ -296,7 +296,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
 
 
 def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
-                  report_dir: Path2,
+                  report_dir: Path,
                   report_stats: List[search_report.ReportStats]) -> None:
     predictorOptions = predictor.getOptions()
     commit, date, weightshash = get_metadata(args)
@@ -606,7 +606,7 @@ class Worker:
                         traceback.print_exc(file=f)
 
                 search_status = SearchStatus.CRASHED
-                solution = []
+                solution: List[TacticInteraction] = []
                 eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                        "due to multiple failures",
                        guard=self.args.verbose >= 1)
