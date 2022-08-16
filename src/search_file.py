@@ -220,8 +220,6 @@ def search_file_worker_profiled(
                     'predictor_lock, jobs, done, worker_idx, device)',
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
-Job = Tuple[str, str, str]
-
 class ReportJob(NamedTuple):
     project_dir: str
     filename: str
