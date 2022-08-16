@@ -100,7 +100,7 @@ def main(arg_list: List[str]) -> None:
     else:
         assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
     if args.generate_report:
-        generate_report(args, predictor)
+        generate_report(args, predictor, project_dicts_from_args(args))
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
     project_dicts = project_dicts_from_args(args)

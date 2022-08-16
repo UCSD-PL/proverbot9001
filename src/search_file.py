@@ -383,7 +383,7 @@ def search_file_multithreaded(args: argparse.Namespace,
         for worker in workers:
             worker.join()
     if args.generate_report:
-        search_report.generate_report(args, predictor, project_dicts)
+        search_report.generate_report(args, predictor, project_dicts_from_args(args))
 
 if __name__ == "__main__":
     main(sys.argv[1:])
