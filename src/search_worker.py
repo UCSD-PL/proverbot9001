@@ -122,7 +122,7 @@ class Worker:
         if job_file != self.cur_file:
             if self.cur_file:
                 for sec_or_mod, _ in reversed(self.coq.sm_stack):
-                    self.coq.run_stmt(f"End {sec_or_mod}.", timeout=240)
+                    self.coq.run_stmt(f"Reset {sec_or_mod}.")
             self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job
