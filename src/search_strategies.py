@@ -291,7 +291,7 @@ def tryPrediction(args: argparse.Namespace,
 
 
 goalBignessLimit = 3000
-
+maxHyps = 32
 
 def contextIsBig(context: ProofContext):
     for obligation in context.all_goals:
@@ -299,6 +299,8 @@ def contextIsBig(context: ProofContext):
             if len(hypothesis) > goalBignessLimit:
                 return True
         if len(obligation.goal) > goalBignessLimit:
+            return True
+        if len(obligation.hypotheses) > maxHyps:
             return True
     return False
 
