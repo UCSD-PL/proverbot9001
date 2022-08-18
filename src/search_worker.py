@@ -74,15 +74,7 @@ class Worker:
                 switch = self.switch_dict[self.cur_project]
             else:
                 return
-        env_string = subprocess.run(f"opam env --switch={switch} --set-switch",
-                                    shell=True, stdout=subprocess.PIPE, text=True).stdout
-        for env_line in env_string.splitlines():
-            linematch = re.fullmatch(r"(\w*)='([^;]*)'; export (\w*);", env_line)
-            assert linematch, env_line
-            envvar = linematch.group(1)
-            assert envvar == linematch.group(3)
-            envval = linematch.group(2)
-            os.environ[envvar] = envval
+        self.coq.set_switch(switch)
 
     def restart_coq(self) -> None:
         assert self.coq
