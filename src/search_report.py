@@ -28,6 +28,7 @@ import datetime
 import itertools
 import json
 import subprocess
+import datetime
 from pathlib_revised import Path2
 from pathlib import Path
 from shutil import copyfile
@@ -62,7 +63,7 @@ Line = Callable[..., None]
 unnamed_goal_number: int = 0
 
 def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
-                    project_dicts: List[Dict[str, Any]]) -> None:
+                    project_dicts: List[Dict[str, Any]], time_taken: datetime.timedelta) -> None:
     stats: List[ReportStats] = []
     model_name = dict(predictor.getOptions())["predictor"]
     base = Path(os.path.dirname(os.path.abspath(__file__)))
@@ -108,7 +109,7 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
             stats.append(stats_from_blocks(blocks, str(filename)))
         produce_index(args, predictor,
                       args.output_dir / project_dict["project_name"],
-                      stats)
+                      stats, time_taken)
     if len(project_dicts) > 1:
         multi_project_report.multi_project_index(args.output_dir)
 
@@ -375,7 +376,8 @@ def write_summary_html(filename : Path,
                        cur_commit : str, cur_date : datetime.datetime,
                        weights_hash: str,
                        individual_stats : List[ReportStats],
-                       combined_stats : ReportStats) -> None:
+                       combined_stats : ReportStats,
+                       time_taken: datetime.timedelta) -> None:
     def report_header(tag : Any, doc : Doc, text : Text) -> None:
         html_header(tag, doc, text,index_css, index_js,
                     "Proverbot Report")
@@ -399,6 +401,8 @@ def write_summary_html(filename : Path,
                                                  combined_stats.num_proofs),
                              combined_stats.num_proofs_completed,
                              combined_stats.num_proofs))
+            with tag('h2'):
+                text(f"Time taken: {str(time_taken)}")
             with tag('ul'):
                 for k, v in options:
                     if k == 'filenames':
@@ -475,12 +479,14 @@ def write_summary(args : argparse.Namespace, report_dir: Path,
                   unparsed_args : List[str],
                   cur_commit : str, cur_date : datetime.datetime,
                   weights_hash: str,
-                  individual_stats : List[ReportStats]) -> None:
+                  individual_stats : List[ReportStats],
+                  time_taken: datetime.timedelta) -> None:
     combined_stats = combine_file_results(individual_stats)
     write_summary_html(report_dir / "index.html",
                        options, unparsed_args,
                        cur_commit, cur_date, weights_hash,
-                       individual_stats, combined_stats)
+                       individual_stats, combined_stats,
+                       time_taken)
     write_summary_csv("{}/report.csv".format(report_dir), combined_stats, options)
     write_proof_summary_csv(str(report_dir), [str(s.filename) for s in individual_stats])
     base = Path(os.path.abspath(__file__)).parent.parent / "reports"
@@ -545,7 +551,7 @@ def combine_file_results(stats : List[ReportStats]) -> ReportStats:
 
 def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
                   report_dir: Path,
-                  report_stats: List[ReportStats]) -> None:
+                  report_stats: List[ReportStats], time_taken: datetime.timedelta) -> None:
     predictorOptions = predictor.getOptions()
     commit, date, weightshash = get_metadata(args)
     write_summary(args, report_dir,
@@ -554,7 +560,8 @@ def produce_index(args: argparse.Namespace, predictor: TacticPredictor,
                    ("search width", args.search_width),
                    ("search depth", args.search_depth)],
                   predictor.unparsed_args,
-                  commit, date, weightshash, report_stats)
+                  commit, date, weightshash, report_stats,
+                  time_taken)
 
 
 def stats_from_blocks(blocks: List[DocumentBlock], vfilename: str) \

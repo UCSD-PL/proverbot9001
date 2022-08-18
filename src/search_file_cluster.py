@@ -28,8 +28,10 @@ import json
 import subprocess
 import signal
 import shutil
+import functools
 from tqdm import tqdm
 from pathlib import Path
+from datetime import datetime, timedelta
 
 from typing import List, NamedTuple
 
@@ -43,8 +45,10 @@ import util
 
 details_css = "details.css"
 details_javascript = "search-details.js"
+start_time = 0
 
 def main(arg_list: List[str]) -> None:
+    global start_time
     arg_parser = argparse.ArgumentParser()
 
     add_args_to_parser(arg_parser)
@@ -82,8 +86,17 @@ def main(arg_list: List[str]) -> None:
                 srcpath = base.parent / 'reports' / filename
                 shutil.copyfile(srcpath, destpath)
 
+    start_time = datetime.now()
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
+        try:
+            with open(args.output_dir / "time_so_far.txt", 'r') as f:
+                s = f.read()
+                t = datetime.strptime(s.strip(), "%H:%M:%S.%f")
+                start_time = datetime.now() - timedelta(hours=t.hour,minutes=t.minute,seconds=t.second)
+        except FileNotFoundError:
+            assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
+            pass
     else:
         remove_already_done_jobs(args)
         solved_jobs = []
@@ -95,12 +108,15 @@ def main(arg_list: List[str]) -> None:
     if len(solved_jobs) < len(jobs):
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
         dispatch_workers(args, arg_list)
-        with util.sighandler_context(signal.SIGINT, cancel_workers):
+        with util.sighandler_context(signal.SIGINT, functools.partial(cancel_workers, args)):
             show_progress(args)
+        cancel_workers(args)
     else:
         assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
+    time_taken = datetime.now() - start_time
     if args.generate_report:
-        generate_report(args, predictor, project_dicts_from_args(args))
+        generate_report(args, predictor, project_dicts_from_args(args), time_taken)
+
 
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
@@ -177,8 +193,11 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                     f"--array=0-{args.num_workers-1}",
                     f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
 
-def cancel_workers(*args) -> None:
+def cancel_workers(args: argparse.Namespace, *rest_args) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
+    with open(args.output_dir / "time_so_far.txt", 'w') as f:
+        time_taken = datetime.now() - start_time
+        print(str(time_taken), file=f)
     sys.exit()
 
 def show_progress(args: argparse.Namespace) -> None:

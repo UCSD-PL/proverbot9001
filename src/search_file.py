@@ -34,6 +34,7 @@ import traceback
 import subprocess
 import cProfile
 import copy
+import functools
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
@@ -322,8 +323,17 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
+    start_time = datetime.now()
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
+        try:
+            with open(args.output_dir / "time_so_far.txt", 'r') as f:
+                t = datetime.strptime(f.read(), "%H:%M:%S")
+                start_time = datetime.now() - timedelta(hours=t.hours,minutes=t.minutes,
+                                                        seconds=t.seconds)
+        except FileNotFoundError:
+            assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
+            pass
     else:
         remove_already_done_jobs(args)
         solved_jobs = []
@@ -373,35 +383,44 @@ def search_file_multithreaded(args: argparse.Namespace,
         for worker in workers:
             worker.start()
         num_already_done = len(solved_jobs)
-        with tqdm(total=len(todo_jobs) + num_already_done,
-                  dynamic_ncols=True, desc="Searching proofs") as bar:
-            bar.update(n=num_already_done)
-            bar.refresh()
-            for _ in range(len(todo_jobs)):
-                (done_project, done_file, done_module, done_lemma), sol = done.get()
-                if args.splits_file:
-                    with args.splits_file.open('r') as splits_f:
-                        project_dicts = json.loads(splits_f.read())
-                    for project_dict in project_dicts:
-                        if project_dict["project_name"] == done_project:
-                            filenames = [Path(fname) for fname in project_dict["test_files"]]
-                            break
-                else:
-                    filenames = args.filenames
-                proofs_file = (args.output_dir / done_project /
-                               (util.safe_abbrev(Path(done_file),
-                                                 filenames)
-                                + "-proofs.txt"))
-                with proofs_file.open('a') as f:
-                    f.write(json.dumps(((done_project, str(done_file), done_module, done_lemma),
-                                        sol.to_dict())))
-                    f.write("\n")
-                bar.update()
+        with util.sighandler_context(signal.SIGINT, functools.partial(write_time, args)):
+            with tqdm(total=len(todo_jobs) + num_already_done,
+                      dynamic_ncols=True, desc="Searching proofs") as bar:
+                bar.update(n=num_already_done)
+                bar.refresh()
+                for _ in range(len(todo_jobs)):
+                    (done_project, done_file, done_module, done_lemma), sol = done.get()
+                    if args.splits_file:
+                        with args.splits_file.open('r') as splits_f:
+                            project_dicts = json.loads(splits_f.read())
+                        for project_dict in project_dicts:
+                            if project_dict["project_name"] == done_project:
+                                filenames = [Path(fname) for fname in project_dict["test_files"]]
+                                break
+                    else:
+                        filenames = args.filenames
+                    proofs_file = (args.output_dir / done_project /
+                                   (util.safe_abbrev(Path(done_file),
+                                                     filenames)
+                                    + "-proofs.txt"))
+                    with proofs_file.open('a') as f:
+                        f.write(json.dumps(((done_project, str(done_file), done_module, done_lemma),
+                                            sol.to_dict())))
+                        f.write("\n")
+                    bar.update()
 
-        for worker in workers:
-            worker.join()
+            for worker in workers:
+                worker.join()
+    time_taken = start_time - datetime.now()
     if args.generate_report:
-        search_report.generate_report(args, predictor, project_dicts_from_args(args))
+        search_report.generate_report(args, predictor, project_dicts_from_args(args),
+                                      datetime.timedelta())
+
+def write_time(args: argparse.Namespace, *rest_args) -> None:
+    with open(args.output_dir / "time_so_far.txt", 'w') as f:
+        time_taken = start_time - datetime.now()
+        print(str(time_taken), file=f)
+    sys.exit()
 
 if __name__ == "__main__":
     main(sys.argv[1:])
