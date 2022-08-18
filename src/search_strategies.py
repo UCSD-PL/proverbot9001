@@ -853,7 +853,7 @@ def best_first_proof_search(lemma_name: str,
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
                                      ProofContext([], [], [], [])), None)
-    nodes_todo: List[AStarTask] = [AStarTask(0, start_node)]
+    nodes_todo: List[AStarTask] = [AStarTask(1.0, start_node)]
 
     desc_name = lemma_name
     if len(desc_name) > 25:
@@ -929,9 +929,9 @@ def best_first_proof_search(lemma_name: str,
             if args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
-                h_score = -(next_node.f_score * prediction.certainty)
+                h_score = -abs(next_node.f_score * prediction.certainty)
             elif args.scoring_function == "norm-certainty":
-                h_score = -math.sqrt(next_node.f_score * prediction.certainty)
+                h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
             else:
                 assert args.scoring_function == "pickled"
                 h_score = 0.
