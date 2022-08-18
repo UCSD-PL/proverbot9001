@@ -950,6 +950,8 @@ def best_first_proof_search(lemma_name: str,
             else:
                 score = h_score
 
+            prediction_node.score = score
+
             # Put our new prediction node in our priority queue
             heapq.heappush(nodes_todo, AStarTask(score, prediction_node))
             # Return us to before running the prediction, so we're ready for
