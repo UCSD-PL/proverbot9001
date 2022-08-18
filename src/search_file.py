@@ -306,18 +306,36 @@ def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
                             for filename in project_dict["test_files"]]
     return list(get_file_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
 
+def remove_already_done_jobs(args: argparse.Namespace) -> None:
+    project_dicts = project_dicts_from_args(args)
+    for project_dict in project_dicts:
+        for filename in project_dict["test_files"]:
+            proofs_file = (args.output_dir / project_dict["project_name"] /
+                           (util.safe_abbrev(Path(filename),
+                                             [Path(filename) for filename in
+                                              project_dict["test_files"]])
+                            + "-proofs.txt"))
+            try:
+                os.remove(proofs_file)
+            except FileNotFoundError:
+                pass
+
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
+    if args.resume:
+        solved_jobs = get_already_done_jobs(args)
+    else:
+        remove_already_done_jobs(args)
+        solved_jobs = []
+    all_jobs = get_all_jobs(args)
+    todo_jobs = [job for job in all_jobs if job not in solved_jobs]
+    assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
+      f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
     with multiprocessing.Manager() as manager:
         jobs: multiprocessing.Queue[ReportJob] = multiprocessing.Queue()
         done: multiprocessing.Queue[
             Tuple[ReportJob, SearchResult]
         ] = multiprocessing.Queue()
-        solved_jobs = get_already_done_jobs(args)
-        all_jobs = get_all_jobs(args)
-        todo_jobs = [job for job in all_jobs if job not in solved_jobs]
-        assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
-          f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
 
 
         for job in todo_jobs:

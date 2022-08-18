@@ -34,7 +34,7 @@ from pathlib import Path
 from typing import List, NamedTuple
 
 from search_file import (add_args_to_parser, get_predictor,
-                         get_already_done_jobs,
+                         get_already_done_jobs, remove_already_done_jobs,
                          project_dicts_from_args)
 from search_worker import ReportJob
 from search_report import generate_report
@@ -102,19 +102,6 @@ def main(arg_list: List[str]) -> None:
     if args.generate_report:
         generate_report(args, predictor, project_dicts_from_args(args))
 
-def remove_already_done_jobs(args: argparse.Namespace) -> None:
-    project_dicts = project_dicts_from_args(args)
-    for project_dict in project_dicts:
-        for filename in project_dict["test_files"]:
-            proofs_file = (args.output_dir / project_dict["project_name"] /
-                           (util.safe_abbrev(Path(filename),
-                                             [Path(filename) for filename in
-                                              project_dict["test_files"]])
-                            + "-proofs.txt"))
-            try:
-                os.remove(proofs_file)
-            except FileNotFoundError:
-                pass
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     if (args.output_dir / "all_jobs.txt").exists():
