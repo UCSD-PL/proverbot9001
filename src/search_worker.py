@@ -234,8 +234,8 @@ class Worker:
                     traceback.print_exc(file=f)
             self.restart_coq()
             self.reset_file_state()
+            self.enter_file(job_file)
             if restart:
-                self.enter_file(job_file)
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
             else:
