@@ -83,6 +83,7 @@ pub fn apply_filter(
         ContextFilterAST::GoalArgs => {
             let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
                 .into_iter()
+                .take(max_term_length)
                 .collect();
             let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
