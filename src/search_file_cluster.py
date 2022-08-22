@@ -108,7 +108,7 @@ def main(arg_list: List[str]) -> None:
     if len(solved_jobs) < len(jobs):
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
         dispatch_workers(args, arg_list)
-        with util.sighandler_context(signal.SIGINT, functools.partial(cancel_workers, args)):
+        with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
             show_progress(args)
         cancel_workers(args)
     else:
@@ -193,12 +193,14 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                     f"--array=0-{args.num_workers-1}",
                     f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
 
-def cancel_workers(args: argparse.Namespace, *rest_args) -> None:
-    subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
+def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
+    cancel_workers(args)
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
     sys.exit()
+def cancel_workers(args: argparse.Namespace) -> None:
+    subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
 
 def show_progress(args: argparse.Namespace) -> None:
     num_jobs_done = len(get_already_done_jobs(args))
