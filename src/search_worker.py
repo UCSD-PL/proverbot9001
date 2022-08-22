@@ -5,7 +5,7 @@ import subprocess
 import re
 import os
 import traceback
-from typing import NamedTuple, Optional, Dict, List, cast, Tuple
+from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator
 from pathlib import Path
 
 import coq_serapy
