@@ -216,6 +216,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
 
 import torch
 import torch.utils.data as data
+from torch.utils.tensorboard import SummaryWriter
 import torch.optim.lr_scheduler as scheduler
 from torch import optim
 import torch.nn as nn
@@ -468,8 +469,8 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
     dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
                                  batch_size=arg_values.batch_size, num_workers=0,
                                  shuffle=True, pin_memory=True, drop_last=True)
-    # Drop the last batch in the count
     dataset_size = data_tensors[0].size()[0]
+    # Drop the last batch in the count
     num_batches = int(dataset_size / arg_values.batch_size)
     dataset_size = num_batches * arg_values.batch_size
     assert dataset_size > 0
@@ -479,6 +480,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                                  lr=arg_values.learning_rate)
     adjuster = scheduler.StepLR(optimizer, arg_values.epoch_step,
                                 gamma=arg_values.gamma)
+    writer = SummaryWriter()
     training_start = time.time()
     print("Training...")
     for epoch in range(1, epoch_start):
@@ -491,6 +493,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
             optimizer.zero_grad()
             # with autograd.detect_anomaly():
             loss = batchLoss(data_batch, model)
+            writer.add_scalar("Batch loss/train", loss, epoch * num_batches + batch_num)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
@@ -510,6 +513,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
         yield NeuralPredictorState(epoch,
                                    epoch_loss / num_batches,
                                    model.state_dict())
+    writer.flush()
 
 def embed_data(data : RawDataset, embedding : Optional[Embedding] = None) \
     -> Tuple[Embedding, StrictEmbeddedDataset]:

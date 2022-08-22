@@ -8,3 +8,4 @@ pygraphviz
 tqdm
 pathlib_revised
 sparse_list
+tensorboard
