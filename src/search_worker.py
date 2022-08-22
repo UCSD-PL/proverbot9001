@@ -66,6 +66,7 @@ class Worker:
 
     def set_switch_from_proj(self) -> None:
         assert self.cur_project
+        assert self.coq
         try:
             with (self.args.prelude / self.cur_project / "switch.txt").open('r') as sf:
                 switch = sf.read().strip()
