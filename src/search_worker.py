@@ -354,13 +354,13 @@ def get_file_jobs(args: argparse.Namespace,
             arg_proofs_names = [line.strip() for line in f]
     elif args.proof:
         arg_proofs_names = [args.proof]
-    cmds = serapi_instance.load_commands(args.prelude / project / filename)
-    lemmas_in_file = serapi_instance.lemmas_in_file(filename, cmds,
+    cmds = coq_serapy.load_commands(args.prelude / project / filename)
+    lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
                                                     args.include_proof_relevant)
     if arg_proofs_names:
         return [ReportJob(project, filename, module, stmt)
                 for (module, stmt) in lemmas_in_file
-                if serapi_instance.lemma_name_from_statement(stmt)
+                if coq_serapy.lemma_name_from_statement(stmt)
                 in arg_proofs_names]
     else:
         return [ReportJob(project, filename, module, stmt)

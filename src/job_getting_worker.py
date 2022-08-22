@@ -6,7 +6,7 @@ import multiprocessing
 
 from pathlib import Path
 
-from search_file import get_file_jobs
+from search_worker import get_files_jobs
 from util import FileLock
 
 from typing import List, cast, Tuple
@@ -51,7 +51,7 @@ def run_worker(args: argparse.Namespace) -> None:
                 print(json.dumps(next_proj_file), file=f, flush=True)
             else:
                 break
-        jobs = get_file_jobs(args, [next_proj_file])
+        jobs = get_files_jobs(args, [next_proj_file])
         with (args.output_dir / args.jobs_file).open('a') as f, FileLock(f):
             for job in list(dict.fromkeys(jobs)):
                 print(json.dumps(job), file=f, flush=True)
