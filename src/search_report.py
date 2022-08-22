@@ -45,6 +45,7 @@ import data
 
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
+from search_worker import get_file_jobs
 import coq_serapy
 from coq_serapy.contexts import ScrapedTactic, Obligation
 import multi_project_report
@@ -90,8 +91,7 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
                         job, sol = json.loads(line)
                         file_solutions.append((job, SearchResult.from_dict(sol)))
             except FileNotFoundError:
-                cmds = coq_serapy.load_commands(source_file)
-                lemmas = coq_serapy.lemmas_in_file(source_file, cmds, args.include_proof_relevant)
+                lemmas = get_file_jobs(args, project_dict["project_name"], filename)
                 assert len(lemmas) == 0
                 stats.append(ReportStats(filename, 0, 0, 0))
                 continue

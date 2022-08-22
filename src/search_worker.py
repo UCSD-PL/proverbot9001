@@ -345,3 +345,30 @@ def attempt_search(args: argparse.Namespace,
         if args.max_search_time_per_lemma:
             timer.cancel()
     return result
+
+def get_file_jobs(args: argparse.Namespace,
+                  project: str, filename: str) -> List[ReportJob]:
+    arg_proofs_names = None
+    if args.proofs_file:
+        with open(args.proofs_file, 'r') as f:
+            arg_proofs_names = [line.strip() for line in f]
+    elif args.proof:
+        arg_proofs_names = [args.proof]
+    cmds = serapi_instance.load_commands(args.prelude / project / filename)
+    lemmas_in_file = serapi_instance.lemmas_in_file(filename, cmds,
+                                                    args.include_proof_relevant)
+    if arg_proofs_names:
+        return [ReportJob(project, filename, module, stmt)
+                for (module, stmt) in lemmas_in_file
+                if serapi_instance.lemma_name_from_statement(stmt)
+                in arg_proofs_names]
+    else:
+        return [ReportJob(project, filename, module, stmt)
+                for (module, stmt) in lemmas_in_file]
+
+
+def get_files_jobs(args: argparse.Namespace,
+                   proj_filename_tuples: Iterable[Tuple[str, str]]) \
+                   -> Iterator[ReportJob]:
+    for project, filename in proj_filename_tuples:
+        yield from get_file_jobs(args, project, filename)

@@ -47,7 +47,7 @@ import coq_serapy as serapi_instance
 from util import eprint
 import search_report
 from search_results import SearchResult
-from search_worker import ReportJob, Worker
+from search_worker import ReportJob, Worker, get_files_jobs
 import multi_project_report
 import util
 
@@ -277,35 +277,12 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
     return already_done_jobs
 
-def get_file_jobs(args: argparse.Namespace,
-                  proj_filename_tuples: Iterable[Tuple[str, str]]) \
-                  -> Iterator[ReportJob]:
-    arg_proofs_names = None
-    if args.proofs_file:
-        with open(args.proofs_file, 'r') as f:
-            arg_proofs_names = [line.strip() for line in f]
-    elif args.proof:
-        arg_proofs_names = [args.proof]
-
-    for project, filename in proj_filename_tuples:
-        cmds = serapi_instance.load_commands(args.prelude / project / filename)
-        lemmas_in_file = serapi_instance.lemmas_in_file(filename, cmds,
-                                                        args.include_proof_relevant)
-        if arg_proofs_names:
-            yield from (ReportJob(project, filename, module, stmt)
-                        for (module, stmt) in lemmas_in_file
-                        if serapi_instance.lemma_name_from_statement(stmt)
-                        in arg_proofs_names)
-        else:
-            yield from (ReportJob(project, filename, module, stmt)
-                        for (module, stmt) in lemmas_in_file)
-
 def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
     proj_filename_tuples = [(project_dict["project_name"], filename)
                             for project_dict in project_dicts
                             for filename in project_dict["test_files"]]
-    return list(get_file_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
+    return list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
     project_dicts = project_dicts_from_args(args)
