@@ -1,7 +1,0 @@
-# Le nom du fichier source principal.
-
-DOC=manual
-
-# Les imports TeX pour la compilation.
-
-export TEXINPUTS=.:

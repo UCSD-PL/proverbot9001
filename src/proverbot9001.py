@@ -22,6 +22,7 @@
 
 import signal
 import sys
+from collections import Counter
 from tokenizer import tokenizers
 import search_file
 import dynamic_report
@@ -30,7 +31,7 @@ import evaluator_report
 import argparse
 import data
 import itertools
-import coq_serapy as serapi_instance
+import coq_serapy
 import features
 import json
 from util import eprint, print_time
@@ -38,7 +39,10 @@ from coq_serapy.contexts import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic
 import evaluate_state
+import interactive_predictor
+from pathlib import Path
 from pathlib_revised import Path2
+import dataloader
 
 from typing import List
 
@@ -75,7 +79,7 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("format", choices=["terms", "goals", "hyps+goal",
                                            "hyps+goal+tactic", "tacvector",
                                            "scrapefile-rd", "scrapefile"])
-    parser.add_argument("scrape_file", type=Path2)
+    parser.add_argument("scrape_file", type=Path)
     parser.add_argument("--tokenizer",
                         choices=list(tokenizers.keys()), type=str,
                         default=list(tokenizers.keys())[0])
@@ -89,10 +93,8 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--no-truncate-semicolons", dest="truncate_semicolons",
                         action='store_false')
     parser.add_argument("--max-length", dest="max_length", default=30, type=int)
-    parser.add_argument("--lineend", dest="lineend", default=False, const=True,
-                        action='store_const')
-    parser.add_argument("-j", "--num-threads", default=None, type=int)
-    parser.add_argument("--context-filter", dest="context_filter", default="default")
+    parser.add_argument("--lineend", action="store_true")
+    parser.add_argument("--context-filter", default="default")
     parser.add_argument('-v', "--verbose", action="count")
     parser.add_argument("--num-threads", "-j", type=int, default=None)
     parser.add_argument("--no-use-substitutions", action='store_false',
@@ -102,18 +104,17 @@ def get_data(args : List[str]) -> None:
     parser.add_argument("--sort", action='store_true')
     arg_values = parser.parse_args(args)
     if arg_values.format == "terms":
-        terms, tokenizer = data.term_data(
-            data.RawDataset(list(itertools.islice(data.read_text_data(arg_values.scrape_file),
-                                                  arg_values.max_tuples))),
-            tokenizers[arg_values.tokenizer],
-            arg_values.num_keywords, 2)
-        if arg_values.max_length:
-            terms = [data.normalizeSentenceLength(term, arg_values.max_length)
-                     for term in terms]
+        scraped_tactics = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                               arg_values.context_filter,
+                                                               arg_values.max_length,
+                                                               arg_values.max_tuples)
+        terms = [term
+                 for scraped in scraped_tactics if len(scraped.context.fg_goals) > 0
+                 for term in [coq_serapy.get_hyp_type(premise) for premise in
+                  scraped.relevant_lemmas + scraped.context.fg_goals[0].hypotheses]
+                 + [scraped.context.fg_goals[0].goal]]
         for term in terms:
-            print(tokenizer.toString(
-                list(itertools.takewhile(lambda x: x != data.EOS_token, term))),
-                  end="\\n\n" if arg_values.lineend else "\n")
+            print(term, end="\\n\n" if arg_values.lineend else "\n")
     else:
         dataset = data.get_text_data(arg_values)
         if arg_values.sort:
@@ -138,7 +139,7 @@ def get_data(args : List[str]) -> None:
         elif arg_values.format == "tacvector":
             embedding = SimpleEmbedding()
             eprint("Encoding tactics...", guard=arg_values.verbose)
-            answers = [embedding.encode_token(serapi_instance.get_stem(datum.tactic))
+            answers = [embedding.encode_token(coq_serapy.get_stem(datum.tactic))
                        for datum in dataset]
             stripped_data = [strip_scraped_output(scraped) for scraped in dataset]
             eprint("Constructing features...", guard=arg_values.verbose)
@@ -181,6 +182,40 @@ import contextlib
 from pathlib_revised import Path2
 from tokenizer import get_relevant_k_keywords2
 
+def get_tactics(args: List[str]):
+    parser = argparse.ArgumentParser(description="Pick a set of common tactics")
+    parser.add_argument("-v", "--verbose", action='count', default=0)
+    parser.add_argument("-n", "--num-tactics", type=int, default=128)
+    parser.add_argument("-j", "--num-threads", default=None, type=int)
+    parser.add_argument("--no-truncate-semicolons", dest="truncate_semicolons",
+                        action='store_false')
+    parser.add_argument("--no-use-substitutions", action='store_false',
+                        dest='use_substitutions')
+    parser.add_argument("--no-normalize-numeric-args", action='store_false',
+                        dest='normalize_numeric_args')
+    parser.add_argument("--context-filter", default="default")
+    parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
+    parser.add_argument("--max-term-length", default=30, type=int)
+    parser.add_argument("scrape_file", type=Path)
+    parser.add_argument("dest")
+    arg_values = parser.parse_args(args)
+
+    with print_time("Getting data"):
+        # raw_data = list(data.get_text_data(arg_values))
+        raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
+                                                        arg_values.max_tuples)
+
+    count: Counter[str] = Counter()
+    for scraped in raw_data:
+        stem = coq_serapy.get_stem(scraped.tactic)
+        if stem != "":
+            count[stem] += 1
+    with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
+          else contextlib.nullcontext(sys.stdout)) as f:
+        for tactic, tac_count in count.most_common(arg_values.num_tactics):
+            f.write(tactic + "\n")
 
 def get_tokens(args: List[str]):
     parser = argparse.ArgumentParser(description="Pick a set of tokens")
@@ -189,19 +224,23 @@ def get_tokens(args: List[str]):
     parser.add_argument("-n", "--num-keywords", type=int, default=120)
     parser.add_argument("-s", "--num-samples", type=int, default=2000)
     parser.add_argument("-j", "--num-threads", type=int, default=None)
-    parser.add_argument("scrapefile", type=Path2)
+    parser.add_argument("--context-filter", default="default")
+    parser.add_argument("--max-term-length", default=30, type=int)
+    parser.add_argument("scrapefile", type=Path)
     parser.add_argument("dest")
     arg_values = parser.parse_args(args)
 
     with print_time("Reading scraped data", guard=arg_values.verbose):
-        raw_data = list(data.read_text_data(arg_values.scrapefile))
+        raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrapefile),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
+                                                        None)
     embedding = SimpleEmbedding()
-    subset = data.RawDataset(random.sample(raw_data, arg_values.num_samples))
-    relevance_pairs = [(context.focused_goal,
+    subset = random.sample(raw_data, arg_values.num_samples)
+    relevance_pairs = [(scraped.context.fg_goals[0].goal,
                         embedding.encode_token(
-                            serapi_instance.get_stem(tactic)))
-                       for relevant_lemmas, prev_tactics, context, tactic
-                       in subset]
+                            coq_serapy.get_stem(scraped.tactic)))
+                       for scraped in subset]
     with print_time("Calculating keywords", guard=arg_values.verbose):
         keywords = get_relevant_k_keywords2(relevance_pairs,
                                             arg_values.num_keywords,
@@ -212,14 +251,17 @@ def get_tokens(args: List[str]):
         for keyword in keywords:
             f.write(keyword + "\n")
 
+
 modules = {
-    "train" : train,
-    "search-report":search_file.main,
-    "dynamic-report":dynamic_report.main,
-    "static-report":static_report.main,
-    "evaluator-report":evaluator_report.main,
+    "train": train,
+    "search-report": search_file.main,
+    "dynamic-report": dynamic_report.main,
+    "static-report": static_report.main,
+    "evaluator-report": evaluator_report.main,
     "data": get_data,
     "tokens": get_tokens,
+    "tactics": get_tactics,
+    "predict": interactive_predictor.predict,
 }
 
 if __name__ == "__main__":

@@ -26,6 +26,7 @@ import math
 import re
 import itertools
 import argparse
+import fcntl
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
                     Callable, Optional, Pattern, Match, Union)
@@ -36,12 +37,12 @@ import torch.autograd as autograd
 
 from sexpdata import Symbol
 from dataloader import rust_parse_sexp_one_level
-from pathlib_revised import Path2
+from pathlib import Path
 
 
 def maybe_cuda(component):
     if use_cuda:
-        return component.cuda()
+        return component.to(device=torch.device(cuda_device))
     else:
         return component
 
@@ -221,6 +222,7 @@ def silent():
 
 with silent():
     use_cuda = torch.cuda.is_available()
+    cuda_device = "cuda:0"
     # assert use_cuda
 
 import signal as sig
@@ -353,8 +355,24 @@ def progn(*args):
     return args[-1]
 
 
-def safe_abbrev(filename: Path2, all_files: List[Path2]) -> str:
+def safe_abbrev(filename: Path, all_files: List[Path]) -> str:
     if filename.stem in [f.stem for f in all_files if f != filename]:
         return escape_filename(str(filename))
     else:
         return filename.stem
+
+class FileLock:
+    def __init__(self, file_handle):
+        self.file_handle = file_handle
+
+    def __enter__(self):
+        while True:
+            try:
+                fcntl.flock(self.file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
+                break
+            except OSError:
+               time.sleep(0.01)
+        return self
+
+    def __exit__(self, type, value, traceback):
+        fcntl.flock(self.file_handle, fcntl.LOCK_UN)

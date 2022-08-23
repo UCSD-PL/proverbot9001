@@ -1,1 +1,0 @@
-quickChickToolLexer.ml: Lexing List QuickChickToolParser QuickChickToolTypes Str String

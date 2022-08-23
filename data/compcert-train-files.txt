@@ -29,7 +29,6 @@
 ./MenhirLib/Interpreter_complete.v
 ./x86_64/Archi.v
 ./cparser/Cabs.v
-./cparser/Parser.v
 ./flocq/Prop/Plus_error.v
 ./flocq/Prop/Round_odd.v
 ./flocq/Prop/Div_sqrt_error.v

@@ -1,2 +1,0 @@
-decompose_traversal.vo decompose_traversal.glob decompose_traversal.v.beautified: decompose_traversal.v
-decompose_traversal.vio: decompose_traversal.v

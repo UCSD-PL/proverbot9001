@@ -33,6 +33,7 @@ from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
                   ByteTensor, print_time, unwrap)
+import util
 import math
 from coq_serapy.contexts import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
@@ -306,6 +307,8 @@ class FeaturesPolyargPredictor(
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
         arg_values = argparser.parse_args(args)
+        torch.cuda.set_device(arg_values.gpu)
+        util.cuda_device = f"cuda:{arg_values.gpu}"
         save_states = self._optimize_model(arg_values)
 
         for metadata, state in save_states:
@@ -342,7 +345,7 @@ class FeaturesPolyargPredictor(
         assert self._model
 
         num_stem_poss = get_num_tokens(self.metadata)
-        stem_width = min(self.training_args.max_beam_width, num_stem_poss)
+        stem_width = min(16, num_stem_poss)
 
         tokenized_premises, hyp_features, \
             nhyps_batch, tokenized_goal, \
@@ -484,7 +487,7 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        num_stem_poss = get_num_tokens(self.metadata)
+        self.metadata, num_stem_poss = get_num_indices(self.metadata)
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises, hyp_features, \
@@ -502,6 +505,7 @@ class FeaturesPolyargPredictor(
             serapi_instance.split_tactic(prediction)
         prediction_stem_idx = encode_fpa_stem(extract_dataloader_args(self.training_args),
                                               self.metadata, prediction_stem)
+        assert prediction_stem_idx < num_stem_poss
         stem_distributions = self._model.stem_classifier(
             maybe_cuda(torch.LongTensor(word_features)),
             maybe_cuda(torch.FloatTensor(vec_features)))
@@ -527,6 +531,10 @@ class FeaturesPolyargPredictor(
             context.hypotheses + context.relevant_lemmas,
             context.goal,
             prediction_args)
+        assert prediction_arg_idx is not None, \
+            (prediction, prediction_args, context.goal,
+             [serapi_instance.get_var_term_in_hyp(hyp) for hyp
+              in context.hypotheses + context.relevant_lemmas])
 
         goal_arg_values = self.goal_token_scores(
             merged_stem_idxs, tokenized_goal, goal_mask)
@@ -587,7 +595,7 @@ class FeaturesPolyargPredictor(
             .view(batch_size, stem_width, num_goal_probs)
 
         masked_probabilities = torch.where(
-            maybe_cuda(torch.ByteTensor(goal_masks))
+            maybe_cuda(torch.BoolTensor(goal_masks))
             .view(batch_size, 1, num_goal_probs)
             .expand(-1, stem_width, -1),
             unmasked_probabilities,
@@ -636,7 +644,8 @@ class FeaturesPolyargPredictor(
             [batch_size, stem_width * num_probs_per_stem])
         assert arg_idxs.size() == torch.Size(
             [batch_size, stem_width * num_probs_per_stem])
-        predicted_stem_keys = arg_idxs // num_probs_per_stem
+        predicted_stem_keys = torch.div(arg_idxs, num_probs_per_stem,
+                                        rounding_mode="floor")
         predicted_stem_idxs = stem_idxs.view(stem_width)\
                                        .index_select(
                                            0, predicted_stem_keys.squeeze(
@@ -746,6 +755,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--save-features-state", type=str, default=None)
         parser.add_argument("--load-embedding", type=str, default=None)
         parser.add_argument("--load-features-state", type=str, default=None)
+        parser.add_argument('--gpu', default=0, type=int)
 
     def _encode_data(self, data: RawDataset, arg_values: Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
@@ -810,7 +820,7 @@ class FeaturesPolyargPredictor(
                 model = self._get_model(arg_values,
                                         word_features_size,
                                         vec_features_size,
-                                        get_num_indices(metadata),
+                                        get_num_indices(metadata)[1],
                                         get_num_tokens(metadata))
                 epoch_start = 1
 
@@ -831,7 +841,7 @@ class FeaturesPolyargPredictor(
                                            get_word_feature_vocab_sizes(
                                                metadata),
                                            get_vec_features_size(metadata),
-                                           get_num_indices(metadata),
+                                           get_num_indices(metadata)[1],
                                            get_num_tokens(metadata)))
         model.load_state_dict(state.weights)
         self._model = model
@@ -963,6 +973,11 @@ class FeaturesPolyargPredictor(
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
         return loss
+
+    def share_memory(self) -> None:
+        self._model.share_memory()
+    def to_device(self, device) -> None:
+        self._model.to(device=device)
 
 
 def hypFeaturesSize() -> int:

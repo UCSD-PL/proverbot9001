@@ -237,8 +237,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         hyps: Vec<String>,
         goal: &str,
         arg: &str,
-    ) -> i64 {
-        encode_fpa_arg_unbounded(&args, hyps, goal, arg)
+    ) -> Option<i64> {
+        match encode_fpa_arg_unbounded(&args, hyps, goal, arg) {
+            Ok(val) => Some(val),
+            Err(err) => None
+        }
     }
     #[pyfn(m, "get_num_tokens")]
     fn get_num_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
@@ -250,10 +253,16 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         fpa_get_num_possible_args(&args)
     }
     #[pyfn(m, "get_num_indices")]
-    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
-        let (mut indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> (PickleableFPAMetadata, i64) {
+        let (mut indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         indexer.freeze();
-        indexer.num_indices()
+        let num_indices = indexer.num_indices();
+        (fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)), num_indices)
+    }
+    #[pyfn(m, "get_all_tactics")]
+    fn get_all_tactics(_py: Python, metadata: PickleableFPAMetadata) -> Vec<String> {
+	let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
+	indexer.get_all_tactics()
     }
     #[pyfn(m, "get_word_feature_vocab_sizes")]
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
@@ -311,8 +320,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn _scraped_tactics_from_file(
         _py: Python,
         filename: String,
-        num_tactics: Option<usize>,
+	filter_spec: String,
+	max_term_length: usize,
+	num_tactics: Option<usize>,
     ) -> PyResult<Vec<ScrapedTactic>> {
+	let filter = parse_filter(&filter_spec);
         let iter = scraped_from_file(
             File::open(filename)
                 .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
@@ -320,7 +332,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
-        });
+        }).filter(|datum| apply_filter(max_term_length, &filter, datum));
         match num_tactics {
             Some(num) => Ok(iter.take(num).collect()),
             None => Ok(iter.collect()),
@@ -341,7 +353,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         );
         let transition_iter = scraped_transition_iter(raw_iter);
         let filtered_iter = transition_iter
-            .filter(|transition| apply_filter(args, &filter, &transition.scraped_before()));
+            .filter(|transition| apply_filter(args.max_length, &filter, &transition.scraped_before()));
         Ok(filtered_iter.take(num_tactics).collect::<Vec<_>>())
     }
 

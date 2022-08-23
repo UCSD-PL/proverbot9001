@@ -20,7 +20,6 @@
 ##########################################################################
 
 import coq_serapy as serapi_instance
-from data import SequenceSequenceDataset
 import tokenizer
 
 from models.q_estimator import QEstimator
@@ -53,7 +52,7 @@ class FeaturesQEstimator(QEstimator):
                                     3, 128, 2)
         # self.model = SimplifiedQModel(self._num_tactics, 4, 2)
         self.optimizer = optim.SGD(self.model.parameters(), learning_rate)
-        self.adjuster = scheduler.StepLR(self.optimizer, batch_step,
+        self.scheduler = scheduler.StepLR(self.optimizer, batch_step,
                                          gamma=gamma)
         self.criterion = nn.MSELoss()
         self.tactic_map: Dict[str, int] = {}
@@ -61,7 +60,8 @@ class FeaturesQEstimator(QEstimator):
         self.total_batches = 0
         pass
 
-    def __call__(self, inputs: List[Tuple[TacticContext, str, float]]) -> List[float]:
+    def __call__(self, inputs: List[Tuple[TacticContext, str, float]],
+                 progress: bool = False) -> List[float]:
         state_word_features_batch, vec_features_batch \
             = zip(*[self._features(state, certainty) for
                     (state, action, certainty) in inputs])
@@ -72,8 +72,11 @@ class FeaturesQEstimator(QEstimator):
                                    zip(encoded_actions_batch,
                                        state_word_features_batch)]
         with torch.no_grad():
-            output = self.model(torch.LongTensor(all_word_features_batch),
-                                torch.FloatTensor(vec_features_batch))
+            vec_feats_t = torch.FloatTensor(vec_features_batch)
+            word_feats_t = torch.LongTensor(all_word_features_batch)
+
+            output = self.model(word_feats_t,
+                                vec_feats_t)
         for item in output:
             assert item == item, (all_word_features_batch, vec_features_batch)
         return list(output)
@@ -122,7 +125,6 @@ class FeaturesQEstimator(QEstimator):
                     outputs, maybe_cuda(expected_outputs_batch))
                 loss.backward()
                 self.optimizer.step()
-                self.adjuster.step()
                 self.total_batches += 1
                 epoch_loss += loss.item()
                 eprint(epoch_loss / len(batches),
@@ -133,6 +135,7 @@ class FeaturesQEstimator(QEstimator):
                     self.optimizer.param_groups[0]['lr']),
                        guard=show_loss and epoch % 10 == 0
                        and idx == len(batches) - 1)
+            self.scheduler.step()
 
     def _features(self, context: TacticContext, certainty: float) \
             -> Tuple[List[int], List[float]]:
@@ -142,7 +145,7 @@ class FeaturesQEstimator(QEstimator):
         else:
             prev_tactic_index = 0
         if context.goal != "":
-            goal_head_index = emap_lookup(self.token_map, 128,
+            goal_head_index = emap_lookup(self.token_map, self._num_tokens,
                                           tokenizer.get_words(context.goal)[0])
         else:
             goal_head_index = 0
@@ -166,12 +169,12 @@ class FeaturesQEstimator(QEstimator):
             if stripped_arg in index_hyp_vars:
                 hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]]\
                     .partition(":")
-                arg_idx = emap_lookup(self.token_map, 128,
+                arg_idx = emap_lookup(self.token_map, self._num_tokens,
                                       tokenizer.get_words(rest)[0]) + 2
             else:
                 goal_symbols = tokenizer.get_symbols(context.goal)
                 if stripped_arg in goal_symbols:
-                    arg_idx = emap_lookup(self.token_map, 128,
+                    arg_idx = emap_lookup(self.token_map, self._num_tokens,
                                           stripped_arg) + 128 + 2
                 else:
                     arg_idx = 1
@@ -191,6 +194,12 @@ class FeaturesQEstimator(QEstimator):
         self.tactic_map, self.token_map = metadata
         self.model.load_state_dict(state)
         pass
+
+    def share_memory(self) -> None:
+        self.model.share_memory()
+
+    def to_device(self, device) -> None:
+        self.model.to(device=device)
 
 
 T = TypeVar('T')

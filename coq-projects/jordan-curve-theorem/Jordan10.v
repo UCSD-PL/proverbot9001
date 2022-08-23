@@ -192,7 +192,7 @@ assert (inv_hmap (B m zero x)).
                 fold z in H5.
                 split.
                intro.
-                 absurd (nc m + 0 - (Zdiv.Zdiv z 2 + 1) >= 0). clear a0 H4.
+                 absurd (nc m + 0 - (Z.div z 2 + 1) >= 0). clear a0 H4.
                 omega.
                 tauto.
                tauto. clear a0 H4.
@@ -210,7 +210,7 @@ assert (inv_hmap (B m zero x)).
              rewrite Zdiv.Z_div_plus.
               set (z := nv m + ne m + nf m - nd m) in |- *.
                 fold z in H5.
-                assert (nc m - Zdiv.Zdiv z 2 = nc m + 1 - (Zdiv.Zdiv z 2 + 1)).
+                assert (nc m - Z.div z 2 = nc m + 1 - (Z.div z 2 + 1)).
            clear a H4.
                omega.
                rewrite H6.
@@ -226,8 +226,8 @@ assert (inv_hmap (B m zero x)).
             rewrite H6.
               clear H6.
               assert
-               (nc m - Zdiv.Zdiv (nv m + ne m + nf m - nd m) 2 =
-                nc m + 0 - Zdiv.Zdiv (nv m + ne m + nf m - nd m) 2). 
+               (nc m - Z.div (nv m + ne m + nf m - nd m) 2 =
+                nc m + 0 - Z.div (nv m + ne m + nf m - nd m) 2). 
       clear b H4.
              omega.
              rewrite H6.

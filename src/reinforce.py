@@ -28,9 +28,9 @@ import errno
 import signal
 import re
 import json
+import json.decoder
 import multiprocessing
 import math
-from threading import Lock
 import sys
 import functools
 from queue import Queue
@@ -96,19 +96,22 @@ def main() -> None:
                         default="polyarg")
 
     parser.add_argument("--start-from", default=None, type=Path2)
-    parser.add_argument("--num-predictions", default=16, type=int)
+    parser.add_argument("--num-predictions", default=32, type=int)
+    parser.add_argument("--gpu", default=0, type=int)
 
     parser.add_argument("--buffer-min-size", default=256, type=int)
     parser.add_argument("--buffer-max-size", default=32768, type=int)
     parser.add_argument("--batch-size", default=32, type=int)
 
-    parser.add_argument("--num-episodes", default=256, type=int)
+    parser.add_argument("--num-episodes", default=32, type=int)
     parser.add_argument("--episode-length", default=16, type=int)
 
     parser.add_argument("--learning-rate", default=0.02, type=float)
-    parser.add_argument("--batch-step", default=50, type=int)
-    parser.add_argument("--gamma", default=0.8, type=float)
-    parser.add_argument("--exploration-factor", default=0.3, type=float)
+    parser.add_argument("--batch-step", default=4, type=int)
+    parser.add_argument("--gamma", default=0.5, type=float)
+    parser.add_argument("--exploration-factor", default=0.4, type=float)
+    parser.add_argument("--exploration-smoothing-factor", default=2,
+                        type=float)
     parser.add_argument("--time-discount", default=0.9, type=float)
 
     parser.add_argument("--max-term-length", default=512, type=int)
@@ -134,9 +137,14 @@ def main() -> None:
     parser.add_argument("--careful", action='store_true')
     parser.add_argument("--train-every-min", default=32, type=int)
     parser.add_argument("--train-every-max", default=2048, type=int)
+    parser.add_argument("--epochs-per-batch", default=32, type=int)
     parser.add_argument("--show-loss", action='store_true')
 
     args = parser.parse_args()
+
+    if util.use_cuda:
+        torch.cuda.set_device(args.gpu)
+        util.cuda_device = f"cuda:{args.gpu}"
 
     try:
         os.makedirs(str(args.graphs_dir))
@@ -147,14 +155,15 @@ def main() -> None:
     reinforce_multithreaded(args)
 
 
-
 Job = Tuple[Path2, str, str]
 Demonstration = List[str]
 
 
 def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
-    def resume(resume_file: Path2, weights: Path2,
+    def resume(resume_file: Path2,
+               jobs_in_files: List[Job],
+               weights: Path2,
                q_estimator: QEstimator) -> \
       Tuple[List[LabeledTransition],
             List[Job],
@@ -164,37 +173,51 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         q_estimator_name, *saved = \
             torch.load(str(weights))
         q_estimator.load_saved_state(*saved)
-        replay_memory = []
-        with resume_file.open('r') as f:
-            num_samples = sum(1 for _ in f)
-        if num_samples > args.buffer_max_size:
-            samples_to_use = random.sample(range(num_samples),
-                                           args.buffer_max_size)
-        else:
-            samples_to_use = None
-        with resume_file.open('r') as f:
-            for (idx, line) in enumerate(f, start=1):
-                if num_samples > args.buffer_max_size and \
-                  idx not in samples_to_use:
-                    continue
-                try:
-                    replay_memory.append(LabeledTransition.from_dict(
-                        json.loads(line)))
-                except json.decoder.JSONDecodeError:
-                    eprint(f"Problem loading line {idx}: {line}")
-                    raise
         already_done = []
         graphs_done = []
         with weights.with_suffix('.done').open('r') as f:
-            for line in f:
-                next_done = json.loads(line)
+            for (idx, line) in enumerate(f):
+                try:
+                    next_done = json.loads(line)
+                except json.decoder.JSONDecodeError:
+                    print(f"Loading line {idx} failed")
+                    print(line)
+                    raise
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
-                graphpath = (args.graphs_dir / next_done[1])\
-                    .with_suffix(".png")
-                graph = ReinforceGraph.load(graphpath + ".json")
+                graphpath = (args.graphs_dir /
+                             serapi_instance.lemma_name_from_statement(
+                               next_done[2]))\
+                    .with_suffix(".svg")
+                graph = ReinforceGraph.load(
+                    graphpath.with_suffix(".svg.json"))
                 graphs_done.append((graphpath, graph))
-        return replay_memory, already_done, graphs_done
+        jobs_todo = [job for job in jobs_in_files
+                     if job not in already_done]
+
+        replay_memory = []
+        if len(jobs_todo) > 0:
+            with resume_file.open('r') as f:
+                num_samples = sum(1 for _ in f)
+            if num_samples > args.buffer_max_size:
+                samples_to_use = random.sample(range(num_samples),
+                                               args.buffer_max_size)
+            else:
+                samples_to_use = None
+            with resume_file.open('r') as f:
+                for (idx, line) in enumerate(f, start=1):
+                    if num_samples > args.buffer_max_size and \
+                      idx not in samples_to_use:
+                        continue
+                    try:
+                        replay_memory.append(LabeledTransition.from_dict(
+                            json.loads(line)))
+                    except json.decoder.JSONDecodeError:
+                        eprint(f"Problem loading line {idx}: {line}")
+                        raise
+        else:
+            eprint("Warning: no jobs left to do")
+        return replay_memory, jobs_todo, already_done, graphs_done
 
     # Load the predictor
     predictor = cast(features_polyarg_predictor.
@@ -223,22 +246,53 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
 
               exit()))
 
+    ctxt = tmp.get_context('spawn')
+    with ctxt.Pool() as pool:
+        jobs_in_files = [
+            job
+            for job_list in
+            list(tqdm(pool.imap(
+                 functools.partial(get_proofs, args),
+                 list(enumerate(args.environment_files))),
+                                       total=len(args.environment_files),
+                                       leave=False,
+                                       desc="Finding proofs"))
+            for job in job_list]
+    if args.proofs_file:
+        with open(args.proofs_file, 'r') as f:
+            proof_names = [line.strip() for line in f]
+        all_jobs = [
+            job for job in jobs_in_files if
+            serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
+    elif args.proof:
+        all_jobs = [
+            job for job in jobs_in_files if
+            serapi_instance.lemma_name_from_statement(job[2]) == args.proof] \
+             * args.num_threads
+    else:
+        all_jobs = jobs_in_files
+
     resume_file = args.out_weights.with_suffix('.tmp')
     if resume_file.exists():
-        replay_memory, already_done, graphs_done = resume(resume_file,
-                                                          args.out_weights,
-                                                          q_estimator)
+        replay_memory, jobs_todo, already_done, graphs_done = \
+            resume(resume_file,
+                   all_jobs,
+                   args.out_weights,
+                   q_estimator)
     else:
+        jobs_todo = all_jobs
         graphs_done = []
         # Load the scraped (demonstrated) samples and the proof
         # environment commands. Assigns them an estimated "original
         # predictor certainty" value for use as a feature.
-        with print_time("Loading initial samples from labeled data"):
-            replay_memory = assign_rewards(
-                args, predictor,
-                dataloader.tactic_transitions_from_file(
-                    predictor.dataloader_args,
-                    args.scrape_file, args.buffer_min_size))
+        replay_memory = []
+        if args.buffer_min_size > 0:
+            with print_time("Loading initial samples from labeled data"):
+                replay_memory = assign_rewards(
+                    args, predictor,
+                    dataloader.tactic_transitions_from_file(
+                        predictor.dataloader_args,
+                        args.scrape_file, args.buffer_min_size))
         # Load in any starting weights
         if args.start_from:
             q_estimator_name, *saved = \
@@ -265,7 +319,6 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
         args.out_weights.with_suffix('.done').unlink()
         return
 
-    ctxt = tmp.get_context('spawn')
     jobs: Queue[Tuple[Job, Optional[Demonstration]]] = ctxt.Queue()
     done: Queue[Tuple[Job, Tuple[str, ReinforceGraph]]] = ctxt.Queue()
     samples: Queue[LabeledTransition] = ctxt.Queue()
@@ -273,56 +326,30 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
     for sample in replay_memory:
         samples.put(sample)
 
-    with tmp.Pool() as pool:
-        jobs_in_files = list(tqdm(pool.imap(
-            functools.partial(get_proofs, args),
-            list(enumerate(args.environment_files))),
-                                  total=len(args.environment_files),
-                                  leave=False))
-    unfiltered_jobs = [job for job_list in jobs_in_files for job in job_list
-                       if job not in already_done]
-    if args.proofs_file:
-        with open(args.proofs_file, 'r') as f:
-            proof_names = [line.strip() for line in f]
-        all_jobs = [
-            job for job in unfiltered_jobs if
-            serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
-    elif args.proof:
-        all_jobs = [
-            job for job in unfiltered_jobs if
-            serapi_instance.lemma_name_from_statement(job[2]) == args.proof] \
-             * args.num_threads
-    else:
-        all_jobs = unfiltered_jobs
-
     all_jobs_and_dems: List[Tuple[Job, Optional[Demonstration]]]
     if args.demonstrate_from:
         all_jobs_and_dems = [(job, extract_solution(args,
                                                     args.demonstrate_from,
                                                     job))
-                             for job in all_jobs]
+                             for job in jobs_todo]
     else:
-        all_jobs_and_dems = [(job, None) for job in all_jobs]
+        all_jobs_and_dems = [(job, None) for job in jobs_todo]
 
-    for job in all_jobs_and_dems:
-        jobs.put(job)
+    if len(all_jobs_and_dems) > 0:
+        for job in all_jobs_and_dems:
+            jobs.put(job)
 
-    with Manager() as manager:
-        manager = cast(multiprocessing.managers.SyncManager, manager)
-        ns = manager.Namespace()
-        ns.predictor = predictor
-        ns.estimator = q_estimator
-        lock = manager.Lock()
+        q_estimator.share_memory()
 
         training_worker = ctxt.Process(
             target=reinforce_training_worker,
-            args=(args, len(replay_memory), lock, ns, samples))
+            args=(args, len(replay_memory), q_estimator, predictor, samples))
         workers = [ctxt.Process(
             target=reinforce_worker,
             args=(widx,
                   args,
-                  lock,
-                  ns,
+                  predictor,
+                  q_estimator,
                   samples,
                   jobs,
                   done))
@@ -344,29 +371,33 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                     f.write(json.dumps((str(done_job[0]),
                                         done_job[1],
                                         done_job[2])))
+                    f.write("\n")
         for worker in workers:
             worker.kill()
         training_worker.kill()
 
-        for graphpath, graph in graphs_done:
-            assignApproximateQScores(graph, args.max_term_length, predictor,
-                                     q_estimator)
-            graph.draw(graphpath)
+    for graphpath, graph in tqdm(graphs_done, desc="Drawing graphs"):
+        assignApproximateQScores(graph, args.max_term_length, predictor,
+                                 q_estimator)
+        graph.draw(graphpath)
 
-        # args.out_weights.with_suffix('.tmp').unlink()
-        # args.out_weights.with_suffix('.done').unlink()
+    args.out_weights.with_suffix('.tmp').unlink()
+    args.out_weights.with_suffix('.done').unlink()
 
 
 def reinforce_worker(worker_idx: int,
                      args: argparse.Namespace,
-                     lock: Lock,
-                     namespace: multiprocessing.managers.Namespace,
+                     estimator: QEstimator,
+                     predictor: TacticPredictor,
                      samples: Queue[LabeledTransition],
                      jobs: Queue[Tuple[Job, Optional[Demonstration]]],
                      done: Queue[Tuple[Job,
                                        Optional[Tuple[str,
                                                       ReinforceGraph]]]]):
 
+    if util.use_cuda:
+        torch.cuda.set_device(args.gpu)
+        util.cuda_device = f"cuda:{args.gpu}"
     sys.setrecursionlimit(100000)
     failing_lemma = ""
 
@@ -374,9 +405,8 @@ def reinforce_worker(worker_idx: int,
         (next_file, next_module, next_lemma), demonstration = jobs.get_nowait()
     except queue.Empty:
         return
-    with util.silent():
-        all_commands = serapi_instance.load_commands_preserve(
-            args, worker_idx + 1, args.prelude / next_file)
+    all_commands = serapi_instance.load_commands_preserve(
+        args, worker_idx + 1, args.prelude / next_file)
 
     rest_commands = all_commands
     while rest_commands:
@@ -410,14 +440,14 @@ def reinforce_worker(worker_idx: int,
                     try:
                         graph_job = \
                           reinforce_lemma_multithreaded(args, coq,
-                                                        lock, namespace,
+                                                        estimator, predictor,
                                                         worker_idx,
                                                         samples,
                                                         next_lemma,
                                                         next_module,
                                                         demonstration)
                         graphpath, graph = graph_job
-                        graph.draw(graphpath + ".json")
+                        graph.save(graphpath + ".json")
                     except serapi_instance.CoqAnomaly:
                         if args.hardfail:
                             raise
@@ -453,10 +483,10 @@ def reinforce_worker(worker_idx: int,
                                 f"lemma {next_lemma}")
                             eprint(e)
                         raise
-                    serapi_instance.admit_proof(coq, lemma_statement)
                     while not serapi_instance.ending_proof(rest_commands[0]):
-                        rest_commands = rest_commands[1:]
-                    rest_commands = rest_commands[1:]
+                        rest_commands.pop(0)
+                    ending_comamnd = rest_commands.pop(0)
+                    serapi_instance.admit_proof(coq, lemma_statement, ending_command)
                     done.put(((next_file, next_module, next_lemma),
                               graph_job))
                     try:
@@ -475,13 +505,12 @@ def reinforce_worker(worker_idx: int,
                         rest_commands = all_commands
                         break
                 else:
-                    proof_relevant = False
+                    ending_command = None
                     for cmd in rest_commands:
                         if serapi_instance.ending_proof(cmd):
-                            if cmd.strip() == "Defined.":
-                                proof_relevant = True
+                            ending_command = cmd
                             break
-                    proof_relevant = proof_relevant or \
+                    proof_relevant = ending_command.strip() == "Defined." or \
                         bool(re.match(
                             r"\s*Derive",
                             serapi_instance.kill_comments(lemma_statement))
@@ -514,13 +543,14 @@ def reinforce_worker(worker_idx: int,
                                 rest_commands[0]):
                             rest_commands = rest_commands[1:]
                         rest_commands = rest_commands[1:]
+    del estimator
 
 
 def reinforce_lemma_multithreaded(
         args: argparse.Namespace,
         coq: serapi_instance.SerapiInstance,
-        lock: Lock,
-        namespace: multiprocessing.managers.Namespace,
+        predictor: TacticPredictor,
+        estimator: QEstimator,
         worker_idx: int,
         samples: Queue[LabeledTransition],
         lemma_statement: str,
@@ -546,39 +576,40 @@ def reinforce_lemma_multithreaded(
                     ((i//args.demonstration_steps)+1)):
                 eprint("Getting demonstration", guard=args.verbose >= 2)
                 ordered_actions = [(demonstration[t],
-                                    certainty_of(namespace.predictor,
+                                    certainty_of(predictor,
                                                  args.num_predictions * 2,
                                                  context_trunced,
                                                  demonstration[t]))]
             else:
                 with print_time("Getting predictions", guard=args.verbose >= 2):
-                    with lock:
-                        eprint(f"Locked in thread {worker_idx}",
+                    # eprint(f"Locked in thread {worker_idx}",
+                    #        guard=args.verbose >= 2)
+                    with print_time("Making predictions",
+                                    guard=args.verbose >= 3):
+                        predictions = predictor.predictKTactics(
+                            context_trunced, args.num_predictions)
+                    if random.random() < args.exploration_factor:
+                        eprint("Picking random action",
                                guard=args.verbose >= 2)
-                        predictor = namespace.predictor
-                        estimator = namespace.estimator
-                        with print_time("Making predictions",
-                                        guard=args.verbose >= 3):
-                            predictions = predictor.predictKTactics(
-                                context_trunced, args.num_predictions)
-                        if random.random() < args.exploration_factor:
-                            eprint("Picking random action",
-                                   guard=args.verbose >= 2)
-                            ordered_actions = order_by_score(predictions)
-                        else:
-                            with print_time("Picking actions with q_estimator",
-                                            guard=args.verbose >= 2):
-                                q_choices = zip(estimator(
-                                    [(context_trunced,
-                                      p.prediction, p.certainty)
-                                     for p in predictions]),
-                                                predictions)
-                                ordered_actions = [p[1] for p in
-                                                   sorted(q_choices,
-                                                          key=lambda q: q[0],
-                                                          reverse=True)]
-                    eprint(f"Unlocked in thread {worker_idx}",
-                           guard=args.verbose >= 2)
+                        ordered_actions = order_by_score(
+                            [(prediction,
+                             score * (1/args.exploration_smoothing_factor))
+                             for prediction, score in predictions])
+                    else:
+                        with print_time("Picking actions with q_estimator",
+                                        guard=args.verbose >= 2):
+                            q_choices = zip(estimator(
+                                [(context_trunced,
+                                  p.prediction, p.certainty)
+                                 for p in predictions],
+                                 progress=args.verbose >= 2),
+                                            predictions)
+                            ordered_actions = [p[1] for p in
+                                               sorted(q_choices,
+                                                      key=lambda q: q[0],
+                                                      reverse=True)]
+                    # eprint(f"Unlocked in thread {worker_idx}",
+                    #        guard=args.verbose >= 2)
             with print_time("Running actions", guard=args.verbose >= 2):
                 action = None
                 original_certainty = None
@@ -636,6 +667,9 @@ def reinforce_lemma_multithreaded(
                     samples.put(transition)
                     episode_memory.append(transition)
                     break  # Break from episode
+                if any([len(obligation.goal) > 5120 for
+                        obligation in proof_context_after.all_goals]):
+                    break
             transition = assign_reward(args,
                                        context_trunced.relevant_lemmas,
                                        context_trunced.prev_tactics,
@@ -651,7 +685,7 @@ def reinforce_lemma_multithreaded(
             proof_contexts_seen.append(proof_context_after)
 
             lemma_memory += episode_memory
-            if coq.goals == "":
+            if len(unwrap(coq.proof_context).all_goals) == 0:
                 eprint("QED!", guard=args.verbose >= 2)
                 graph.mkQED(cur_node)
                 for sample in (episode_memory *
@@ -686,19 +720,22 @@ def reinforce_lemma_multithreaded(
 
         coq.run_stmt(lemma_statement)
 
-        # Write out lemma memory to progress file for resuming
-        for sample in lemma_memory:
-            with args.out_weights.with_suffix('.tmp').open('a') as f:
-                f.write(json.dumps(sample.to_dict()) + "\n")
-    graphpath = (args.graphs_dir / lemma_name).with_suffix(".png")
+        # # Write out lemma memory to progress file for resuming
+        # for sample in lemma_memory:
+        #     with args.out_weights.with_suffix('.tmp').open('a') as f:
+        #         f.write(json.dumps(sample.to_dict()) + "\n")
+    graphpath = (args.graphs_dir / lemma_name).with_suffix(".svg")
     return str(graphpath), graph
 
 
 def reinforce_training_worker(args: argparse.Namespace,
                               initial_buffer_size: int,
-                              lock: Lock,
-                              namespace: multiprocessing.managers.Namespace,
+                              q_estimator: QEstimator,
+                              predictor: TacticPredictor,
                               samples: Queue[LabeledTransition]):
+    if util.use_cuda:
+        torch.cuda.set_device(args.gpu)
+        util.cuda_device = f"cuda:{args.gpu}"
     last_trained_at = 0
     samples_retrieved = 0
     memory: List[LabeledTransition] = []
@@ -726,24 +763,23 @@ def reinforce_training_worker(args: argparse.Namespace,
         if samples_retrieved - last_trained_at >= args.train_every_min:
             last_trained_at = samples_retrieved
             transition_samples = sample_batch(memory, args.batch_size)
-            with lock:
-                eprint(
-                    f"Locked in training thread for {len(memory)} samples",
-                    guard=args.verbose >= 2)
-                q_estimator = namespace.estimator
-                predictor = namespace.predictor
-                with print_time("Assigning scores", guard=args.verbose >= 2):
-                    training_samples = assign_scores(args,
-                                                     q_estimator,
-                                                     predictor,
-                                                     transition_samples)
-                with print_time("Training", guard=args.verbose >= 2):
-                    q_estimator.train(training_samples,
-                                      show_loss=args.show_loss)
-                q_estimator.save_weights(args.out_weights, args)
-                namespace.estimator = q_estimator
-                eprint("Unlocked in training thread",
-                       guard=args.verbose >= 2)
+            with print_time("Assigning scores", guard=args.verbose >= 2):
+                training_samples = normalize_batch_size(
+                    assign_scores(args,
+                                  q_estimator,
+                                  predictor,
+                                  transition_samples,
+                                  progress=args.verbose >= 2),
+                    args.batch_size)
+            with print_time("Training", guard=args.verbose >= 2):
+                q_estimator.train(training_samples,
+                                  show_loss=args.show_loss,
+                                  num_epochs=args.epochs_per_batch)
+            q_estimator.save_weights(args.out_weights, args)
+            with args.out_weights.with_suffix('.tmp').open('w') as f:
+                for sample in memory:
+                    f.write(json.dumps(sample.to_dict()))
+                    f.write("\n")
 
     pass
 
@@ -785,9 +821,24 @@ def extract_solution(args: argparse.Namespace,
     pass
 
 
+def normalize_batch_size(samples: List[Tuple[TacticContext, str,
+                                             float, float]],
+                         k: int) -> \
+      List[Tuple[TacticContext, str, float, float]]:
+    assert k >= len(samples), \
+      "Pre-normalized batch must not exceed target size"
+    result = samples * (k // len(samples)) + \
+        random.sample(samples, k % len(samples))
+    random.shuffle(result)
+    return result
+
+
 def sample_batch(transitions: List[LabeledTransition], k: int) -> \
       List[LabeledTransition]:
-    return random.sample(transitions, k)
+    if k >= len(transitions):
+        return transitions
+    else:
+        return random.sample(transitions, k)
 
 
 def assign_failed_reward(relevant_lemmas: List[str], prev_tactics: List[str],
@@ -854,48 +905,57 @@ def assign_scores(args: argparse.Namespace,
                   transitions: List[LabeledTransition],
                   progress: bool = False) -> \
                   List[Tuple[TacticContext, str, float, float]]:
-    def generate() -> Iterator[Tuple[TacticContext, str, float, float]]:
-        contexts_trunced = [truncate_tactic_context(
-            transition.after_context,
-            args.max_term_length)
-                            for transition in transitions]
-        prediction_lists = cast(features_polyarg_predictor
-                                .FeaturesPolyargPredictor,
-                                predictor) \
-            .predictKTactics_batch(
-                contexts_trunced,
-                args.num_predictions,
-                args.verbose)
-        queries = [(truncate_tactic_context(transition.after_context,
-                                            args.max_term_length),
-                    prediction.prediction, prediction.certainty)
-                   for transition, predictions in zip(transitions,
-                                                      prediction_lists)
-                   for prediction in predictions]
-        estimate_lists_flattened = q_estimator(queries)
-        estimate_lists = [estimate_lists_flattened
-                          [i:i+args.num_predictions]
-                          for i in range(0, len(estimate_lists_flattened),
-                                         args.num_predictions)]
-        for transition, estimates in zip(transitions, estimate_lists):
-            before_ctxt = truncate_tactic_context(
-                transition.before_context, args.max_term_length)
+    easy_transitions = [transition for transition in transitions
+                        if len(transition.after.all_goals) == 0 or
+                        transition.action == "Abort."]
+    easy_qs = [(50 if len(transition.after.all_goals) == 0 else -25)
+               for transition in easy_transitions]
+    hard_transitions = [transition for transition in transitions
+                        if len(transition.after.all_goals) != 0 and
+                        transition.action != "Abort."]
+    contexts_trunced = [truncate_tactic_context(
+        transition.after_context,
+        args.max_term_length)
+                        for transition in hard_transitions]
 
-            if len(transition.after.all_goals) == 0:
-                new_q = transition.reward
-                assert new_q == 50
-            else:
-                estimated_future_q = \
-                    args.time_discount * max(estimates)
-                new_q = transition.reward + estimated_future_q
+    prediction_lists = cast(features_polyarg_predictor
+                            .FeaturesPolyargPredictor,
+                            predictor) \
+        .predictKTactics_batch(
+            contexts_trunced,
+            args.num_predictions,
+            args.verbose)
+    queries = [(truncate_tactic_context(transition.after_context,
+                                        args.max_term_length),
+                prediction.prediction, prediction.certainty)
+               for transition, predictions in zip(hard_transitions,
+                                                  prediction_lists)
+               for prediction in predictions]
+    estimate_lists_flattened = q_estimator(queries, progress=progress)
+    estimate_lists = [estimate_lists_flattened
+                      [i:i+args.num_predictions]
+                      for i in range(0, len(estimate_lists_flattened),
+                                     args.num_predictions)]
+    hard_qs = []
+    for transition, estimates in zip(transitions, estimate_lists):
 
-            yield TacticContext(
-                transition.relevant_lemmas,
-                transition.prev_tactics,
-                before_ctxt.hypotheses,
-                before_ctxt.goal), \
-                transition.action, transition.original_certainty, new_q
-    return list(generate())
+        estimated_future_q = args.time_discount * max(estimates)
+        new_q = transition.reward + estimated_future_q
+        hard_qs.append(new_q)
+
+    results = []
+    for transition, new_q in zip(easy_transitions + hard_transitions,
+                                 easy_qs + hard_qs):
+        before_ctxt = truncate_tactic_context(
+            transition.before_context, args.max_term_length)
+        results.append((TacticContext(
+             transition.relevant_lemmas,
+             transition.prev_tactics,
+             before_ctxt.hypotheses,
+             before_ctxt.goal),
+             transition.action, transition.original_certainty, new_q))
+
+    return results
 
 
 def obligation_r2py(r_obl: dataloader.Obligation) -> Obligation:
@@ -976,4 +1036,5 @@ def certainty_of(predictor: tactic_predictor.TacticPredictor, k: int,
 
 
 if __name__ == "__main__":
+    tmp.set_start_method('spawn')
     main()

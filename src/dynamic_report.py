@@ -58,7 +58,6 @@ from models.tactic_predictor import TacticPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
-base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
 details_css = ["details.css"]
 details_javascript = ["details.js"]
@@ -101,7 +100,7 @@ def to_list_string(l : List[Any]) -> str:
 def shorten_whitespace(string : str) -> str:
     return re.sub("    +", "  ", string)
 
-def run_prediction(coq : serapi_instance.SerapiInstance, prediction : str) -> Tuple[str,str,Optional[Exception]]:
+def run_prediction(coq : coq_serapy.SerapiInstance, prediction : str) -> Tuple[str,str,Optional[Exception]]:
     prediction = prediction.lstrip("-+*")
     coq.quiet = True
     try:
@@ -330,11 +329,11 @@ class Worker(threading.Thread):
         if loaded_commands is None:
             fresh_commands = linearize_semicolons.preprocess_file_commands(
                 args, file_idx,
-                serapi_instance.load_commands_preserve(args, file_idx,
+                coq_serapy.load_commands_preserve(args, file_idx,
                                                        self.prelude + "/" + filename),
                 self.coqargs, self.includes,
                 filename, local_filename, self.skip_nochange_tac)
-            serapi_instance.save_lin(fresh_commands, local_filename)
+            coq_serapy.save_lin(fresh_commands, local_filename)
             return fresh_commands
         else:
             return loaded_commands
@@ -350,7 +349,7 @@ class Worker(threading.Thread):
 
         command_results : List[CommandResult] = []
 
-        with serapi_instance.SerapiContext(self.coqargs,
+        with coq_serapy.SerapiContext(self.coqargs,
                                            self.includes,
                                            self.prelude) as coq:
             coq.debug = self.debug
@@ -670,6 +669,7 @@ def write_summary(output_dir : Path2, num_jobs : int, cur_commit : str,
 
     extra_files = ["report.css", "details.css", "details.js", "logo.png", "report.js"]
 
+    base = Path(os.path.dirname(os.path.abspath(__file__)) + "/..")
     for filename in extra_files:
         (base / "reports" / filename).copyfile(output_dir / filename)
 

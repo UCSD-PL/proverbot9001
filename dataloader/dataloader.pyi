@@ -31,6 +31,7 @@ class TacticContext:
 
 
 class DataloaderArgs:
+    max_tuples: int
     max_distance: int
     max_string_distance: int
     max_length: int
@@ -97,6 +98,8 @@ def features_to_total_distances_tensors_with_map(args: DataloaderArgs,
 
 
 def scraped_tactics_from_file(filename: str,
+                              filter_spec: str,
+                              max_term_length: int,
                               num_tactics: Optional[int]) \
                               -> List[ScrapedTactic]:
     ...
@@ -182,7 +185,8 @@ def get_num_tokens(metadata: PickleableFPAMetadata) -> int:
     ...
 
 
-def get_num_indices(metadata: PickleableFPAMetadata) -> int:
+def get_num_indices(metadata: PickleableFPAMetadata) -> \
+  Tuple[PickleableFPAMetadata, int]:
     ...
 
 

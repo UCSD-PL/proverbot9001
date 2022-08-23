@@ -339,7 +339,7 @@ Lemma ZCGeval_correct :
 End ZCGevalDef.
 
 Definition ZCG_solve (f : ZCGForm) :=
-  CG_solve Z 0%Z Zplus Zopp Zle_bool 1%Z (ZCGtranslate f).
+  CG_solve Z 0%Z Zplus Z.opp Zle_bool 1%Z (ZCGtranslate f).
 
 Theorem ZCG_solve_correct :
  forall f : ZCGForm,
@@ -347,7 +347,7 @@ Theorem ZCG_solve_correct :
 Proof.
   intros.
   elim
-   (CG_solve_correct_anchored Z 0%Z Zplus Zopp Zle_bool Zplus_0_r Zplus_0_l
+   (CG_solve_correct_anchored Z 0%Z Zplus Z.opp Zle_bool Zplus_0_r Zplus_0_l
       Zplus_assoc_reverse Zplus_opp_r Zle_bool_refl Zle_bool_antisym
       Zle_bool_trans Zle_bool_total Zle_bool_plus_mono 1%Z Zone_pos
       Zone_min_pos N0 0%Z _ H).
@@ -362,7 +362,7 @@ Theorem ZCG_solve_complete :
 Proof.
   intros. unfold ZCG_solve in |- *.
   apply
-   (CG_solve_complete Z 0%Z Zplus Zopp Zle_bool Zplus_0_r Zplus_0_l
+   (CG_solve_complete Z 0%Z Zplus Z.opp Zle_bool Zplus_0_r Zplus_0_l
       Zplus_assoc_reverse Zplus_opp_r Zle_bool_refl Zle_bool_antisym
       Zle_bool_trans Zle_bool_total Zle_bool_plus_mono 1%Z Zone_pos
       Zone_min_pos (ZCGtranslate f) rho).
@@ -370,7 +370,7 @@ Proof.
 Qed.
 
 Definition ZCG_prove (f : ZCGForm) :=
-  CG_prove Z 0%Z Zplus Zopp Zle_bool 1%Z (ZCGtranslate f).
+  CG_prove Z 0%Z Zplus Z.opp Zle_bool 1%Z (ZCGtranslate f).
 
 Theorem ZCG_prove_correct :
  forall f : ZCGForm,
@@ -378,7 +378,7 @@ Theorem ZCG_prove_correct :
 Proof.
   intros. apply (proj2 (ZCGeval_correct rho H0 f)).
   exact
-   (CG_prove_correct Z 0%Z Zplus Zopp Zle_bool Zplus_0_r Zplus_0_l
+   (CG_prove_correct Z 0%Z Zplus Z.opp Zle_bool Zplus_0_r Zplus_0_l
       Zplus_assoc_reverse Zplus_opp_r Zle_bool_refl Zle_bool_antisym
       Zle_bool_trans Zle_bool_total Zle_bool_plus_mono 1%Z Zone_pos
       Zone_min_pos _ H rho).
@@ -391,7 +391,7 @@ Theorem ZCG_prove_complete :
 Proof.
   intros. unfold ZCG_prove in |- *.
   apply
-   (CG_prove_complete_anchored Z 0%Z Zplus Zopp Zle_bool Zplus_0_r Zplus_0_l
+   (CG_prove_complete_anchored Z 0%Z Zplus Z.opp Zle_bool Zplus_0_r Zplus_0_l
       Zplus_assoc_reverse Zplus_opp_r Zle_bool_refl Zle_bool_antisym
       Zle_bool_trans Zle_bool_total Zle_bool_plus_mono 1%Z Zone_pos
       Zone_min_pos (ZCGtranslate f) N0 0%Z).

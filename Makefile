@@ -3,8 +3,8 @@ SHELL=/usr/bin/env bash
 
 ENV_PREFIX=export LD_LIBRARY_PATH=/usr/local/cuda/lib64/:$$LD_LIBRARY_PATH
 
-NTHREADS=16
-FLAGS=
+NTHREADS?=16
+FLAGS?=
 HIDDEN_SIZE=512
 
 SITE_SERVER=goto
@@ -106,7 +106,7 @@ publish:
 
 publish-weights:
 	rsync -avzP $(WEIGHTSFILE) goto:proverbot9001-site/downloads/weights-`date -I`.dat
-	ssh goto ln -f proverbot9001-site/downloads/weights-`date -I`.dat proverbot9001-site/downloads/weights-latest.dat
+	ssh goto cp proverbot9001-site/downloads/weights-`date -I`.dat proverbot9001-site/downloads/weights-latest.dat
 
 download-weights:
 	curl -o data/polyarg-weights.dat proverbot9001.ucsd.edu/downloads/weights-latest.dat

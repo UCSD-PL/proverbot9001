@@ -17,11 +17,13 @@ else
     eval `opam config env`
     opam update
     # For Coq:
-    opam pin add coq 8.11.0
+    opam pin add coq 8.10.2
     opam pin -y add menhir 20190626
     # For SerAPI:
     opam install -y coq-serapi
+    # Python dependencies
     pip3 install --user -r requirements.txt
+    pip3 install -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
     make src/dataloader.so
@@ -34,9 +36,9 @@ function check-and-clone {
     (cd $1 && git fetch && git checkout $3) || exit 1
 }
 function setup-compcert {
-    check-and-clone\
-        "CompCert" "https://github.com/AbsInt/CompCert.git"\
-        "76a4ff8f5b37429a614a2a97f628d9d862c93f46"
+    # check-and-clone\
+    #     "CompCert" "https://github.com/AbsInt/CompCert.git"\
+    #     "76a4ff8f5b37429a614a2a97f628d9d862c93f46"
     (
         set -euv
         cd CompCert

@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 ##########################################################################
 #
 #    This file is part of Proverbot9001.
@@ -68,19 +68,13 @@ def main():
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
-    try:
-        with open(args.prelude + "/_CoqProject", 'r') as includesfile:
-            includes = includesfile.read()
-    except FileNotFoundError:
-        eprint("Didn't find a _CoqProject file in prelude dir")
-        includes = ""
     # Set up the command which runs sertop.
     coqargs = ["sertop", "--implicit"]
     tasks = [(idx % args.threads, filename) for (idx, filename)
              in enumerate(args.inputs)]
     with multiprocessing.Pool(args.threads) as pool:
         scrape_result_files = pool.imap_unordered(
-            functools.partial(scrape_file, coqargs, args, includes),
+            functools.partial(scrape_file, coqargs, args),
             tasks)
         with (open(args.output, 'w') if args.output
               else contextlib.nullcontext(sys.stdout)) as out:
@@ -99,7 +93,6 @@ def main():
 
 
 def scrape_file(coqargs: List[str], args: argparse.Namespace,
-                includes: str,
                 file_tuple: Tuple[int, str]) -> Optional[str]:
     sys.setrecursionlimit(4500)
     file_idx, filename = file_tuple

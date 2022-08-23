@@ -106,15 +106,35 @@ def args_vars_in_context(in_data : TacticContext, tactic : str,
 
     return args_vars_in_list(tactic, in_data.hypotheses)
 
-def tactic_literal(tactic_to_match : str,
-                   in_data: TacticContext, tactic : str,
-                   new_in_data : TacticContext,
-                   arg_values : argparse.Namespace) -> bool:
-    return re.match("\s*{}(\s.+)?\.".format(tactic_to_match), tactic) != None
+
+def tactic_literal(tactic_to_match: str,
+                   in_data: TacticContext, tactic: str,
+                   new_in_data: TacticContext,
+                   arg_values: argparse.Namespace) -> bool:
+    if tactic_to_match == "rewrite<-":
+        tactic_to_match = "rewrite <-"
+    if tactic_to_match == "simplin":
+        tactic_to_match = "simpl in"
+    if tactic_to_match == "trydiscriminate":
+        tactic_to_match = "try discriminate"
+    if tactic_to_match == "nowapply":
+        tactic_to_match = "now apply"
+    return re.match(r"\s*{}(\s.+)?\.".format(tactic_to_match), tactic) \
+        is not None
+
+
 def tactic_eliteral(tactic_to_match : str,
                     in_data: TacticContext, tactic : str,
                     new_in_data : TacticContext,
                     arg_values : argparse.Namespace) -> bool:
+    if tactic_to_match == "rewrite<-":
+        tactic_to_match = "rewrite <-"
+    if tactic_to_match == "simplin":
+        tactic_to_match = "simpl in"
+    if tactic_to_match == "trydiscriminate":
+        tactic_to_match = "try discriminate"
+    if tactic_to_match == "nowapply":
+        tactic_to_match = "now apply"
     return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 
 
@@ -169,7 +189,20 @@ def relevant_lemma_args(in_data : TacticContext, tactic : str,
                         arg_values : argparse.Namespace) -> bool:
     return args_vars_in_list(tactic, in_data.relevant_lemmas)
 
-def get_subexprs(text : str) -> List[str]:
+
+def punctuation(in_data: TacticContext, tactic: str,
+                next_in_data: TacticContext,
+                arg_values: argparse.Namespace) -> bool:
+    if re.match(r"\s*Proof\.", tactic):
+        return True
+    if re.match(r"\s*(Opaque|Qed|Defined|Unshelve)", tactic):
+        return True
+    if re.match(r"\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL):
+        return True
+    return False
+
+
+def get_subexprs(text: str) -> List[str]:
     def inner() -> Iterable[str]:
         cur_expr = ""
         paren_depth = 0
@@ -190,10 +223,11 @@ def get_subexprs(text : str) -> List[str]:
             yield cur_expr.strip()
     return list(inner())
 
-def split_toplevel(specstr : str) -> List[str]:
+
+def split_toplevel(specstr: str) -> List[str]:
     paren_depth = 0
     operators = ["%", "+"]
-    pieces : List[str] = []
+    pieces: List[str] = []
     curPiece = ""
     for c in specstr:
         if paren_depth > 0:
@@ -224,9 +258,10 @@ def split_toplevel(specstr : str) -> List[str]:
         pieces.append(curPiece)
     return pieces
 
-def get_context_filter(specstr : str) -> ContextFilter:
+
+def get_context_filter(specstr: str) -> ContextFilter:
     pieces = split_toplevel(specstr)
-    if not "+" in specstr and not "%" in specstr:
+    if "+" not in specstr and "%" not in specstr:
         for prefix, func, arg_str in special_prefixes:
             match = re.match("^{}(.*)".format(prefix), specstr)
             if match:
@@ -263,23 +298,24 @@ def get_prefix_argstr(prefix_entry : PrefixEntry):
     prefix, func, argstr = prefix_entry
     return "{}{}".format(prefix, argstr)
 
-context_filters : Dict[str, ContextFilter] = {
-    "default": filter_and(no_compound_or_bullets,
-                          not_proof_keyword,
-                          not_background_subgoal,
-                          not_vernac
-    ),
+
+context_filters: Dict[str, ContextFilter] = {
+    "~punctuation": filter_and(no_compound_or_bullets,
+                               not_proof_keyword,
+                               not_background_subgoal,
+                               not_vernac),
     "count-default": filter_and(no_compound_or_bullets,
                                 not_background_subgoal),
     "none": lambda *args: False,
     "all": lambda *args: True,
     "goal-changes": filter_and(goal_changed, no_compound_or_bullets),
     "hyps-change": filter_and(hyps_changed, no_compound_or_bullets),
-    "something-changes":filter_and(filter_or(goal_changed, hyps_changed),
-                                   no_compound_or_bullets),
+    "something-changes": filter_and(filter_or(goal_changed, hyps_changed),
+                                    no_compound_or_bullets),
     "no-args": filter_and(no_args, no_compound_or_bullets),
-    "hyp-args":filter_and(args_vars_in_context, no_compound_or_bullets),
-    "goal-args" : args_token_in_goal,
-    "rel-lemma-args" : relevant_lemma_args,
-    "numeric-args" : numeric_args,
+    "hyp-args": filter_and(args_vars_in_context, no_compound_or_bullets),
+    "goal-args": args_token_in_goal,
+    "rel-lemma-args": relevant_lemma_args,
+    "numeric-args": numeric_args,
+    "punctuation": punctuation,
 }

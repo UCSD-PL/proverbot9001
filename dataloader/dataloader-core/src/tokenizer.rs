@@ -69,6 +69,9 @@ where
     pub fn num_indices(&self) -> i64 {
         self.next_idx
     }
+    pub fn get_all_tactics(&self) -> Vec<String> {
+	(1..self.next_idx).map(|i| format!("{}", self.reverse_lookup(i))).collect()
+    }
     pub fn save_to_text(&self, path: &str) {
         let mut file = File::create(path).unwrap();
         for i in 1..self.next_idx {

@@ -82,7 +82,7 @@ pub fn split_to_next_pat_outside_parens<'a>(
                 .map(|pos| pos + cur_pos)
                 .unwrap_or(haystack.len())
         };
-    };
+    }
     while cur_pos < haystack.len() {
         let next_open = lookup!("(");
         let next_close = lookup!(")");

@@ -288,7 +288,7 @@ pub fn kill_comments(source: &str) -> String {
                 .map(|pos| pos + cur_pos)
                 .unwrap_or(source.len())
         };
-    };
+    }
     while cur_pos < source.len() {
         let next_open = lookup!("(*");
         let next_close = lookup!("*)");

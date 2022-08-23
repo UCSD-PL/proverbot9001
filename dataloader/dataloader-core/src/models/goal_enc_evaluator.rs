@@ -42,7 +42,7 @@ pub fn goals_to_total_distances_tensors(
     let raw_data =
         scraped_from_file(File::open(filename).map_err(|_err| "Failed to open file")?).collect();
     let distanced = tactic_distances(raw_data);
-    let filtered_data = filter_data_by_key(&args, &args.context_filter, distanced, |distanced| {
+    let filtered_data = filter_data_by_key(args.max_length, &args.context_filter, distanced, |distanced| {
         &(*distanced).0
     });
     let (tactics, distances): (Vec<ScrapedTactic>, Vec<usize>) = filtered_data.into_iter().unzip();

@@ -1,2 +1,0 @@
--R . PTS
-Main.v GenericSort.v SortECC.v SortV6.v CoqV6.v ECC.v CoqV6Beta.v ExtractV6.v MlExtract.v MyList.v MyRelations.v General.v
