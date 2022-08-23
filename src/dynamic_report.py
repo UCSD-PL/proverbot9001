@@ -40,7 +40,7 @@ Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
 
-import coq_serapy
+import coq_serapy as serapi_instance
 from coq_serapy import (ParseError, LexError, TimeoutError,
                         BadResponse, CoqExn, CompletedError,
                         AckError, get_stem)

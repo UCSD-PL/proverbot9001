@@ -37,7 +37,7 @@ from context_filter import get_context_filter
 from data import get_text_data, filter_data, RawDataset, Sentence
 from util import *
 from util import _inflate
-import serapi_instance
+import coq_serapy as serapi_instance
 
 import torch
 import torch.nn as nn

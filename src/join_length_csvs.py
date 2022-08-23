@@ -22,7 +22,7 @@
 import argparse
 import csv
 import re
-import serapi_instance
+import coq_serapy as serapi_instance
 
 from typing import Tuple
 

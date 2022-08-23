@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib_revised import Path2
 
-import serapi_instance
+import coq_serapy as serapi_instance
 
 
 def main() -> None:
