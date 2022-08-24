@@ -45,7 +45,7 @@ import util
 
 details_css = "details.css"
 details_javascript = "search-details.js"
-start_time = 0
+start_time = datetime.now()
 
 def main(arg_list: List[str]) -> None:
     global start_time
