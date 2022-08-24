@@ -114,8 +114,8 @@ class SearchGraph:
     feature_extractor: Optional[FeaturesExtractor]
     start_node: LabeledNode
 
-    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str],
-                 lemma_name: str) -> None:
+    def __init__(self, tactics_file: Path, tokens_file: Path, lemma_name: str,
+                 features_json: bool) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
@@ -123,8 +123,9 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor(common_tactic_stems,
-                                                   common_tokens)
+        if features_json:
+            self.feature_extractor = FeaturesExtractor(str(tactics_file),
+                                                       str(tokens_file))
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
@@ -336,10 +337,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                 bar_idx: int,
                                 predictor: TacticPredictor) \
                                 -> SearchResult:
-    g = SearchGraph(
-        dataloader.get_all_tactics(cast(FeaturesPolyargPredictor, predictor).metadata),
-        dataloader.get_tokens(cast(FeaturesPolyargPredictor, predictor).metadata),
-        lemma_name)
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                    args.features_json)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
