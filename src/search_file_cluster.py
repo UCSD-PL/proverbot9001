@@ -111,9 +111,11 @@ def main(arg_list: List[str]) -> None:
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
             show_progress(args)
         cancel_workers(args)
+        with open(args.output_dir / "time_so_far.txt", 'w') as f:
+            time_taken = datetime.now() - start_time
+            print(str(time_taken), file=f)
     else:
         assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
-    time_taken = datetime.now() - start_time
     if args.generate_report:
         generate_report(args, predictor, project_dicts_from_args(args), time_taken)
 
