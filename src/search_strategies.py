@@ -111,11 +111,11 @@ class LabeledNode:
 class SearchGraph:
     __graph: pgv.AGraph
     __next_node_id: int
-    feature_extractor: FeaturesExtractor
+    feature_extractor: Optional[FeaturesExtractor]
     start_node: LabeledNode
 
-    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str],
-                 lemma_name: str) -> None:
+    def __init__(self, tactics_file: Path, tokens_file: Path, lemma_name: str,
+                 features_json: bool) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
@@ -123,8 +123,9 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor(common_tactic_stems,
-                                                   common_tokens)
+        if features_json:
+            self.feature_extractor = FeaturesExtractor(str(tactics_file),
+                                                       str(tokens_file))
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
@@ -182,7 +183,9 @@ class SearchGraph:
             self.__graph.draw(filename, prog="dot")
 
     def write_feat_json(self, filename: str) -> None:
+        assert self.feature_extractor
         def write_node(node: LabeledNode, f: IO[str]) -> None:
+            assert self.feature_extractor
             if len(node.children) == 0:
                 return
             state_feats = self.feature_extractor.state_features(
@@ -333,10 +336,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                 bar_idx: int,
                                 predictor: TacticPredictor) \
                                 -> SearchResult:
-    g = SearchGraph(
-        dataloader.get_all_tactics(cast(FeaturesPolyargPredictor, predictor).metadata),
-        dataloader.get_tokens(cast(FeaturesPolyargPredictor, predictor).metadata),
-        lemma_name)
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                    args.features_json)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
@@ -468,8 +469,9 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     g.draw(f"{output_dir}/{module_prefix}"
                            f"{unnamed_goal_number}.svg")
                 else:
-                    g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                      f"{lemma_name}.json")
+                    if args.features_json:
+                        g.write_feat_json(f"{output_dir}/{module_prefix}"
+                                          f"{lemma_name}.json")
                     g.draw(f"{output_dir}/{module_prefix}"
                            f"{lemma_name}.svg")
 
@@ -494,8 +496,9 @@ def dfs_proof_search_with_graph(lemma_name: str,
         command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
         pbar.clear()
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    g.write_feat_json(f"{output_dir}/{module_prefix}"
-                      f"{lemma_name}.json")
+    if args.features_json:
+        g.write_feat_json(f"{output_dir}/{module_prefix}"
+                          f"{lemma_name}.json")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
     elif hasUnexploredNode:
