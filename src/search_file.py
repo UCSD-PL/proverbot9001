@@ -159,6 +159,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
     parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
+    parser.add_argument("--features-json", action='store_true')
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
