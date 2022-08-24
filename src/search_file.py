@@ -23,11 +23,12 @@ import argparse
 import os
 import sys
 import re
-import datetime
+from datetime import datetime, timedelta
 import time
 import csv
 import multiprocessing
 import threading
+import signal
 import json
 import queue
 import traceback
@@ -55,6 +56,7 @@ from tqdm import tqdm
 from pathlib import Path
 import torch
 
+start_time = datetime.now()
 
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
@@ -300,14 +302,15 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
+    global start_time
     start_time = datetime.now()
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
                 t = datetime.strptime(f.read(), "%H:%M:%S")
-                start_time = datetime.now() - timedelta(hours=t.hours,minutes=t.minutes,
-                                                        seconds=t.seconds)
+                start_time = datetime.now() - timedelta(hours=t.hour,minutes=t.minute,
+                                                        seconds=t.second)
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
@@ -391,7 +394,7 @@ def search_file_multithreaded(args: argparse.Namespace,
     time_taken = start_time - datetime.now()
     if args.generate_report:
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
-                                      datetime.timedelta())
+                                      time_taken)
 
 def write_time(args: argparse.Namespace, *rest_args) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
