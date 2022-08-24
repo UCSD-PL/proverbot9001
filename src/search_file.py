@@ -57,6 +57,7 @@ from tqdm import tqdm
 from pathlib import Path
 import torch
 
+start_time = datetime.now()
 
 start_time = datetime.now()
 def main(arg_list: List[str]) -> None:
@@ -398,10 +399,10 @@ def search_file_multithreaded(args: argparse.Namespace,
             for worker in workers:
                 worker.join()
     time_taken = datetime.now() - start_time
+    write_time(args)
     if args.generate_report:
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
-    write_time(args)
 
 def write_time(args: argparse.Namespace, *rest_args) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
