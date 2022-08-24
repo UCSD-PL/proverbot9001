@@ -972,7 +972,9 @@ class FeaturesPolyargPredictor(
         loss = FloatTensor([0.])
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
-        return loss
+        prediction_probs, arg_idxs = torch.max(total_arg_distribution,dim=1)
+        accuracy = torch.sum(arg_idxs == total_arg_var) / batch_size
+        return loss, accuracy
 
     def share_memory(self) -> None:
         self._model.share_memory()
