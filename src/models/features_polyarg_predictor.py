@@ -386,7 +386,7 @@ class FeaturesPolyargPredictor(
         assert self.training_args
         assert self._model
 
-        num_stem_poss = get_num_tokens(self.metadata)
+        num_stem_poss = get_num_indices(self.metadata)[1]
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises_batch, premise_features_batch, \
