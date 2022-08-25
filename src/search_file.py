@@ -37,12 +37,13 @@ import cProfile
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast,
                     Any)
+from queue import Queue
 
 from models.tactic_predictor import TacticPredictor, Prediction
 from predict_tactic import (static_predictors, loadPredictorByFile,
                             loadPredictorByName)
 import coq_serapy as serapi_instance
-from coq_serapy import (ProofContext, Obligation, SerapiInstance)
+from coq_serapy import (ProofContext, Obligation, SerapiInstance, CoqExn)
 
 import data
 from coq_serapy.contexts import TacticContext, ScrapedTactic, truncate_tactic_context
