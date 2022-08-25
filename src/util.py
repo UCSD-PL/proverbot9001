@@ -36,7 +36,7 @@ import torch.autograd as autograd
 
 from sexpdata import Symbol
 from dataloader import rust_parse_sexp_one_level
-from pathlib_revised import Path2
+from pathlib import Path
 
 
 def maybe_cuda(component):
@@ -351,7 +351,7 @@ def progn(*args):
     return args[-1]
 
 
-def safe_abbrev(filename: Path2, all_files: List[Path2]) -> str:
+def safe_abbrev(filename: Path, all_files: List[Path]) -> str:
     if filename.stem in [f.stem for f in all_files if f != filename]:
         return escape_filename(str(filename))
     else:
