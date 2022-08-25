@@ -76,7 +76,7 @@ def main(arg_list: List[str]) -> None:
         parser.print_help()
         sys.exit(1)
 
-    
+
     search_file_multithreaded(args)
 
 
@@ -209,7 +209,7 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
-    
+
     predictor = get_predictor(args)
 
     # util.use_cuda = False
@@ -398,13 +398,12 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
             for worker in workers:
                 worker.join()
-    time_taken = datetime.now() - start_time
     write_time(args)
+    time_taken = datetime.now() - start_time
     if args.generate_report:
         predictor = get_predictor(args)
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
-    write_time(args)
 
 def write_time(args: argparse.Namespace) -> None:
     global start_time
