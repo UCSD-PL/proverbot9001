@@ -394,10 +394,10 @@ def search_file_multithreaded(args: argparse.Namespace,
             for worker in workers:
                 worker.join()
     time_taken = datetime.now() - start_time
+    write_time(args)
     if args.generate_report:
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
-    write_time(args)
 
 def write_time(args: argparse.Namespace, *rest_args) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
