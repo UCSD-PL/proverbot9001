@@ -55,7 +55,7 @@ from util import (eprint, chunks, split_by_char_outside_matching,
                   unwrap, get_possible_arg)
 from context_filter import get_context_filter, ContextFilter
 from coq_serapy import get_stem
-from pathlib_revised import Path2
+from pathlib import Path
 TOKEN_START = 2
 SOS_token = 1
 EOS_token = 0
@@ -182,7 +182,7 @@ def extend(vector : List[int], length : int):
     assert len(vector) <= length
     return vector + [0] * (length - len(vector))
 
-def file_chunks(filepath : Path2, chunk_size : int):
+def file_chunks(filepath : Path, chunk_size : int):
     with filepath.open(mode='r') as f:
         while True:
             chunk = list(itertools.islice(f, chunk_size))
@@ -200,7 +200,7 @@ def read_all_text_data_worker__(lines : List[str]) -> MixedDataset:
                 yield t
                 t = read_tuple(f)
     return list(worker_generator())
-def read_all_text_data(data_path : Path2) -> MixedDataset:
+def read_all_text_data(data_path : Path) -> MixedDataset:
     line_chunks = file_chunks(data_path, 32768)
     data_chunks = lazy_multiprocessing_imap(read_all_text_data_worker__, line_chunks)
     yield from itertools.chain.from_iterable(data_chunks)
@@ -228,7 +228,7 @@ def lazy_multiprocessing_imap(worker: Callable[[T], O], in_data : Iterable[T],
         for chunk in chunks(in_data, unwrap(chunk_size)):
             yield from list(pool.imap(worker, chunk))
 
-def read_text_data(data_path: Path2) \
+def read_text_data(data_path: Path) \
                   -> Iterable[ScrapedTactic]:
     line_chunks = file_chunks(data_path, 32768)
     data_chunks = lazy_multiprocessing_imap(read_text_data_worker__, line_chunks)
