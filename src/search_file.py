@@ -364,7 +364,7 @@ def search_file_multithreaded(args: argparse.Namespace,
         for worker in workers:
             worker.start()
         num_already_done = len(solved_jobs)
-        os.makedirs(args.output_dir)
+        os.makedirs(args.output_dir, exist_ok=True)
         with util.sighandler_context(signal.SIGINT, functools.partial(write_time, args)):
             with tqdm(total=len(todo_jobs) + num_already_done,
                       dynamic_ncols=True, desc="Searching proofs") as bar:
