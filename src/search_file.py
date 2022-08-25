@@ -404,6 +404,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
         predictor = get_predictor(args)
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
+    write_time(args)
 
 def write_time(args: argparse.Namespace) -> None:
     global start_time
