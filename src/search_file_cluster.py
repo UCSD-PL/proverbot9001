@@ -92,9 +92,13 @@ def main(arg_list: List[str]) -> None:
         solved_jobs = get_already_done_jobs(args)
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
-                s = f.read()
-                t = datetime.strptime(s.strip(), "%H:%M:%S.%f")
-                start_time = datetime.now() - timedelta(hours=t.hour,minutes=t.minute,seconds=t.second)
+                datestring = f.read().strip()
+                try:
+                    t = datetime.strptime(datestring, "%H:%M:%S.%f")
+                except ValueError:
+                    t = datetime.strptime(datestring, "%j day, %H:%M:%S.%f")
+                start_time = datetime.now() - timedelta(days=t.day, hours=t.hour,
+                                                        minutes=t.minute,seconds=t.second)
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
