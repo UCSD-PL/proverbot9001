@@ -4427,7 +4427,7 @@
             "theories/Rcomplements.v"
         ],
         "switch": "coq-8.10",
-        "build_command": "./configure.sh && ./remake"
+        "build_command": "./configure && ./remake"
     },
     {
         "project_name": "fermat4",
