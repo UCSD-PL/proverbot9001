@@ -309,9 +309,13 @@ def search_file_multithreaded(args: argparse.Namespace,
         solved_jobs = get_already_done_jobs(args)
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
-                t = datetime.strptime(f.read(), "%H:%M:%S")
-                start_time = datetime.now() - timedelta(hours=t.hour,minutes=t.minute,
-                                                        seconds=t.second)
+                datestring = f.read().strip()
+                try:
+                    t = datetime.strptime(datestring, "%H:%M:%S.%f")
+                except ValueError:
+                    t = datetime.strptime(datestring, "%j day, %H:%M:%S.%f")
+                start_time = datetime.now() - timedelta(days=t.day, hours=t.hour,
+                                                        minutes=t.minute, seconds=t.second)
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
