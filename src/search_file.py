@@ -30,6 +30,7 @@ import multiprocessing
 import threading
 import signal
 import json
+import json.decoder
 import queue
 import traceback
 import subprocess
@@ -271,8 +272,12 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                             + "-proofs.txt"))
             try:
                 with proofs_file.open('r') as f:
-                    for line in f:
-                        (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                    for idx, line in enumerate(f):
+                        try:
+                            (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                        except json.decoder.JSONDecodeError:
+                            print(f"On line {idx} in file {proofs_file}")
+                            raise
                         already_done_jobs.append(ReportJob(job_project,
                                                            job_file,
                                                            job_module,
