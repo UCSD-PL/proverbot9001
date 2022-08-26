@@ -129,7 +129,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     projfiles = [(project_dict["project_name"], filename)
                  for project_dict in project_dicts
                  for filename in project_dict["test_files"]]
-    with (args.output_dir / "all_jobs.txt").open("w") as f:
+    with (args.output_dir / "all_jobs.txt.partial").open("w") as f:
         pass
     with (args.output_dir / "proj_files.txt").open("w") as f:
         for projfile in projfiles:
@@ -143,7 +143,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
                    "proj_files.txt",
                    "proj_files_taken.txt",
                    "proj_files_scanned.txt",
-                   "all_jobs.txt"]
+                   "all_jobs.txt.partial"]
     if args.include_proof_relevant:
         worker_args.append("--include-proof-relevant")
     if args.proof:
@@ -165,6 +165,9 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
             bar.update(new_files_scanned - num_files_scanned)
             num_files_scanned = new_files_scanned
             time.sleep(0.2)
+
+    os.rename(args.output_dir / "all_jobs.txt.partial",
+              args.output_dir / "all_jobs.txt")
 
 
 def setup_jobsstate(output_dir: Path, all_jobs: List[ReportJob],
