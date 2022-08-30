@@ -312,8 +312,11 @@ def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     global start_time
     start_time = datetime.now()
+    all_jobs = get_all_jobs(args)
+    assert len(all_jobs) > 0, "No jobs found! Maybe you passed a bad proof parameter?"
     if args.resume:
-        solved_jobs = get_already_done_jobs(args)
+        solved_jobs = [job for job in get_already_done_jobs(args)
+                       if job in all_jobs]
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
                 datestring = f.read().strip()
@@ -329,7 +332,6 @@ def search_file_multithreaded(args: argparse.Namespace,
     else:
         remove_already_done_jobs(args)
         solved_jobs = []
-    all_jobs = get_all_jobs(args)
     todo_jobs = [job for job in all_jobs if job not in solved_jobs]
     assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
       f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
