@@ -180,7 +180,20 @@ class Worker:
               self.coq.sm_prefix == job_module:
                 return
             else:
-                self.skip_proof(lemma_statement, careful)
+                try:
+                    self.skip_proof(lemma_statement, careful)
+                except coq_serapy.SerapiException:
+                    if not careful:
+                        eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
+                               guard=self.args.verbose >= 1)
+                        self.reset_file_state()
+                        self.exit_cur_file()
+                        self.enter_file(job_file)
+                        self.run_into_job(job, restart_anomaly, True)
+                        return
+                    eprint(f"Failed getting to before: {job_lemma}")
+                    eprint(f"In file {job_file}")
+                    raise
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
