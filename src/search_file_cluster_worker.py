@@ -41,6 +41,11 @@ import util
 from util import eprint, unwrap, FileLock
 
 def main(arg_list: List[str]) -> None:
+    assert 'SLURM_ARRAY_TASK_ID' in environ
+    workerid = int(environ['SLURM_ARRAY_TASK_ID'])
+
+    with (args.output_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
+        print(workerid, file=f)
     multiprocessing.set_start_method('spawn')
     arg_parser = argparse.ArgumentParser()
 
@@ -58,19 +63,12 @@ def main(arg_list: List[str]) -> None:
         args.splits_file = args.filenames[0]
         args.filenames = []
 
-    if 'SLURM_ARRAY_TASK_ID' in environ:
-        workerid = int(environ['SLURM_ARRAY_TASK_ID'])
-    else:
-        assert False, 'SLURM_ARRAY_TASK_ID must be set'
-
     sys.setrecursionlimit(100000)
     if util.use_cuda:
         torch.cuda.set_device("cuda:0")
         util.cuda_device = "cuda:0"
 
     predictor = get_predictor(arg_parser, args)
-    with (args.output_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
-        print(workerid, file=f)
     workers = [multiprocessing.Process(target=run_worker,
                                        args=(args, widx,
                                              predictor))
