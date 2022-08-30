@@ -103,7 +103,11 @@ class Worker:
             self.args, 1, self.args.prelude / self.cur_project / filename)
         self.axioms_already_added = False
 
-    def run_into_job(self, job: ReportJob, restart: bool = True) -> None:
+    def exit_cur_file(self) -> None:
+        for sec_or_mod, _ in reversed(self.coq.sm_stack):
+            self.coq.run_stmt(f"Reset {sec_or_mod}.")
+
+    def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
         assert job not in self.lemmas_encountered, "Jobs are out of order!"
         job_project, job_file, job_module, job_lemma = job
@@ -118,8 +122,7 @@ class Worker:
         # If the job is in a different file load the jobs file from scratch.
         if job_file != self.cur_file:
             if self.cur_file:
-                for sec_or_mod, _ in reversed(self.coq.sm_stack):
-                    self.coq.run_stmt(f"Reset {sec_or_mod}.")
+                self.exit_cur_file()
             self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job
@@ -140,11 +143,19 @@ class Worker:
                     self.enter_file(job_file)
                     eprint(f"Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
-                    self.run_into_job(job, restart=False)
+                    self.run_into_job(job, False, careful)
                     return
                 else:
                     assert False
             except coq_serapy.SerapiException:
+                if not careful:
+                    eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
+                           guard=self.args.verbose >= 1)
+                    self.reset_file_state()
+                    self.exit_cur_file()
+                    self.enter_file(job_file)
+                    self.run_into_job(job, restart_anomaly, True)
+                    return
                 eprint(f"Failed getting to before: {job_lemma}")
                 eprint(f"In file {job_file}")
                 raise
@@ -171,13 +182,13 @@ class Worker:
               self.coq.sm_prefix == job_module:
                 return
             else:
-                self.skip_proof(lemma_statement)
+                self.skip_proof(lemma_statement, careful)
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
                                                          unique_lemma_statement))
 
-    def skip_proof(self, lemma_statement: str) -> None:
+    def skip_proof(self, lemma_statement: str, careful: bool) -> None:
         assert self.coq
         ending_command = None
         for cmd in self.remaining_commands:
@@ -195,7 +206,7 @@ class Worker:
             bool(re.match(
                 r"\s*Equations",
                 coq_serapy.kill_comments(lemma_statement))) or \
-            self.args.careful
+            careful
         if proof_relevant:
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
                 self.remaining_commands)) # type: ignore
@@ -215,7 +226,7 @@ class Worker:
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
-        self.run_into_job(job, restart=restart)
+        self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         if self.args.add_axioms and not self.axioms_already_added:
