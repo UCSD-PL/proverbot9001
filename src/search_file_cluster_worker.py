@@ -44,8 +44,6 @@ def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
     workerid = int(environ['SLURM_ARRAY_TASK_ID'])
 
-    with (args.output_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
-        print(workerid, file=f)
     multiprocessing.set_start_method('spawn')
     arg_parser = argparse.ArgumentParser()
 
@@ -57,6 +55,8 @@ def main(arg_list: List[str]) -> None:
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
     args = arg_parser.parse_args(arg_list)
+    with (args.output_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
+        print(workerid, file=f)
     if args.filenames[0].suffix == ".json":
         assert args.splits_file == None
         assert len(args.filenames) == 1
