@@ -104,8 +104,7 @@ class Worker:
         self.axioms_already_added = False
 
     def exit_cur_file(self) -> None:
-        for sec_or_mod, _ in reversed(self.coq.sm_stack):
-            self.coq.run_stmt(f"Reset {sec_or_mod}.")
+        self.coq.reset()
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
