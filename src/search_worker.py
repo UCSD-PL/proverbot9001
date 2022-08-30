@@ -77,7 +77,7 @@ class Worker:
                 switch = self.switch_dict[self.cur_project]
             else:
                 return
-        self.coq.set_switch(switch)
+        coq_serapy.set_switch(switch)
 
     def restart_coq(self) -> None:
         assert self.coq
