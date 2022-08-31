@@ -371,10 +371,12 @@ def attempt_search(args: argparse.Namespace,
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            env_lemmas + relevant_lemmas, coq,
+                                           output_dir,
                                            args, bar_idx, predictor)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
                                              env_lemmas + relevant_lemmas, coq,
+                                             output_dir,
                                              args, bar_idx, predictor)
         else:
             assert False, args.search_type
