@@ -658,12 +658,13 @@ def bfs_beam_proof_search(lemma_name: str,
                           module_prefix: str,
                           relevant_lemmas: List[str],
                           coq: coq_serapy.SerapiInstance,
+                          output_dir: Path,
                           args: argparse.Namespace,
                           bar_idx: int,
                           predictor: TacticPredictor) \
                           -> SearchResult:
     hasUnexploredNode = False
-    graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
+    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
 
     features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
     if args.scoring_function == "lstd":
@@ -837,6 +838,7 @@ def best_first_proof_search(lemma_name: str,
                        module_prefix: Optional[str],
                        relevant_lemmas: List[str],
                        coq: coq_serapy.SerapiInstance,
+                       output_dir: Path,
                        args: argparse.Namespace,
                        bar_idx: int,
                        predictor: TacticPredictor) \
@@ -850,7 +852,7 @@ def best_first_proof_search(lemma_name: str,
         subgoals_stack_start = [0]
     else:
         subgoals_stack_start = []
-    graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
+    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
