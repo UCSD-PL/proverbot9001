@@ -263,6 +263,8 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
+            fixing_duplicates = False
+            file_jobs: List[Tuple[ReportJob, Any]] = []
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
                                              [Path(filename) for filename in
@@ -276,12 +278,30 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                         except json.decoder.JSONDecodeError:
                             print(f"On line {idx} in file {proofs_file}")
                             raise
-                        already_done_jobs.append(ReportJob(job_project,
-                                                           job_file,
-                                                           job_module,
-                                                           job_lemma))
+                        assert job_file == filename, f"Job found in file {filename} " \
+                            f"doesn't match it's filename {filename}. {job_file}"
+                        loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
+                        if loaded_job in [job for job, sol in file_jobs]:
+                            eprint(f"In project {project_dict['project_name']} "
+                                   f"file {filename} "
+                                   f"found duplicate job {loaded_job}. "
+                                   f"Automatically removing it...")
+                            fixing_duplicates = True
+                        else:
+                            assert loaded_job not in already_done_jobs, \
+                              f"Already found job {loaded_job} in another file!"
+                            file_jobs.append((loaded_job, sol))
+                already_done_jobs.extend([job for job, sol in file_jobs])
+                if fixing_duplicates:
+                    with proofs_file.open('w') as f:
+                        for job, sol in file_jobs:
+                            print(json.dumps((job, sol)), file=f)
             except FileNotFoundError:
                 pass
+
+            if len(set(already_done_jobs)) < len(already_done_jobs):
+                eprint(f"After adding file {filename} from project {project_dict['project_name']}, there are duplicates in the solution!")
+                sys.exit(1)
 
     return already_done_jobs
 
