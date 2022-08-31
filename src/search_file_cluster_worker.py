@@ -33,7 +33,7 @@ from typing import List, Optional
 from pathlib import Path
 import torch
 
-from search_file import (add_args_to_parser, get_predictor, Worker)
+from search_file import (add_args_to_parser, get_predictor, Worker, project_dicts_from_args)
 import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
@@ -84,12 +84,10 @@ def run_worker(args: argparse.Namespace, workerid: int,
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
 
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-        if any(["switch" in item for item in project_dicts]):
-            switch_dict = {item["project_name"]: item["switch"]
-                           for item in project_dicts}
+    project_dicts = project_dicts_from_args(args)
+    if any(["switch" in item for item in project_dicts]):
+        switch_dict = {item["project_name"]: item["switch"]
+                        for item in project_dicts}
 
     with Worker(args, workerid, predictor, switch_dict) as worker:
         while True:
@@ -107,8 +105,11 @@ def run_worker(args: argparse.Namespace, workerid: int,
                     break
             solution = worker.run_job(current_job)
             job_project, job_file, _, _ = current_job
+            project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
             with (args.output_dir / job_project /
-                  (util.safe_abbrev(Path(job_file), args.filenames) + "-proofs.txt")
+                  (util.safe_abbrev(Path(job_file), [Path(filename) for filename in
+                                                     project_dict["test_files"]])
+                   + "-proofs.txt")
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
                 print(json.dumps((current_job, solution.to_dict())), file=f)
