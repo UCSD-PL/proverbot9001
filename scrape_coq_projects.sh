@@ -16,7 +16,7 @@ done
 export PATH=$HOME/.local/bin:$PATH
 
 git submodule init && git submodule update
-for project in math-comp; do #$(jq -r '.[55:]|.[].project_name' coqgym_projs_splits.json); do
+for project in $(jq -r '.[].project_name' coqgym_projs_splits.json); do
 
     echo "#!/usr/bin/env bash" > coq-projects/$project/scrape.sh
     echo ${INIT_CMD} >> coq-projects/$project/scrape.sh
