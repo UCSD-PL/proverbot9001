@@ -95,9 +95,13 @@ def main(arg_list: List[str]) -> None:
                 try:
                     t = datetime.strptime(datestring, "%H:%M:%S.%f")
                 except ValueError:
-                    t = datetime.strptime(datestring, "%j day, %H:%M:%S.%f")
-                start_time = datetime.now() - timedelta(days=t.day, hours=t.hour,
-                                                        minutes=t.minute,seconds=t.second)
+                    try:
+                        t = datetime.strptime(datestring, "%j day, %H:%M:%S.%f")
+                    except ValueError:
+                        t = datetime.strptime(datestring, "%j days, %H:%M:%S.%f")
+                time_taken = timedelta(days=t.day, hours=t.hour,
+                                       minutes=t.minute,seconds=t.second)
+                start_time = datetime.now() - time_taken
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
