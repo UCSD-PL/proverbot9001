@@ -115,6 +115,11 @@ def main(arg_list: List[str]) -> None:
         jobs = [ReportJob(*json.loads(line)) for line in f]
         assert len(jobs) > 0
     if len(solved_jobs) < len(jobs):
+        if args.just_print_jobs:
+            for job in jobs:
+                if job not in solved_jobs:
+                    print(job)
+            sys.exit(0)
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
         dispatch_workers(args, arg_list)
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
