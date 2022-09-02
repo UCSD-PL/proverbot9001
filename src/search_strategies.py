@@ -573,7 +573,7 @@ class BFSNode:
 
 
             graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
-                           tooltip=tooltip)
+                           tooltip=tooltip.replace("\\", "\\\\"))
 
             root_node_id = next_node_id
             next_node_id += 1
