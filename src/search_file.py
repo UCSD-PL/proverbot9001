@@ -161,6 +161,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
     parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
+    parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -353,6 +354,10 @@ def search_file_multithreaded(args: argparse.Namespace,
     todo_jobs = [job for job in all_jobs if job not in solved_jobs]
     assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
       f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
+    if args.just_print_jobs:
+        for job in todo_jobs:
+            print(job)
+        sys.exit(0)
     with multiprocessing.Manager() as manager:
         jobs: multiprocessing.Queue[ReportJob] = multiprocessing.Queue()
         done: multiprocessing.Queue[
