@@ -102,6 +102,7 @@ def run_worker(args: argparse.Namespace, workerid: int,
                     print(json.dumps(current_job), file=f, flush=True)
                     eprint(f"Starting job {current_job}")
                 else:
+                    eprint(f"Finished thread {workerid}")
                     break
             solution = worker.run_job(current_job)
             job_project, job_file, _, _ = current_job
