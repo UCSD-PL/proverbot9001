@@ -64,6 +64,7 @@ def main():
     parser.add_argument("--ignore-lin-hash", action='store_true')
     parser.add_argument("--linearizer-timeout", type=int,
                         default=(60 * 60))
+    parser.add_argument("-s", "--switch", default=None, type=str)
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -110,6 +111,8 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
         else:
             commands = serapi_instance.load_commands_preserve(
                 args, file_idx, str(full_filename))
+        if args.switch:
+            serapi_instance.set_switch(args.switch)
         with serapi_instance.SerapiContext(
                 coqargs,
                 serapi_instance.get_module_from_filename(filename),
