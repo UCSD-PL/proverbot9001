@@ -24,7 +24,7 @@ from tqdm import tqdm
 import argparse
 import re
 import sys
-from pathlib_revised import Path2
+from pathlib import Path
 
 # This dependency is in pip, the python package manager
 from sexpdata import *
@@ -600,7 +600,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
 
 def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
         -> Optional[List[str]]:
-    lin_path = Path2(filename + ".lin")
+    lin_path = Path(filename + ".lin")
     if args.verbose:
         eprint("Attempting to load cached linearized version from {}"
                .format(lin_path))
