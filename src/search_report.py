@@ -29,7 +29,6 @@ import itertools
 import json
 import subprocess
 import datetime
-from pathlib_revised import Path2
 from pathlib import Path
 from shutil import copyfile
 
@@ -114,7 +113,7 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
         multi_project_report.multi_project_index(args.output_dir)
 
 def blocks_from_scrape_and_sols(
-        src_filename: Path2,
+        src_filename: Path,
         lemma_statements_done: List[Tuple[str, str, SearchResult]]
         ) -> List[DocumentBlock]:
 
@@ -208,7 +207,7 @@ def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
     return TacticInteraction(s.tactic, s.context)
 
 
-def write_solution_vfile(args: argparse.Namespace, output_filename: Path2,
+def write_solution_vfile(args: argparse.Namespace, output_filename: Path,
                          model_name: str,
                          doc_blocks: List[DocumentBlock]):
     with output_filename.open('w') as sfile:
@@ -235,7 +234,7 @@ def write_solution_vfile(args: argparse.Namespace, output_filename: Path2,
 
 
 def write_csv(args: argparse.Namespace,
-              output_filename: Path2,
+              output_filename: Path,
               doc_blocks: List[DocumentBlock]):
     with output_filename.open('w', newline='') as csvfile:
         for k, v in vars(args).items():
@@ -250,7 +249,7 @@ def write_csv(args: argparse.Namespace,
 
 
 def write_html(args: argparse.Namespace,
-               output_file: Path2, filename: Path2,
+               output_file: Path, filename: Path,
                doc_blocks: List[DocumentBlock]) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
