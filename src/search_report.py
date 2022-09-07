@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 ##########################################################################
 #
 #    This file is part of Proverbot9001.
@@ -28,13 +28,14 @@ import datetime
 import itertools
 import json
 import subprocess
-import datetime
 from pathlib import Path
 from shutil import copyfile
 
 from yattag import Doc
+from tqdm import tqdm
 
 from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+import util
 
 from typing import (List, Tuple, Sequence, Dict, Callable,
                     Any, Iterable, Optional)
@@ -44,7 +45,7 @@ import data
 
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
-from search_worker import get_file_jobs
+from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
 import coq_serapy
 from coq_serapy.contexts import ScrapedTactic, Obligation
 import multi_project_report
@@ -70,47 +71,53 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
 
     if not args.output_dir.exists():
         os.makedirs(str(args.output_dir))
-    for project_dict in project_dicts:
-        os.makedirs(args.output_dir / project_dict["project_name"], exist_ok=True)
-        for filename in [details_css, details_javascript]:
-            destpath = args.output_dir / project_dict["project_name"] / filename
-            if not destpath.exists():
-                srcpath = base.parent / 'reports' / filename
-                copyfile(srcpath, destpath)
-        for filename in project_dict["test_files"]:
-            file_solutions = []
-            output_file_prefix = args.output_dir / project_dict["project_name"] / \
-                  (safe_abbrev(Path(filename),
-                                    [Path(path) for path in
-                                     project_dict["test_files"]]))
-            source_file = args.prelude / project_dict["project_name"] / filename
-            try:
-                with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
-                    for line in f:
-                        job, sol = json.loads(line)
-                        file_solutions.append((job, SearchResult.from_dict(sol)))
-            except FileNotFoundError:
-                lemmas = get_file_jobs(args, project_dict["project_name"], filename)
-                assert len(lemmas) == 0
-                stats.append(ReportStats(filename, 0, 0, 0))
-                continue
-            blocks = blocks_from_scrape_and_sols(
-                source_file,
-                [(lemma_stmt, module_name, sol)
-                for (project, filename, module_name, lemma_stmt), sol
-                in file_solutions])
-
-            write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
-                                 model_name, blocks)
-            write_html(args, output_file_prefix.with_suffix(".html"),
-                       filename, blocks)
-            write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
-            stats.append(stats_from_blocks(blocks, str(filename)))
-        produce_index(args, predictor,
-                      args.output_dir / project_dict["project_name"],
-                      stats, time_taken)
+    for project_dict in tqdm([project_dict for project_dict in project_dicts
+                              if len(project_dict["test_files"]) > 0],
+                             desc="Report Projects"):
+        generate_project_report(args, predictor, project_dict, time_taken)
     if len(project_dicts) > 1:
         multi_project_report.multi_project_index(args.output_dir)
+
+def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor,
+                            project_dict: Dict[str, Any], time_taken: datetime.timedelta) \
+                            -> None:
+    for filename in [details_css, details_javascript]:
+        destpath = args.output_dir / project_dict["project_name"] / filename
+        if not destpath.exists():
+            srcpath = base.parent / 'reports' / filename
+            copyfile(srcpath, destpath)
+    for filename in tqdm(project_dict["test_files"], desc="Report Files", leave=False):
+        file_solutions = []
+        output_file_prefix = args.output_dir / project_dict["project_name"] / \
+              (safe_abbrev(Path(filename),
+                                [Path(path) for path in
+                                 project_dict["test_files"]]))
+        source_file = args.prelude / project_dict["project_name"] / filename
+        try:
+            with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
+                for line in f:
+                    job, sol = json.loads(line)
+                    file_solutions.append((job, SearchResult.from_dict(sol)))
+        except FileNotFoundError:
+            lemmas = get_file_jobs(args, project_dict["project_name"], filename)
+            assert len(lemmas) == 0, lemmas
+            stats.append(ReportStats(filename, 0, 0, 0))
+            continue
+        blocks = blocks_from_scrape_and_sols(
+            source_file,
+            [(lemma_stmt, module_name, sol)
+            for (project, filename, module_name, lemma_stmt), sol
+            in file_solutions])
+
+        write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
+                             model_name, blocks)
+        write_html(args, output_file_prefix.with_suffix(".html"),
+                   filename, blocks)
+        write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
+        stats.append(stats_from_blocks(blocks, str(filename)))
+    produce_index(args, predictor,
+                  args.output_dir / project_dict["project_name"],
+                  stats, time_taken)
 
 def blocks_from_scrape_and_sols(
         src_filename: Path,
@@ -590,3 +597,41 @@ def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime, str]
     else:
         weights_hash = ""
     return cur_commit, cur_date, weights_hash
+
+def main() -> None:
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("report_dir", type=Path)
+    arg_parser.add_argument("-p", "--project", type=Path, default=None)
+    arg_parser.add_argument("-i", "--project-index-only", action="store_true")
+    top_args = arg_parser.parse_args()
+    assert not (top_args.project and top_args.project_index_only)
+
+    with open(top_args.report_dir / "args.json", 'r') as f:
+        args_dict = json.loads(f.read())
+        args = argparse.Namespace()
+        for k, v in args_dict.items():
+            if k in ["output_dir", "prelude"]:
+                setattr(args, k, Path(eval(v)))
+            else:
+                setattr(args, k, eval(v))
+
+    predictor = get_predictor(arg_parser, args)
+    project_dicts = project_dicts_from_args(args)
+    with open(top_args.report_dir / "time_so_far.txt", 'r') as f:
+        time_taken = util.read_time_taken(f.read())
+    if top_args.project:
+        matching_project_dicts = [project_dict for project_dict in project_dicts
+                                  if project_dict["project_name"] == top_args.project]
+        assert len(matching_project_dicts) != 0, \
+          f"No project matches project name {top_args.project}"
+        assert len(matching_project_dicts) == 1, \
+          f"Multiple projects match project name {top_args.project}"
+        generate_project_report(args, predictor, matching_projet_dicts[0], time_taken)
+    elif top_args.project_index_only:
+        assert len(project_dicts) > 1
+        multi_project_report.multi_project_index(args.output_dir)
+    else:
+        generate_report(args, predictor, project_dicts, time_taken)
+
+if __name__ == "__main__":
+    main()

@@ -124,10 +124,16 @@ def main(arg_list: List[str]) -> None:
             print(str(time_taken), file=f)
     else:
         assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
+
     if args.generate_report:
-        generate_report(args, predictor, project_dicts_from_args(args), time_taken)
+        with open(args.output_dir / "args.json", 'w') as f:
+            json.dump({k: f"\"{v}\"" if isinstance(v, str) or isinstance(v, Path) else str(v) for k, v in vars(args).items()}, f)
+        cur_dir = os.path.realpath(os.path.dirname(__file__))
 
-
+        subprocess.run([f"{cur_dir}/sbatch-retry.sh",
+                        "-o", str(args.output_dir / args.workers_output_dir / "report.out"),
+                        f"{cur_dir}/search_report.sh",
+                        str(args.output_dir)])
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     if (args.output_dir / "all_jobs.txt").exists():
