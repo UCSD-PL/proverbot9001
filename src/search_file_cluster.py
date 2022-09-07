@@ -74,7 +74,10 @@ def main(arg_list: List[str]) -> None:
         with args.splits_file.open('r') as splits_f:
             project_dicts = json.loads(splits_f.read())
         for project_dict in project_dicts:
-            os.makedirs(str(args.output_dir / project_dict["project_name"]), exist_ok=True)
+            project_output_dir = args.output_dir / project_dict["project_name"]
+            if len(project_dict["test_files"]) == 0:
+                continue
+            os.makedirs(str(project_output_dir), exist_ok=True)
             for filename in [details_css, details_javascript]:
                 destpath = args.output_dir / project_dict["project_name"] / filename
                 if not destpath.exists():
