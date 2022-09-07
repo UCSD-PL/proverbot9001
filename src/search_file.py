@@ -42,15 +42,14 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Any, Iterator, Iterable)
 
 from models.tactic_predictor import TacticPredictor
-from predict_tactic import (static_predictors, loadPredictorByFile,
-                            loadPredictorByName)
 import coq_serapy as serapi_instance
 
 from util import eprint
 import search_report
+from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, Worker, get_files_jobs
 import multi_project_report
+from search_worker import ReportJob, Worker, get_files_jobs, get_predictor, project_dicts_from_args
 import util
 
 from tqdm import tqdm
@@ -185,23 +184,6 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
         known_args.filenames = []
     return known_args, unknown_args, parser
 
-
-
-
-def get_predictor(parser: argparse.ArgumentParser,
-                  args: argparse.Namespace) -> TacticPredictor:
-    predictor: TacticPredictor
-    if args.weightsfile:
-        predictor = loadPredictorByFile(args.weightsfile)
-    elif args.predictor:
-        predictor = loadPredictorByName(args.predictor)
-    else:
-        print("You must specify either --weightsfile or --predictor!")
-        parser.print_help()
-        sys.exit(1)
-    return predictor
-
-
 def search_file_worker_profiled(
         args: argparse.Namespace,
         predictor: TacticPredictor,
@@ -250,15 +232,6 @@ def search_file_worker(args: argparse.Namespace,
                 return
             solution = worker.run_job(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
-
-def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-    else:
-        project_dicts = [{"project_name": ".",
-                          "test_files": [str(filename) for filename in args.filenames]}]
-    return project_dicts
 
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []
