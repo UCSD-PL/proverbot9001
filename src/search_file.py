@@ -48,7 +48,6 @@ from util import eprint
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-import multi_project_report
 from search_worker import ReportJob, Worker, get_files_jobs, get_predictor, project_dicts_from_args
 import util
 
