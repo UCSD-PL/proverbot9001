@@ -5,7 +5,8 @@ import subprocess
 import re
 import os
 import traceback
-from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator
+import json
+from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator, Any
 from pathlib import Path
 
 import coq_serapy
@@ -13,6 +14,8 @@ from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
 from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph
+from predict_tactic import (loadPredictorByFile,
+                            loadPredictorByName)
 
 from util import unwrap, eprint, escape_lemma_name
 
@@ -397,3 +400,25 @@ def get_files_jobs(args: argparse.Namespace,
                    -> Iterator[ReportJob]:
     for project, filename in proj_filename_tuples:
         yield from get_file_jobs(args, project, filename)
+
+def get_predictor(parser: argparse.ArgumentParser,
+                  args: argparse.Namespace) -> TacticPredictor:
+    predictor: TacticPredictor
+    if args.weightsfile:
+        predictor = loadPredictorByFile(args.weightsfile)
+    elif args.predictor:
+        predictor = loadPredictorByName(args.predictor)
+    else:
+        print("You must specify either --weightsfile or --predictor!")
+        parser.print_help()
+        sys.exit(1)
+    return predictor
+
+def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
+    if args.splits_file:
+        with Path(args.splits_file).open('r') as f:
+            project_dicts = json.loads(f.read())
+    else:
+        project_dicts = [{"project_name": ".",
+                          "test_files": [str(filename) for filename in args.filenames]}]
+    return project_dicts
