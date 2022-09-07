@@ -27,6 +27,7 @@ import re
 import itertools
 import argparse
 import fcntl
+from datetime import datetime, timedelta
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
                     Callable, Optional, Pattern, Match, Union)
@@ -376,3 +377,16 @@ class FileLock:
 
     def __exit__(self, type, value, traceback):
         fcntl.flock(self.file_handle, fcntl.LOCK_UN)
+
+def read_time_taken(timestring: str) -> timedelta:
+    timestring = timestring.strip()
+    try:
+        t = datetime.strptime(timestring, "%H:%M:%S.%f")
+    except ValueError:
+        try:
+            t = datetime.strptime(timestring, "%j day, %H:%M:%S.%f")
+        except ValueError:
+            t = datetime.strptime(timestring, "%j days, %H:%M:%S.%f")
+    time_taken = timedelta(days=t.day, hours=t.hour,
+                           minutes=t.minute,seconds=t.second)
+    return time_taken
