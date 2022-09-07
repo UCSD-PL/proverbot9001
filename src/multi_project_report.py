@@ -44,7 +44,7 @@ def get_stats(project_dir: str) -> Tuple[int, int]:
     with open(os.path.join(project_dir, "index.html")) as f:
         contents = f.read()
     statsMatch = re.search("Proofs Completed:\s+(\d+\.\d+)%\s+\((\d+)/(\d+)\)", contents)
-    assert statsMatch
+    assert statsMatch, project_dir
 
     percent = statsMatch.group(1)
     num_theorems = int(statsMatch.group(3))
