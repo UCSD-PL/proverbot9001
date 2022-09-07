@@ -192,19 +192,25 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
     with (args.output_dir / "workers_scheduled.txt").open("w") as f:
         pass
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    # If you have a different cluster management software, that still allows
-    # dispatching jobs through the command line and uses a shared filesystem,
-    # modify this line.
-    subprocess.run([f"{cur_dir}/sbatch-retry.sh",
-                    "-J", "proverbot9001-worker",
-                    "-p", args.partition,
-                    "-t", str(args.worker_timeout),
-                    "--cpus-per-task", str(args.num_threads),
-                    "-o", str(args.output_dir / args.workers_output_dir
-                              / "worker-%a.out"),
-                    "--mem", args.mem,
-                    f"--array=0-{args.num_workers-1}",
-                    f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
+    num_workers_left = args.num_workers
+    # For some reason it looks like the maximum job size array is 1001 for
+    # slurm, so we're going to use batches of 1000
+    while num_workers_left > 0:
+        num_dispatching_workers = min(num_workers_left, 1000)
+        # If you have a different cluster management software, that still allows
+        # dispatching jobs through the command line and uses a shared filesystem,
+        # modify this line.
+        subprocess.run([f"{cur_dir}/sbatch-retry.sh",
+                        "-J", "proverbot9001-worker",
+                        "-p", args.partition,
+                        "-t", str(args.worker_timeout),
+                        "--cpus-per-task", str(args.num_threads),
+                        "-o", str(args.output_dir / args.workers_output_dir
+                                  / "worker-%a.out"),
+                        "--mem", args.mem,
+                        f"--array=0-{num_dispatching_workers-1}",
+                        f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
+        num_workers_left -= num_dispatching_workers
 
 def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
     cancel_workers(args)
