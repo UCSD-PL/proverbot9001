@@ -5,10 +5,11 @@ import subprocess
 import re
 import sys
 import os
+import shutil
 from typing import List, Tuple
 
 from yattag import Doc
-from pathlib_revised import Path2
+from pathlib import Path
 
 from util import stringified_percent
 
@@ -35,9 +36,9 @@ def multi_project_index(report_dir: str) -> None:
         project_stats.append((os.path.basename(project_report), num_theorems, num_success))
 
     write_html(report_dir, total_theorems, total_success, project_stats)
-    base = Path2(os.path.abspath(__file__)).parent.parent / "reports"
+    base = Path(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
-        (base / filename).copyfile(report_dir / filename)
+        shutil.copyfile(base / filename, report_dir / filename)
 
 def get_stats(project_dir: str) -> Tuple[int, int]:
     with open(os.path.join(project_dir, "index.html")) as f:
