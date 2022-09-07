@@ -17,13 +17,16 @@ export PATH=$HOME/.local/bin:$PATH
 
 git submodule init && git submodule update
 for project in $(jq -r '.[].project_name' coqgym_projs_splits.json); do
+    SWITCH=$(jq -r ".[] | select(.project_name == \"$project\") | .switch" coqgym_projs_splits.json)
+    FILES=$(echo $(jq -r ".[] | select(.project_name == \"$project\") | (.test_files[], .train_files[])" coqgym_projs_splits.json))
+    if [ -z "$FILES" ]; then
+        continue
+    fi
 
     echo "#!/usr/bin/env bash" > coq-projects/$project/scrape.sh
     echo ${INIT_CMD} >> coq-projects/$project/scrape.sh
 
-    SWITCH=$(jq -r ".[] | select(.project_name == \"$project\") | .switch" coqgym_projs_splits.json)
     echo "eval \"$(opam env --set-switch --switch=$SWITCH)\"" >> coq-projects/$project/scrape.sh
-    FILES=$(echo $(jq -r ".[] | select(.project_name == \"$project\") | (.test_files[], .train_files[])" coqgym_projs_splits.json))
 
     echo "./src/scrape.py -c --prelude=./coq-projects/$project $@ ${FILES} > /dev/null" >> coq-projects/$project/scrape.sh
     chmod u+x coq-projects/$project/scrape.sh
