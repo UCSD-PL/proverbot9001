@@ -40,7 +40,7 @@ Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
 Line = Callable[..., None]
 
-import coq_serapy as serapi_instance
+import coq_serapy
 from coq_serapy import (ParseError, LexError, TimeoutError,
                         BadResponse, CoqExn, CompletedError,
                         AckError, get_stem)
@@ -637,8 +637,7 @@ def write_csv(base_filename : str, output_dir : str,
                                      for item in [prediction, grade]]])
 
 def write_summary(output_dir : Path2, num_jobs : int, cur_commit : str,
-                  message : str, baseline : bool, cur_date :
-                  datetime.datetime, gresult : GlobalResult):
+                  message : str, baseline : bool, cur_date, gresult : GlobalResult):
 
     ###
     ### Write the report page out
