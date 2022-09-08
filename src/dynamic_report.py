@@ -637,8 +637,7 @@ def write_csv(base_filename : str, output_dir : str,
                                      for item in [prediction, grade]]])
 
 def write_summary(output_dir : Path2, num_jobs : int, cur_commit : str,
-                  message : str, baseline : bool, cur_date :
-                  datetime.datetime, gresult : GlobalResult):
+                  message : str, baseline : bool, cur_date : datetime, gresult : GlobalResult):
 
     ###
     ### Write the report page out
