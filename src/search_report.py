@@ -65,8 +65,6 @@ unnamed_goal_number: int = 0
 
 def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
                     project_dicts: List[Dict[str, Any]], time_taken: datetime.timedelta) -> None:
-    stats: List[ReportStats] = []
-    model_name = dict(predictor.getOptions())["predictor"]
     base = Path(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
@@ -81,6 +79,8 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
 def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor,
                             project_dict: Dict[str, Any], time_taken: datetime.timedelta) \
                             -> None:
+    model_name = dict(predictor.getOptions())["predictor"]
+    stats: List[ReportStats] = []
     for filename in [details_css, details_javascript]:
         destpath = args.output_dir / project_dict["project_name"] / filename
         if not destpath.exists():
@@ -103,6 +103,11 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
             assert len(lemmas) == 0, lemmas
             stats.append(ReportStats(filename, 0, 0, 0))
             continue
+        for (sol_project, sol_filename, _, _), _ in file_solutions:
+            assert sol_project == project_dict["project_name"], \
+              (project, project_dict["project_name"])
+            assert sol_filename == filename, \
+              (sol_filename, filename)
         blocks = blocks_from_scrape_and_sols(
             source_file,
             [(lemma_stmt, module_name, sol)
@@ -601,7 +606,7 @@ def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime, str]
 def main() -> None:
     arg_parser = argparse.ArgumentParser()
     arg_parser.add_argument("report_dir", type=Path)
-    arg_parser.add_argument("-p", "--project", type=Path, default=None)
+    arg_parser.add_argument("-p", "--project", type=str, default=None)
     arg_parser.add_argument("-i", "--project-index-only", action="store_true")
     top_args = arg_parser.parse_args()
     assert not (top_args.project and top_args.project_index_only)
@@ -626,7 +631,7 @@ def main() -> None:
           f"No project matches project name {top_args.project}"
         assert len(matching_project_dicts) == 1, \
           f"Multiple projects match project name {top_args.project}"
-        generate_project_report(args, predictor, matching_projet_dicts[0], time_taken)
+        generate_project_report(args, predictor, matching_project_dicts[0], time_taken)
     elif top_args.project_index_only:
         assert len(project_dicts) > 1
         multi_project_report.multi_project_index(args.output_dir)
