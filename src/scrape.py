@@ -37,6 +37,8 @@ from util import eprint, mybarfmt
 from typing import TextIO, List, Tuple, Optional
 from tqdm import tqdm
 
+import tokenizer as tk
+from tokenizer import get_words
 
 def main():
     # Parse the command line arguments.
@@ -65,6 +67,7 @@ def main():
     parser.add_argument("--linearizer-timeout", type=int,
                         default=(60 * 60))
     parser.add_argument("-s", "--switch", default=None, type=str)
+    parser.add_argument('--keyword-file', default="./coq_keywords.txt", type=str, dest="keyword_file")
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -97,6 +100,11 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
     sys.setrecursionlimit(4500)
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
+    
+    keywords = []
+    with open(args.keyword_file, 'r') as f:
+        for keyword in f.readlines():
+            keywords.append(keyword.strip())
     result_file = full_filename + ".scrape"
     temp_file = full_filename + ".scrape.partial"
     if args.cont:
@@ -106,6 +114,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                     eprint(f"Found existing scrape at {result_file}! Using it")
                 return result_file
     try:
+        print(serapi_instance.get_module_from_filename(filename))
         if args.linearize:
             commands = linearize_semicolons.get_linearized(args, coqargs, file_idx, filename)
         else:
@@ -126,7 +135,8 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                                         desc="Scraping file", leave=False,
                                         dynamic_ncols=True,
                                         bar_format=mybarfmt):
-                        process_statement(args, coq, command, f)
+                        module = serapi_instance.get_module_from_filename(filename)
+                        process_statement(args, keywords, coq, command, f)
                 shutil.move(temp_file, result_file)
                 return result_file
             except serapi_instance.TimeoutError:
@@ -140,12 +150,29 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
     return None
 
 
-def process_statement(args: argparse.Namespace,
+def process_statement(args: argparse.Namespace, keywords: list[str],
                       coq: serapi_instance.SerapiInstance, command: str,
                       result_file: TextIO) -> None:
     if coq.proof_context:
         prev_tactics = coq.prev_tactics
         context = coq.proof_context
+        #hypothesis = coq.proof_context.get_hypothesis()
+        goals = []
+        for goal in coq.proof_context.all_goals:
+            new_goal = []
+
+            for word in get_words(goal.goal):
+                if word not in keywords and word[0].isalpha():
+                    out_msg = coq.get_path(word)
+                    if out_msg:
+                        new_goal += (word + "." + out_msg + " ")
+                    else:
+                        new_goal += (word + " ")
+            goals.append(new_goal)
+                    
+        #goal = coq.proof_context.get_goal
+        #print(goal)
+        #print(coq.proof_context)
         if args.relevant_lemmas == "local":
             relevant_lemmas = [re.sub("\n", " ", lemma)
                                for lemma in coq.local_lemmas[:-1]]
@@ -159,7 +186,8 @@ def process_statement(args: argparse.Namespace,
         result_file.write(json.dumps({"relevant_lemmas": relevant_lemmas,
                                       "prev_tactics": prev_tactics,
                                       "context": context.to_dict(),
-                                      "tactic": command}))
+                                      "tactic": command,
+                                      "goals": goals}))
     else:
         result_file.write(json.dumps(command))
     result_file.write("\n")
