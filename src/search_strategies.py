@@ -140,7 +140,7 @@ class SearchGraph:
                               label="{}\n({:.2f})".format(
                                   prediction.prediction,
                                   prediction.certainty),
-                              tooltip=tooltip,
+                              tooltip=tooltip.replace("\\", "\\\\"),
                               **kwargs)
         self.__next_node_id += 1
         newNode = LabeledNode(prediction.prediction, prediction.certainty,
