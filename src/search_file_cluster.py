@@ -301,7 +301,7 @@ def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) 
     with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
         while num_projects_done < test_projects_total:
             new_projects_done = int(subprocess.check_output(
-                f"find search-report-gym/ -wholename '*/index.html' | wc -l",
+                f"find {args.output_dir} -wholename '*/index.html' | wc -l",
                 shell=True, text=True))
             bar.update(new_projects_done - num_projects_done)
             num_projects_done = new_projects_done
