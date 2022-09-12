@@ -303,6 +303,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     global start_time
+    os.makedirs(str(args.output_dir), exist_ok=True)
     start_time = datetime.now()
     all_jobs = get_all_jobs(args)
     assert len(all_jobs) > 0, "No jobs found! Maybe you passed a bad proof parameter?"
