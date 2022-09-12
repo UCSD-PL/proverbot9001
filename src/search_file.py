@@ -23,7 +23,7 @@ import argparse
 import os
 import sys
 import re
-import datetime
+from datetime import datetime, timedelta
 import time
 import csv
 import multiprocessing
@@ -414,7 +414,7 @@ def search_file_multithreaded(args: argparse.Namespace,
     time_taken = start_time - datetime.now()
     if args.generate_report:
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
-                                      datetime.timedelta())
+                                      timedelta())
 
 def write_time(args: argparse.Namespace, *rest_args) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
