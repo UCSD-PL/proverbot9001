@@ -150,6 +150,15 @@ def main(arg_list: List[str]) -> None:
                         f"{cur_dir}/search_report.sh",
                         str(args.output_dir),
                         "-i"])
+        print("Generating report index...")
+        while True:
+            indexes_generated = int(subprocess.check_output(
+                f"find {args.output_dir} -name 'index.html' | wc -l",
+                shell=True, text=True))
+            if indexes_generated > 0:
+                break
+            else:
+                time.sleep(0.2)
 
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
