@@ -35,6 +35,7 @@ import subprocess
 import cProfile
 import copy
 import functools
+import signal
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
