@@ -326,6 +326,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
     global start_time
+    os.makedirs(str(args.output_dir), exist_ok=True)
     start_time = datetime.now()
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
