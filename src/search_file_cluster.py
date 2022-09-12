@@ -255,6 +255,8 @@ def show_progress(args: argparse.Namespace) -> None:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
         num_workers_scheduled = len([line for line in f])
+    num_workers_alive = int(subprocess.check_output(
+        f"squeue -u $USER -h -n proverbot9001-worker | wc -l", text=True, shell=True))
 
     with tqdm(desc="Jobs finished", total=num_jobs_total,
               initial=num_jobs_done, dynamic_ncols=True) as bar, \
@@ -267,6 +269,18 @@ def show_progress(args: argparse.Namespace) -> None:
 
             with (args.output_dir / "workers_scheduled.txt").open('r') as f:
                 new_workers_scheduled = len([line for line in f])
+            new_workers_alive = int(subprocess.check_output(
+                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
+                text=True, shell=True))
+            if new_workers_alive < num_workers_alive:
+                num_workers_alive = new_workers_alive
+                if num_workers_alive < (num_jobs_total - num_jobs_done):
+                    eprint("One of the workers crashed!")
+            elif new_workers_alive > num_workers_alive:
+                num_workers_alive = new_workers_alive
+            if num_workers_alive == 0:
+                eprint("All workers exited, but jobs aren't done!")
+                break
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
 
