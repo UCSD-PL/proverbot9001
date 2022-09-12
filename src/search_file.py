@@ -405,10 +405,7 @@ def search_file_multithreaded(args: argparse.Namespace,
                 worker.join()
         write_time(args)
     time_taken = datetime.now() - start_time
-<<<<<<< HEAD
     write_time(args)
-=======
->>>>>>> 5c176301 (Fix some time calculations)
     if args.generate_report:
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
