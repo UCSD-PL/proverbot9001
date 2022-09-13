@@ -79,6 +79,7 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
 def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor,
                             project_dict: Dict[str, Any], time_taken: datetime.timedelta) \
                             -> None:
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
     model_name = dict(predictor.getOptions())["predictor"]
     stats: List[ReportStats] = []
     for filename in [details_css, details_javascript]:
