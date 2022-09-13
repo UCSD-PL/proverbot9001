@@ -289,7 +289,7 @@ def show_progress(args: argparse.Namespace) -> None:
                 num_workers_alive = new_workers_alive
             if num_workers_alive == 0:
                 util.eprint("All workers exited, but jobs aren't done!")
-                break
+                sys.exit(1)
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
 
