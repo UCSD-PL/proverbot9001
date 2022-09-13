@@ -287,7 +287,7 @@ def show_progress(args: argparse.Namespace) -> None:
                     util.eprint("One of the workers crashed!")
             elif new_workers_alive > num_workers_alive:
                 num_workers_alive = new_workers_alive
-            if num_workers_alive == 0:
+            if num_workers_alive == 0 and num_jobs_done < num_jobs_total:
                 util.eprint("All workers exited, but jobs aren't done!")
                 sys.exit(1)
             wbar.update(new_workers_scheduled - num_workers_scheduled)
