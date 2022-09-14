@@ -103,6 +103,7 @@ class Worker:
             self.args, 1, self.args.prelude / self.cur_project / filename)
 
     def exit_cur_file(self) -> None:
+        assert self.coq
         self.coq.reset()
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
@@ -135,7 +136,7 @@ class Worker:
                                       self.remaining_commands)))
                     assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except coq_serapy.CoqAnomaly:
-                if restart:
+                if restart_anomaly:
                     self.restart_coq()
                     self.reset_file_state()
                     self.enter_file(job_file)
