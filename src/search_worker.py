@@ -40,6 +40,7 @@ class Worker:
     last_program_statement: Optional[str]
     lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
+    axioms_already_added: bool
 
     def __init__(self, args: argparse.Namespace, worker_idx: int,
                  predictor: TacticPredictor,
@@ -54,6 +55,7 @@ class Worker:
         self.lemmas_encountered: List[ReportJob] = []
         self.remaining_commands: List[str] = []
         self.switch_dict = switch_dict
+        self.axioms_already_added = False
 
     def __enter__(self) -> 'Worker':
         self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
@@ -93,6 +95,7 @@ class Worker:
         self.last_program_statement = None
         self.lemmas_encountered = []
         self.remaining_commands = []
+        self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
         assert self.coq
@@ -101,6 +104,7 @@ class Worker:
         self.coq.run_stmt(f"Module {module_name}.")
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
+        self.axioms_already_added = False
 
     def exit_cur_file(self) -> None:
         assert self.coq
@@ -240,6 +244,21 @@ class Worker:
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
+        if self.args.add_axioms and not self.axioms_already_added:
+            self.axioms_already_added = True
+            # Cancel the lemma statement so we can run the axiom
+            self.coq.cancel_last()
+            with self.args.add_axioms.open('r') as f:
+                for signature in f:
+                    try:
+                        self.coq.run_stmt(signature)
+                        self.coq.run_stmt("Admitted.")
+                    except coq_serapy.CoqExn:
+                        axiom_name = coq_serapy.lemma_name_from_statement(
+                            signature)
+                        eprint(f"Couldn't declare axiom {axiom_name} "
+                               f"at this point in the proof")
+            self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         try:
             search_status, tactic_solution = \
