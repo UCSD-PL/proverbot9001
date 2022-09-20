@@ -21,10 +21,12 @@ import coq_serapy
 from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context
 import tokenizer
 from models.tactic_predictor import Prediction, TacticPredictor
+from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_results import TacticInteraction, SearchResult, SearchStatus
 from util import nostderr, unwrap, eprint, mybarfmt
 
 from value_estimator import Estimator
+import dataloader
 
 unnamed_goal_number: int = 0
 
@@ -34,15 +36,13 @@ class FeaturesExtractor:
     _num_tactics: int
     _num_tokens: int
 
-    def __init__(self, tacticsfile: str, tokensfile: str) -> None:
+    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str]) -> None:
         self.tactic_map = {}
         self.token_map = {}
-        with open(tacticsfile, 'r') as f:
-            for idx, line in enumerate(f, start=2):
-                self.tactic_map[line.strip()] = idx
-        with open(tokensfile, 'r') as f:
-            for idx, line in enumerate(f, start=2):
-                self.token_map[line.strip()] = idx
+        for idx, tactic_stem in enumerate(common_tactic_stems, start=2):
+            self.tactic_map[tactic_stem] = idx
+        for idx, token in enumerate(common_tokens, start=2):
+            self.token_map[token] = idx
         self._num_tactics = len(self.tactic_map)
         self._num_tokens = len(self.token_map)
 
@@ -114,7 +114,8 @@ class SearchGraph:
     feature_extractor: FeaturesExtractor
     start_node: LabeledNode
 
-    def __init__(self, tactics_file: Path, tokens_file: Path, lemma_name: str) -> None:
+    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str],
+                 lemma_name: str) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
@@ -122,8 +123,8 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor(str(tactics_file),
-                                                   str(tokens_file))
+        self.feature_extractor = FeaturesExtractor(common_tactic_stems,
+                                                   common_tokens)
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
@@ -332,7 +333,10 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                 bar_idx: int,
                                 predictor: TacticPredictor) \
                                 -> SearchResult:
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name)
+    g = SearchGraph(
+        dataloader.get_all_tactics(cast(FeaturesPolyargPredictor, predictor).metadata),
+        dataloader.get_tokens(cast(FeaturesPolyargPredictor, predictor).metadata),
+        lemma_name)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:

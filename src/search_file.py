@@ -157,8 +157,6 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--add-env-lemmas", type=Path, default=None)
     parser.add_argument("--add-axioms", type=Path, default=None)
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
-    parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
-    parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
 
