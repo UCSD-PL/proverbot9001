@@ -769,7 +769,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         for _ in range(num_stmts):
                             coq.cancel_last()
                         continue
-                    if len(coq.proof_context.all_goals) > args.max_subgoals:
+                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
                         if args.count_softfail_predictions:
                             num_successful_predictions += 1
                         prediction_node.setNodeColor("orange")
@@ -791,7 +791,7 @@ def bfs_beam_proof_search(lemma_name: str,
                             try:
                                 score += -float(john_model.predict(Lemma("", goal)))
                             except UnhandledExpr:
-                                print(f"Couldn't handle goal {coq.proof_context.all_goals[idx]}")
+                                print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                                 raise
                         prediction_node.score = score
                     elif args.scoring_function == "const":
@@ -952,7 +952,7 @@ def best_first_proof_search(lemma_name: str,
                     coq.cancel_last()
                 continue
             # Check if the resulting context is too big
-            if len(coq.proof_context.all_goals) > args.max_subgoals or \
+            if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
               contextIsBig(context_after):
                 if args.count_softfail_predictions:
                     num_successful_predictions += 1
