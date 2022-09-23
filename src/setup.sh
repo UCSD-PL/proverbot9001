@@ -24,9 +24,8 @@ else
     # For SerAPI:
     opam install -y coq-serapi
     # Python dependencies
-    source proverbot-env/bin/activate
-    pip3 install --no-input -r requirements.txt
-    pip3 install --no-input -e coq_serapy
+    pip3 install --no-input --user -r requirements.txt
+    pip3 install --no-input --user -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
     (cd dataloader/dataloader-core && maturin develop -r)
