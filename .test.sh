@@ -19,7 +19,6 @@ make setup
 make data/compcert-scrape.txt -j `nproc`
 
 python3 ./src/proverbot9001.py tokens data/compcert-scrape.txt tokens.txt
-
 python3 ./src/proverbot9001.py tactics data/compcert-scrape.txt tactics.txt
 
 make compcert-train
