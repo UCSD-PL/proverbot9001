@@ -13,7 +13,7 @@ if [[ -f /etc/NIXOS ]]; then
 else
     git submodule init
     git submodule update
-    opam init -a --compiler=4.07.1
+    opam init -a --compiler=4.07.1 -y
     eval `opam config env`
     opam update
     # For Coq:
