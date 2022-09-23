@@ -20,7 +20,7 @@ else
     opam pin -yn add coq 8.10.2
     opam pin -yn add menhir 20190626
     # For SerAPI:
-    opam install -y coq-serapi
+    opam install -y coq-serapi coq menhir
     # Python dependencies
     pip3 install --no-input --user -r requirements.txt
     pip3 install --no-input -e coq_serapy
