@@ -1,5 +1,9 @@
 #!/bin/bash
 
+date
+
+echo Hello from lambda.
+
 # install rust
 
 curl https://static.rust-lang.org/rustup/dist/x86_64-unknown-linux-gnu/rustup-init > /tmp/rustup-init
@@ -18,7 +22,9 @@ make setup
 
 make data/compcert-scrape.txt -j `nproc`
 
-python3 ./src/proverbot9001.py tokens data/compcert-scrape.txt tokens.txt
-python3 ./src/proverbot9001.py tactics data/compcert-scrape.txt tactics.txt
+python3 ./src/proverbot9001.py tokens data/compcert-scrape.txt tokens.txt &
+python3 ./src/proverbot9001.py tactics data/compcert-scrape.txt tactics.txt &
+
+wait # generate tokens and tactics concurrently before proceeding to training
 
 make compcert-train
