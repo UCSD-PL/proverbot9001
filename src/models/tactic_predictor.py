@@ -528,12 +528,12 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                               items_processed, progress * 100,
                               epoch_loss / batch_num))
         with torch.no_grad():
-            valid_accuracy = 0.
-            valid_loss = 0.
+            valid_accuracy = torch.FloatTensor([0.])
+            valid_loss = torch.FloatTensor([0.])
             for valid_data_batch in dataloader_valid:
                batch_loss, batch_accuracy = batchLoss(valid_data_batch, model)
-               valid_loss += batch_loss
-               valid_accuracy += batch_accuracy
+               valid_loss = cast(torch.FloatTensor, valid_loss + batch_loss)
+               valid_accuracy = cast(torch.FloatTensor, valid_accuracy + batch_accuracy)
             writer.add_scalar("Loss/valid", valid_loss / num_batches_valid,
                               epoch * num_batches + batch_num)
             writer.add_scalar("Accuracy/valid", valid_accuracy / num_batches_valid,
