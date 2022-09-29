@@ -42,7 +42,7 @@ scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/coq-projects-train-files.txt | $(HEAD_CMD) | \
-	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
 				        		 --prelude ../coq-projects
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
@@ -77,7 +77,7 @@ scrape-test:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/coq-projects-train-files.txt | tail -n +320 | head -n 50 | \
-	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
 				        		 --prelude ../coq-projects
 
 INDEX_FILES=index.js index.css build-index.py
