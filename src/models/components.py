@@ -243,9 +243,10 @@ class EncoderRNN(nn.Module):
         self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
         self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
     def forward(self, input_seq : torch.LongTensor) -> torch.FloatTensor:
-        input_var = maybe_cuda(Variable(input_seq))
+        input_var = maybe_cuda(input_seq)
         batch_size = input_seq.size()[0]
-        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        hidden = maybe_cuda(torch.zeros(1, batch_size, self.hidden_size))
+        token_out = torch.zeros([batch_size,self.hidden_size])
         for i in range(input_seq.size()[1]):
             token_batch = self._word_embedding(input_var[:,i])\
                 .view(1, batch_size, self.hidden_size)
@@ -256,21 +257,21 @@ class EncoderRNN(nn.Module):
 
 
 class EncoderDNN(nn.Module):
+    
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
                  num_layers : int) -> None:
         super(EncoderDNN, self).__init__()
         self.num_layers = num_layers
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        for i in range(num_layers - 1):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        # TODO: every instance of getattr/setattr should probably be replaced with this style.
+        self.layers  = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size, hidden_size)) for i in range(num_layers-1)])
         self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
         layer_values = self.in_layer(input)
-        for i in range(self.num_layers - 1):
+        for layer in self.layers:
             layer_values = F.relu(layer_values)
-            layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+            layer_values = layer(layer_values)
         return self.out_layer(F.relu(layer_values))
 
 class DecoderGRU(nn.Module):
