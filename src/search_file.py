@@ -23,7 +23,7 @@ import argparse
 import os
 import sys
 import re
-import datetime
+from datetime import datetime, timedelta
 import time
 import csv
 import multiprocessing
@@ -35,6 +35,7 @@ import subprocess
 import cProfile
 import copy
 import functools
+import signal
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
@@ -55,6 +56,7 @@ from tqdm import tqdm
 from pathlib import Path
 import torch
 
+start_time = datetime.now()
 
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
@@ -323,14 +325,16 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 
 def search_file_multithreaded(args: argparse.Namespace,
                               predictor: TacticPredictor) -> None:
+    global start_time
+    os.makedirs(str(args.output_dir), exist_ok=True)
     start_time = datetime.now()
     if args.resume:
         solved_jobs = get_already_done_jobs(args)
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
                 t = datetime.strptime(f.read(), "%H:%M:%S")
-                start_time = datetime.now() - timedelta(hours=t.hours,minutes=t.minutes,
-                                                        seconds=t.seconds)
+                start_time = datetime.now() - timedelta(hours=t.hour,minutes=t.minute,
+                                                        seconds=t.second)
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
@@ -383,7 +387,7 @@ def search_file_multithreaded(args: argparse.Namespace,
         for worker in workers:
             worker.start()
         num_already_done = len(solved_jobs)
-        with util.sighandler_context(signal.SIGINT, functools.partial(write_time, args)):
+        with util.sighandler_context(signal.SIGINT, functools.partial(exit_early, args)):
             with tqdm(total=len(todo_jobs) + num_already_done,
                       dynamic_ncols=True, desc="Searching proofs") as bar:
                 bar.update(n=num_already_done)
@@ -411,15 +415,20 @@ def search_file_multithreaded(args: argparse.Namespace,
 
             for worker in workers:
                 worker.join()
-    time_taken = start_time - datetime.now()
+        write_time(args)
+    time_taken = datetime.now() - start_time
     if args.generate_report:
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
-                                      datetime.timedelta())
+                                      timedelta())
 
-def write_time(args: argparse.Namespace, *rest_args) -> None:
+def write_time(args: argparse.Namespace) -> None:
+    global start_time
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
-        time_taken = start_time - datetime.now()
+        time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
+
+def exit_early(args: argparse.Namespace, *rest) -> None:
+    write_time(args)
     sys.exit()
 
 if __name__ == "__main__":
