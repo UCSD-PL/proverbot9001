@@ -214,7 +214,7 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
     training_pairs = [tensorsFromPair(random.choice(pairs))
                       for i in range(n_iters)]
     criterion = nn.NLLLoss()
-
+    print("starting training")
     for iter in range(0, n_iters + 1):
         training_pair = training_pairs[iter - 1]
         
@@ -229,8 +229,8 @@ def trainIters(encoder, decoder, n_iters, print_every=1000, plot_every=100, lear
             print_loss_avg = print_loss_total / print_every
             print_loss_total = 0
             print('(%d %d%%) %.4f, CurrLoss = %.4f' % (iter, iter / n_iters * 100, print_loss_avg, loss))
-            torch.save(encoder1, "data/encoder_%s.model"%tokens)
-            torch.save(decoder1, "data/decoder_%s.model"%tokens)
+            # torch.save(encoder1, "data/encoder_%s.model"%tokens)
+            # torch.save(decoder1, "data/decoder_%s.model"%tokens)
             if print_loss_avg < 0.001 :
                 break
 
@@ -268,18 +268,19 @@ if __name__ == "__main__" :
 
     input_lang, output_lang, pairs,MAX_LENGTH = prepareData(lang1, lang2, tokens = tokens)
     
-    with open("data/encoder_language_%s.pkl"%tokens,"wb") as f:
-        pickle.dump(input_lang,f,protocol = pickle.HIGHEST_PROTOCOL)
-    with open("data/decoder_language_%s.pkl"%tokens,"wb") as f:
-        pickle.dump(output_lang,f,protocol = pickle.HIGHEST_PROTOCOL)
+    # with open("data/encoder_language_%s.pkl"%tokens,"wb") as f:
+    #     pickle.dump(input_lang,f,protocol = pickle.HIGHEST_PROTOCOL)
+    # with open("data/decoder_language_%s.pkl"%tokens,"wb") as f:
+    #     pickle.dump(output_lang,f,protocol = pickle.HIGHEST_PROTOCOL)
 
     print(random.choice(pairs))
     hidden_size = 2048
     print("Resume Value :", args.resume)
     if args.resume :
         
-        encoder1 = torch.load("data/encoder_%s.model"%tokens).to(device)
-        decoder1 = torch.load("data/decoder_%s.model"%tokens).to(device)
+        # encoder1 = torch.load("data/encoder_%s.model"%tokens).to(device)
+        # decoder1 = torch.load("data/decoder_%s.model"%tokens).to(device)
+        pass
     else :
         encoder1 = EncoderRNN(input_lang.n_chars, hidden_size).to(device)
         decoder1 = DecoderRNN(hidden_size, output_lang.n_chars).to(device)

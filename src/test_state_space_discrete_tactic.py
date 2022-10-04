@@ -7,11 +7,13 @@ import wandb
 import time, argparse, random
 from pathlib_revised import Path2
 import coq_serapy as serapi_instance
-from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic
-from search_file import completed_proof, loadPredictorByFile, truncate_tactic_context, FullContext
+from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic, contextSurjective
+from coq_serapy.contexts import truncate_tactic_context, FullContext, ProofContext
+from models.components import DNNScorer
+from search_file import loadPredictorByFile
+from search_strategies import completed_proof
 from train_encoder import EncoderRNN, DecoderRNN, Lang, tensorFromSentence, EOS_token
 from tokenizer import get_symbols, get_words,tokenizers
-from coq_serapy.contexts import ProofContext
 import pickle
 import gym
 import fasttext
@@ -30,144 +32,151 @@ from sklearn.decomposition import PCA
 
 
 with open("tactics.txt", "r") as f :
-    whole_file = f.read()
-    list_of_tactic_classes = whole_file.split("\n")
-    for i in range(len(list_of_tactic_classes)) :
-        list_of_tactic_classes[i] = list_of_tactic_classes[i].strip().rstrip(".")
+	whole_file = f.read()
+	list_of_tactic_classes = whole_file.split("\n")
+	for i in range(len(list_of_tactic_classes)) :
+		list_of_tactic_classes[i] = list_of_tactic_classes[i].strip().rstrip(".")
 
 def is_hyp_token(arg, obligation) :
-    
-    if arg in obligation.goal and arg in obligation.hypotheses :
-        print("arg in both")
-        quit()
-    elif arg in obligation.goal :
-        return False
-    elif arg in obligation.hypotheses :
-        return True
-    
-    # print("Arg nowhere")
-    return False
-    
+	
+	if arg in obligation.goal and arg in obligation.hypotheses :
+		print("arg in both")
+		quit()
+	elif arg in obligation.goal :
+		return False
+	elif arg in obligation.hypotheses :
+		return True
+	
+	# print("Arg nowhere")
+	return False
+	
 
 def get_state_vector_from_text(state_text, language_model, device, state_model) :
-    state_sentence = get_symbols(state_text)
-    state_tensor = tensorFromSentence(language_model,state_sentence,device, ignore_missing = True)
-    with torch.no_grad() :
-        state_model_hidden = state_model.initHidden(device)
-        state_model_cell = state_model.initCell(device)
-        input_length = state_tensor.size(0)
-        for ei in range(input_length):
-            _, state_model_hidden,state_model_cell = state_model(state_tensor[ei], state_model_hidden,state_model_cell)
+	state_sentence = get_symbols(state_text)
+	state_tensor = tensorFromSentence(language_model,state_sentence,device, ignore_missing = True)
+	with torch.no_grad() :
+		state_model_hidden = state_model.initHidden(device)
+		state_model_cell = state_model.initCell(device)
+		input_length = state_tensor.size(0)
+		for ei in range(input_length):
+			_, state_model_hidden,state_model_cell = state_model(state_tensor[ei], state_model_hidden,state_model_cell)
 
 		
-        state= state_model_hidden
-    state = state.cpu().detach().numpy().flatten()
-    # state = np.append(state,[self.num_commands]).astype("float") 
-    return state
+		state= state_model_hidden
+	state = state.cpu().detach().numpy().flatten()
+	# state = np.append(state,[self.num_commands]).astype("float") 
+	return state
 
 		
-scraped_tactics = dataloader.scraped_tactics_from_file("/home/avarghese_umass_edu/work/rl/proverbot9001/CompCert/common/Globalenvs.v.scrape", "all", 30, None)
-predictor = loadPredictorByFile(Path2("data/polyarg-weights.dat"))
-tactic_space_model = fasttext.train_unsupervised("/home/avarghese_umass_edu/work/rl/proverbot9001/CompCert/common/Globalenvs.v", model='cbow', lr = 0.1,epoch = 10)
-tactic_space_model.save_model("fast_text_model_on_Globalenvs.bin")
-device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-state_model =  torch.load("data/encoder_symbols.model", map_location=torch.device(device))
-with open("data/encoder_language_symbols.pkl","rb") as f:
-    language_model = pickle.load(f)
+# scraped_tactics = dataloader.scraped_tactics_from_file("/home/avarghese_umass_edu/work/rl/proverbot9001/CompCert/common/Globalenvs.v.scrape", "all", 30, None)
+# predictor = loadPredictorByFile(Path2("data/polyarg-weights.dat"))
+# tactic_space_model = fasttext.train_unsupervised("/home/avarghese_umass_edu/work/rl/proverbot9001/CompCert/common/Globalenvs.v", model='cbow', lr = 0.1,epoch = 1000)
+# tactic_space_model.save_model("fast_text_model_on_Globalenvs.bin")
+# device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+# state_model =  torch.load("data/encoder_symbols.model", map_location=torch.device(device))
+# with open("data/encoder_language_symbols.pkl","rb") as f:
+# 	language_model = pickle.load(f)
 
-proof_start = False
+# proof_start = False
 
-state_vectors = []
-correct_action_vectors = []
-wrong_action_vectors = []
+# state_vectors = []
+# correct_action_vectors = []
+# wrong_action_vectors = []
 
 
-index = 0
-num_zero_vectors = 0
-for tactic in tqdm.tqdm(scraped_tactics) : 
-    index += 1
-    # print(index, tactic.tactic.strip())
-    if proof_start :
-        if tactic.tactic.lstrip().rstrip().lower() == "qed." :
-            proof_start = False
-        elif  len(tactic.context.fg_goals) != 0 :
-            current_context = ProofContext(tactic.context.fg_goals,tactic.context.bg_goals,tactic.context.shelved_goals,tactic.context.given_up_goals)
-            action = tactic.tactic.lstrip().rstrip().rstrip(".")
-            state = tactic.context.fg_goals[0].goal.lstrip().rstrip()
-            state_vector = get_state_vector_from_text(state, language_model, device, state_model)
-            tactic_class,tactic_args = split_tactic(action)
-            # tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
-            tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
-            if tactic_class in list_of_tactic_classes :
-                tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
-            else :
-                tactic_class_vec[-1] = 1
+# index = 0
+# num_zero_vectors = 0
+# for tactic in tqdm.tqdm(scraped_tactics) : 
+# 	index += 1
+# 	# if index == 30 :
+# 	# 	break
+# 	# print(index, tactic.tactic.strip())
+# 	if proof_start :
+# 		if tactic.tactic.lstrip().rstrip().lower() == "qed." :
+# 			proof_start = False
+# 		elif  len(tactic.context.fg_goals) != 0 :
+# 			current_context = ProofContext(tactic.context.fg_goals,tactic.context.bg_goals,tactic.context.shelved_goals,tactic.context.given_up_goals)
+# 			action = tactic.tactic.lstrip().rstrip().rstrip(".")
+# 			state = tactic.context.fg_goals[0].goal.lstrip().rstrip()
+# 			print("State Text :",state)
+# 			print("Correct action :",action)
+# 			state_vector = get_state_vector_from_text(state, language_model, device, state_model)
+# 			tactic_class,tactic_args = split_tactic(action)
+# 			# tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
+# 			tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
+# 			if tactic_class in list_of_tactic_classes :
+# 				tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
+# 			else :
+# 				tactic_class_vec[-1] = 1
 
-            if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
-                index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
-                tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
-                tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
-                tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
-            else :
-                num_zero_vectors += 1
-                tactic_args_type_vec = np.zeros(shape = state_vector.shape)
-                tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
+# 			if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
+# 				index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
+# 				tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
+# 				tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
+# 				tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
+# 			else :
+# 				num_zero_vectors += 1
+# 				tactic_args_type_vec = np.zeros(shape = state_vector.shape)
+# 				tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
 
-            final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
+# 			final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
+# 			print(np.sum(final_action_vec),np.sum(final_action_vec)**2)
+# 			correct_action_vectors.append(final_action_vec)
+# 			state_vectors.append(state_vector)
 
-            correct_action_vectors.append(final_action_vec)
-            state_vectors.append(state_vector)
-
-            curr_wrong = []
-            full_context_before = FullContext(tactic.relevant_lemmas, tactic.prev_tactics,  current_context)
-            predictions = predictor.predictKTactics(
-                truncate_tactic_context(full_context_before.as_tcontext(),
-                                        256), 10)
+# 			curr_wrong = []
+# 			full_context_before = FullContext(tactic.relevant_lemmas, tactic.prev_tactics,  current_context)
+# 			predictions = predictor.predictKTactics(
+# 				truncate_tactic_context(full_context_before.as_tcontext(),
+# 										256), 10)
 			
-            for prediction_idx, prediction in enumerate(predictions):
-                curr_pred = prediction.prediction.lstrip().rstrip()
-                if curr_pred != action :
-                    # print(curr_pred)
-                    tactic_class,tactic_args = split_tactic(curr_pred.lstrip().rstrip().rstrip("."))
-                    # tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
-                    tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
-                    if tactic_class in list_of_tactic_classes :
-                        tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
-                    else :
-                        tactic_class_vec[-1] = 1
+# 			print("Incorrect actions")
+# 			for prediction_idx, prediction in enumerate(predictions):
+# 				curr_pred = prediction.prediction.lstrip().rstrip()
+# 				curr_pred = curr_pred.lstrip().rstrip().rstrip(".")
+# 				if curr_pred != action :
+# 					print(curr_pred)
+# 					tactic_class,tactic_args = split_tactic(curr_pred)
+# 					# tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
+# 					tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
+# 					if tactic_class in list_of_tactic_classes :
+# 						tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
+# 					else :
+# 						tactic_class_vec[-1] = 1
 
-                    if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
-                        # print(current_context.fg_goals[0].hypotheses)
-                        # print(get_indexed_vars_dict(current_context.fg_goals[0].hypotheses))
-                        tactic_args = tactic_args.strip()
-                        index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
-                        tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
-                        tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
-                        tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
-                    else :
-                        # print("Nope", tactic_args)
-                        num_zero_vectors += 1
-                        tactic_args_type_vec = np.zeros(shape = state_vector.shape)
-                        tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
+# 					if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
+# 						# print(current_context.fg_goals[0].hypotheses)
+# 						# print(get_indexed_vars_dict(current_context.fg_goals[0].hypotheses))
+# 						tactic_args = tactic_args.strip()
+# 						index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
+# 						tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
+# 						tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
+# 						tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
+# 					else :
+# 						# print("Nope", tactic_args)
+# 						num_zero_vectors += 1
+# 						tactic_args_type_vec = np.zeros(shape = state_vector.shape)
+# 						tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
 
-                    final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
-                    curr_wrong.append(final_action_vec)
-            wrong_action_vectors.append(curr_wrong)
-    else :
-        if  tactic.tactic.lstrip().rstrip().lower() == "proof."   :
-            proof_start = True
-            
+# 					final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
+# 					print(np.sum(final_action_vec),np.sum(final_action_vec)**2)
+# 					curr_wrong.append(final_action_vec)
+# 			wrong_action_vectors.append(curr_wrong)
+# 	else :
+# 		if  tactic.tactic.lstrip().rstrip().lower() == "proof."   :
+# 			proof_start = True
+			
 
 
 
 
-print(len(state_vectors),len(correct_action_vectors), len(wrong_action_vectors))
-print(num_zero_vectors)
-# quit()
-with open("data/test_data_discrete_tactic_vector.pkl","wb") as f:
-    pickle.dump((state_vectors, correct_action_vectors,wrong_action_vectors),f)
+# print(len(state_vectors),len(correct_action_vectors), len(wrong_action_vectors))
+# print(num_zero_vectors)
+# # quit()
+# with open("data/test_data_discrete_tactic_vector.pkl","wb") as f:
+#     pickle.dump((state_vectors, correct_action_vectors,wrong_action_vectors),f)
 
-print("Dumped Vectors")
+# print("Dumped Vectors")
 
 
 
@@ -176,10 +185,11 @@ print("Dumped Vectors")
 # # # Minimum : 0.0025427588
 # # print("Dumped Vectors")
 
-with open("data/test_data_discrete_tactic_vector.pkl","rb") as f:
-    state_vectors,correct_action_vectors,wrong_action_vectors = pickle.load(f)
-    print("Loaded Vectors")
+# with open("data/test_data_discrete_tactic_vector.pkl","rb") as f:
+#     state_vectors,correct_action_vectors,wrong_action_vectors = pickle.load(f)
+#     print("Loaded Vectors")
 
+# print(np.array(state_vectors).shape, np.array(correct_action_vectors).shape, np.array(wrong_action_vectors).shape)	
 
 # # min_dataset = []
 # # for i in tqdm.tqdm(range(len(state_vectors))) :
@@ -194,8 +204,8 @@ with open("data/test_data_discrete_tactic_vector.pkl","rb") as f:
 # # print(min_dataset)
 # # print(min(min_dataset))
 
-X = []
-Y = []
+# X = []
+# Y = []
 # # print(getsizeof(state_vectors)/ 1024**2, getsizeof(np.array(state_vectors))/ 1024**2, np.array(state_vectors).shape)
 # # print(getsizeof(action_vectors)/ 1024**2, getsizeof(np.array(action_vectors))/ 1024**2, np.array(action_vectors).shape)
 # # print(np.concatenate( ( np.array(state_vectors),np.array(action_vectors) ), axis = 1 ).nbytes / 1024**2, np.concatenate( ( np.array(state_vectors),np.array(action_vectors) ), axis = 1 ).shape)
@@ -230,84 +240,159 @@ Y = []
 
 # # print(X.nbytes/1024**2)
 
-for i in tqdm.tqdm(range(len(state_vectors) )) :
-    considered_state_vec  = np.concatenate((state_vectors[i],correct_action_vectors[i]))
-    X.append(considered_state_vec)
-    Y.append(1)
-    for wrong_action_vec in wrong_action_vectors[i] :    
-        comparitive_state_vec = np.concatenate((state_vectors[i],wrong_action_vec))
-        X.append(comparitive_state_vec)
-        Y.append(0)
-        # X.append(np.random.normal(considered_state_vec,0.000025427588, size = considered_state_vec.shape ))
-        # Y.append(1)
-        # wandb.log({"Distance between True and False" : np.sqrt(np.sum((comparitive_state_vec - considered_state_vec)**2))} )
+# for i in tqdm.tqdm(range(len(state_vectors) )) :
+# 	print("vector",i)
+# 	considered_state_vec  = np.concatenate((state_vectors[i],correct_action_vectors[i]))
+# 	# print(np.sum(considered_state_vec), np.sum(considered_state_vec)**2)
+# 	print(considered_state_vec.shape)
+# 	X.append(considered_state_vec)
+# 	Y.append(1)
+# 	for wrong_action_vec in wrong_action_vectors[i] :    
+# 		comparitive_state_vec = np.concatenate((state_vectors[i],wrong_action_vec))
+# 		# print(np.sum(comparitive_state_vec), np.sum(comparitive_state_vec)**2)
+# 		print(comparitive_state_vec.shape)
+# 		X.append(comparitive_state_vec)
+# 		Y.append(0)
+# 		# X.append(np.random.normal(considered_state_vec,0.000025427588, size = considered_state_vec.shape ))
+# 		# Y.append(1)
+# 		# wandb.log({"Distance between True and False" : np.sqrt(np.sum((comparitive_state_vec - considered_state_vec)**2))} )
 
-with open("data/rf_test_data_discrete_tactic.pkl", "wb") as f:
-    pickle.dump((X,Y), f)
+# with open("data/rf_test_data_discrete_tactic.pkl", "wb") as f:
+# 	pickle.dump((X,Y), f)
 
-print("Dumped X, Y")
-# class Agent_model(nn.Module) :
-# 	def __init__(self,input_size,output_size) :
-# 		super(Agent_model,self).__init__()
-# 		self.lin1 = nn.Linear(input_size,1000)
-# 		self.lin2 = nn.Linear(1000,1000)
-# 		self.lin3 = nn.Linear(1000,1000)
-# 		self.lin4 = nn.Linear(1000,1000)
-# 		self.lin5 = nn.Linear(1000,output_size)
-# 		self.relu = nn.LeakyReLU()
-# 		self.apply(self.init_weights)
+# print("Dumped X, Y")
+
+# quit()
+class Agent_model(nn.Module) :
+	def __init__(self,input_size,output_size) :
+		print(input_size)
+		super(Agent_model,self).__init__()
+		self.lin1 = nn.Linear(input_size,1000)
+		self.lin2 = nn.Linear(1000,500)
+		self.lin3 = nn.Linear(500,200)
+		self.lin4 = nn.Linear(200,100)
+		self.lin5 = nn.Linear(100,50)
+		self.lin6 = nn.Linear(100,50)
+		self.lin7 = nn.Linear(100,50)
+		self.lin8 = nn.Linear(100,50)
+		self.linfinal = nn.Linear(50,output_size)
+		self.softmax = nn.Softmax()
+		self.relu = nn.LeakyReLU()
+		# self.apply(self.init_weights)
 		
-# 	def forward(self,x) :
-# 		x = self.relu(self.lin1(x))
-# 		x = self.relu(self.lin2(x))
-# 		x = self.relu(self.lin3(x))
-# 		x = self.relu(self.lin4(x))
-# 		x = self.lin5(x)
-# 		return x
+	def forward(self,x) :
+		x = self.relu(self.lin1(x))
+		x = self.relu(self.lin2(x))
+		x = self.relu(self.lin3(x))
+		x = self.relu(self.lin4(x))
+		x = self.relu(self.lin5(x))
+		# x = self.relu(self.lin6(x))
+		# x = self.relu(self.lin7(x))
+		# x = self.relu(self.lin8(x))
+		x = self.linfinal(x)
 
-# 	def init_weights(self,m):
-# 		if isinstance(m, nn.Linear):
-# 			torch.nn.init.uniform_(m.weight,-0.00001,0.00001)
-# 			m.bias.data.fill_(0.001)
+		# x1 = self.relu(self.lin1(x))
+		# x2 = self.relu(self.lin2(x1))
+		# x3 = self.relu(self.lin3(x2))
+		# x4 = self.relu(self.lin4(x3))
+		
+		# x5 = self.relu(self.lin5( torch.concat( (x4,x1), dim=1)))
+		# x6 = self.relu(self.lin6(torch.concat( (x5,x2), dim=1))) #x5 + x2))
+		# x7 = self.relu(self.lin7(torch.concat( (x6,x3), dim=1))) #x6 + x3))
+		# x8 = self.relu(self.lin8(torch.concat( (x7,x4), dim=1))) #x7 + x4))
+		# x = self.linfinal(x8)
+
+
+		return x
+
+	def init_weights(self,m):
+		if isinstance(m, nn.Linear):
+			torch.nn.init.uniform_(m.weight,-0.01,0.01)
+			m.bias.data.fill_(0.001)
 
 
 
-# with open("data/rf_test_data.pkl", "rb") as f:
-# 	X,Y = pickle.load(f)
+with open("data/rf_test_data_discrete_tactic.pkl", "rb") as f:
+	X,Y = pickle.load(f)
 
-# print("dataset loaded")
+print("dataset loaded")
 
 X = np.array(X)
 Y = np.array(Y)
 
+print("training Set shape",X.shape)
 
+# np.savetxt("data/data.csv",X,delimiter=",")
 
 pca = PCA(n_components=2)
-pca_fit = pca.fit(X,Y)
-check_x = pca.transform(X)
+# pca_fit = pca.fit(X)#,Y)
+check_x = pca.fit_transform(X)
 
-Y_ones = Y == 1
-Y_zeros = Y == 0
+y_zeros = Y == 0
+y_ones = Y == 1
 
-print("Sum Y ones", sum(Y_ones))
-print("Sum Y zeros", sum(Y_zeros))
+print(check_x.shape, Y.shape)
+plt.scatter(check_x[y_zeros][:,0],check_x[y_zeros][:,1],c=Y[y_zeros])
+plt.savefig("output/state_space_Zeros.png")
+plt.scatter(check_x[y_ones][:,0],check_x[y_ones][:,1],c=Y[y_ones])
+plt.savefig("output/state_space_Ones.png")
+# quit()
 
-plt.scatter(check_x[Y_ones][:,0],check_x[Y_ones][:,1], s=20, c='yellow')
-plt.scatter(check_x[Y_zeros][:,0],check_x[Y_zeros][:,1], s=	10, c='blue')
-
-plt.savefig("output/state_vectors.png")
-
-
-print(np.sum(Y == 1), np.sum(Y == 0))
-# print(np.array(X).shape)
+# -- Deep learning agent
 X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size = 0.25)
-# clf = RandomForestClassifier(max_depth = 10,n_estimators=5)
-clf = RandomForestRegressor(max_depth = 10, n_estimators = 5)
-print("Starting Training")
-# # clf = svm.LinearSVC(dual=False,verbose=1,max_iter=100)
-print(np.sum(y_train == 1), np.sum(y_train == 0))
-clf.fit(X_train, y_train)
-# clf.fit(X, Y)
+X_train = torch.tensor(X_train, dtype=torch.float32)
+y_train = torch.tensor(y_train, dtype=torch.float32)
+y_train = y_train.reshape((y_train.shape[0],1))
+X_test = torch.tensor(X_test, dtype=torch.float32)
+y_test = torch.tensor(y_test, dtype=torch.float32)
+y_test = y_test.reshape((y_test.shape[0],1))
+# print(Y.shape)
+# print(X)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+agent_model = Agent_model(X_train.shape[1],1).to(device) #DNNScorer(1,5,2) 
+optimizer =  optim.Adam(agent_model.parameters())
+# optimizer = optim.SGD(agent_model.parameters(), lr=0.1)
+loss_object = torch.nn.MSELoss()
+for _ in tqdm.tqdm(range(500)) :
+	optimizer.zero_grad()
+	y_pred = agent_model(X_train)
+	loss =  loss_object(y_pred,y_train)
+	print(loss)
+	loss.backward()
+	optimizer.step()
+
+
+print(loss)
+
+y_test_pred = agent_model(X_test).cpu().detach().numpy()
+y_test_pred = y_test_pred > 0.5
+print(classification_report(y_test,y_test_pred))
+
+torch.save(agent_model, "data/nn_test_model.model")
+
+# 			
+# Y_ones = Y == 1
+# Y_zeros = Y == 0
+
+# print("Sum Y ones", sum(Y_ones))
+# print("Sum Y zeros", sum(Y_zeros))
+
+# plt.scatter(check_x[Y_ones][:,0],check_x[Y_ones][:,1], s=20, c='yellow')
+# plt.scatter(check_x[Y_zeros][:,0],check_x[Y_zeros][:,1], s=	10, c='blue')
+
+# plt.savefig("output/state_vectors.png")
+
+
+# print(np.sum(Y == 1), np.sum(Y == 0))
+# # print(np.array(X).shape)
+# X_train, X_test, y_train, y_test = train_test_split(X,Y, test_size = 0.25)
+# # clf = RandomForestClassifier(max_depth = 10,n_estimators=5)
+# clf = RandomForestRegressor(max_depth = 10, n_estimators = 5)
+# print("Starting Training")
+# # # clf = svm.LinearSVC(dual=False,verbose=1,max_iter=100)
+# print(np.sum(y_train == 1), np.sum(y_train == 0))
+# clf.fit(X_train, y_train)
+# # clf.fit(X, Y)
 
 
 # device = "cuda"
@@ -340,15 +425,15 @@ clf.fit(X_train, y_train)
 # # with open("data/rf_test_model.pkl", "rb") as f :
 # #     clf = pickle.load(f)
 
-y_test_pred = (clf.predict(X_test))
-y_test_pred = y_test_pred > 0.5
+# y_test_pred = (clf.predict(X_test))
+# y_test_pred = y_test_pred > 0.5
 # X_test = torch.tensor(X_test, dtype=torch.float32).to(device)
 # y_test_pred = agent_model(X_test).cpu().detach().numpy()
 
 # print( "Main File Test accuracy : ", np.sum((y_test == y_test_pred))/ len(y_test))
-print("Starting Test")
-print(np.sum(y_test == 1), np.sum(y_test == 0))
-print(classification_report(y_test,y_test_pred))
+# print("Starting Test")
+# print(np.sum(y_test == 1), np.sum(y_test == 0))
+# print(classification_report(y_test,y_test_pred))
 # # print(sum(y_test_pred), len(y_test_pred))
 # # print(sum(y_test), len(y_test))
 # # print(np.sum(  (y_test == 1) == y_test_pred ))
@@ -370,104 +455,112 @@ print("Starting test Phase")
 scraped_tactics = dataloader.scraped_tactics_from_file("/home/avarghese_umass_edu/work/rl/proverbot9001/CompCert/lib/Parmov.v.scrape", "all", 30, None)
 predictor = loadPredictorByFile(Path2("data/polyarg-weights.dat"))
 tactic_space_model = fasttext.load_model("fast_text_model_on_Globalenvs.bin")
+with open("data/encoder_language_symbols.pkl","rb") as f:
+	language_model = pickle.load(f)
+device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+state_model =  torch.load("data/encoder_symbols.model", map_location=torch.device(device))
 
 # Deleted the contents so that I dont accidentally retrain -----vvvvv
 
 # Deleted above block ----------^^^^^^^^^^^^^^^^^
 
-proof_start = False
+# proof_start = False
 
-state_vectors = []
-correct_action_vectors = []
-wrong_action_vectors = []
+# state_vectors = []
+# correct_action_vectors = []
+# wrong_action_vectors = []
 
 
-index = 0
-num_zero_vectors = 0
-for tactic in tqdm.tqdm(scraped_tactics) : 
-    index += 1
-    # print(index, tactic.tactic.strip())
-    if proof_start :
-        if tactic.tactic.lstrip().rstrip().lower() == "qed." :
-            proof_start = False
-        elif  len(tactic.context.fg_goals) != 0 :
-            current_context = ProofContext(tactic.context.fg_goals,tactic.context.bg_goals,tactic.context.shelved_goals,tactic.context.given_up_goals)
-            action = tactic.tactic.lstrip().rstrip().rstrip(".")
-            state = tactic.context.fg_goals[0].goal.lstrip().rstrip()
-            state_vector = get_state_vector_from_text(state, language_model, device, state_model)
-            tactic_class,tactic_args = split_tactic(action)
-            # tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
-            tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
-            if tactic_class in list_of_tactic_classes :
-                tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
-            else :
-                tactic_class_vec[-1] = 1
+# index = 0
+# num_zero_vectors = 0
+# for tactic in tqdm.tqdm(scraped_tactics) : 
+# 	index += 1
+# 	# print(index, tactic.tactic.strip())
+# 	if proof_start :
+# 		if tactic.tactic.lstrip().rstrip().lower() == "qed." :
+# 			proof_start = False
+# 		elif  len(tactic.context.fg_goals) != 0 :
+# 			current_context = ProofContext(tactic.context.fg_goals,tactic.context.bg_goals,tactic.context.shelved_goals,tactic.context.given_up_goals)
+# 			action = tactic.tactic.lstrip().rstrip().rstrip(".")
+# 			state = tactic.context.fg_goals[0].goal.lstrip().rstrip()
+# 			state_vector = get_state_vector_from_text(state, language_model, device, state_model)
+# 			tactic_class,tactic_args = split_tactic(action)
+# 			# tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
+# 			tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
+# 			if tactic_class in list_of_tactic_classes :
+# 				tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
+# 			else :
+# 				tactic_class_vec[-1] = 1
 
-            if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
-                index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
-                tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
-                tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
-                tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
-            else :
-                num_zero_vectors += 1
-                tactic_args_type_vec = np.zeros(shape = state_vector.shape)
-                tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
+# 			if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
+# 				index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
+# 				tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
+# 				tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
+# 				tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
+# 			else :
+# 				num_zero_vectors += 1
+# 				tactic_args_type_vec = np.zeros(shape = state_vector.shape)
+# 				tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
 
-            final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
+# 			final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
 
-            correct_action_vectors.append(final_action_vec)
-            state_vectors.append(state_vector)
+# 			correct_action_vectors.append(final_action_vec)
+# 			state_vectors.append(state_vector)
 
-            curr_wrong = []
-            full_context_before = FullContext(tactic.relevant_lemmas, tactic.prev_tactics,  current_context)
-            predictions = predictor.predictKTactics(
-                truncate_tactic_context(full_context_before.as_tcontext(),
-                                        256), 10)
+# 			curr_wrong = []
+# 			full_context_before = FullContext(tactic.relevant_lemmas, tactic.prev_tactics,  current_context)
+# 			predictions = predictor.predictKTactics(
+# 				truncate_tactic_context(full_context_before.as_tcontext(),
+# 										256), 10)
 			
-            for prediction_idx, prediction in enumerate(predictions):
-                curr_pred = prediction.prediction.lstrip().rstrip()
-                if curr_pred != action :
-                    # print(curr_pred)
-                    tactic_class,tactic_args = split_tactic(curr_pred.lstrip().rstrip().rstrip("."))
-                    # tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
-                    tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
-                    if tactic_class in list_of_tactic_classes :
-                        tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
-                    else :
-                        tactic_class_vec[-1] = 1
+# 			for prediction_idx, prediction in enumerate(predictions):
+# 				curr_pred = prediction.prediction.lstrip().rstrip()
+# 				if curr_pred != action :
+# 					# print(curr_pred)
+# 					tactic_class,tactic_args = split_tactic(curr_pred.lstrip().rstrip().rstrip("."))
+# 					# tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
+# 					tactic_class_vec = np.zeros(len(list_of_tactic_classes) + 1)
+# 					if tactic_class in list_of_tactic_classes :
+# 						tactic_class_vec[ list_of_tactic_classes.index(tactic_class) ] = 1
+# 					else :
+# 						tactic_class_vec[-1] = 1
 
-                    if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
-                        # print(current_context.fg_goals[0].hypotheses)
-                        # print(get_indexed_vars_dict(current_context.fg_goals[0].hypotheses))
-                        tactic_args = tactic_args.strip()
-                        index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
-                        tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
-                        tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
-                        tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
-                    else :
-                        # print("Nope", tactic_args)
-                        num_zero_vectors += 1
-                        tactic_args_type_vec = np.zeros(shape = state_vector.shape)
-                        tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
+# 					if tactic_args.strip() != "" and is_hyp_token(tactic_args,current_context.fg_goals[0]) :
+# 						# print(current_context.fg_goals[0].hypotheses)
+# 						# print(get_indexed_vars_dict(current_context.fg_goals[0].hypotheses))
+# 						tactic_args = tactic_args.strip()
+# 						index = get_indexed_vars_dict(current_context.fg_goals[0].hypotheses)[tactic_args]
+# 						tactic_args_type = get_hyp_type(current_context.fg_goals[0].hypotheses[index])
+# 						tactic_args_type_vec = get_state_vector_from_text(tactic_args_type) # tactic_space_model.get_word_vector(tactic_args)
+# 						tactic_args_vec =  tactic_space_model.get_word_vector(tactic_args)
+# 					else :
+# 						# print("Nope", tactic_args)
+# 						num_zero_vectors += 1
+# 						tactic_args_type_vec = np.zeros(shape = state_vector.shape)
+# 						tactic_args_vec = tactic_space_model.get_word_vector(tactic_args)
 
-                    final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
-                    curr_wrong.append(final_action_vec)
-            wrong_action_vectors.append(curr_wrong)
-    else :
-        if  tactic.tactic.lstrip().rstrip().lower() == "proof."   :
-            proof_start = True
-            
-
-
+# 					final_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
+# 					curr_wrong.append(final_action_vec)
+# 			wrong_action_vectors.append(curr_wrong)
+# 	else :
+# 		if  tactic.tactic.lstrip().rstrip().lower() == "proof."   :
+# 			proof_start = True
+			
 
 
-with open("data/deleteme.pkl","wb") as f:
-    pickle.dump((state_vectors, correct_action_vectors,wrong_action_vectors),f)
+
+
+# with open("data/deleteme.pkl","wb") as f:
+# 	pickle.dump((state_vectors, correct_action_vectors,wrong_action_vectors),f)
 
 
 with open("data/deleteme.pkl", "rb") as f:
 	(state_vectors, correct_action_vectors,wrong_action_vectors) = pickle.load(f)
 
+print(np.array(state_vectors).shape, np.array(correct_action_vectors).shape, np.array(wrong_action_vectors).shape)	
+agent_model = torch.load("data/nn_test_model.model")
+agent_model.to(device)
+agent_model.eval()
 
 # with open("data/rf_test_model.pkl", "rb") as f :
 #     clf = pickle.load(f)
@@ -482,7 +575,8 @@ correct_zeros = 0
 
 for i in tqdm.tqdm(range(len(state_vectors) )) :
 	considered_state_vec  = np.concatenate((state_vectors[i],correct_action_vectors[i]))
-	y = clf.predict([considered_state_vec])[0]
+	x = torch.tensor([considered_state_vec],dtype=torch.float32).to(device)
+	y = agent_model(x).cpu().detach().numpy()[0]
 	y_test.append(1)
 	y_test_pred.append(y)
 	if  y == 0 :
@@ -494,7 +588,9 @@ for i in tqdm.tqdm(range(len(state_vectors) )) :
 	total += 1
 	for wrong_action_vec in wrong_action_vectors[i] :    
 		comparitive_state_vec = np.concatenate((state_vectors[i],wrong_action_vec))
-		y = clf.predict([comparitive_state_vec])[0]
+		x =  torch.tensor([comparitive_state_vec],dtype=torch.float32).to(device)
+		y = agent_model(x).cpu().detach().numpy()[0]
+		# y = clf.predict([comparitive_state_vec])[0]
 		total+= 1
 		y_test.append(0)
 		y_test_pred.append(y)
