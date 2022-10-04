@@ -215,23 +215,28 @@ with silent():
 
     if use_cuda:
         def maybe_cuda(component):
-                return component.to(device=torch.device(cuda_device))
+            return component.to(device=torch.device("cuda:0"))
 
-        LongTensor = torch.cuda.Longtensor
+        def LongTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.long).to(device=torch.device("cuda:0"))
 
-        FloatTensor = torch.cuda.FloatTensor
+        def FloatTensor(x : List[float]):
+            return torch.tensor(x,dtype=torch.float32).to(device=torch.device("cuda:0"))
 
-        ByteTensor = torch.cuda.ByteTensor
+        def ByteTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.uint8).to(device=torch.device("cuda:0"))
     else:
         def maybe_cuda(component):
                 return component
+ 
+        def LongTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.long)
 
-        LongTensor = torch.LongTensor
+        def FloatTensor(x : List[float]):
+            return torch.tensor(x,dtype=torch.float32)
 
-        FloatTensor = torch.FloatTensor
-
-        ByteTensor = torch.ByteTensor
-
+        def ByteTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.uint8)
     # now these can be easily compiled into torchscript.
 
 
