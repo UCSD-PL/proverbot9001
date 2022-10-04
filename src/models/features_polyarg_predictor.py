@@ -116,7 +116,7 @@ class GoalTokenEncoderModel(nn.Module):
             nn.Embedding(stem_vocab_size, hidden_size))
         self._token_embedding = maybe_cuda(
             nn.Embedding(input_vocab_size, hidden_size))
-        self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
+        self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size,batch_first=True))
         # localize global variable for compilation
         self._EOS_token = EOS_token
 
@@ -128,21 +128,20 @@ class GoalTokenEncoderModel(nn.Module):
         assert stem_batch.size()[0] == batch_size
         initial_hidden = self._stem_embedding(stem_var)\
                              .view(1, batch_size, self.hidden_size)
-        hidden = initial_hidden
+        
         encoded_tokens: List[torch.FloatTensor] = []
-        for i in range(goal_batch.size()[1]):
-            token_batch = self._token_embedding(goal_var[:, i])\
-                              .view(1, batch_size, self.hidden_size)
-            token_batch2 = F.relu(token_batch)
-            token_out, hidden = self._gru(token_batch2, hidden)
-            encoded_tokens.append(token_out.squeeze(dim=0).unsqueeze(1))
-        end_token_embedded = self._token_embedding(LongTensor([self._EOS_token])
-                                                   .expand(batch_size))\
-            .view(1, batch_size, self.hidden_size)
-        final_out, _final_hidden = self._gru(F.relu(end_token_embedded), hidden)
-        encoded_tokens.insert(0, final_out.squeeze(dim=0).unsqueeze(1))
-        catted = torch.cat(encoded_tokens, dim=1)
-        return catted
+        
+        # embed every goal token
+        tokens_embedded = F.relu(self._token_embedding(goal_var.flatten())\
+                .reshape([goal_var.shape[0],goal_var.shape[1],-1]))
+
+        # run GRU on every sequence
+        encoded_tokens, hidden = self._gru(tokens_embedded,initial_hidden)
+
+        EOS = F.relu(self._token_embedding(LongTensor([self._EOS_token])))
+        
+        # append EOS_token to every sequence and return
+        return torch.cat([encoded_tokens, EOS.broadcast_to([batch_size,1,self.hidden_size])],dim=1)
 
 
 class GoalTokenArgModel(nn.Module):
@@ -179,7 +178,7 @@ class HypArgEncoder(nn.Module):
             nn.Embedding(token_vocab_size, hidden_size))
         self._in_hidden = maybe_cuda(EncoderDNN(
             hidden_size + goal_data_size, hidden_size, hidden_size, 1))
-        self._hyp_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
+        self._hyp_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size, batch_first=True))
 
     def forward(self,
                 stems_batch: torch.LongTensor,
@@ -197,14 +196,16 @@ class HypArgEncoder(nn.Module):
         initial_hidden = self._in_hidden(torch.cat(
             (stem_encoded, goals_encoded_batch), dim=1))\
             .view(1, batch_size, self.hidden_size)
-        hidden = initial_hidden
-        for i in range(hyps_batch.size()[1]):
-            token_batch = self._token_embedding(hyps_var[:, i])\
-                .view(1, batch_size, self.hidden_size)
-            token_batch = F.relu(token_batch)
-            token_out, hidden = self._hyp_gru(token_batch, hidden)
+        
+        # embed every hypothesis token
+        tokens_embedded = F.relu(self._token_embedding(hyps_var.flatten())\
+                .reshape([hyps_var.shape[0],hyps_var.shape[1],-1]))
 
-        return token_out.squeeze()
+        # run GRU on every sequence
+        encoded_tokens, hidden = self._hyp_gru(tokens_embedded,initial_hidden)
+
+        
+        return encoded_tokens[:, -1]
 
 class HypArgModel(nn.Module):
     def __init__(self, goal_data_size: int,
@@ -268,10 +269,10 @@ class FeaturesPolyArgModel(nn.Module):
                  goal_encoder: EncoderRNN,
                  hyp_model: HypArgModel) -> None:
         super().__init__()
-        self.stem_classifier = maybe_cuda(stem_classifier)
+        self.stem_classifier = torch.jit.script(maybe_cuda(stem_classifier))
         self.goal_args_model = torch.jit.script(maybe_cuda(goal_args_model))
-        self.goal_encoder = maybe_cuda(goal_encoder)
-        self.hyp_model = maybe_cuda(hyp_model)
+        self.goal_encoder = torch.jit.script(maybe_cuda(goal_encoder))
+        self.hyp_model = torch.jit.script(maybe_cuda(hyp_model))
 
 
 class FeaturesPolyargPredictor(
