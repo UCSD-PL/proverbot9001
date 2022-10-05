@@ -32,8 +32,8 @@ CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
 all: scrape report
 
 setup:
-	./src/setup.sh
-        (cd dataloader/dataloader-core && maturin develop)
+	./src/setup.sh && $(MAKE) publish-depv
+	(cd dataloader/dataloader-core && maturin develop -r)
 
 data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 	cat $(CC_TRAIN_SCRAPES) > $@
