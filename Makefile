@@ -33,6 +33,7 @@ all: scrape report
 
 setup:
 	./src/setup.sh
+        (cd dataloader/dataloader-core && maturin develop)
 
 data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 	cat $(CC_TRAIN_SCRAPES) > $@
