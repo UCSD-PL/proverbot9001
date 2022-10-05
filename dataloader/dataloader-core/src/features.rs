@@ -26,7 +26,7 @@ use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
 
 use crate::scraped_data::*;
-use crate::tokenizer::get_symbols;
+// use crate::tokenizer::get_symbols;
 use rayon::prelude::*;
 
 use gestalt_ratio::gestalt_ratio;
@@ -75,7 +75,7 @@ pub fn context_features(
     (word_features, vec_features)
 }
 
-pub fn sample_context_features(
+pub fn sample_context_features_rs(
     args: &DataloaderArgs,
     tmap: &TokenMap,
     _relevant_lemmas: &Vec<String>,
