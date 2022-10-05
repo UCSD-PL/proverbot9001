@@ -26,7 +26,7 @@ else
     pip3 install -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
-    make src/dataloader.so
+    (cd dataloader/dataloader-core && maturin develop)
 fi
 
 function check-and-clone {
