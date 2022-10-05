@@ -133,16 +133,20 @@ class GoalTokenEncoderModel(nn.Module):
         
         # embed every goal token
         tokens_embedded = F.relu(self._token_embedding(goal_var.flatten())\
-                .reshape([goal_var.shape[0],goal_var.shape[1],-1]))
+                .reshape([goal_var.shape[0],goal_var.shape[1],self.hidden_size]))
+
+        # suffix with EOS_token embedding
+        EOS = F.relu(self._token_embedding(LongTensor([self._EOS_token])))
+        tokens_embedded_EOS = torch.cat([tokens_embedded, EOS[None,:,:].broadcast_to([batch_size,1,self.hidden_size])],dim=1)
+
 
         # run GRU on every sequence
-        encoded_tokens, hidden = self._gru(tokens_embedded,initial_hidden)
-
-        EOS = F.relu(self._token_embedding(LongTensor([self._EOS_token])))
+        encoded_tokens, hidden = self._gru(tokens_embedded_EOS,initial_hidden)
+        
+        encoded_tokens = torch.cat((encoded_tokens[:,-1:],encoded_tokens[:,:-1]),dim=1)
         
         # append EOS_token to every sequence and return
-        return torch.cat([encoded_tokens, EOS.broadcast_to([batch_size,1,self.hidden_size])],dim=1)
-
+        return encoded_tokens 
 
 class GoalTokenArgModel(nn.Module):
     def __init__(self, stem_vocab_size: int,
@@ -199,11 +203,11 @@ class HypArgEncoder(nn.Module):
         
         # embed every hypothesis token
         tokens_embedded = F.relu(self._token_embedding(hyps_var.flatten())\
-                .reshape([hyps_var.shape[0],hyps_var.shape[1],-1]))
+                .reshape([hyps_var.shape[0],hyps_var.shape[1],self.hidden_size]))
 
         # run GRU on every sequence
         encoded_tokens, hidden = self._hyp_gru(tokens_embedded,initial_hidden)
-
+        
         
         return encoded_tokens[:, -1]
 
