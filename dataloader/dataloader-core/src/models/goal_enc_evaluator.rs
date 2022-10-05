@@ -34,7 +34,7 @@ impl GoalEncMetadata {
     }
 }
 
-pub fn goals_to_total_distances_tensors(
+pub fn goals_to_total_distances_tensors_rs(
     args: DataloaderArgs,
     filename: String,
     metadata: Option<&GoalEncMetadata>,
@@ -67,7 +67,7 @@ pub fn goals_to_total_distances_tensors(
     ))
 }
 
-pub fn goal_enc_get_num_tokens(metadata: &GoalEncMetadata) -> i64 {
+pub fn goal_enc_get_num_tokens_rs(metadata: &GoalEncMetadata) -> i64 {
     metadata
         .tokenizer
         .as_ref()

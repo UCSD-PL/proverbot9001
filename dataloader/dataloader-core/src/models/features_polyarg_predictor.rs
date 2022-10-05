@@ -8,7 +8,7 @@ use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 
-use crate::context_filter::{filter_data, parse_filter, apply_filter};
+use crate::context_filter::{parse_filter, apply_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
 use crate::features::TokenMap as FeaturesTokenMap;
 use crate::features::*;
@@ -66,7 +66,7 @@ pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata 
     )
 }
 
-pub fn features_polyarg_tensors(
+pub fn features_polyarg_tensors_rs(
     args: DataloaderArgs,
     filename: String,
     metadata: Option<PickleableFPAMetadata>,
@@ -287,7 +287,7 @@ pub fn tokenize_fpa(
         args.max_length, 0)
 }
 
-pub fn get_premise_features(
+pub fn get_premise_features_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     goal: String,
@@ -296,13 +296,13 @@ pub fn get_premise_features(
     let eq_feat = equality_hyp_feature(&premise, &goal);
     vec![score, eq_feat]
 }
-pub fn get_premise_features_size(
+pub fn get_premise_features_size_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata) -> i64 {
     2
 }
 
-pub fn sample_fpa_batch(
+pub fn sample_fpa_batch_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     context_batch: Vec<TacticContext>,
@@ -319,7 +319,7 @@ pub fn sample_fpa_batch(
     let (word_features_batch, vec_features_batch) = context_batch
         .iter()
         .map(|ctxt| {
-            sample_context_features(
+            sample_context_features_rs(
                 &args,
                 &ftmap,
                 &ctxt.relevant_lemmas,
@@ -409,7 +409,7 @@ pub fn sample_fpa_batch(
     )
 }
 
-pub fn sample_fpa(
+pub fn sample_fpa_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     relevant_lemmas: Vec<String>,
@@ -426,7 +426,7 @@ pub fn sample_fpa(
     FloatTensor2D,
 ) {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    let (word_features, vec_features) = sample_context_features(
+    let (word_features, vec_features) = sample_context_features_rs(
         &args,
         &ftmap,
         &relevant_lemmas,
@@ -470,7 +470,7 @@ pub fn sample_fpa(
     )
 }
 
-pub fn decode_fpa_result(
+pub fn decode_fpa_result_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     premises: Vec<String>,
@@ -478,8 +478,8 @@ pub fn decode_fpa_result(
     tac_idx: i64,
     arg_idx: i64,
 ) -> String {
-    let stem = decode_fpa_stem(&args, metadata, tac_idx);
-    let arg = decode_fpa_arg(&args, premises, goal, arg_idx);
+    let stem = decode_fpa_stem_rs(&args, metadata, tac_idx);
+    let arg = decode_fpa_arg_rs(&args, premises, goal, arg_idx);
     if arg == "" {
         format!("{}.", stem)
     } else {
@@ -487,7 +487,7 @@ pub fn decode_fpa_result(
     }
 }
 
-pub fn decode_fpa_stem(
+pub fn decode_fpa_stem_rs(
     _args: &DataloaderArgs,
     metadata: PickleableFPAMetadata,
     tac_idx: i64,
@@ -496,7 +496,7 @@ pub fn decode_fpa_stem(
     indexer.reverse_lookup(tac_idx)
 }
 
-pub fn encode_fpa_stem(
+pub fn encode_fpa_stem_rs(
     _args: &DataloaderArgs,
     metadata: PickleableFPAMetadata,
     tac_stem: String,
@@ -505,7 +505,7 @@ pub fn encode_fpa_stem(
     indexer.lookup(tac_stem)
 }
 
-pub fn decode_fpa_arg(
+pub fn decode_fpa_arg_rs(
     args: &DataloaderArgs,
     premises: Vec<String>,
     goal: &str,
@@ -571,7 +571,7 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     }
 }
 
-pub fn fpa_get_num_possible_args(
+pub fn fpa_get_num_possible_args_rs(
     args: &DataloaderArgs) -> i64 {
     (args.max_length + args.max_premises + 1) as i64
 }
