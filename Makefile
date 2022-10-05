@@ -26,7 +26,6 @@ TESTFILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-test-files.txt))
 COMPCERT_TRAIN_FILES=$(patsubst %, CompCert/%, $(shell cat data/compcert-train-files.txt))
 TESTSCRAPES=$(patsubst %,%.scrape,$(TESTFILES))
 CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
-DATALOADER_SRC=$(wildcard dataloader/dataloader-core/src/*.rs) $(wildcard dataloader/dataloader-core/src/**/*.rs)
 
 .PHONY: scrape report setup static-report dynamic-report search-report
 
@@ -34,6 +33,7 @@ all: scrape report
 
 setup:
 	./src/setup.sh && $(MAKE) publish-depv
+        (cd dataloader/dataloader-core && maturin develop)
 
 data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 	cat $(CC_TRAIN_SCRAPES) > $@
@@ -53,7 +53,8 @@ report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
-compcert-train: data/compcert-scrape.txt src/dataloader.so
+compcert-train: data/compcert-scrape.txt
+        (cd dataloader/dataloader-core && maturin develop)
 	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
 train:
 	./src/proverbot9001.py train polyarg data/scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --save-tokens=tokens.pickle --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
@@ -113,11 +114,6 @@ download-weights:
 
 publish-depv:
 	opam info -f name,version menhir ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5 | awk '{print; print ""}' > known-good-dependency-versions.md
-
-src/dataloader.so: $(DATALOADER_SRC) dataloader/dataloader.pyi
-	cd dataloader && rustup run nightly cargo build --release
-	cp dataloader/target/release/libdataloader.so src/dataloader.so
-	cp dataloader/dataloader.pyi src/
 
 clean:
 	rm -rf report-*
