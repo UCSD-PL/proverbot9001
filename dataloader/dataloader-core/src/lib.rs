@@ -249,11 +249,6 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         tokenizer.num_tokens()
     }
     #[pyfn(m)]
-    fn get_tokens(_py: Python, metadata: PickleableFPAMetadata) -> Vec<String> {
-        let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
-	tokenizer.tokens()
-    }
-    #[pyfn(m)]
     fn fpa_get_num_possible_args(_py: Python, args: DataloaderArgs) -> i64 {
         fpa_get_num_possible_args_rs(&args)
     }
