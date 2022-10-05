@@ -312,8 +312,8 @@ pub fn tokenize_fpa(
 }
 
 pub fn get_premise_features_rs(
-    args: DataloaderArgs,
-    metadata: PickleableFPAMetadata,
+    _args: DataloaderArgs,
+    _metadata: PickleableFPAMetadata,
     goal: String,
     premise: String) -> FloatTensor1D {
     let score = gestalt_ratio(&goal, get_hyp_type(&premise));
@@ -321,8 +321,8 @@ pub fn get_premise_features_rs(
     vec![score, eq_feat]
 }
 pub fn get_premise_features_size_rs(
-    args: DataloaderArgs,
-    metadata: PickleableFPAMetadata) -> i64 {
+    _args: DataloaderArgs,
+    _metadata: PickleableFPAMetadata) -> i64 {
     2
 }
 

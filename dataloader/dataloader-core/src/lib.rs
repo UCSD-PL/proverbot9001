@@ -240,7 +240,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> Option<i64> {
         match encode_fpa_arg_unbounded(&args, hyps, goal, arg) {
             Ok(val) => Some(val),
-            Err(err) => None
+            Err(_err) => None
         }
     }
     #[pyfn(m)]
