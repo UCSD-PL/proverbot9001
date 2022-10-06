@@ -12,10 +12,17 @@ chmod +x /tmp/rustup-init
 
 /tmp/rustup-init -y
 
-export PATH=$PATH:~/.cargo/bin
+export PATH=$PATH:~/.cargo/bin:~/.local/bin
+
+# need a virtualenv or else maturin won't run
+# use site packages so we don't have to reinstall
+# pytorch & friends
+python3 -m venv --system-site-packages .
+
+
+source bin/activate
 
 # run setup
-
 make setup
 
 # okay, we've got an install.
