@@ -60,6 +60,7 @@ from dataloader import (features_polyarg_tensors,
                         get_fpa_words)
 
 import coq_serapy as serapi_instance
+import coq2vec
 
 import argparse
 import sys
@@ -103,7 +104,7 @@ class FeaturesPolyArgDataset(ListDataset[FeaturesPolyArgSample]):
     pass
 
 
-FeaturesPolyargState = Tuple[Any, NeuralPredictorState]
+FeaturesPolyargState = Tuple[Tuple[Any, coq2vec.CoqTermRNNVectorizer], NeuralPredictorState]
 
 
 class GoalTokenEncoderModel(nn.Module):
@@ -281,8 +282,9 @@ class FeaturesPolyArgModel(nn.Module):
 
 class FeaturesPolyargPredictor(
         TrainablePredictor[FeaturesPolyArgDataset,
-                           Tuple[Tokenizer, Embedding,
-                                 List[WordFeature], List[VecFeature]],
+                           Tuple[coq2vec.CoqTermRNNVectorizer,
+                                 Tuple[Tokenizer, Embedding,
+                                       List[WordFeature], List[VecFeature]],
                            NeuralPredictorState]):
     def __init__(self) -> None:
         self._criterion = maybe_cuda(nn.NLLLoss())
@@ -296,6 +298,7 @@ class FeaturesPolyargPredictor(
         # self._tokenizer : Optional[Tokenizer] = None
         # self._embedding : Optional[Embedding] = None
         self._model: Optional[FeaturesPolyArgModel] = None
+        self._vectorizer: Optional[coq2vec.CoqTermRNNVectorizer] = None
 
     @property
     def goal_token_encoder(self) -> GoalTokenEncoderModel:
@@ -365,7 +368,8 @@ class FeaturesPolyargPredictor(
                        context.goal)
 
         _, stem_certainties, stem_idxs = self.predict_stems(
-            self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
+            self._model, stem_width, LongTensor(word_features),
+                                     FloatTensor(vec_features + self._vectorizer.term_to_vector(context.goal)))
 
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
@@ -403,9 +407,13 @@ class FeaturesPolyargPredictor(
                              self.metadata,
                              [context_py2r(context)
                               for context in contexts])
+        encoded_goals = [self._vectorizer.term_to_vector(context.focused_goal())
+                         for context in contexts]
 
         _, stem_certainties_batch, stem_idxs_batch = self.predict_stems(
-            self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
+            self._model, stem_width, LongTensor(word_features),
+            FloatTensor([vec_feats + encoded_goal for vec_feats, encoded_goal
+                         in zip(vec_features, encoded_goals)]))
 
         goal_arg_values_batch = self.goal_token_scores(
             self._model, self.training_args,
@@ -766,6 +774,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-embedding", type=str, default=None)
         parser.add_argument("--load-features-state", type=str, default=None)
         parser.add_argument('--gpu', default=0, type=int)
+        parser.add_argument("--coq2vec-weights", type=Path, default=None)
 
     def _encode_data(self, data: RawDataset, arg_values: Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
@@ -773,18 +782,22 @@ class FeaturesPolyargPredictor(
         pass
 
     def _optimize_model(self, arg_values: Namespace) -> Iterable[FeaturesPolyargState]:
+        if arg_values.coq2vec_weights:
+            with print_time("Loading coq2vec encoder", guard=arg_values.verbose):
+                self._vectorizer = coq2vec.CoqTermRNNVectorizer()
+                self._vectorizer.load_weights(arg_values.coq2vec_weights)
         with print_time("Loading data", guard=arg_values.verbose):
             if arg_values.start_from:
                 _, (old_arg_values, unparsed_args,
                     metadata, state) = torch.load(arg_values.start_from)
-                _, data_lists, \
+                _, data_lists, raw_goals, \
                     (word_features_size, vec_features_size) = \
                     features_polyarg_tensors_with_meta(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file),
                         metadata)
             else:
-                metadata, data_lists, \
+                metadata, data_lists, raw_goals, \
                     (word_features_size, vec_features_size) = \
                     features_polyarg_tensors(
                         extract_dataloader_args(arg_values),
@@ -796,9 +809,15 @@ class FeaturesPolyargPredictor(
                 tokenized_goals, \
                 goal_masks, \
                 word_features, \
-                vec_features, \
+                loaded_vec_features, \
                 tactic_stem_indices, \
                 arg_indices = data_lists
+            if self._vectorizer:
+                encoded_goals = [self._vectorizer.encode_term(goal) for goal in raw_goals]
+                vec_features = [loaded_vec_feats + encoded_goal for loaded_vec_feats, encode_goal
+                                in zip(loaded_vec_features, encoded_goals)]
+            else:
+                vec_features = loaded_vec_features
 
             tensors = [pad_sequence([torch.LongTensor(tokenized_hyps_list)
                                      for tokenized_hyps_list
@@ -829,14 +848,14 @@ class FeaturesPolyargPredictor(
             else:
                 model = self._get_model(arg_values,
                                         word_features_size,
-                                        vec_features_size,
+                                        vec_features_size + self._vectorizer.hidden_size,
                                         get_num_indices(metadata)[1],
                                         get_num_tokens(metadata))
                 epoch_start = 1
 
         assert model
         assert epoch_start
-        return ((metadata, state) for state in optimize_checkpoints(tensors, arg_values, model,
+        return (((metadata, self._vectorizer), state) for state in optimize_checkpoints(tensors, arg_values, model,
                                                                     lambda batch_tensors, model:
                                                                     self._getBatchPredictionLoss(arg_values, metadata,
                                                                                                  batch_tensors,
@@ -845,14 +864,15 @@ class FeaturesPolyargPredictor(
     def load_saved_state(self,
                          args: Namespace,
                          unparsed_args: List[str],
-                         metadata: Any,
+                         metadata: Tuple[Any, CoqTermRNNVectorizer],
                          state: NeuralPredictorState) -> None:
+        rmeta, self._vectorizer = metadata
         model = maybe_cuda(self._get_model(args,
                                            get_word_feature_vocab_sizes(
-                                               metadata),
-                                           get_vec_features_size(metadata),
-                                           get_num_indices(metadata)[1],
-                                           get_num_tokens(metadata)))
+                                               rmeta),
+                                           get_vec_features_size(rmeta),
+                                           get_num_indices(rmeta)[1],
+                                           get_num_tokens(rmeta)))
         model.load_state_dict(state.weights)
         self._model = model
         self.training_loss = state.loss

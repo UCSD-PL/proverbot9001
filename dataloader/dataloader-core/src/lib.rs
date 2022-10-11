@@ -95,6 +95,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             LongTensor1D,
             LongTensor1D,
         ),
+        Vec<String>,
         (Vec<i64>, i64),
     )> {
         py.allow_threads(move || features_polyarg_tensors_rs(args, filename, None))
@@ -118,6 +119,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             LongTensor1D,
             LongTensor1D,
         ),
+        Vec<String>,
         (Vec<i64>, i64),
     )> {
         py.allow_threads(move || features_polyarg_tensors_rs(args, filename, Some(meta)))

@@ -83,6 +83,7 @@ pub fn features_polyarg_tensors_rs(
         LongTensor1D,
         LongTensor1D,
     ),
+    Vec<String>,
     (Vec<i64>, i64),
 )> {
     let filter = parse_filter(&args.context_filter);
@@ -184,6 +185,7 @@ pub fn features_polyarg_tensors_rs(
             )
         })
         .collect();
+    let raw_goals = raw_data.par_iter().map(|scraped| scraped.context.focused_goal().clone()).collect();
     let goal_symbols_mask = raw_data
         .par_iter()
         .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
@@ -242,6 +244,7 @@ pub fn features_polyarg_tensors_rs(
             tactic_stem_indices,
             arg_indices,
         ),
+        raw_goals,
         (word_features_sizes, VEC_FEATURES_SIZE),
     ))
 }
