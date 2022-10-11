@@ -774,7 +774,11 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-embedding", type=str, default=None)
         parser.add_argument("--load-features-state", type=str, default=None)
         parser.add_argument('--gpu', default=0, type=int)
+<<<<<<< HEAD
         parser.add_argument("--coq2vec-weights", type=str, default=None)
+=======
+        parser.add_argument("--coq2vec-weights", type=Path, default=None)
+>>>>>>> First attempt to add coq2vec encodings to model
 
     def _encode_data(self, data: RawDataset, arg_values: Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
@@ -864,7 +868,11 @@ class FeaturesPolyargPredictor(
     def load_saved_state(self,
                          args: Namespace,
                          unparsed_args: List[str],
+<<<<<<< HEAD
                          metadata: Tuple[Any, coq2vec.CoqTermRNNVectorizer],
+=======
+                         metadata: Tuple[Any, CoqTermRNNVectorizer],
+>>>>>>> First attempt to add coq2vec encodings to model
                          state: NeuralPredictorState) -> None:
         rmeta, self._vectorizer = metadata
         model = maybe_cuda(self._get_model(args,

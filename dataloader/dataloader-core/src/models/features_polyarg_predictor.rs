@@ -230,11 +230,10 @@ pub fn features_polyarg_tensors_rs(
                                                  .with_style(my_bar_style.clone())
                                                  .with_finish(ProgressFinish::AndLeave))
         .collect();
-    println!("Features");
     stdout().flush();
     let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
-    println!("Goals");
     stdout().flush();
+    let raw_goals = raw_data.par_iter().map(|scraped| scraped.context.focused_goal().clone()).collect();
     let tokenized_goals: Vec<_> = raw_data
         .par_iter()
         .map(|tac| {
