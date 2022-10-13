@@ -4730,7 +4730,8 @@
             "raft-proofs/OneLeaderLogPerTermProof.v",
             "raft-proofs/GhostLogCorrectProof.v"
         ],
-        "switch": "coq-8.12"
+        "switch": "coq-8.12",
+        "build_command": "./configure && make"
     },
     {
         "project_name": "verdi",
