@@ -864,7 +864,7 @@ class FeaturesPolyargPredictor(
     def load_saved_state(self,
                          args: Namespace,
                          unparsed_args: List[str],
-                         metadata: Tuple[Any, CoqTermRNNVectorizer],
+                         metadata: Tuple[Any, coq2vec.CoqTermRNNVectorizer],
                          state: NeuralPredictorState) -> None:
         rmeta, self._vectorizer = metadata
         model = maybe_cuda(self._get_model(args,
