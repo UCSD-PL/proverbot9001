@@ -774,7 +774,7 @@ class FeaturesPolyargPredictor(
         parser.add_argument("--load-embedding", type=str, default=None)
         parser.add_argument("--load-features-state", type=str, default=None)
         parser.add_argument('--gpu', default=0, type=int)
-        parser.add_argument("--coq2vec-weights", type=Path, default=None)
+        parser.add_argument("--coq2vec-weights", type=str, default=None)
 
     def _encode_data(self, data: RawDataset, arg_values: Namespace) \
         -> Tuple[FeaturesPolyArgDataset, Tuple[Tokenizer, Embedding,
