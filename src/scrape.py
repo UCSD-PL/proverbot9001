@@ -32,7 +32,6 @@ import re
 import linearize_semicolons
 import coq_serapy as serapi_instance
 
-from pathlib_revised import Path2
 from util import eprint, mybarfmt
 
 from typing import TextIO, List, Tuple, Optional
