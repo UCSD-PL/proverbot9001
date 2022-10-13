@@ -414,7 +414,6 @@ def write_time(args: argparse.Namespace) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
-
 def exit_early(args: argparse.Namespace, *rest) -> None:
     write_time(args)
     sys.exit()
