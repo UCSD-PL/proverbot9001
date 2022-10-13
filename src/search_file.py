@@ -369,7 +369,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             worker.start()
         num_already_done = len(solved_jobs)
         os.makedirs(args.output_dir, exist_ok=True)
-        with util.sighandler_context(signal.SIGINT, functools.partial(write_time, args)):
+        with util.sighandler_context(signal.SIGINT, functools.partial(handle_interrupt, args)):
             with tqdm(total=len(todo_jobs) + num_already_done,
                       dynamic_ncols=True, desc="Searching proofs") as bar:
                 bar.update(n=num_already_done)
@@ -407,7 +407,9 @@ def write_time(args: argparse.Namespace, *rest_args) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
-    sys.exit()
+def handle_interrupt(args: argparse.Namespace, *rest_args) -> None:
+    write_time(args)
+    sys.exit(1)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
