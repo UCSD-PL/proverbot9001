@@ -284,7 +284,7 @@ class FeaturesPolyargPredictor(
         TrainablePredictor[FeaturesPolyArgDataset,
                            Tuple[coq2vec.CoqTermRNNVectorizer,
                                  Tuple[Tokenizer, Embedding,
-                                       List[WordFeature], List[VecFeature]],
+                                       List[WordFeature], List[VecFeature]]],
                            NeuralPredictorState]):
     def __init__(self) -> None:
         self._criterion = maybe_cuda(nn.NLLLoss())
