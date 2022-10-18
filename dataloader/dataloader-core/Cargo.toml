@@ -24,6 +24,7 @@ lazy_static = "*"
 rand = "0.7.3"
 lalrpop-util = "0.19.0"
 bincode = "*"
+indicatif = {version = "*", features = ["rayon"]}
 gestalt_ratio = { path = "../gestalt-ratio" }
 
 [build-dependencies]
