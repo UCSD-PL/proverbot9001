@@ -24,6 +24,7 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
+use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
 use crate::scraped_data::*;
 // use crate::tokenizer::get_symbols;
@@ -38,6 +39,8 @@ pub fn context_features(
     tmap: &TokenMap,
     data: &Vec<ScrapedTactic>,
 ) -> (LongTensor2D, FloatTensor2D) {
+    let my_bar_style = ProgressStyle::with_template("{msg}: {wide_bar} [{elapsed}/{eta}]").unwrap();
+    let length: u64 = data.len().try_into().unwrap();
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = data
         .par_iter()
         .map(|scraped| {
@@ -46,6 +49,9 @@ pub fn context_features(
                 &scraped.context.focused_goal(),
             )
         })
+        .progress_with(ProgressBar::new(length).with_message("Finding best scoring hypotheses and their scores")
+                                               .with_style(my_bar_style.clone())
+                                               .with_finish(ProgressFinish::AndLeave))
         .unzip();
 
     let word_features = data
@@ -58,6 +64,9 @@ pub fn context_features(
                 hyp_head_feature(tmap, best_hyp),
             ]
         })
+        .progress_with(ProgressBar::new(length).with_message("Gathering word features")
+                                               .with_style(my_bar_style.clone())
+                                               .with_finish(ProgressFinish::AndLeave))
         .collect();
 
     let vec_features = best_hyp_scores
@@ -70,6 +79,9 @@ pub fn context_features(
                 // (std::cmp::min(datum.context.focused_hyps().len(), 20) as f64) / 20.0
             ]
         })
+        .progress_with(ProgressBar::new(length).with_message("Gathering vec features")
+                                               .with_style(my_bar_style.clone())
+                                               .with_finish(ProgressFinish::AndLeave))
         .collect();
 
     (word_features, vec_features)
