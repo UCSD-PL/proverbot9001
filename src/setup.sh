@@ -26,7 +26,7 @@ else
     pip3 install --no-input -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
-    (cd dataloader/dataloader-core && maturin develop)
+    (cd dataloader/dataloader-core && maturin develop -r)
 fi
 
 function check-and-clone {
