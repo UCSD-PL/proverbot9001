@@ -65,7 +65,6 @@ def main(arg_list: List[str]) -> None:
         assert len(args.filenames) == 1
         args.splits_file = args.filenames[0]
         args.filenames = []
-    predictor = get_predictor(arg_parser, args)
     base = Path(os.path.dirname(os.path.abspath(__file__)))
     assert Path(args.prelude).exists(), "Prelude directory doesn't exist!"
 

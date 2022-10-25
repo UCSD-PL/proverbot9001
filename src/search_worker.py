@@ -421,17 +421,14 @@ def get_files_jobs(args: argparse.Namespace,
     for project, filename in proj_filename_tuples:
         yield from get_file_jobs(args, project, filename)
 
-def get_predictor(parser: argparse.ArgumentParser,
-                  args: argparse.Namespace) -> TacticPredictor:
+def get_predictor(args: argparse.Namespace) -> TacticPredictor:
     predictor: TacticPredictor
     if args.weightsfile:
         predictor = loadPredictorByFile(args.weightsfile)
     elif args.predictor:
         predictor = loadPredictorByName(args.predictor)
     else:
-        print("You must specify either --weightsfile or --predictor!")
-        parser.print_help()
-        sys.exit(1)
+        raise ValueError("Can't load a predictor from given args!")
     return predictor
 
 def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:

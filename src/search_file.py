@@ -71,9 +71,13 @@ def main(arg_list: List[str]) -> None:
         torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
-    predictor = get_predictor(parser, args)
+    if not args.predictor and not args.weightsfile:
+        print("You must specify a weightsfile or a predictor.")
+        parser.print_help()
+        sys.exit(1)
 
-    search_file_multithreaded(args, predictor)
+    
+    search_file_multithreaded(args)
 
 
 def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
@@ -195,8 +199,6 @@ def search_file_worker_profiled(
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
 def search_file_worker(args: argparse.Namespace,
-                       predictor: TacticPredictor,
-                       predictor_lock: threading.Lock,
                        jobs: 'multiprocessing.Queue[ReportJob]',
                        done:
                        'multiprocessing.Queue['
@@ -204,6 +206,9 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
+    
+    predictor = get_predictor(args)
+
     # util.use_cuda = False
     if util.use_cuda:
         torch.cuda.set_device(device) # type: ignore
@@ -298,8 +303,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
             except FileNotFoundError:
                 pass
 
-def search_file_multithreaded(args: argparse.Namespace,
-                              predictor: TacticPredictor) -> None:
+def search_file_multithreaded(args: argparse.Namespace) -> None:
     global start_time
     os.makedirs(str(args.output_dir), exist_ok=True)
     start_time = datetime.now()
@@ -352,22 +356,12 @@ def search_file_multithreaded(args: argparse.Namespace,
         else:
             assert args.gpus is None, "Passed --gpus flag, but CUDA is not supported!"
             worker_devices = ["cpu"]
-        worker_predictors = [copy.deepcopy(predictor)
-                             for device in worker_devices]
-        for predictor, device in zip(worker_predictors, worker_devices):
-            predictor.to_device(device) # type: ignore
-            predictor.share_memory() # type: ignore
         # This cast appears to be needed due to a buggy type stub on
         # multiprocessing.Manager()
-        predictor_locks = [cast(multiprocessing.managers.SyncManager,
-                                manager).Lock()
-                           for predictor in worker_predictors]
         workers = [multiprocessing.Process(target=search_file_worker,
                                            args=(args,
-                                                 worker_predictors[widx % len(worker_predictors)],
-                                                 predictor_locks[widx % len(worker_predictors)],
                                                  jobs, done, widx,
-                                                 worker_devices[widx % len(worker_predictors)]))
+                                                 worker_devices[widx % len(worker_devices)]))
                    for widx in range(num_threads)]
         for worker in workers:
             worker.start()
@@ -405,6 +399,7 @@ def search_file_multithreaded(args: argparse.Namespace,
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:
+        predictor = get_predictor(args)
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
 

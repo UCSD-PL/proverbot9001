@@ -67,11 +67,16 @@ def main(arg_list: List[str]) -> None:
     if util.use_cuda:
         torch.cuda.set_device("cuda:0")
         util.cuda_device = "cuda:0"
+    
+    if not args.predictor and not args.weightsfile:
+        print("You must specify a weightsfile or a predictor.")
+        parser.print_help()
+        sys.exit(1)
 
-    predictor = get_predictor(arg_parser, args)
+
+
     workers = [multiprocessing.Process(target=run_worker,
-                                       args=(args, widx,
-                                             predictor))
+                                       args=(args, widx))
                for widx in range(args.num_threads)]
     for worker in workers:
         worker.start()
@@ -79,11 +84,12 @@ def main(arg_list: List[str]) -> None:
         worker.join()
     eprint(f"Finished worker {workerid}")
 
-def run_worker(args: argparse.Namespace, workerid: int,
-               predictor: TacticPredictor) -> None:
+def run_worker(args: argparse.Namespace, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
-
+    
+    predictor = get_predictor(args)
+    
     project_dicts = project_dicts_from_args(args)
     if any(["switch" in item for item in project_dicts]):
         switch_dict = {item["project_name"]: item["switch"]
