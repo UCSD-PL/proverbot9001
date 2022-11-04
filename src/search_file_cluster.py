@@ -33,7 +33,7 @@ from tqdm import tqdm
 from pathlib import Path
 from datetime import datetime, timedelta
 
-from typing import List, NamedTuple
+from typing import List, NamedTuple, Dict, Any
 
 from search_file import (add_args_to_parser, get_predictor,
                          get_already_done_jobs, remove_already_done_jobs,
@@ -65,7 +65,6 @@ def main(arg_list: List[str]) -> None:
         assert len(args.filenames) == 1
         args.splits_file = args.filenames[0]
         args.filenames = []
-    predictor = get_predictor(arg_parser, args)
     base = Path(os.path.dirname(os.path.abspath(__file__)))
     assert Path(args.prelude).exists(), "Prelude directory doesn't exist!"
 
@@ -130,10 +129,36 @@ def main(arg_list: List[str]) -> None:
             json.dump({k: f"\"{v}\"" if isinstance(v, str) or isinstance(v, Path) else str(v) for k, v in vars(args).items()}, f)
         cur_dir = os.path.realpath(os.path.dirname(__file__))
 
+        for project_dict in project_dicts:
+            if len(project_dict["test_files"]) == 0:
+                continue
+            subprocess.run([f"{cur_dir}/sbatch-retry.sh",
+                            "-o", str(args.output_dir / args.workers_output_dir
+                                      / f"{project_dict['project_name']}-report.out"),
+                            "-J", "proverbot9001-report-worker",
+                            f"{cur_dir}/search_report.sh",
+                            str(args.output_dir),
+                            "-p", project_dict['project_name']])
+        with util.sighandler_context(signal.SIGINT,
+                                     functools.partial(interrupt_report_early, args)):
+            show_report_progress(args.output_dir, project_dicts)
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
-                        "-o", str(args.output_dir / args.workers_output_dir / "report.out"),
+                        "-o", str(args.output_dir / args.workers_output_dir
+                                  / "index-report.out"),
+                        "-J", "proverbot9001-report-worker",
                         f"{cur_dir}/search_report.sh",
-                        str(args.output_dir)])
+                        str(args.output_dir),
+                        "-i"])
+        print("Generating report index...")
+        while True:
+            indexes_generated = int(subprocess.check_output(
+                f"find {args.output_dir} -name 'index.html' | wc -l",
+                shell=True, text=True))
+            if indexes_generated > 0:
+                break
+            else:
+                time.sleep(0.2)
+
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     if (args.output_dir / "all_jobs.txt").exists():
@@ -226,6 +251,9 @@ def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
     sys.exit()
 def cancel_workers(args: argparse.Namespace) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
+def interrupt_report_early(args: argparse.Namespace, *rest_args) -> None:
+    subprocess.run(["scancel -u $USER -n proverbot9001-report-worker"], shell=True)
+    sys.exit()
 
 def show_progress(args: argparse.Namespace) -> None:
     num_jobs_done = len(get_already_done_jobs(args))
@@ -235,6 +263,8 @@ def show_progress(args: argparse.Namespace) -> None:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
         num_workers_scheduled = len([line for line in f])
+    num_workers_alive = int(subprocess.check_output(
+        f"squeue -u $USER -h -n proverbot9001-worker | wc -l", text=True, shell=True))
 
     with tqdm(desc="Jobs finished", total=num_jobs_total,
               initial=num_jobs_done, dynamic_ncols=True) as bar, \
@@ -247,9 +277,33 @@ def show_progress(args: argparse.Namespace) -> None:
 
             with (args.output_dir / "workers_scheduled.txt").open('r') as f:
                 new_workers_scheduled = len([line for line in f])
+            new_workers_alive = int(subprocess.check_output(
+                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
+                text=True, shell=True))
+            if new_workers_alive < num_workers_alive:
+                num_workers_alive = new_workers_alive
+                if num_workers_alive < (num_jobs_total - num_jobs_done):
+                    util.eprint("One of the workers crashed!")
+            elif new_workers_alive > num_workers_alive:
+                num_workers_alive = new_workers_alive
+            if num_workers_alive == 0 and num_jobs_done < num_jobs_total:
+                util.eprint("All workers exited, but jobs aren't done!")
+                sys.exit(1)
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
 
+            time.sleep(0.2)
+
+def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) -> None:
+    test_projects_total = len([d for d in project_dicts if len(d["test_files"]) > 0])
+    num_projects_done = 0
+    with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
+        while num_projects_done < test_projects_total:
+            new_projects_done = int(subprocess.check_output(
+                f"find {report_dir} -wholename '*/index.html' | wc -l",
+                shell=True, text=True))
+            bar.update(new_projects_done - num_projects_done)
+            num_projects_done = new_projects_done
             time.sleep(0.2)
 
 if __name__ == "__main__":

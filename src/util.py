@@ -40,31 +40,6 @@ from sexpdata import Symbol
 from dataloader import rust_parse_sexp_one_level
 from pathlib import Path
 
-
-def maybe_cuda(component):
-    if use_cuda:
-        return component.to(device=torch.device(cuda_device))
-    else:
-        return component
-
-def LongTensor(*args : Any) -> torch.LongTensor:
-    if use_cuda:
-        return torch.cuda.LongTensor(*args)
-    else:
-        return torch.LongTensor(*args)
-
-def FloatTensor(*args : Any) -> torch.FloatTensor:
-    if use_cuda:
-        return torch.cuda.FloatTensor(*args)
-    else:
-        return torch.FloatTensor(*args)
-
-def ByteTensor(*args : Any) -> torch.ByteTensor:
-    if use_cuda:
-        return torch.cuda.ByteTensor(*args)
-    else:
-        return torch.ByteTensor(*args)
-
 def asMinutes(s : float) -> str:
     m = math.floor(s / 60)
     s -= m * 60
@@ -224,7 +199,43 @@ def silent():
 with silent():
     use_cuda = torch.cuda.is_available()
     cuda_device = "cuda:0"
-    # assert use_cuda
+    
+    # we want to use this in modules,
+    # but we also want to compile those modules.
+
+    # pytorch is extremely unhappy with references to
+    # global variables.
+
+    # therefore, we will bake the above static result
+    # into these functions right now.
+
+    if use_cuda:
+        def maybe_cuda(component):
+            return component.to(device=torch.device("cuda:0"))
+
+        def LongTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.long).to(device=torch.device("cuda:0"))
+
+        def FloatTensor(x : List[float]):
+            return torch.tensor(x,dtype=torch.float32).to(device=torch.device("cuda:0"))
+
+        def ByteTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.uint8).to(device=torch.device("cuda:0"))
+    else:
+        def maybe_cuda(component):
+                return component
+ 
+        def LongTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.long)
+
+        def FloatTensor(x : List[float]):
+            return torch.tensor(x,dtype=torch.float32)
+
+        def ByteTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.uint8)
+    # now these can be easily compiled into torchscript.
+
+
 
 import signal as sig
 @contextlib.contextmanager

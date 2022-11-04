@@ -22,7 +22,6 @@
 use crate::tokenizer::get_symbols;
 use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use pyo3::prelude::*;
-use pyo3::types::PyAny;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;

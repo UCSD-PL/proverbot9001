@@ -2,7 +2,7 @@
 name = "dataloader"
 version = "0.1.0"
 authors = ["Alex Sanchez-Stern <alex.sanchezstern@gmail.com>"]
-edition = "2018"
+edition = "2021"
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -11,7 +11,7 @@ name = "dataloader"
 crate-type = ["cdylib"]
 
 [dependencies.pyo3]
-version = "0.13.2"
+version = "0.17.1"
 features = ["extension-module"]
 
 [dependencies]
@@ -24,6 +24,7 @@ lazy_static = "*"
 rand = "0.7.3"
 lalrpop-util = "0.19.0"
 bincode = "*"
+indicatif = {version = "*", features = ["rayon"]}
 gestalt_ratio = { path = "../gestalt-ratio" }
 
 [build-dependencies]
