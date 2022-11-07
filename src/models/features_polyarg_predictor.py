@@ -817,8 +817,8 @@ class FeaturesPolyargPredictor(
                 tactic_stem_indices, \
                 arg_indices = data_lists
             if self._vectorizer:
-                encoded_goals = [self._vectorizer.encode_term(goal) for goal in raw_goals]
-                vec_features = [loaded_vec_feats + encoded_goal for loaded_vec_feats, encode_goal
+                encoded_goals = [self._vectorizer.term_to_vector(goal).view(-1).tolist() for goal in raw_goals]
+                vec_features = [loaded_vec_feats + encoded_goal for loaded_vec_feats, encoded_goal
                                 in zip(loaded_vec_features, encoded_goals)]
             else:
                 vec_features = loaded_vec_features
@@ -835,7 +835,7 @@ class FeaturesPolyargPredictor(
                        torch.LongTensor(tokenized_goals),
                        torch.ByteTensor(goal_masks),
                        torch.LongTensor(word_features),
-                       torch.FloatTensor(vec_features),
+                       torch.tensor(vec_features),
                        torch.LongTensor(tactic_stem_indices),
                        torch.LongTensor(arg_indices)]
             with open("tensors.pickle", 'wb') as f:
@@ -850,16 +850,18 @@ class FeaturesPolyargPredictor(
                 model = self._model
                 epoch_start = self.num_epochs
             else:
+                if self._vectorizer:
+                    print(f"vec features size: {vec_features_size}; coq2vec_hidden_size: {self._vectorizer.hidden_size}")
                 model = self._get_model(arg_values,
                                         word_features_size,
-                                        vec_features_size + self._vectorizer.hidden_size,
+                                        vec_features_size + (self._vectorizer.hidden_size if self._vectorizer else 0),
                                         get_num_indices(metadata)[1],
                                         get_num_tokens(metadata))
                 epoch_start = 1
 
         assert model
         assert epoch_start
-        return (((metadata, self._vectorizer), state) for state in optimize_checkpoints(tensors, arg_values, model,
+        return (((metadata, self._vectorizer.get_state()), state) for state in optimize_checkpoints(tensors, arg_values, model,
                                                                     lambda batch_tensors, model:
                                                                     self._getBatchPredictionLoss(arg_values, metadata,
                                                                                                  batch_tensors,
@@ -874,7 +876,7 @@ class FeaturesPolyargPredictor(
                          metadata: Tuple[Any, CoqTermRNNVectorizer],
 >>>>>>> First attempt to add coq2vec encodings to model
                          state: NeuralPredictorState) -> None:
-        rmeta, self._vectorizer = metadata
+        rmeta, vectorizer_state = metadata
         model = maybe_cuda(self._get_model(args,
                                            get_word_feature_vocab_sizes(
                                                rmeta),
@@ -882,6 +884,9 @@ class FeaturesPolyargPredictor(
                                            get_num_indices(rmeta)[1],
                                            get_num_tokens(rmeta)))
         model.load_state_dict(state.weights)
+        vectorizer = maybe_cuda(CoqTermRNNVectorizer())
+        vectorizer.load_state(vectorizer_state)
+        self._vectorizer = vectorizer
         self._model = model
         self.training_loss = state.loss
         self.num_epochs = state.epoch
