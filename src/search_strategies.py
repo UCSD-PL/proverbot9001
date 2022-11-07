@@ -880,11 +880,6 @@ def best_first_proof_search(lemma_name: str,
     if args.scoring_function == "pickled":
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
