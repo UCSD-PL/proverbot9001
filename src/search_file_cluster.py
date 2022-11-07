@@ -131,13 +131,18 @@ def main(arg_list: List[str]) -> None:
         for project_dict in project_dicts:
             if len(project_dict["test_files"]) == 0:
                 continue
-            subprocess.run([f"{cur_dir}/sbatch-retry.sh",
+            if project_dict['project_name'] == ".":
+                report_output_name = "report.out"
+            else:
+                report_output_name = f"{project_dict['project_name']}-report.out"
+            command = [f"{cur_dir}/sbatch-retry.sh",
                             "-o", str(args.output_dir / args.workers_output_dir
-                                      / f"{project_dict['project_name']}-report.out"),
+                                      / report_output_name),
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
-                            "-p", project_dict['project_name']])
+                            "-p", project_dict['project_name']]
+            subprocess.run(command)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
             show_report_progress(args.output_dir, project_dicts)
