@@ -873,7 +873,15 @@ def best_first_proof_search(lemma_name: str,
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
                                      ProofContext([], [], [], [])), None)
-    nodes_todo: List[AStarTask] = [AStarTask(1.0, start_node)]
+    search_start_node = start_node
+    if args.search_prefix:
+        for command in coq_serapy.read_commands(args.search_prefix):
+            full_context_before = FullContext(relevant_lemmas,
+                                              coq.prev_tactics,
+                                              unwrap(coq.proof_context))
+            search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
+                                        full_context_before, search_start_node)
+    nodes_todo: List[AStarTask] = [AStarTask(1.0, search_start_node)]
 
     desc_name = lemma_name
     if len(desc_name) > 25:
