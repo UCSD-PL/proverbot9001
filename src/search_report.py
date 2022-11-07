@@ -621,7 +621,7 @@ def main() -> None:
             else:
                 setattr(args, k, eval(v))
 
-    predictor = get_predictor(arg_parser, args)
+    predictor = get_predictor(args)
     project_dicts = project_dicts_from_args(args)
     with open(top_args.report_dir / "time_so_far.txt", 'r') as f:
         time_taken = util.read_time_taken(f.read())
