@@ -166,6 +166,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-prefix", type=str, default=None)
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--features-json", action='store_true')
+    parser.add_argument("--search-prefix", type=str, default=None)
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
