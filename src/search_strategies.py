@@ -493,7 +493,20 @@ def dfs_proof_search_with_graph(lemma_name: str,
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
+        if args.search_prefix is None:
+            command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
+        else:
+            next_node = g.start_node
+            for command in coq_serapy.read_commands(args.search_prefix):
+                full_context_before = FullContext(relevant_lemmas,
+                                                  coq.prev_tactics,
+                                                  unwrap(coq.proof_context))
+                next_node = g.mkNode(Prediction(command, 1.0),
+                                     full_context_before,
+                                     next_node)
+                next_node.time_taken = 0.0
+                coq.run_stmt(command)
+            command_list, _ = search(pbar, [next_node], subgoals_stack_start, 0)
         pbar.clear()
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
