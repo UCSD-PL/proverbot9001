@@ -787,9 +787,15 @@ def bfs_beam_proof_search(lemma_name: str,
                     elif args.scoring_function == "pickled":
                         assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                         score = 0.
-                        for idx, goal in enumerate(coq.get_all_sexp_goals()):
+                        for idx, (obl, goal_str) in enumerate(zip(coq.get_all_sexp_goals(),
+                                                                  [obl.goal for obl in
+                                                                   coq.proof_context.fg_goals +
+                                                                   coq.proof_context.bg_goals])):
                             try:
-                                score += -float(john_model.predict(Lemma("", goal)))
+                                score += -float(john_model.predict(Lemma("search-state",
+                                                                         {"hypos": obl.hypotheses,
+                                                                          "type": obl.goal,
+                                                                          "goal": goal_str})))
                             except UnhandledExpr:
                                 print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                                 raise
@@ -974,12 +980,19 @@ def best_first_proof_search(lemma_name: str,
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
             else:
                 assert args.scoring_function == "pickled"
+                assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
-                for idx, goal in enumerate(coq.get_all_sexp_goals()):
+                for idx, (obl, goal_str) in enumerate(zip(coq.get_all_sexp_goals(),
+                                                          [obl.goal for obl in
+                                                           coq.proof_context.fg_goals +
+                                                           coq.proof_context.bg_goals])):
                     try:
-                        h_score += john_model.predict(Lemma("", goal))
+                        h_score += -float(john_model.predict(Lemma("search-state",
+                                                                   {"hypos": obl.hypotheses,
+                                                                    "type": obl.goal,
+                                                                    "goal": goal_str})))
                     except UnhandledExpr:
-                        print(f"Goal failed to be handled: {coq.proof_context.all_goals[idx]}")
+                        print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
             if args.search_type == "astar":
                 # Calculate the A* f_score
