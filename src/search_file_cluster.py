@@ -36,7 +36,7 @@ from typing import List, NamedTuple, Dict, Any
 from tqdm import tqdm
 
 
-from search_file import (add_args_to_parser, get_predictor,
+from search_file import (add_args_to_parser,
                          get_already_done_jobs, remove_already_done_jobs,
                          project_dicts_from_args)
 from search_worker import ReportJob
