@@ -366,7 +366,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                       prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
-        for prediction_idx, prediction in enumerate(predictions):
+        for _prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
                 break
             try:
@@ -514,18 +514,16 @@ def dfs_proof_search_with_graph(lemma_name: str,
                           f"{lemma_name}.json")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
-    elif hasUnexploredNode:
+    if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, None)
-    else:
-        return SearchResult(SearchStatus.FAILURE, None)
+    return SearchResult(SearchStatus.FAILURE, None)
 
 
 def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
     if coq.proof_context:
         return len(coq.proof_context.all_goals) == 0 and \
             coq.tactic_history.curDepth() == 0
-    else:
-        return False
+    return False
 
 
 @dataclass
