@@ -111,11 +111,11 @@ class LabeledNode:
 class SearchGraph:
     __graph: pgv.AGraph
     __next_node_id: int
-    feature_extractor: FeaturesExtractor
+    feature_extractor: Optional[FeaturesExtractor]
     start_node: LabeledNode
 
-    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str],
-                 lemma_name: str) -> None:
+    def __init__(self, tactics_file: Path, tokens_file: Path, lemma_name: str,
+                 features_json: bool) -> None:
         self.__graph = pgv.AGraph(directed=True)
         self.__next_node_id = 0
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
@@ -123,8 +123,9 @@ class SearchGraph:
                                           [], [], ProofContext([], [], [], [])),
                                       None)
         self.start_node.time_taken = 0.0
-        self.feature_extractor = FeaturesExtractor(common_tactic_stems,
-                                                   common_tokens)
+        if features_json:
+            self.feature_extractor = FeaturesExtractor(str(tactics_file),
+                                                       str(tokens_file))
         pass
 
     def mkNode(self, prediction: Prediction, context_before: FullContext,
@@ -182,7 +183,9 @@ class SearchGraph:
             self.__graph.draw(filename, prog="dot")
 
     def write_feat_json(self, filename: str) -> None:
+        assert self.feature_extractor
         def write_node(node: LabeledNode, f: IO[str]) -> None:
+            assert self.feature_extractor
             if len(node.children) == 0:
                 return
             state_feats = self.feature_extractor.state_features(
@@ -333,10 +336,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                 bar_idx: int,
                                 predictor: TacticPredictor) \
                                 -> SearchResult:
-    g = SearchGraph(
-        dataloader.get_all_tactics(cast(FeaturesPolyargPredictor, predictor).metadata),
-        dataloader.get_tokens(cast(FeaturesPolyargPredictor, predictor).metadata),
-        lemma_name)
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                    args.features_json)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
@@ -365,7 +366,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                       prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
-        for prediction_idx, prediction in enumerate(predictions):
+        for _prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
                 break
             try:
@@ -468,8 +469,9 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     g.draw(f"{output_dir}/{module_prefix}"
                            f"{unnamed_goal_number}.svg")
                 else:
-                    g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                      f"{lemma_name}.json")
+                    if args.features_json:
+                        g.write_feat_json(f"{output_dir}/{module_prefix}"
+                                          f"{lemma_name}.json")
                     g.draw(f"{output_dir}/{module_prefix}"
                            f"{lemma_name}.svg")
 
@@ -491,25 +493,37 @@ def dfs_proof_search_with_graph(lemma_name: str,
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
+        if args.search_prefix is None:
+            command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
+        else:
+            next_node = g.start_node
+            for command in coq_serapy.read_commands(args.search_prefix):
+                full_context_before = FullContext(relevant_lemmas,
+                                                  coq.prev_tactics,
+                                                  unwrap(coq.proof_context))
+                next_node = g.mkNode(Prediction(command, 1.0),
+                                     full_context_before,
+                                     next_node)
+                next_node.time_taken = 0.0
+                coq.run_stmt(command)
+            command_list, _ = search(pbar, [next_node], subgoals_stack_start, 0)
         pbar.clear()
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    g.write_feat_json(f"{output_dir}/{module_prefix}"
-                      f"{lemma_name}.json")
+    if args.features_json:
+        g.write_feat_json(f"{output_dir}/{module_prefix}"
+                          f"{lemma_name}.json")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, command_list)
-    elif hasUnexploredNode:
+    if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, None)
-    else:
-        return SearchResult(SearchStatus.FAILURE, None)
+    return SearchResult(SearchStatus.FAILURE, None)
 
 
 def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
     if coq.proof_context:
         return len(coq.proof_context.all_goals) == 0 and \
             coq.tactic_history.curDepth() == 0
-    else:
-        return False
+    return False
 
 
 @dataclass
@@ -677,17 +691,20 @@ def bfs_beam_proof_search(lemma_name: str,
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
 
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
                                      ProofContext([], [], [], [])), None)
+    search_start_node = start_node
+    if args.search_prefix:
+        for command in coq_serapy.read_commands(args.search_prefix):
+            full_context_before = FullContext(relevant_lemmas,
+                                              coq.prev_tactics,
+                                              unwrap(coq.proof_context))
+            search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
+                                 full_context_before, search_start_node)
     nodes_todo: List[Tuple[BFSNode, List[int], int]] = \
-        [(start_node, subgoals_stack_start, 0)]
+        [(search_start_node, subgoals_stack_start, 0)]
 
     total_nodes = numNodesInTree(args.search_width,
                                  args.search_depth + 2) - 1
@@ -857,22 +874,25 @@ def best_first_proof_search(lemma_name: str,
     if args.scoring_function == "pickled":
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
                                      ProofContext([], [], [], [])), None)
-    nodes_todo: List[AStarTask] = [AStarTask(1.0, start_node)]
+    search_start_node = start_node
+    if args.search_prefix:
+        for command in coq_serapy.read_commands(args.search_prefix):
+            full_context_before = FullContext(relevant_lemmas,
+                                              coq.prev_tactics,
+                                              unwrap(coq.proof_context))
+            search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
+                                        full_context_before, search_start_node)
+    nodes_todo: List[AStarTask] = [AStarTask(1.0, search_start_node)]
 
     desc_name = lemma_name
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
-    for step in trange(args.astar_steps, unit="pred", file=sys.stdout,
+    for _step in trange(args.astar_steps, unit="pred", file=sys.stdout,
                        desc=desc_name, disable=(not args.progress),
                        leave=False, position=bar_idx + 1,
                        dynamic_ncols=True, bar_format=mybarfmt):

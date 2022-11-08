@@ -163,6 +163,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
+    parser.add_argument("--features-json", action='store_true')
+    parser.add_argument("--search-prefix", type=str, default=None)
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -395,7 +397,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
             for worker in workers:
                 worker.join()
-        write_time(args)
+    write_time(args)
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:
@@ -408,7 +410,6 @@ def write_time(args: argparse.Namespace) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
-
 def exit_early(args: argparse.Namespace, *rest) -> None:
     write_time(args)
     sys.exit()
