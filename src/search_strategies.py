@@ -182,6 +182,18 @@ class SearchGraph:
         with nostderr():
             self.__graph.draw(filename, prog="dot")
 
+    def export_string_to_file(self):
+        with open("graph_string", "w") as file:
+            file.write(self.__graph.string())
+    
+    def print_label_recursive(self, node):
+
+        output_dict = {"name": node.prediction}
+        if node.children:
+            output_dict["children"] = [self.print_label_recursive(i) for i in node.children]
+
+        return output_dict
+
     def write_feat_json(self, filename: str) -> None:
         assert self.feature_extractor
         def write_node(node: LabeledNode, f: IO[str]) -> None:
@@ -508,6 +520,11 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 coq.run_stmt(command)
             command_list, _ = search(pbar, [next_node], subgoals_stack_start, 0)
         pbar.clear()
+
+    # TODO : use the DOT notation of the graph and feed to network.  
+
+    # g.export_string_to_file()
+    # print(g.print_label_recursive(g.start_node))
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
         g.write_feat_json(f"{output_dir}/{module_prefix}"
@@ -570,7 +587,7 @@ class BFSNode:
             cur_node = unwrap(cur_node.previous)
 
     def draw_graph(self, path: str) -> None:
-        graph = pgv.AGraph(directed=True)
+        graph = pgv.AGraph(directed=True, rankdir="LR")
         next_node_id = 0
         def add_subgraph(root: "BFSNode") -> int:
             nonlocal graph

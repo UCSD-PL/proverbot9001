@@ -1,0 +1,128 @@
+auto
+eauto
+simpl
+intros
+apply
+rewrite
+destruct
+unfold
+inv
+eapply
+simpl in
+constructor
+omega
+easy
+try discriminate
+split
+assert
+idtac
+exploit
+econstructor
+rewrite <-
+exists
+subst
+congruence
+red
+reflexivity
+generalize
+induction
+eexact
+intuition
+exact
+try congruence
+set
+replace
+left
+MonadInv
+intro
+monadInv
+try contradiction
+tauto
+change
+discriminate
+right
+clear
+elim
+f_equal
+case
+intros until
+TailNoLabel
+try monadInv
+traceEq
+TrivialExists
+InvEval
+inversion
+trivial
+xomega
+try omega
+try apply
+now apply
+try easy
+repeat solve_decode_encode_val_general
+fold
+lra
+contradiction
+rewrite !
+symmetry
+instantiate
+assumption
+try rewrite
+ring
+erewrite
+decEq
+specialize
+revert
+try assumption
+ring_simplify
+myinv
+InvHyps
+try reflexivity
+InvBooleans
+EvalOp
+try constructor
+transitivity
+repeat rewrite
+now rewrite
+FuncInv
+pattern
+compute
+eelim
+try tauto
+pose
+omegaContradiction
+VHT'
+zify
+InvAgree
+bpow_simplify
+UseParsingLemmas
+by
+Simplifs
+solve_encode_val_length
+repeat constructor
+case_eq
+try destruct
+SimplVM
+contradict
+predSpec
+do
+bit_solve
+rename
+try inv
+InvApproxRegs
+decide equality
+cut
+saturateTrans
+eassumption
+repeat split
+TR
+NoLabelTac
+smart_omega
+mydestr
+refine
+caseEq
+functional
+compute_this
+UNCHANGED
+InvInject
+exfalso
+Determ
