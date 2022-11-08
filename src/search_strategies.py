@@ -703,6 +703,11 @@ def bfs_beam_proof_search(lemma_name: str,
                                               unwrap(coq.proof_context))
             search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
                                  full_context_before, search_start_node)
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
     nodes_todo: List[Tuple[BFSNode, List[int], int]] = \
         [(search_start_node, subgoals_stack_start, 0)]
 
