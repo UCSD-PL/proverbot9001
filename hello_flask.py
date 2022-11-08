@@ -18,29 +18,43 @@ def prove_and_print(theorem_lemma, random_id, search_type):
     f.write(theorem_lemma)
     f.close()
 
-    with coq_serapy.SerapiContext(
-            # How you want the underlying sertop binary to be run. If not sure,
-            # use this.
-            ["sertop", "--implicit"],
-            # A top level module for the code to reside in. Empty string or
-            # None leaves in the default top module.
-            None,
-            # A prelude directory in which to start the binary
-            ".") as coq:
+    # with coq_serapy.SerapiContext(
+    #         # How you want the underlying sertop binary to be run. If not sure,
+    #         # use this.
+    #         ["sertop", "--implicit"],
+    #         # A top level module for the code to reside in. Empty string or
+    #         # None leaves in the default top module.
+    #         None,
+    #         # A prelude directory in which to start the binary
+    #         ".") as coq:
 
-        coq.quiet = True
-        proof_commands = coq_serapy.load_commands(trialfile)
-        try:
-            cmds_left, cmds_run = coq.run_into_next_proof(
-            proof_commands)
-            _, _ = coq.finish_proof(cmds_left)
-            print("Valid Coq!")
-        except:
-            # TODO : Show the user that the input was incorrect and give
-            # an option to re-enter corrected input. 
-            print("Something went wrong!")
-    # os.system("rm -rf search-report/trial")
+    #     coq.quiet = True
+    #     proof_commands = coq_serapy.load_commands(trialfile)
+    #     try:
+    #         cmds_left, cmds_run = coq.run_into_next_proof(
+    #         proof_commands)
+    #         _, _ = coq.finish_proof(cmds_left)
+    #         print("Valid Coq!")
+    #     except:
+    #         # TODO : Show the user that the input was incorrect and give
+    #         # an option to re-enter corrected input. 
+    #         print("Something went wrong!")
+    # # os.system("rm -rf search-report/trial")
+
+    # print("THEOREM LEMMA: " + theorem_lemma)
+
+    proof_index = theorem_lemma.find("Proof.")
+    admitted_index = theorem_lemma.find("Admitted.")
+    clipped_theorem = theorem_lemma[proof_index + 8 : admitted_index]
+
+    proof_prefix = ''.join(list(map(lambda x: ' ' if (x == "\n" or x == '\r') else x, clipped_theorem)))
+    proof_prefix = '"' + proof_prefix + '"'
+
     cmdtorun = "./src/search_file.py --weightsfile data/polyarg-weights.dat --search-type " + search_type + " " + trialfile + " --no-generate-report"
+
+    if proof_prefix:
+        cmdtorun = "./src/search_file.py --weightsfile data/polyarg-weights.dat --search-prefix " + proof_prefix + " --search-type " + search_type + " " + trialfile + " --no-generate-report"
+
     os.system(cmdtorun)
     # TODO : Show user that the search is still going on, just to make sure that nothing has gone wrong.
 
@@ -49,12 +63,18 @@ def prove_and_print(theorem_lemma, random_id, search_type):
             pass
         last_line = line
         last_line = last_line[last_line.find('{"status'):][:-2]
-        # print(last_line)
+        print(theorem_lemma.split("\n")) 
         parsedjson = json.loads(last_line)
         with open("proved_theorem" + random_id + ".v", "w") as f:
-            for line in theorem_lemma.split("\n")[:-2]:
-                f.write(line)
-                f.write("\n")
+            if proof_prefix:
+                splits = theorem_lemma.split("\n")
+                for line in splits[:splits.index('Proof.\r')]:
+                    f.write(line)
+                    f.write("\n")
+            else:
+                for line in theorem_lemma.split("\n")[:-2]:
+                    f.write(line)
+                    f.write("\n")
             commands = parsedjson["commands"]
             for i in range(len(commands)):
                 f.write(commands[i]["tactic"] + "\n")
