@@ -35,7 +35,7 @@ def main() -> None:
                 rows = list(csv.reader(f))
                 all_rows += [row for row in rows if row[3] == "SUCCESS"]
 
-    print(f"Graphing {len(rows)} points")
+    print(f"Graphing {len(all_rows)} points")
     font = {'family' : 'serif',
             'weight' : 'bold',
             'size'   : 22}
