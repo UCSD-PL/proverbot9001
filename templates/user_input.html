@@ -13,6 +13,13 @@
     <label for="theorem_lemma">Input theorem to be proved</label>
     <br>
 
-    <textarea id="theorem_lemma" name="theorem_lemma" rows="10" cols="60"></textarea>
+    <textarea id="theorem_lemma" name="theorem_lemma" rows="10" cols="60">{{theorem_lemma}}</textarea>
     <input type="submit">
+    <div>
+        <h3 style='color:crimson'>
+            {{err_msg}}
+        </h3>
+        <br/>
+        <br/>
+    </div>
 </form>

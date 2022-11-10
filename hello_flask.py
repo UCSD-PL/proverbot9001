@@ -18,27 +18,28 @@ def prove_and_print(theorem_lemma, random_id, search_type):
     f.write(theorem_lemma)
     f.close()
 
-    # with coq_serapy.SerapiContext(
-    #         # How you want the underlying sertop binary to be run. If not sure,
-    #         # use this.
-    #         ["sertop", "--implicit"],
-    #         # A top level module for the code to reside in. Empty string or
-    #         # None leaves in the default top module.
-    #         None,
-    #         # A prelude directory in which to start the binary
-    #         ".") as coq:
+    with coq_serapy.SerapiContext(
+            # How you want the underlying sertop binary to be run. If not sure,
+            # use this.
+            ["sertop", "--implicit"],
+            # A top level module for the code to reside in. Empty string or
+            # None leaves in the default top module.
+            None,
+            # A prelude directory in which to start the binary
+            ".") as coq:
 
-    #     coq.quiet = True
-    #     proof_commands = coq_serapy.load_commands(trialfile)
-    #     try:
-    #         cmds_left, cmds_run = coq.run_into_next_proof(
-    #         proof_commands)
-    #         _, _ = coq.finish_proof(cmds_left)
-    #         print("Valid Coq!")
-    #     except:
-    #         # TODO : Show the user that the input was incorrect and give
-    #         # an option to re-enter corrected input. 
-    #         print("Something went wrong!")
+        coq.quiet = True
+        proof_commands = coq_serapy.load_commands(trialfile)
+        try:
+            cmds_left, cmds_run = coq.run_into_next_proof(
+            proof_commands)
+            _, _ = coq.finish_proof(cmds_left)
+            print("Valid Coq!")
+        except:
+            # TODO : Show the user that the input was incorrect and give
+            # an option to re-enter corrected input. 
+            print("Something went wrong!")
+            return 1
     # # os.system("rm -rf search-report/trial")
 
     # print("THEOREM LEMMA: " + theorem_lemma)
@@ -110,18 +111,29 @@ def prove_and_print(theorem_lemma, random_id, search_type):
         fp2.close()
     fp.close()
     os.system("mv modified_html" + random_id + ".html templates/")
+    return 0
+
+def get_choices():
+    choices = ["dfs", "beam-bfs", "best-first"]
+    return choices
+def get_err_msg():
+    return "Invalid Coq! Please fix any typos or missing imports before retrying."
 
 @app.route('/')
 def my_form():
-    choices = ["dfs", "beam-bfs", "best-first"]
-    return render_template('user_input.html', choices=choices)
+    choices = get_choices()
+    return render_template('user_input.html', choices=choices,err_msg='')
 
 @app.route('/', methods=['POST'])
 def my_form_post():
     theorem_lemma = request.form['theorem_lemma']
     random_id = random.randrange(1000000)
     search_type = request.form['search_type']
-    prove_and_print(theorem_lemma, str(random_id), search_type)
+    code = prove_and_print(theorem_lemma, str(random_id), search_type)
+    if code == 1:
+        choices = get_choices()
+        err_msg = get_err_msg()
+        return render_template('user_input.html', theorem_lemma=theorem_lemma, err_msg=err_msg)
     return render_template("modified_html" + str(random_id) + ".html")
 
 
