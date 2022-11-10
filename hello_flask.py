@@ -1,11 +1,11 @@
-import coq_serapy
-from flask import Flask, request, render_template, session, redirect, url_for
+import json
 import os
 import random
-import json
-import glob
-from bs4 import BeautifulSoup
 
+from bs4 import BeautifulSoup
+from flask import Flask, redirect, render_template, request, session, url_for
+
+import coq_serapy
 
 app = Flask(__name__)
 
@@ -35,17 +35,12 @@ def prove_and_print(theorem_lemma, random_id, search_type):
             proof_commands)
             _, _ = coq.finish_proof(cmds_left)
             print("Valid Coq!")
-        except:
-            # TODO : Show the user that the input was incorrect and give
-            # an option to re-enter corrected input. 
+        except Exception as e: 
             print("Something went wrong!")
-            return 1
-    # # os.system("rm -rf search-report/trial")
+            return 1, str(e)
 
-    # print("THEOREM LEMMA: " + theorem_lemma)
-
-    proof_index = theorem_lemma.find("Proof.")
     admitted_index = theorem_lemma.find("Admitted.")
+    proof_index = theorem_lemma.rfind("Proof.", 0, admitted_index)
     clipped_theorem = theorem_lemma[proof_index + 8 : admitted_index]
 
     proof_prefix = ''.join(list(map(lambda x: ' ' if (x == "\n" or x == '\r') else x, clipped_theorem)))
@@ -64,7 +59,6 @@ def prove_and_print(theorem_lemma, random_id, search_type):
             pass
         last_line = line
         last_line = last_line[last_line.find('{"status'):][:-2]
-        print(theorem_lemma.split("\n")) 
         parsedjson = json.loads(last_line)
         with open("proved_theorem" + random_id + ".v", "w") as f:
             if proof_prefix:
@@ -97,21 +91,13 @@ def prove_and_print(theorem_lemma, random_id, search_type):
                 div.decompose()
         soup.head.append(soup.new_tag("script", src="{{url_for('static',filename='d3.min.js')}}"))
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='d3-min.css')}}"))
-        # original_tag = soup.body
-        # home_dir = os.path.expanduser('~')
-        # svgfile = glob.glob('trial' + random_id + '*.svg', 
-        #     root_dir="static/")[0]
-        # new_tag = soup.new_tag("img", src="{{url_for('static', filename=\'" + svgfile + "\')}}",
-        #  width="100%", height="auto")
-        # original_tag.append(new_tag)
         soup.body.append(soup.new_tag("script", src="{{url_for('static', filename='d3-tree.js')}}"))
-        # TODO : Make the search tree collapsible and expandable. Hovering over the nodes can show proof until that point.
         with open("modified_html" + random_id + ".html", "w") as fp2:
             fp2.write(soup.prettify())
         fp2.close()
     fp.close()
     os.system("mv modified_html" + random_id + ".html templates/")
-    return 0
+    return 0, "no error"
 
 def get_choices():
     choices = ["dfs", "beam-bfs", "best-first"]
@@ -129,10 +115,8 @@ def my_form_post():
     theorem_lemma = request.form['theorem_lemma']
     random_id = random.randrange(1000000)
     search_type = request.form['search_type']
-    code = prove_and_print(theorem_lemma, str(random_id), search_type)
+    code, err_msg = prove_and_print(theorem_lemma, str(random_id), search_type)
     if code == 1:
-        choices = get_choices()
-        err_msg = get_err_msg()
         return render_template('user_input.html', theorem_lemma=theorem_lemma, err_msg=err_msg)
     return render_template("modified_html" + str(random_id) + ".html")
 
