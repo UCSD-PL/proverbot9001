@@ -40,7 +40,8 @@ Sexpr = Union[sexp.Symbol, int, str, List['Sexpr']]
 class ProofCtx(TypedDict):
   hypos: List[Sexpr]
   type: Sexpr
-  goal: str
+  goal_str: str
+  hyp_strs: List[str]
 
 @dataclass
 class Lemma:
@@ -94,7 +95,8 @@ def steps_from_json(x: Dict[str, Any]) -> Optional[ProofStep]:
       , "ctx" : { 
           "hypos": [eval(x) for x in ctx["hypos"]]
         , "type": eval(ctx["type"]) 
-        , "goal" : ctx["goal"]
+        , "goal_str" : ctx["goal_str"]
+        , "hyp_strs" : ctx["hypo_strs"]
       } 
     }
   else:
@@ -396,12 +398,12 @@ class SVRIdentLength(ISVRLearner):
 
 class SVRNNGoal(ISVRLearner):
 
-  _vectorizer: coq2vec.CoqRNNVectorizer
+  _vectorizer: coq2vec.CoqTermRNNVectorizer
   _normalizer: StandardScaler
 
   def __init__(self, encoder_weights_path : str = "term_encoder.model", *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
-    self._vectorizer = coq2vec.CoqRNNVectorizer()
+    self._vectorizer = coq2vec.CoqTermRNNVectorizer()
     self._normalizer = StandardScaler()
 
     self._vectorizer.load_weights(encoder_weights_path)
@@ -425,15 +427,53 @@ class SVRNNGoal(ISVRLearner):
   def name(self):
     return "SVR NN goal"
 
+class SVRC2V(ISVRLearner):
+
+  _vectorizer: coq2vec.CoqContextVectorizer
+
+  def __init__(self, encoder_weights_path : str = "term_encoder.model", *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+
+    goal_vectorizer = coq2vec.CoqTermRNNVectorizer()
+    goal_vectorizer.load_weights(encoder_weights_path)
+
+    self._vectorizer = coq2vec.CoqContextVectorizer(goal_vectorizer, 4)
+
+  def transform_xs(self, lemmas: Iterable[Lemma]) -> np.ndarray:
+    return super().transform_xs(lemmas)
+
+  @property
+  def name(self):
+    return "SVR C2V Contexts"
+
+  def __getstate__(self):
+    state = self.__dict__.copy()
+    
+    state["_vectorizer"] = self._vectorizer.term_encoder.get_state()
+
+    return state
+
+  def __setstate__(self, state):
+    term_encoder = coq2vec.CoqTermRNNVectorizer()
+    term_encoder.load_state(state["_vectorizer"])
+    state["_vectorizer"] = self._vectorizer = coq2vec.CoqContextVectorizer(term_encoder, 4)
+    self.__dict__.update(state)
+
+  def predict_obl(self, obl: coq2vec.Obligation) -> np.ndarray:
+    x : np.ndarray = self._vectorizer.obligation_to_vector(obl).numpy().flatten()
+
+    return self.predict_transformed(np.array([x]))
+
+
 class SVRNNGoalIdentLength(ISVRLearner):
 
-  _vectorizer: coq2vec.CoqRNNVectorizer
+  _vectorizer: coq2vec.CoqTermRNNVectorizer
   _normalizer: StandardScaler
 
   def __init__(self, encoder_weights_path: str ="term_encoder.model", *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
 
-    self._vectorizer = coq2vec.CoqRNNVectorizer()
+    self._vectorizer = coq2vec.CoqTermRNNVectorizer()
     self._normalizer = StandardScaler()
     self._vectorizer.load_weights(encoder_weights_path)
 
