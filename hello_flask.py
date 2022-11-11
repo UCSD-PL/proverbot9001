@@ -115,7 +115,15 @@ def my_form_post():
     theorem_lemma = request.form['theorem_lemma']
     random_id = random.randrange(1000000)
     search_type = request.form['search_type']
-    code, err_msg = prove_and_print(theorem_lemma, str(random_id), search_type)
+    if (search_type in get_choices()):
+        code, err_msg = prove_and_print(theorem_lemma, str(random_id), search_type)
+    else:
+        # the search type gets concatenated into a bash command
+        # suppose an adversary passed "; <MALICIOUS COMMAND> #" in the form
+        # then we are just running arbitrary bash scripts from the user. terrifying!
+        # at the very least we can check the input
+        code = 1
+        err_msg = "invalid search type"
     if code == 1:
         return render_template('user_input.html', theorem_lemma=theorem_lemma, err_msg=err_msg)
     return render_template("modified_html" + str(random_id) + ".html")
