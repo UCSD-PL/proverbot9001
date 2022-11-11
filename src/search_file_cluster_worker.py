@@ -89,6 +89,8 @@ def run_worker(args: argparse.Namespace, workerid: int) -> None:
     if any(["switch" in item for item in project_dicts]):
         switch_dict = {item["project_name"]: item["switch"]
                         for item in project_dicts}
+    else:
+        switch_dict = None
 
     with Worker(args, workerid, predictor, switch_dict) as worker:
         while True:
