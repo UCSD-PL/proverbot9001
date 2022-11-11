@@ -167,7 +167,7 @@ class Worker:
                             coq_serapy.kill_comments(
                                 command).strip()):
                     self.last_program_statement = command
-                    obligation_num = 0
+                    self.obligation_num = 0
             lemma_statement = run_commands[-1]
             if re.match(r"\s*Next\s+Obligation\s*\.\s*",
                         coq_serapy.kill_comments(
@@ -175,8 +175,8 @@ class Worker:
                 assert self.last_program_statement
                 unique_lemma_statement = \
                     self.last_program_statement + \
-                    f" Obligation {obligation_num}."
-                obligation_num += 1
+                    f" Obligation {self.obligation_num}."
+                self.obligation_num += 1
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
