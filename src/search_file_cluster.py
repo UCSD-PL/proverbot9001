@@ -38,7 +38,7 @@ from tqdm import tqdm
 
 from search_file import (add_args_to_parser,
                          get_already_done_jobs, remove_already_done_jobs,
-                         project_dicts_from_args)
+                         project_dicts_from_args, format_arg_value)
 from search_worker import ReportJob
 import util
 
@@ -125,7 +125,7 @@ def main(arg_list: List[str]) -> None:
 
     if args.generate_report:
         with open(args.output_dir / "args.json", 'w') as f:
-            json.dump({k: f"\"{v}\"" if isinstance(v, str) or isinstance(v, Path) else str(v) for k, v in vars(args).items()}, f)
+            json.dump({k: format_arg_value(v) for k, v in vars(args).items()}, f)
         cur_dir = os.path.realpath(os.path.dirname(__file__))
 
         for project_dict in project_dicts:

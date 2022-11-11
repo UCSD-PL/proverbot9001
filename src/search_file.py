@@ -405,10 +405,19 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:
+        with open(args.output_dir / "args.json", 'w') as f:
+            json.dump({k: f"\"{v}\"" if isinstance(v, (Path, str))
+                       else str(v) for k, v in vars(args).items()}, f)
         predictor = get_predictor(args)
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
 
+def format_arg_value(v: Any) -> str:
+    if isinstance(v, (Path, str)):
+        return f"\"{v}\""
+    if isinstance(v, list):
+        return "[" + ",".join([format_arg_value(item) for item in v]) + "]"
+    return str(v)
 def write_time(args: argparse.Namespace) -> None:
     global start_time
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
