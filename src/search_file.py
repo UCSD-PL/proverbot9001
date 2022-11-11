@@ -76,7 +76,7 @@ def main(arg_list: List[str]) -> None:
         parser.print_help()
         sys.exit(1)
 
-    
+
     search_file_multithreaded(args)
 
 
@@ -210,7 +210,7 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
-    
+
     predictor = get_predictor(args)
 
     # util.use_cuda = False
