@@ -121,7 +121,8 @@ def main(arg_list: List[str]) -> None:
             time_taken = datetime.now() - start_time
             print(str(time_taken), file=f)
     else:
-        assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
+        assert len(solved_jobs) == len(jobs), \
+          f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
 
     if args.generate_report:
         with open(args.output_dir / "args.json", 'w') as f:
