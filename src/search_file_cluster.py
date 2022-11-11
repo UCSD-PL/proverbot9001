@@ -68,22 +68,14 @@ def main(arg_list: List[str]) -> None:
     assert Path(args.prelude).exists(), "Prelude directory doesn't exist!"
 
     os.makedirs(str(args.output_dir), exist_ok=True)
-    if args.splits_file:
-        with args.splits_file.open('r') as splits_f:
-            project_dicts = json.loads(splits_f.read())
-        for project_dict in project_dicts:
-            project_output_dir = args.output_dir / project_dict["project_name"]
-            if len(project_dict["test_files"]) == 0:
-                continue
-            os.makedirs(str(project_output_dir), exist_ok=True)
-            for filename in [details_css, details_javascript]:
-                destpath = args.output_dir / project_dict["project_name"] / filename
-                if not destpath.exists():
-                    srcpath = base.parent / 'reports' / filename
-                    shutil.copyfile(srcpath, destpath)
-    else:
+    project_dicts = project_dicts_from_args(args)
+    for project_dict in project_dicts:
+        project_output_dir = args.output_dir / project_dict["project_name"]
+        if len(project_dict["test_files"]) == 0:
+            continue
+        os.makedirs(str(project_output_dir), exist_ok=True)
         for filename in [details_css, details_javascript]:
-            destpath = args.output_dir / filename
+            destpath = args.output_dir / project_dict["project_name"] / filename
             if not destpath.exists():
                 srcpath = base.parent / 'reports' / filename
                 shutil.copyfile(srcpath, destpath)
