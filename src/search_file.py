@@ -59,7 +59,7 @@ import torch
 start_time = datetime.now()
 
 def main(arg_list: List[str]) -> None:
-    multiprocessing.set_start_method('spawn')
+    # multiprocessing.set_start_method('spawn')
     sys.setrecursionlimit(100000)
 
     args, _, parser = parse_arguments(arg_list)
@@ -370,34 +370,34 @@ def search_file_multithreaded(args: argparse.Namespace,
             worker.start()
         num_already_done = len(solved_jobs)
         os.makedirs(args.output_dir, exist_ok=True)
-        with util.sighandler_context(signal.SIGINT, functools.partial(handle_interrupt, args)):
-            with tqdm(total=len(todo_jobs) + num_already_done,
-                      dynamic_ncols=True, desc="Searching proofs") as bar:
-                bar.update(n=num_already_done)
-                bar.refresh()
-                for _ in range(len(todo_jobs)):
-                    (done_project, done_file, done_module, done_lemma), sol = done.get()
-                    if args.splits_file:
-                        with args.splits_file.open('r') as splits_f:
-                            project_dicts = json.loads(splits_f.read())
-                        for project_dict in project_dicts:
-                            if project_dict["project_name"] == done_project:
-                                filenames = [Path(fname) for fname in project_dict["test_files"]]
-                                break
-                    else:
-                        filenames = args.filenames
-                    proofs_file = (args.output_dir / done_project /
-                                   (util.safe_abbrev(Path(done_file),
-                                                     filenames)
-                                    + "-proofs.txt"))
-                    with proofs_file.open('a') as f:
-                        f.write(json.dumps(((done_project, str(done_file), done_module, done_lemma),
-                                            sol.to_dict())))
-                        f.write("\n")
-                    bar.update()
+        # with util.sighandler_context(signal.SIGINT, functools.partial(handle_interrupt, args)):
+        with tqdm(total=len(todo_jobs) + num_already_done,
+                    dynamic_ncols=True, desc="Searching proofs") as bar:
+            bar.update(n=num_already_done)
+            bar.refresh()
+            for _ in range(len(todo_jobs)):
+                (done_project, done_file, done_module, done_lemma), sol = done.get()
+                if args.splits_file:
+                    with args.splits_file.open('r') as splits_f:
+                        project_dicts = json.loads(splits_f.read())
+                    for project_dict in project_dicts:
+                        if project_dict["project_name"] == done_project:
+                            filenames = [Path(fname) for fname in project_dict["test_files"]]
+                            break
+                else:
+                    filenames = args.filenames
+                proofs_file = (args.output_dir / done_project /
+                                (util.safe_abbrev(Path(done_file),
+                                                    filenames)
+                                + "-proofs.txt"))
+                with proofs_file.open('a') as f:
+                    f.write(json.dumps(((done_project, str(done_file), done_module, done_lemma),
+                                        sol.to_dict())))
+                    f.write("\n")
+                bar.update()
 
-            for worker in workers:
-                worker.join()
+        for worker in workers:
+            worker.join()
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:

@@ -1,11 +1,15 @@
 import json
+import multiprocessing
 import os
 import random
+import sys
 
 from bs4 import BeautifulSoup
 from flask import Flask, redirect, render_template, request, session, url_for
 
 import coq_serapy
+sys.path.insert(0, './src')
+from src.search_file import main
 
 app = Flask(__name__)
 
@@ -46,12 +50,12 @@ def prove_and_print(theorem_lemma, random_id, search_type):
     proof_prefix = ''.join(list(map(lambda x: ' ' if (x == "\n" or x == '\r') else x, clipped_theorem)))
     proof_prefix = '"' + proof_prefix + '"'
 
-    cmdtorun = "./src/search_file.py --weightsfile data/polyarg-weights.dat --search-type " + search_type + " " + trialfile + " --no-generate-report"
 
-    if proof_prefix:
-        cmdtorun = "./src/search_file.py --weightsfile data/polyarg-weights.dat --search-prefix " + proof_prefix + " --search-type " + search_type + " " + trialfile + " --no-generate-report"
+    if not (proof_prefix == '""'):
+       main(["--weightsfile", "data/polyarg-weights.dat",  "--search-prefix", '"' + str(proof_prefix) + '"',"--search-type",  str(search_type), str(trialfile), "--no-generate-report"])
+    else:
+        main(["--weightsfile", "data/polyarg-weights.dat","--search-type", str(search_type), str(trialfile), "--no-generate-report", "-vvv"])
 
-    os.system(cmdtorun)
     # TODO : Show user that the search is still going on, just to make sure that nothing has gone wrong.
 
     with open("search-report/trial" + random_id + "-proofs.txt", "r") as file:
@@ -102,8 +106,7 @@ def prove_and_print(theorem_lemma, random_id, search_type):
 def get_choices():
     choices = ["dfs", "beam-bfs", "best-first"]
     return choices
-def get_err_msg():
-    return "Invalid Coq! Please fix any typos or missing imports before retrying."
+
 
 @app.route('/')
 def my_form():
@@ -112,6 +115,7 @@ def my_form():
 
 @app.route('/', methods=['POST'])
 def my_form_post():
+    multiprocessing.set_start_method('spawn')
     theorem_lemma = request.form['theorem_lemma']
     random_id = random.randrange(1000000)
     search_type = request.form['search_type']
