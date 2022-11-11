@@ -618,7 +618,7 @@ def main() -> None:
         for k, v in args_dict.items():
             if k in ["output_dir", "prelude"]:
                 setattr(args, k, Path(eval(v)))
-            if k == "filenames":
+            elif k == "filenames":
                 setattr(args, k, [Path(f) for f in eval(v)])
             else:
                 setattr(args, k, eval(v))
