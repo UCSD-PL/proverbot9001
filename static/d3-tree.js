@@ -3,20 +3,15 @@
 var treeData =
 {'name': 'app_nil_r', 'children': [{'name': 'intros.', 'children': [{'name': 'eauto.'}, {'name': 'unfold app.', 'children': [{'name': 'simpl.'}, {'name': 'eauto.'}, {'name': 'unfold app.'}, {'name': 'case l.', 'children': [{'name': 'eauto.', 'children': [{'name': 'intros.', 'children': [{'name': 'simpl.'}, {'name': 'eauto.'}, {'name': 'destruct l.'}]}, {'name': 'simpl.'}, {'name': 'induction l.'}, {'name': 'trivial.'}, {'name': 'eauto.'}, {'name': 'pattern l.', 'children': [{'name': 'eauto.'}, {'name': 'simpl.'}, {'name': 'idtac.'}, {'name': 'intros.'}]}, {'name': 'pattern A.', 'children': [{'name': 'eauto.'}, {'name': 'simpl.'}, {'name': 'idtac.'}]}]}]}, {'name': 'destruct l.', 'children': [{'name': 'eauto.', 'children': [{'name': 'simpl.'}, {'name': 'eauto.'}, {'name': 'destruct l.', 'children': [{'name': 'eauto.', 'children': [{'name': 'simpl.'}, {'name': 'eauto.'}, {'name': 'try contradiction.'}, {'name': 'destruct l.', 'children': [{'name': 'eauto.', 'children': [{'name': 'simpl.'}, {'name': 'eauto.'}, {'name': 'try contradiction.'}, {'name': 'destruct l.'}, {'name': 'subst.'}]}]}]}]}, {'name': 'try contradiction.'}]}]}]}, {'name': 'destruct l.', 'children': [{'name': 'eauto.', 'children': [{'name': 'eauto.'}, {'name': 'try discriminate.'}, {'name': 'simpl.', 'children': [{'name': 'eauto.'}, {'name': 'try apply l.'}, {'name': 'intuition.'}, {'name': 'f_equal.', 'children': [{'name': 'eauto.'}, {'name': 'unfold app.', 'children': [{'name': 'simpl.'}, {'name': 'eauto.'}, {'name': 'unfold app.'}, {'name': 'case l.'}, {'name': 'destruct l.'}]}, {'name': 'symmetry.', 'children': [{'name': 'eauto.'}, {'name': 'symmetry.'}, {'name': 'subst.'}, {'name': 'unfold app.'}, {'name': 'simpl.'}]}, {'name': 'destruct l.', 'children': [{'name': 'eauto.', 'children': [{'name': 'eauto.'}, {'name': 'try discriminate.'}, {'name': 'simpl.'}, {'name': 'intuition.', 'children': [{'name': 'QED'}]}]}]}]}]}]}]}]}]};
 
-// Set the dimensions and margins of the diagram
-var margin = {top: 20, right: 90, bottom: 30, left: 90},
-    width = 960 - margin.left - margin.right,
-    height = 1000 - margin.top - margin.bottom;
+var width = 960,
+    height = 1000;
 
 // append the svg object to the body of the page
 // appends a 'group' element to 'svg'
-// moves the 'group' element to the top left margin
 var svg = d3.select("body").append("svg")
-    .attr("width", width + margin.right + margin.left)
-    .attr("height", height + margin.top + margin.bottom)
+    .attr("style","display:block; max-height: 100vh; object-fit: contain")
+    .attr("viewBox", "-75 0 " + (width+75) + " " + height)
   .append("g")
-    .attr("transform", "translate("
-          + margin.left + "," + margin.top + ")");
 
 var i = 0,
     duration = 750,
@@ -44,17 +39,18 @@ function collapse(d) {
   }
 }
 
+var maxdepth = 0;
+
+
+
+
 function update(source) {
 
-  // Assigns the x and y position for the nodes
   var treeData = treemap(root);
 
   // Compute the new tree layout.
   var nodes = treeData.descendants(),
       links = treeData.descendants().slice(1);
-
-  // Normalize for fixed-depth.
-  nodes.forEach(function(d){ d.y = d.depth * 180});
 
   // ****************** Nodes section ***************************
 
@@ -90,7 +86,14 @@ function update(source) {
       .text(function(d) { return d.data.name; });
 
   // UPDATE
-  var nodeUpdate = nodeEnter.merge(node);
+  var nodeUpdate = nodeEnter.merge(node).call(function globalDepthUpdate(x) {
+    maxdepth = d3.max(svg.selectAll("g.node").data().map((x)=>x.depth));
+    if (maxdepth == undefined) {
+      maxdepth = 0;
+    }
+    nodes.forEach(function(d){ d.y = d.depth * Math.min(180,width/(maxdepth+2))});
+  })
+
 
   // Transition to the proper position for the node
   nodeUpdate.transition()
@@ -183,4 +186,5 @@ function update(source) {
       }
     update(d);
   }
+  
 }
