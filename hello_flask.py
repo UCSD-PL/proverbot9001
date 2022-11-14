@@ -5,7 +5,7 @@ import random
 import sys
 
 from bs4 import BeautifulSoup
-from flask import Flask, redirect, render_template, request, session, url_for
+from flask import Flask, redirect, render_template, request, url_for
 
 import coq_serapy
 sys.path.insert(0, './src')
@@ -13,7 +13,7 @@ from src.search_file import main
 
 app = Flask(__name__)
 
-def prove_and_print(theorem_lemma, random_id, search_type):
+def prove_and_print(theorem_lemma, random_id):
     # if(not(theorem_lemma.split("\n")[-2:] == ["Proof.""Admitted."])):
     #     theorem_lemma += "\nProof.\nAdmitted."
     # print(theorem_lemma)
@@ -23,14 +23,7 @@ def prove_and_print(theorem_lemma, random_id, search_type):
     f.close()
 
     with coq_serapy.SerapiContext(
-            # How you want the underlying sertop binary to be run. If not sure,
-            # use this.
-            ["sertop", "--implicit"],
-            # A top level module for the code to reside in. Empty string or
-            # None leaves in the default top module.
-            None,
-            # A prelude directory in which to start the binary
-            ".") as coq:
+            ["sertop", "--implicit"], None, ".") as coq:
 
         coq.quiet = True
         proof_commands = coq_serapy.load_commands(trialfile)
@@ -38,7 +31,6 @@ def prove_and_print(theorem_lemma, random_id, search_type):
             cmds_left, cmds_run = coq.run_into_next_proof(
             proof_commands)
             _, _ = coq.finish_proof(cmds_left)
-            print("Valid Coq!")
         except Exception as e: 
             print("Something went wrong!")
             return 1, str(e)
@@ -52,9 +44,9 @@ def prove_and_print(theorem_lemma, random_id, search_type):
 
 
     if not (proof_prefix == '""'):
-       main(["--weightsfile", "data/polyarg-weights.dat",  "--search-prefix", '"' + str(proof_prefix) + '"',"--search-type",  str(search_type), str(trialfile), "--no-generate-report"])
+       main(["--weightsfile", "data/polyarg-weights.dat",  "--search-prefix", '"' + str(proof_prefix) + '"', str(trialfile), "--no-generate-report"])
     else:
-        main(["--weightsfile", "data/polyarg-weights.dat","--search-type", str(search_type), str(trialfile), "--no-generate-report"])
+        main(["--weightsfile", "data/polyarg-weights.dat", str(trialfile), "--no-generate-report"])
 
     # TODO : Show user that the search is still going on, just to make sure that nothing has gone wrong.
 
@@ -82,11 +74,14 @@ def prove_and_print(theorem_lemma, random_id, search_type):
 
     with open("trial" + random_id + "Zd-json_graph.txt", "r") as json_graph:
         d3_tree = json_graph.read()
+    json_graph.close()
 
     with open("static/d3-tree.js", "r") as d3_interact:
         with open("static/d3-tree" + random_id + ".js", "w") as d3_tree_random_id:
             d3_tree_random_id.write("var treeData = " + d3_tree + ";")
             d3_tree_random_id.write(d3_interact.read())
+        d3_tree_random_id.close()
+    d3_interact.close()
 
     os.system("alectryon --frontend coq --backend webpage proved_theorem" + 
     random_id + ".v -o proved_theorem" + random_id + ".html")
@@ -107,6 +102,7 @@ def prove_and_print(theorem_lemma, random_id, search_type):
             fp2.write(soup.prettify())
         fp2.close()
     fp.close()
+
     os.system("mv modified_html" + random_id + ".html templates/")
     # TODO: delete all the temp files created in this call
     os.system("rm -rf trial" + random_id + "* proved_theorem" + random_id + "* search-report/trial" + random_id + "*")
@@ -120,24 +116,15 @@ def get_choices():
 @app.route('/')
 def my_form():
     choices = get_choices()
-    return render_template('user_input.html', choices=choices,err_msg='')
+    return render_template('user_input.html')
 
 @app.route('/', methods=['POST'])
 def my_form_post():
     multiprocessing.set_start_method('spawn')
     theorem_lemma = request.form['theorem_lemma']
     random_id = random.randrange(1000000)
-    search_type = request.form['search_type']
-    if (search_type in get_choices()):
-        code, err_msg = prove_and_print(theorem_lemma, str(random_id), search_type)
-    else:
-        # the search type gets concatenated into a bash command
-        # suppose an adversary passed "; <MALICIOUS COMMAND> #" in the form
-        # then we are just running arbitrary bash scripts from the user. terrifying!
-        # at the very least we can check the input
-        code = 1
-        err_msg = "invalid search type"
-    if code == 1:
+    code, err_msg = prove_and_print(theorem_lemma, str(random_id))
+    if (code == 1):
         return render_template('user_input.html', theorem_lemma=theorem_lemma, err_msg=err_msg)
     return render_template("modified_html" + str(random_id) + ".html")
 
