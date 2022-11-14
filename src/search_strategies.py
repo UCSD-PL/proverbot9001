@@ -521,11 +521,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
             command_list, _ = search(pbar, [next_node], subgoals_stack_start, 0)
         pbar.clear()
 
-    # TODO : use the DOT notation of the graph and feed to network.  
-
-    # g.export_string_to_file()
-    # print(g.print_label_recursive(g.start_node))
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    with open(f"{module_prefix}-json_graph.txt", "w") as graph_json:
+        graph_json.write(str(g.print_label_recursive(g.start_node)))
     if args.features_json:
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")

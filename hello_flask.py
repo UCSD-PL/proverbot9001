@@ -54,7 +54,7 @@ def prove_and_print(theorem_lemma, random_id, search_type):
     if not (proof_prefix == '""'):
        main(["--weightsfile", "data/polyarg-weights.dat",  "--search-prefix", '"' + str(proof_prefix) + '"',"--search-type",  str(search_type), str(trialfile), "--no-generate-report"])
     else:
-        main(["--weightsfile", "data/polyarg-weights.dat","--search-type", str(search_type), str(trialfile), "--no-generate-report", "-vvv"])
+        main(["--weightsfile", "data/polyarg-weights.dat","--search-type", str(search_type), str(trialfile), "--no-generate-report"])
 
     # TODO : Show user that the search is still going on, just to make sure that nothing has gone wrong.
 
@@ -80,7 +80,14 @@ def prove_and_print(theorem_lemma, random_id, search_type):
         f.close()
     file.close()
 
-    os.system("mv search-report/trial" + random_id + "*.svg static/")
+    with open("trial" + random_id + "Zd-json_graph.txt", "r") as json_graph:
+        d3_tree = json_graph.read()
+
+    with open("static/d3-tree.js", "r") as d3_interact:
+        with open("static/d3-tree" + random_id + ".js", "w") as d3_tree_random_id:
+            d3_tree_random_id.write("var treeData = " + d3_tree + ";")
+            d3_tree_random_id.write(d3_interact.read())
+
     os.system("alectryon --frontend coq --backend webpage proved_theorem" + 
     random_id + ".v -o proved_theorem" + random_id + ".html")
     
@@ -95,12 +102,14 @@ def prove_and_print(theorem_lemma, random_id, search_type):
                 div.decompose()
         soup.head.append(soup.new_tag("script", src="{{url_for('static',filename='d3.min.js')}}"))
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='d3-min.css')}}"))
-        soup.body.append(soup.new_tag("script", src="{{url_for('static', filename='d3-tree.js')}}"))
+        soup.body.append(soup.new_tag("script", src="{{url_for('static', filename='d3-tree" + str(random_id) + ".js')}}"))
         with open("modified_html" + random_id + ".html", "w") as fp2:
             fp2.write(soup.prettify())
         fp2.close()
     fp.close()
     os.system("mv modified_html" + random_id + ".html templates/")
+    # TODO: delete all the temp files created in this call
+    os.system("rm -rf trial" + random_id + "* proved_theorem" + random_id + "* search-report/trial" + random_id + "*")
     return 0, "no error"
 
 def get_choices():
