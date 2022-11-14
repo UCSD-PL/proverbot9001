@@ -1,15 +1,11 @@
 import json
-import multiprocessing
 import os
 import random
-import sys
 
 from bs4 import BeautifulSoup
 from flask import Flask, redirect, render_template, request, url_for
 
 import coq_serapy
-sys.path.insert(0, './src')
-from src.search_file import main
 
 app = Flask(__name__)
 
@@ -32,7 +28,6 @@ def prove_and_print(theorem_lemma, random_id):
             proof_commands)
             _, _ = coq.finish_proof(cmds_left)
         except Exception as e: 
-            print("Something went wrong!")
             return 1, str(e)
 
     admitted_index = theorem_lemma.find("Admitted.")
@@ -42,12 +37,12 @@ def prove_and_print(theorem_lemma, random_id):
     proof_prefix = ''.join(list(map(lambda x: ' ' if (x == "\n" or x == '\r') else x, clipped_theorem)))
     proof_prefix = '"' + proof_prefix + '"'
 
+    cmdtorun = "./src/search_file.py --weightsfile data/polyarg-weights.dat " + trialfile + " --no-generate-report"
 
     if not (proof_prefix == '""'):
-       main(["--weightsfile", "data/polyarg-weights.dat",  "--search-prefix", '"' + str(proof_prefix) + '"', str(trialfile), "--no-generate-report"])
-    else:
-        main(["--weightsfile", "data/polyarg-weights.dat", str(trialfile), "--no-generate-report"])
+        cmdtorun = "./src/search_file.py --weightsfile data/polyarg-weights.dat --search-prefix " + proof_prefix + " " + trialfile + " --no-generate-report"
 
+    os.system(cmdtorun)
     # TODO : Show user that the search is still going on, just to make sure that nothing has gone wrong.
 
     with open("search-report/trial" + random_id + "-proofs.txt", "r") as file:
@@ -108,19 +103,13 @@ def prove_and_print(theorem_lemma, random_id):
     os.system("rm -rf trial" + random_id + "* proved_theorem" + random_id + "* search-report/trial" + random_id + "*")
     return 0, "no error"
 
-def get_choices():
-    choices = ["dfs", "beam-bfs", "best-first"]
-    return choices
-
 
 @app.route('/')
 def my_form():
-    choices = get_choices()
     return render_template('user_input.html')
 
 @app.route('/', methods=['POST'])
 def my_form_post():
-    multiprocessing.set_start_method('spawn')
     theorem_lemma = request.form['theorem_lemma']
     random_id = random.randrange(1000000)
     code, err_msg = prove_and_print(theorem_lemma, str(random_id))
