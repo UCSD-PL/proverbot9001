@@ -7,6 +7,22 @@ from flask import Flask, redirect, render_template, request, url_for
 
 import coq_serapy
 
+title_element = """<div class="container">
+    <div class="columns">
+        <div class="column is-2">
+        </div>
+        <div class="column is-8">
+            <br>
+            <div class="title is-2 has-text-centered">
+                ProoFster
+            </div>
+            <br>
+        </div>
+        <div class="column is-2">
+        </div>
+    </div>
+</div> """
+
 app = Flask(__name__)
 
 def prove_and_print(theorem_lemma, random_id):
@@ -92,7 +108,11 @@ def prove_and_print(theorem_lemma, random_id):
                 div.decompose()
         soup.head.append(soup.new_tag("script", src="{{url_for('static',filename='d3.min.js')}}"))
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='d3-min.css')}}"))
+        soup.head.append(soup.new_tag("link", rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"))
+        soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='footer.css')}}"))
         soup.body.append(soup.new_tag("script", src="{{url_for('static', filename='d3-tree" + str(random_id) + ".js')}}"))
+        soup.body.insert_before(BeautifulSoup(title_element, 'html.parser'))
+        soup.body.append("{% include 'footer.html' %}")
         with open("modified_html" + random_id + ".html", "w") as fp2:
             fp2.write(soup.prettify())
         fp2.close()
