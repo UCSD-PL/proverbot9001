@@ -1,57 +1,78 @@
 <!DOCTYPE html>
 <html>
 
-    <head>
-        <!-- big fan of this framework, not a lot of moving parts -->
-        <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
-        <meta name="viewport" content="width=device-width, initial-scale=1">
-        <script>
-            function submitForm() {
-                // first reveal the loading box, THEN submit the form.
-                document.getElementById("loading-box").style="";
-                document.getElementById("proof-form").submit();    
-            }
-        </script>
+<head>
+    <!-- big fan of this framework, not a lot of moving parts -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script>
+        function submitForm() {
+            // first reveal the loading box, THEN submit the form.
+            document.getElementById("loading-box").style = "";
+            document.getElementById("proof-form").submit();
+        }
+    </script>
+    <style>
+        footer.footer {
+            padding: 0;
+            background-color: #ffffff;
+        }
+    </style>
 
 
-    </head>
-    <body>
-        <div class="container">
-            <div class="columns">
-                <div class="column is-2"></div>
-                <div class="column is-8">
-                    <div class="box"> 
-                        <div class="content">
-                            <form method="POST" id="proof-form">
+</head>
 
-                                <div class="field">
-                                    <label class="label" for="theorem_lemma">Input theorem to be proved</label>
-                                    <textarea id="theorem_lemma" name="theorem_lemma" class="textarea is-primary" cols="60" rows="10">{{theorem_lemma}}</textarea>
-                                </div>
-                                <div class="field" style="text-align:center;"><button type="button" class="button" onclick="submitForm()">Submit</button> </div>
-                            </form>
-                            <br>
-                            {% if err_msg is defined %}
-                            <div class="notification is-danger">
-                                    {{err_msg}}
+<body>
+    
+    <div class="container">
+
+        <div class="columns">
+            <div class="column is-2">
+            </div>
+            <div class="column is-8">
+                <br>
+                <div class="title is-2 has-text-centered">
+                    ProoFster
+                </div>
+                    
+                <div class="box">
+                    <div class="content">
+                        <form method="POST" id="proof-form">
+
+                            <div class="field">
+                                <label class="label" for="theorem_lemma">Input theorem to be proved</label>
+                                <textarea id="theorem_lemma" name="theorem_lemma" class="textarea is-primary" cols="60"
+                                    rows="10">{{theorem_lemma}}</textarea>
                             </div>
-                            {% endif %}
+                            <div class="field" style="text-align:center;"><button type="button" class="button"
+                                    onclick="submitForm()">Submit</button> </div>
+                        </form>
+                        <br>
+                        {% if err_msg is defined %}
+                        <div class="notification is-danger">
+                            {{err_msg}}
+                        </div>
+                        {% endif %}
 
-                        </div>
-                    </div>
-
-                    <div class="message is-info" style="visibility: hidden;" id="loading-box">
-                        <div class="message-header">
-                            ProoFster is working...
-                        </div>
-                        <div class="message-body">
-                            <progress class="progress is-large is-primary"></progress>
-                        </div>
                     </div>
                 </div>
-                <div class="column is-2"></div>
+
+                <div class="message is-info" style="visibility: hidden;" id="loading-box">
+                    <div class="message-header">
+                        ProoFster is working...
+                    </div>
+                    <div class="message-body">
+                        <progress class="progress is-large is-primary"></progress>
+                    </div>
+                </div>
+            </div>
+            <div class="column is-2">
             </div>
         </div>
+    </div>
 
-    </body>
+    {% include 'footer.html' %}
+
+</body>
+
 </html>
