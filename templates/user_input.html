@@ -11,6 +11,25 @@
             document.getElementById("loading-box").style = "";
             document.getElementById("proof-form").submit();
         }
+
+        var custom = ``;
+        var induction = `Theorem ge0: forall (n:nat), 0 <= n.
+Proof.
+Admitted.`;
+        var zeqfif = `Theorem zeqfif: (0 = 5) -> False.
+Proof.
+Admitted.`;
+        var app_nil_r = `Require Import List.
+Import ListNotations.
+
+Theorem app_nil_r: forall {A: Type} (l: list A), l ++ [] = l.
+Proof.
+Admitted.`;
+
+        function setInput(select){
+            var textarea = document.getElementsByName("theorem_lemma")[0];
+            textarea.value = window[select.options[select.selectedIndex].value];
+        }
     </script>
     <style>
         footer.footer {
@@ -34,14 +53,21 @@
                 <div class="title is-2 has-text-centered">
                     ProoFster
                 </div>
-                    
+                <select name="input_template" id="input_template" onchange="setInput(this);">
+                    <option selected value=custom>Enter your own lemma</option>
+                    <option value=induction>Induction</option>
+                    <option value=zeqfif>Inversion</option>
+                    <option value=app_nil_r>app_nil_r</option>
+                </select><br />
                 <div class="box">
                     <div class="content">
                         <form method="POST" id="proof-form">
 
                             <div class="field">
                                 <label class="label" for="theorem_lemma">Input theorem to be proved</label>
-                                <textarea id="theorem_lemma" name="theorem_lemma" class="textarea is-primary" cols="60"
+                                <textarea {
+                                    font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
+                                  } id="theorem_lemma" name="theorem_lemma" class="textarea is-primary" cols="60"
                                     rows="10">{{theorem_lemma}}</textarea>
                             </div>
                             <div class="field" style="text-align:center;"><button type="button" class="button"
