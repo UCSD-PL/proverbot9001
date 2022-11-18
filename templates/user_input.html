@@ -26,6 +26,55 @@ Theorem app_nil_r: forall {A: Type} (l: list A), l ++ [] = l.
 Proof.
 Admitted.`;
 
+        var every_elem_le_max = `Require Import List.
+Import ListNotations.
+Require Import Lia.
+Definition max_elem_list (l: list nat) : nat := fold_right max 0 l.
+Lemma every_elem_le_max : forall (l: list nat) (n: nat), (In n l) -> (n <= (max_elem_list l)).
+Proof.
+Admitted.`;
+
+        var list_forall2_app = `Require Export List.
+Variable A: Type.
+Variable B: Type.
+Variable P: A -> B -> Prop.
+Inductive list_forall2: list A -> list B -> Prop :=
+  | list_forall2_nil:
+      list_forall2 nil nil
+  | list_forall2_cons:
+      forall a1 al b1 bl,
+      P a1 b1 ->
+      list_forall2 al bl ->
+      list_forall2 (a1 :: al) (b1 :: bl).
+
+Lemma list_forall2_app:
+  forall a2 b2 a1 b1,
+  list_forall2 a1 b1 -> list_forall2 a2 b2 ->
+  list_forall2 (a1 ++ a2) (b1 ++ b2).
+Proof.
+Admitted.`;
+
+        var list_forall2_app_with_hint = `Require Export List.
+Variable A: Type.
+Variable B: Type.
+Variable P: A -> B -> Prop.
+Inductive list_forall2: list A -> list B -> Prop :=
+  | list_forall2_nil:
+      list_forall2 nil nil
+  | list_forall2_cons:
+      forall a1 al b1 bl,
+      P a1 b1 ->
+      list_forall2 al bl ->
+      list_forall2 (a1 :: al) (b1 :: bl).
+
+Lemma list_forall2_app:
+  forall a2 b2 a1 b1,
+  list_forall2 a1 b1 -> list_forall2 a2 b2 ->
+  list_forall2 (a1 ++ a2) (b1 ++ b2).
+Proof.
+induction 1.
+Admitted.`;
+
         function setInput(select){
             var textarea = document.getElementsByName("theorem_lemma")[0];
             textarea.value = window[select.options[select.selectedIndex].value];
@@ -58,6 +107,8 @@ Admitted.`;
                     <option value=induction>Induction</option>
                     <option value=zeqfif>Inversion</option>
                     <option value=app_nil_r>app_nil_r</option>
+                    <option value=every_elem_le_max>every_elem_le_max</option>
+                    <option value=list_forall2_app>list_forall2_app</option>
                 </select><br />
                 <div class="box">
                     <div class="content">
