@@ -95,7 +95,7 @@ def prove_and_print(theorem_lemma, random_id):
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"))
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='footer.css')}}"))
         soup.body.append(soup.new_tag("script", src="{{url_for('static', filename='d3-tree" + str(random_id) + ".js')}}"))
-        soup.body.insert_before("{% include 'header.html' %}")
+        soup.body.insert_before("{% include 'title.html' %}")
         soup.body.append("{% include 'footer.html' %}")
         with open("modified_html" + random_id + ".html", "w") as fp2:
             fp2.write(soup.prettify())
