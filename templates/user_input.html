@@ -13,13 +13,13 @@
         }
 
         var custom = ``;
-        var induction = `Theorem ge0: forall (n:nat), 0 <= n.
+        var every_elem_ge_zero = `Theorem every_elem_ge_zero: forall (n:nat), 0 <= n.
 Proof.
 Admitted.`;
-        var zeqfif = `Theorem zeqfif: (0 = 5) -> False.
+        var zero_eq_five_proves_false = `Theorem zero_eq_five_proves_false: (0 = 5) -> False.
 Proof.
 Admitted.`;
-        var app_nil_r = `Require Import List.
+        var appending_empty_list_id = `Require Import List.
 Import ListNotations.
 
 Theorem app_nil_r: forall {A: Type} (l: list A), l ++ [] = l.
@@ -29,8 +29,10 @@ Admitted.`;
         var every_elem_le_max = `Require Import List.
 Import ListNotations.
 Require Import Lia.
+
 Definition max_elem_list (l: list nat) : nat := fold_right max 0 l.
-Lemma every_elem_le_max : forall (l: list nat) (n: nat), (In n l) -> (n <= (max_elem_list l)).
+
+Theorem every_elem_le_max : forall (l: list nat) (n: nat), (In n l) -> (n <= (max_elem_list l)).
 Proof.
 Admitted.`;
 
@@ -38,6 +40,7 @@ Admitted.`;
 Variable A: Type.
 Variable B: Type.
 Variable P: A -> B -> Prop.
+
 Inductive list_forall2: list A -> list B -> Prop :=
   | list_forall2_nil:
       list_forall2 nil nil
@@ -47,7 +50,7 @@ Inductive list_forall2: list A -> list B -> Prop :=
       list_forall2 al bl ->
       list_forall2 (a1 :: al) (b1 :: bl).
 
-Lemma list_forall2_app:
+Theorem list_forall2_app:
   forall a2 b2 a1 b1,
   list_forall2 a1 b1 -> list_forall2 a2 b2 ->
   list_forall2 (a1 ++ a2) (b1 ++ b2).
@@ -58,6 +61,7 @@ Admitted.`;
 Variable A: Type.
 Variable B: Type.
 Variable P: A -> B -> Prop.
+
 Inductive list_forall2: list A -> list B -> Prop :=
   | list_forall2_nil:
       list_forall2 nil nil
@@ -67,7 +71,7 @@ Inductive list_forall2: list A -> list B -> Prop :=
       list_forall2 al bl ->
       list_forall2 (a1 :: al) (b1 :: bl).
 
-Lemma list_forall2_app:
+Theorem list_forall2_app:
   forall a2 b2 a1 b1,
   list_forall2 a1 b1 -> list_forall2 a2 b2 ->
   list_forall2 (a1 ++ a2) (b1 ++ b2).
@@ -102,27 +106,38 @@ Admitted.`;
                 <div class="title is-2 has-text-centered">
                     ProoFster
                 </div>
+
+                <div>
+                    <label class="label">Enter a Coq theorem to prove, or select an example from the pull down menu</label>
+                </div>
+
                 <select name="input_template" id="input_template" onchange="setInput(this);">
-                    <option selected value=custom>Enter your own lemma</option>
-                    <option value=induction>Induction</option>
-                    <option value=zeqfif>Inversion</option>
-                    <option value=app_nil_r>app_nil_r</option>
+                    <option selected value=custom>Enter your own theorem</option>
+                    <option value=every_elem_ge_zero>every_elem_ge_zero</option>
+                    <option value=zero_eq_five_proves_false>zero_eq_five_proves_false</option>
+                    <option value=appending_empty_list_id>appending_empty_list_id</option>
                     <option value=every_elem_le_max>every_elem_le_max</option>
                     <option value=list_forall2_app>list_forall2_app</option>
+                    <option value=list_forall2_app>list_forall2_app_with_hint</option>
                 </select><br />
                 <div class="box">
                     <div class="content">
                         <form method="POST" id="proof-form">
 
                             <div class="field">
-                                <label class="label" for="theorem_lemma">Input theorem to be proved</label>
+                                
                                 <textarea {
                                     font-family:Consolas,Monaco,Lucida Console,Liberation Mono,DejaVu Sans Mono,Bitstream Vera Sans Mono,Courier New, monospace;
                                   } id="theorem_lemma" name="theorem_lemma" class="textarea is-primary" cols="60"
                                     rows="10">{{theorem_lemma}}</textarea>
                             </div>
+
+                            <label {font-weight: normal;}>Following the theorem statement, start the proof with “Proof.” and “Admitted.”</label>
+                            <br>
+                            <label>Proofster will attempt to replace “Admitted.” with a Coq proof.</label>
+                            <br><br>
                             <div class="field" style="text-align:center;"><button type="button" class="button"
-                                    onclick="submitForm()">Submit</button> </div>
+                                    onclick="submitForm()">Proofster it!</button> </div>
                         </form>
                         <br>
                         {% if err_msg is defined %}
