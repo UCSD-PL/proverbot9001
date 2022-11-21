@@ -393,11 +393,15 @@ def read_time_taken(timestring: str) -> timedelta:
     timestring = timestring.strip()
     try:
         t = datetime.strptime(timestring, "%H:%M:%S.%f")
+        # Not sure why this is needed, seems to be a bug in the time parsing.
+        days = 0
     except ValueError:
         try:
             t = datetime.strptime(timestring, "%j day, %H:%M:%S.%f")
+            days = t.day
         except ValueError:
             t = datetime.strptime(timestring, "%j days, %H:%M:%S.%f")
-    time_taken = timedelta(days=t.day, hours=t.hour,
+            days = t.day
+    time_taken = timedelta(days=days, hours=t.hour,
                            minutes=t.minute,seconds=t.second)
     return time_taken
