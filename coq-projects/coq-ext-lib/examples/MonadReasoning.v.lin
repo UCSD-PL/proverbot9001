@@ -1,8 +1,0 @@
-71e987264726d21ac1c8a26bb4fd36b6
-Require Import ExtLib.Core.Type.
-Require Import ExtLib.Structures.Monad.
-Require Import ExtLib.Structures.MonadLaws.
-Require Import ExtLib.Data.PreFun.
-Require Import ExtLib.Data.Fun.
-Set Implicit Arguments.
-Set Strict Implicit.

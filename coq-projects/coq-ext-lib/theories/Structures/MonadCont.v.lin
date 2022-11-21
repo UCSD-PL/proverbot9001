@@ -1,5 +1,0 @@
-62da294b873f8f77f5a281b6ff36f855
-Require Import ExtLib.Structures.Monad.
-Class Cont (m : Type -> Type) : Type :=
-{ callCC : forall a b, ((a -> m b) -> m a) -> m a }.
-Arguments callCC {m Cm} {_ _} _ : rename.
