@@ -102,10 +102,7 @@ Admitted.`;
             <div class="column is-2">
             </div>
             <div class="column is-8">
-                <br>
-                <div class="title is-2 has-text-centered">
-                    ProoFster
-                </div>
+		{% include 'title.html' %}
 
                 <div>
                     <label class="label">Enter a Coq theorem to prove, or select an example from the pull down menu</label>
@@ -118,7 +115,7 @@ Admitted.`;
                     <option value=appending_empty_list_id>appending_empty_list_id</option>
                     <option value=every_elem_le_max>every_elem_le_max</option>
                     <option value=list_forall2_app>list_forall2_app</option>
-                    <option value=list_forall2_app>list_forall2_app_with_hint</option>
+                    <option value=list_forall2_app_with_hint>list_forall2_app_with_hint</option>
                 </select><br />
                 <div class="box">
                     <div class="content">
