@@ -71,7 +71,7 @@ def prove_and_print(theorem_lemma, random_id):
         d3_tree = json_graph.read()
     json_graph.close()
 
-    with open("static/d3-tree.js", "r") as d3_interact:
+    with open("static/d3-interactive.js", "r") as d3_interact:
         with open("static/d3-tree" + random_id + ".js", "w") as d3_tree_random_id:
             d3_tree_random_id.write("var treeData = " + d3_tree + ";")
             d3_tree_random_id.write(d3_interact.read())
