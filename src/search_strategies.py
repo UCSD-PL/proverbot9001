@@ -188,7 +188,10 @@ class SearchGraph:
     
     def print_label_recursive(self, node):
 
+        node_handle = self.__graph.get_node(node.node_id)
         output_dict = {"name": node.prediction}
+        if node_handle.attr["fillcolor"]:
+            output_dict["color"] = node_handle.attr["fillcolor"]
         if node.children:
             output_dict["children"] = [self.print_label_recursive(i) for i in node.children]
 
