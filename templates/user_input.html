@@ -16,7 +16,7 @@
         var every_elem_ge_zero = `Theorem every_elem_ge_zero: forall (n:nat), 0 <= n.
 Proof.
 Admitted.`;
-        var zero_eq_five_proves_false = `Theorem zero_eq_five_proves_false: (0 = 5) -> False.
+        var zero_eq_five_is_false = `Theorem zero_eq_five_is_false: (0 = 5) -> False.
 Proof.
 Admitted.`;
         var appending_empty_list_id = `Require Import List.
@@ -105,17 +105,17 @@ Admitted.`;
 		{% include 'title.html' %}
 
                 <div>
-                    <label class="label">Enter a Coq theorem to prove, or select an example from the pull down menu</label>
+                    <label class="label">Enter a Coq theorem to prove, or select an example from the drop-down menu</label>
                 </div>
 
                 <select name="input_template" id="input_template" onchange="setInput(this);">
                     <option selected value=custom>Enter your own theorem</option>
-                    <option value=every_elem_ge_zero>every_elem_ge_zero</option>
-                    <option value=zero_eq_five_proves_false>zero_eq_five_proves_false</option>
-                    <option value=appending_empty_list_id>appending_empty_list_id</option>
-                    <option value=every_elem_le_max>every_elem_le_max</option>
-                    <option value=list_forall2_app>list_forall2_app</option>
-                    <option value=list_forall2_app_with_hint>list_forall2_app_with_hint</option>
+                    <option value=every_elem_ge_zero>Every element of a list of natural numbers is non-negative</option>
+                    <option value=zero_eq_five_is_false>0 = 5 is false</option>
+                    <option value=appending_empty_list_id>Appending an empty list to a list results in that list</option>
+                    <option value=every_elem_le_max>every_elem_le_max: Every element of a list is less than or equal to the list's max</option>
+                    <option value=list_forall2_app>list_forall2_app: If property P holds on corresponding pairs from lists a1, b1 and a2, b2, P also holds on pairs from a1a2, b1b2</option>
+                    <option value=list_forall2_app_with_hint>list_forall2_app with induction hint</option>
                 </select><br />
                 <div class="box">
                     <div class="content">
