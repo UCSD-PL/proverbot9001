@@ -640,11 +640,13 @@ class BFSNode:
             common_prefix_len += 1
         # Return to the place where the current history and the history of
         # the target node diverged.
-        while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
-            coq.cancel_last()
+        for i in range(len(coq.tactic_history.getFullHistory()) -
+                       (initial_history_len + common_prefix_len)):
+            coq.cancel_last_noupdate()
         # Run the next nodes history from that point.
         for cmd in full_node_history[common_prefix_len:]:
-            coq.run_stmt(cmd)
+            coq.run_stmt_noupdate(cmd)
+        coq.update_state()
         return
 
 
