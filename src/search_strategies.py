@@ -973,7 +973,7 @@ def best_first_proof_search(lemma_name: str,
                 h_score = 0.
                 for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
                     try:
-                        h_score += -float(john_model.predict_obl(obl))
+                        h_score += float(john_model.predict_obl(obl))
                     except UnhandledExpr:
                         print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
