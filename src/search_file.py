@@ -259,7 +259,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                         except json.decoder.JSONDecodeError:
                             print(f"On line {idx} in file {proofs_file}")
                             raise
-                        assert job_file == filename, f"Job found in file {filename} " \
+                        assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
                             f"doesn't match it's filename {filename}. {job_file}"
                         loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
                         if loaded_job in [job for job, sol in file_jobs]:
