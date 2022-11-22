@@ -94,6 +94,9 @@ def prove_and_print(theorem_lemma, random_id):
             new_title = soup.new_tag("title")
             new_title.string = "Proofster Results"
             soup.title.replace_with(new_title)
+        back_button = soup.new_tag("button", onclick="history.back()")
+        back_button.string = "Go back"
+        soup.head.append(back_button)
         soup.head.append(soup.new_tag("script", src="{{url_for('static',filename='d3.min.js')}}"))
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='d3-min.css')}}"))
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css"))

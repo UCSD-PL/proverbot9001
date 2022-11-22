@@ -67,7 +67,8 @@ function update(source) {
       .attr('class', 'node')
       .attr('r', 3)
       .style("fill", function(d) {
-          return d._children ? "lightsteelblue" : "#fff";
+          return d.data.color;
+          // return d._children ? "lightsteelblue" : "#fff";
       });
 
   // Add labels for the nodes
@@ -102,7 +103,8 @@ function update(source) {
   nodeUpdate.select('circle.node')
   	.attr('r', 50)
     .style("fill", function(d) {
-        return d._children ? "lightsteelblue" : "#fff";
+           return d.data.color;
+        // return d._children ? "lightsteelblue" : "#fff";
     })
     .attr('cursor', 'pointer');
 
