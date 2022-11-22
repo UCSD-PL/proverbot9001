@@ -5,7 +5,24 @@
     <!-- big fan of this framework, not a lot of moving parts -->
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bulma@0.9.4/css/bulma.min.css">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <!-- unfortunately, our select box contains lots of text. -->
+    <!-- therefore, we need a fancy javascript one capable of text wrap. -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/nice-select2@2.0.0/dist/css/nice-select2.css">
+    <script src="https://cdn.jsdelivr.net/npm/nice-select2@2.0.0/dist/js/nice-select2.js"></script>
+    <style>
+    /* brutally force line-wrapping in the select box */
+    .nice-select {
+        width: fit-content !important;
+        white-space: normal !important;
+    }
+    div.nice-select.label {
+        min-width: 100%;
+    }
+    </style>	
     <script>
+        window.onload = function(e) {
+            NiceSelect.bind(document.getElementById("input_template"));
+        }
         function submitForm() {
             // first reveal the loading box, THEN submit the form.
             document.getElementById("loading-box").style = "";
@@ -102,23 +119,24 @@ Admitted.`;
             <div class="column is-2">
             </div>
             <div class="column is-8">
-		{% include 'title.html' %}
+                {% include 'title.html' %}
 
-                <div>
-                    <label class="label">Enter a Coq theorem to prove, or select an example from the drop-down menu</label>
-                </div>
-
-                <select name="input_template" id="input_template" onchange="setInput(this);">
-                    <option selected value=custom>Enter your own theorem</option>
-                    <option value=every_elem_ge_zero>Every element of a list of natural numbers is non-negative</option>
-                    <option value=zero_eq_five_is_false>0 = 5 is false</option>
-                    <option value=appending_empty_list_id>Appending an empty list to a list results in that list</option>
-                    <option value=every_elem_le_max>every_elem_le_max: Every element of a list is less than or equal to the list's max</option>
-                    <option value=list_forall2_app>list_forall2_app: If property P holds on corresponding pairs from lists a1, b1 and a2, b2, P also holds on pairs from a1a2, b1b2</option>
-                    <option value=list_forall2_app_with_hint>list_forall2_app with induction hint</option>
-                </select><br />
                 <div class="box">
                     <div class="content">
+                        <div class="field">
+                            <label class="label">Enter a Coq theorem to prove, or select an example from the drop-down menu</label>
+                        </div>
+
+                        <select class="label" style="min-width:100%;max-width:100%" name="input_template" id="input_template" onchange="setInput(this);">
+                            <option selected value=custom>Enter your own theorem</option>
+                            <option value=every_elem_ge_zero>Every element of a list of natural numbers is non-negative</option>
+                            <option value=zero_eq_five_is_false>0 = 5 is false</option>
+                            <option value=appending_empty_list_id>Appending an empty list to a list results in that list</option>
+                            <option value=every_elem_le_max>every_elem_le_max: Every element of a list is less than or equal to the list's max</option>
+                            <option value=list_forall2_app>list_forall2_app: If property P holds on corresponding pairs from lists a1, b1 and a2, b2, P also holds on pairs from a1a2, b1b2</option>
+                            <option value=list_forall2_app_with_hint>list_forall2_app with induction hint</option>
+                        </select><br />
+
                         <form method="POST" id="proof-form">
 
                             <div class="field">
