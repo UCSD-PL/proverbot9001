@@ -94,7 +94,7 @@ def prove_and_print(theorem_lemma, random_id):
             new_title = soup.new_tag("title")
             new_title.string = "Proofster Results"
             soup.title.replace_with(new_title)
-        back_button = soup.new_tag("button", onclick="history.back()")
+        back_button = soup.new_tag("a", href="/", **{"class":"button"})
         back_button.string = "Go back"
         soup.head.append(back_button)
         soup.head.append(soup.new_tag("script", src="{{url_for('static',filename='d3.min.js')}}"))
