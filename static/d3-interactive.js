@@ -1,12 +1,12 @@
 
-var width = 960,
+var width = 1960,
     height = 1000;
 
 // append the svg object to the body of the page
 // appends a 'group' element to 'svg'
 var svg = d3.select("body").append("svg")
     .attr("style","display:block; max-height: 100vh; object-fit: contain")
-    .attr("viewBox", "-75 0 " + (width+75) + " " + height)
+    .attr("viewBox", "-400 0 " + (width+400) + " " + height)
   .append("g")
 
 var i = 0,
@@ -65,19 +65,19 @@ function update(source) {
   // Add Circle for the nodes
   nodeEnter.append('circle')
       .attr('class', 'node')
-      .attr('r', 3)
+      .attr('r', 1e-6)
       .style("fill", function(d) {
-          return d.data.color;
-          // return d._children ? "lightsteelblue" : "#fff";
+          return d._children ? "lightsteelblue" : "#fff";
       });
 
   // Add labels for the nodes
   nodeEnter.append('text')
+      .style("font-size", "22px")
       .attr("dy", ".35em")
       .attr("x", function(d) {
           return d.children || d._children ? -13 : 13;
       })
-      .attr("text-anchor", "middle", function(d) {
+      .attr("text-anchor", function(d) {
           return d.children || d._children ? "end" : "start";
       })
       .text(function(d) { return d.data.name; });
@@ -101,10 +101,9 @@ function update(source) {
 
   // Update the node attributes and style
   nodeUpdate.select('circle.node')
-  	.attr('r', 50)
+    .attr('r', 10)
     .style("fill", function(d) {
-           return d.data.color;
-        // return d._children ? "lightsteelblue" : "#fff";
+        return d._children ? "lightsteelblue" : "#fff";
     })
     .attr('cursor', 'pointer');
 
