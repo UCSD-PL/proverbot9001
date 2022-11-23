@@ -109,7 +109,8 @@ def prove_and_print(theorem_lemma, random_id):
         soup.body.insert_before("{% include 'title.html' %}")
         if not theorem_successfully_proved:
             theorem_synthesis_failed = soup.new_tag("div")
-            theorem_synthesis_failed['style'] = "font-size: 22px; color: red; display: flex; justify-content: center;"
+            theorem_synthesis_failed['class']="notification is-danger"
+            theorem_synthesis_failed['style'] = "font-size: 22px; display: flex; justify-content: center;"
             theorem_synthesis_failed.string = "Sorry, I couldn't synthesize a proof of this theorem for you."
             soup.body.insert_before(theorem_synthesis_failed)
         soup.body.append("{% include 'footer.html' %}")
