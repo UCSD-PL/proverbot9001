@@ -45,6 +45,8 @@ def prove_and_print(theorem_lemma, random_id):
     os.system(cmdtorun)
     # TODO : Show user that the search is still going on, just to make sure that nothing has gone wrong.
 
+    theorem_successfully_proved = True
+
     with open("search-report/trial" + random_id + "-proofs.txt", "r") as file:
         for line in file:
             pass
@@ -64,6 +66,8 @@ def prove_and_print(theorem_lemma, random_id):
             commands = parsedjson["commands"]
             for i in range(len(commands)):
                 f.write(commands[i]["tactic"] + "\n")
+            if (commands[(len(commands)) - 1]["tactic"] == "Admitted."):
+                theorem_successfully_proved = False
         f.close()
     file.close()
 
@@ -103,6 +107,11 @@ def prove_and_print(theorem_lemma, random_id):
         soup.head.append(soup.new_tag("link", rel="stylesheet", href="{{url_for('static', filename='footer.css')}}"))
         soup.body.append(soup.new_tag("script", src="{{url_for('static', filename='d3-tree" + str(random_id) + ".js')}}"))
         soup.body.insert_before("{% include 'title.html' %}")
+        if not theorem_successfully_proved:
+            theorem_synthesis_failed = soup.new_tag("div")
+            theorem_synthesis_failed['style'] = "font-size: 22px; color: red; display: flex; justify-content: center;"
+            theorem_synthesis_failed.string = "Sorry, I couldn't synthesize a proof of this theorem for you."
+            soup.body.insert_before(theorem_synthesis_failed)
         soup.body.append("{% include 'footer.html' %}")
         with open("modified_html" + random_id + ".html", "w") as fp2:
             fp2.write(soup.prettify())
@@ -110,7 +119,6 @@ def prove_and_print(theorem_lemma, random_id):
     fp.close()
 
     os.system("mv modified_html" + random_id + ".html templates/")
-    # TODO: delete all the temp files created in this call
     os.system("rm -rf trial" + random_id + "* proved_theorem" + random_id + "* search-report/trial" + random_id + "*")
     return 0, "no error"
 
@@ -122,6 +130,8 @@ def my_form():
 @app.route('/', methods=['POST'])
 def my_form_post():
     theorem_lemma = request.form['theorem_lemma']
+    if (theorem_lemma == ""):
+        return render_template('user_input.html', theorem_lemma="", err_msg="Please enter a theorem to be proved.")
     random_id = random.randrange(1000000)
     code, err_msg = prove_and_print(theorem_lemma, str(random_id))
     if (code == 1):
