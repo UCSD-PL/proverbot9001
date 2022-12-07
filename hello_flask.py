@@ -113,7 +113,7 @@ def prove_and_print(theorem_lemma, random_id):
             theorem_synthesis_failed['style'] = "font-size: 22px; display: flex; justify-content: center;"
             theorem_synthesis_failed.string = "Sorry, I couldn't synthesize a proof of this theorem for you."
             soup.body.insert_before(theorem_synthesis_failed)
-        soup.body.append("{% include 'footer.html' %}")
+        soup.body.append("{% include 'footer2.html' %}")
         with open("modified_html" + random_id + ".html", "w") as fp2:
             fp2.write(soup.prettify())
         fp2.close()
