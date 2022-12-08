@@ -109,9 +109,7 @@ def main(arg_list: List[str]) -> None:
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
             show_progress(args)
         cancel_workers(args)
-        with open(args.output_dir / "time_so_far.txt", 'w') as f:
-            time_taken = datetime.now() - start_time
-            print(str(time_taken), file=f)
+        write_time(args)
     else:
         assert len(solved_jobs) == len(jobs), \
           f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
@@ -240,11 +238,14 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                         f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
         num_workers_left -= num_dispatching_workers
 
-def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
-    cancel_workers(args)
+def write_time(args: argparse.Namespace) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
+
+def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
+    write_time(args)
+    cancel_workers(args)
     sys.exit()
 def cancel_workers(args: argparse.Namespace) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
@@ -283,8 +284,12 @@ def show_progress(args: argparse.Namespace) -> None:
                     util.eprint("One of the workers crashed!")
             elif new_workers_alive > num_workers_alive:
                 num_workers_alive = new_workers_alive
-            if num_workers_alive == 0 and num_jobs_done < num_jobs_total:
-                util.eprint("All workers exited, but jobs aren't done!")
+            if num_workers_alive == 0:
+                time.sleep(1)
+                num_jobs_done = len(get_already_done_jobs(args))
+                if num_jobs_done < num_jobs_total:
+                    util.eprint("All workers exited, but jobs aren't done!")
+                write_time(args)
                 sys.exit(1)
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
