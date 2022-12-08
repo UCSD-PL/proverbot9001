@@ -110,7 +110,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-width", type=int, default=5)
     parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument("--search-depth", type=int, default=6)
-    parser.add_argument("--astar-steps", type=int, default=1024)
+    parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--beam-width", type=int, default=16)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=100)
