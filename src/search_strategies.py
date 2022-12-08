@@ -222,6 +222,7 @@ class SearchGraph:
 class SubSearchResult (NamedTuple):
     solution: Optional[List[TacticInteraction]]
     solved_subgoals: int
+    steps_explored: int
 
 
 def contextInPath(full_context: ProofContext, path: List[LabeledNode]):
@@ -349,7 +350,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
 
     def search(pbar: tqdm, current_path: List[LabeledNode],
                subgoal_distance_stack: List[int],
-               extra_depth: int) -> SubSearchResult:
+               extra_depth: int, steps_explored: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
         nonlocal relevant_lemmas
         global unnamed_goal_number
@@ -366,6 +367,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                       prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
+        substeps_explored = 0
         for _prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
                 break
@@ -375,6 +377,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
                                   time_on_path(current_path[-1]))
+                substeps_explored += 1
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
@@ -421,7 +424,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 #############
                 if completed_proof(coq):
                     solution = g.mkQED(predictionNode)
-                    return SubSearchResult(solution, subgoals_closed)
+                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
                 elif contextInPath(context_after,
                                    current_path[1:] + [predictionNode]):
                     if not args.count_softfail_predictions:
@@ -434,13 +437,16 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     cleanupSearch(num_stmts,
                                   "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit:
+                        and len(current_path) < args.hard_depth_limit \
+                        and (args.max_steps is None or
+                             substeps_explored < args.max_steps):
                     if subgoals_closed > 0:
                         g.setNodeColor(predictionNode, "blue")
                     sub_search_result = search(pbar,
                                                current_path + [predictionNode],
                                                new_distance_stack,
-                                               new_extra_depth)
+                                               new_extra_depth, steps_explored + substeps_explored)
+                    substeps_explored += sub_search_result.steps_explored
                     cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
@@ -449,16 +455,16 @@ def dfs_proof_search_with_graph(lemma_name: str,
                             sub_search_result.solved_subgoals - \
                             subgoals_opened
                         return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed)
+                                               new_subgoals_closed, substeps_explored)
                     if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed)
+                        return SubSearchResult(None, subgoals_closed, substeps_explored)
                 else:
                     hasUnexploredNode = True
                     cleanupSearch(num_stmts, "we hit the depth limit")
                     if subgoals_closed > 0:
                         # depth = (args.search_depth + new_extra_depth + 1) \
                         #     - len(current_path)
-                        return SubSearchResult(None, subgoals_closed)
+                        return SubSearchResult(None, subgoals_closed, substeps_explored)
             except coq_serapy.CoqAnomaly:
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
@@ -476,7 +482,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                            f"{lemma_name}.svg")
 
                 raise
-        return SubSearchResult(None, 0)
+        return SubSearchResult(None, 0, substeps_explored)
     total_nodes = numNodesInTree(args.search_width,
                                  args.search_depth + 2) - 1
     desc_name = lemma_name
@@ -493,10 +499,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        if args.search_prefix is None:
-            command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
-        else:
-            next_node = g.start_node
+        next_node = g.start_node
+        if args.search_prefix is not None:
             for command in coq_serapy.read_commands(args.search_prefix):
                 full_context_before = FullContext(relevant_lemmas,
                                                   coq.prev_tactics,
@@ -506,7 +510,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                      next_node)
                 next_node.time_taken = 0.0
                 coq.run_stmt(command)
-            command_list, _ = search(pbar, [next_node], subgoals_stack_start, 0)
+        command_list, _, _ = search(pbar, [next_node], subgoals_stack_start, 0, 0)
         pbar.clear()
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
@@ -893,7 +897,8 @@ def best_first_proof_search(lemma_name: str,
     desc_name = lemma_name
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
-    for _step in trange(args.astar_steps, unit="pred", file=sys.stdout,
+    assert args.max_steps != None, "When using astar search, you need a step limit. Please specify one with --max-steps"
+    for _step in trange(args.max_steps, unit="pred", file=sys.stdout,
                        desc=desc_name, disable=(not args.progress),
                        leave=False, position=bar_idx + 1,
                        dynamic_ncols=True, bar_format=mybarfmt):
