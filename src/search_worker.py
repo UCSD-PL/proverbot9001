@@ -298,7 +298,7 @@ class Worker:
                 eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                        "due to multiple failures",
                        guard=self.args.verbose >= 1)
-                return SearchResult(search_status, solution)
+                return SearchResult(search_status, solution, 0)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -319,7 +319,7 @@ class Worker:
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
-        return SearchResult(search_status, solution)
+        return SearchResult(search_status, solution, 0)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
