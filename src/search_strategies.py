@@ -510,17 +510,17 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                      next_node)
                 next_node.time_taken = 0.0
                 coq.run_stmt(command)
-        command_list, _, _ = search(pbar, [next_node], subgoals_stack_start, 0, 0)
+        command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
         pbar.clear()
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
     if command_list:
-        return SearchResult(SearchStatus.SUCCESS, command_list)
+        return SearchResult(SearchStatus.SUCCESS, command_list, total_steps)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None)
-    return SearchResult(SearchStatus.FAILURE, None)
+        return SearchResult(SearchStatus.INCOMPLETE, None, total_steps)
+    return SearchResult(SearchStatus.FAILURE, None, total_steps)
 
 
 def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
@@ -784,7 +784,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         prediction_node.mkQED()
                         start_node.draw_graph(graph_file)
                         return SearchResult(SearchStatus.SUCCESS,
-                                            prediction_node.interactions()[1:])
+                                            prediction_node.interactions()[1:], 0)
 
                     if args.scoring_function == "certainty":
                         prediction_node.score = next_node.score * prediction.certainty
@@ -856,9 +856,9 @@ def bfs_beam_proof_search(lemma_name: str,
 
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None)
+        return SearchResult(SearchStatus.INCOMPLETE, None, 0)
     else:
-        return SearchResult(SearchStatus.FAILURE, None)
+        return SearchResult(SearchStatus.FAILURE, None, 0)
 
 @dataclass(order=True)
 class AStarTask:
@@ -898,7 +898,7 @@ def best_first_proof_search(lemma_name: str,
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
     assert args.max_steps != None, "When using astar search, you need a step limit. Please specify one with --max-steps"
-    for _step in trange(args.max_steps, unit="pred", file=sys.stdout,
+    for step in trange(args.max_steps, unit="pred", file=sys.stdout,
                        desc=desc_name, disable=(not args.progress),
                        leave=False, position=bar_idx + 1,
                        dynamic_ncols=True, bar_format=mybarfmt):
@@ -965,7 +965,7 @@ def best_first_proof_search(lemma_name: str,
                 prediction_node.mkQED()
                 start_node.draw_graph(graph_file)
                 return SearchResult(SearchStatus.SUCCESS,
-                                    prediction_node.interactions()[1:])
+                                    prediction_node.interactions()[1:], step)
             if args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
@@ -1013,6 +1013,5 @@ def best_first_proof_search(lemma_name: str,
     hasUnexploredNode = len(nodes_todo) > 0
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None)
-    else:
-        return SearchResult(SearchStatus.FAILURE, None)
+        return SearchResult(SearchStatus.INCOMPLETE, None, step)
+    return SearchResult(SearchStatus.FAILURE, None, step)

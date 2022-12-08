@@ -36,6 +36,7 @@ class TacticInteraction(NamedTuple):
 class SearchResult(NamedTuple):
     status: SearchStatus
     commands: Optional[List[TacticInteraction]]
+    steps_taken: int
 
     @classmethod
     def from_dict(cls, data):
@@ -45,12 +46,13 @@ class SearchResult(NamedTuple):
         else:
             commands = list(map(TacticInteraction.from_dict,
                                 data['commands']))
-        return cls(status, commands)
+        return cls(status, commands, data['steps_taken'])
 
     def to_dict(self):
         return {'status': self.status.name,
                 'commands': list(map(TacticInteraction.to_dict,
-                                     self.commands))}
+                                     self.commands)),
+                'steps_taken': self.steps_taken}
 
 class VernacBlock(NamedTuple):
     commands: List[str]
