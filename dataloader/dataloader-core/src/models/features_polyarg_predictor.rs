@@ -7,8 +7,10 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
+use std::io::{Write, stdout};
+use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
-use crate::context_filter::{filter_data, parse_filter, apply_filter};
+use crate::context_filter::{parse_filter, apply_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
 use crate::features::TokenMap as FeaturesTokenMap;
 use crate::features::*;
@@ -66,7 +68,7 @@ pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata 
     )
 }
 
-pub fn features_polyarg_tensors(
+pub fn features_polyarg_tensors_rs(
     args: DataloaderArgs,
     filename: String,
     metadata: Option<PickleableFPAMetadata>,
@@ -85,6 +87,8 @@ pub fn features_polyarg_tensors(
     ),
     (Vec<i64>, i64),
 )> {
+    let my_bar_style = ProgressStyle::with_template("{msg}: {wide_bar} [{elapsed}/{eta}]").unwrap();
+    let spinner = ProgressBar::new(341028).with_message("Loading data from file").with_style(my_bar_style.clone());
     let filter = parse_filter(&args.context_filter);
     let raw_data_iter = scraped_from_file(
         File::open(filename)
@@ -92,7 +96,7 @@ pub fn features_polyarg_tensors(
             )?)
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
-            ScrapedData::Tactic(t) => Some(t),
+            ScrapedData::Tactic(t) => { spinner.inc(1); Some(t)},
         })
         .map(preprocess_datum)
         .filter(|datum| apply_filter(args.max_length, &filter, datum));
@@ -100,11 +104,16 @@ pub fn features_polyarg_tensors(
         Some(max) => raw_data_iter.take(max).collect(),
         None => raw_data_iter.collect(),
     };
+    spinner.finish();
+    let length: u64 = raw_data.len().try_into().unwrap();
 
-    scraped_to_file(
-        File::create("filtered-data.json").unwrap(),
-        raw_data.iter().cloned().map(ScrapedData::Tactic),
-    );
+    // scraped_to_file(
+    //     File::create("filtered-data.json").unwrap(),
+    //     raw_data.iter().progress_with(ProgressBar::new(length).with_message("Writing filetered data to file")
+    //                                                           .with_style(my_bar_style.clone())
+    //                                                           .with_finish(ProgressFinish::AndLeave))
+    //                    .cloned().map(ScrapedData::Tactic),
+    // );
     let (mut indexer, rest_meta) = match metadata {
         Some((indexer, tokenizer, tmap)) => (
             OpenIndexer::from_pickleable(indexer),
@@ -141,6 +150,7 @@ pub fn features_polyarg_tensors(
     };
     raw_data.sort_by_key(|pnt| -(pnt.context.focused_hyps().len() as i64));
 
+    // This seems to finish in less than a second so no need for a progress bar
     let tactic_stem_indices: Vec<i64> = raw_data
         .iter()
         .map(|data| {
@@ -158,6 +168,7 @@ pub fn features_polyarg_tensors(
         None => (),
     };
 
+    // This seems to finish in less than a second so no need for a progress bar
     let all_premises: Vec<Vec<&String>> = raw_data
         .par_iter()
         .map(|scraped| {
@@ -172,21 +183,6 @@ pub fn features_polyarg_tensors(
     let num_prems = all_premises
         .iter()
         .map(|prems| prems.len() as i64)
-        .collect();
-    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
-    let tokenized_goals: Vec<_> = raw_data
-        .par_iter()
-        .map(|tac| {
-            normalize_sentence_length(
-                tokenizer.tokenize(&tac.context.focused_goal()),
-                args.max_length,
-                0,
-            )
-        })
-        .collect();
-    let goal_symbols_mask = raw_data
-        .par_iter()
-        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
         .collect();
     let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
         .par_iter()
@@ -207,7 +203,9 @@ pub fn features_polyarg_tensors(
                     )
                 })
                 .collect()
-        })
+        }).progress_with(ProgressBar::new(length).with_message("Tokenizing hypotheses")
+                                                 .with_style(my_bar_style.clone())
+                                                 .with_finish(ProgressFinish::AndLeave))
         .collect();
     let hyp_features = raw_data
         .par_iter()
@@ -226,7 +224,29 @@ pub fn features_polyarg_tensors(
                 ]
             })
             .collect()
-        })
+        }).progress_with(ProgressBar::new(length).with_message("Getting hypotheses features")
+                                                 .with_style(my_bar_style.clone())
+                                                 .with_finish(ProgressFinish::AndLeave))
+        .collect();
+    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
+    let tokenized_goals: Vec<_> = raw_data
+        .par_iter()
+        .map(|tac| {
+            normalize_sentence_length(
+                tokenizer.tokenize(&tac.context.focused_goal()),
+                args.max_length,
+                0,
+            )
+        }).progress_with(ProgressBar::new(length).with_message("Tokenizing goals")
+                                                 .with_style(my_bar_style.clone())
+                                                 .with_finish(ProgressFinish::AndLeave))
+        .collect();
+    let goal_symbols_mask = raw_data
+        .par_iter()
+        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
+        .progress_with(ProgressBar::new(length).with_message("Getting goal masks")
+                                               .with_style(my_bar_style)
+                                               .with_finish(ProgressFinish::AndLeave))
         .collect();
     let word_features_sizes = features_token_map.word_features_sizes();
     Ok((
@@ -287,22 +307,22 @@ pub fn tokenize_fpa(
         args.max_length, 0)
 }
 
-pub fn get_premise_features(
-    args: DataloaderArgs,
-    metadata: PickleableFPAMetadata,
+pub fn get_premise_features_rs(
+    _args: DataloaderArgs,
+    _metadata: PickleableFPAMetadata,
     goal: String,
     premise: String) -> FloatTensor1D {
     let score = gestalt_ratio(&goal, get_hyp_type(&premise));
     let eq_feat = equality_hyp_feature(&premise, &goal);
     vec![score, eq_feat]
 }
-pub fn get_premise_features_size(
-    args: DataloaderArgs,
-    metadata: PickleableFPAMetadata) -> i64 {
+pub fn get_premise_features_size_rs(
+    _args: DataloaderArgs,
+    _metadata: PickleableFPAMetadata) -> i64 {
     2
 }
 
-pub fn sample_fpa_batch(
+pub fn sample_fpa_batch_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     context_batch: Vec<TacticContext>,
@@ -319,7 +339,7 @@ pub fn sample_fpa_batch(
     let (word_features_batch, vec_features_batch) = context_batch
         .iter()
         .map(|ctxt| {
-            sample_context_features(
+            sample_context_features_rs(
                 &args,
                 &ftmap,
                 &ctxt.relevant_lemmas,
@@ -409,7 +429,7 @@ pub fn sample_fpa_batch(
     )
 }
 
-pub fn sample_fpa(
+pub fn sample_fpa_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     relevant_lemmas: Vec<String>,
@@ -426,7 +446,7 @@ pub fn sample_fpa(
     FloatTensor2D,
 ) {
     let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    let (word_features, vec_features) = sample_context_features(
+    let (word_features, vec_features) = sample_context_features_rs(
         &args,
         &ftmap,
         &relevant_lemmas,
@@ -470,7 +490,7 @@ pub fn sample_fpa(
     )
 }
 
-pub fn decode_fpa_result(
+pub fn decode_fpa_result_rs(
     args: DataloaderArgs,
     metadata: PickleableFPAMetadata,
     premises: Vec<String>,
@@ -478,8 +498,8 @@ pub fn decode_fpa_result(
     tac_idx: i64,
     arg_idx: i64,
 ) -> String {
-    let stem = decode_fpa_stem(&args, metadata, tac_idx);
-    let arg = decode_fpa_arg(&args, premises, goal, arg_idx);
+    let stem = decode_fpa_stem_rs(&args, metadata, tac_idx);
+    let arg = decode_fpa_arg_rs(&args, premises, goal, arg_idx);
     if arg == "" {
         format!("{}.", stem)
     } else {
@@ -487,7 +507,7 @@ pub fn decode_fpa_result(
     }
 }
 
-pub fn decode_fpa_stem(
+pub fn decode_fpa_stem_rs(
     _args: &DataloaderArgs,
     metadata: PickleableFPAMetadata,
     tac_idx: i64,
@@ -496,7 +516,7 @@ pub fn decode_fpa_stem(
     indexer.reverse_lookup(tac_idx)
 }
 
-pub fn encode_fpa_stem(
+pub fn encode_fpa_stem_rs(
     _args: &DataloaderArgs,
     metadata: PickleableFPAMetadata,
     tac_stem: String,
@@ -505,7 +525,7 @@ pub fn encode_fpa_stem(
     indexer.lookup(tac_stem)
 }
 
-pub fn decode_fpa_arg(
+pub fn decode_fpa_arg_rs(
     args: &DataloaderArgs,
     premises: Vec<String>,
     goal: &str,
@@ -571,7 +591,7 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     }
 }
 
-pub fn fpa_get_num_possible_args(
+pub fn fpa_get_num_possible_args_rs(
     args: &DataloaderArgs) -> i64 {
     (args.max_length + args.max_premises + 1) as i64
 }

@@ -24,9 +24,10 @@ use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
+use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
 use crate::scraped_data::*;
-use crate::tokenizer::get_symbols;
+// use crate::tokenizer::get_symbols;
 use rayon::prelude::*;
 
 use gestalt_ratio::gestalt_ratio;
@@ -34,10 +35,12 @@ use gestalt_ratio::gestalt_ratio;
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
 pub fn context_features(
-    args: &DataloaderArgs,
+    _args: &DataloaderArgs,
     tmap: &TokenMap,
     data: &Vec<ScrapedTactic>,
 ) -> (LongTensor2D, FloatTensor2D) {
+    let my_bar_style = ProgressStyle::with_template("{msg}: {wide_bar} [{elapsed}/{eta}]").unwrap();
+    let length: u64 = data.len().try_into().unwrap();
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = data
         .par_iter()
         .map(|scraped| {
@@ -46,6 +49,9 @@ pub fn context_features(
                 &scraped.context.focused_goal(),
             )
         })
+        .progress_with(ProgressBar::new(length).with_message("Finding best scoring hypotheses and their scores")
+                                               .with_style(my_bar_style.clone())
+                                               .with_finish(ProgressFinish::AndLeave))
         .unzip();
 
     let word_features = data
@@ -58,6 +64,9 @@ pub fn context_features(
                 hyp_head_feature(tmap, best_hyp),
             ]
         })
+        .progress_with(ProgressBar::new(length).with_message("Gathering word features")
+                                               .with_style(my_bar_style.clone())
+                                               .with_finish(ProgressFinish::AndLeave))
         .collect();
 
     let vec_features = best_hyp_scores
@@ -70,13 +79,16 @@ pub fn context_features(
                 // (std::cmp::min(datum.context.focused_hyps().len(), 20) as f64) / 20.0
             ]
         })
+        .progress_with(ProgressBar::new(length).with_message("Gathering vec features")
+                                               .with_style(my_bar_style.clone())
+                                               .with_finish(ProgressFinish::AndLeave))
         .collect();
 
     (word_features, vec_features)
 }
 
-pub fn sample_context_features(
-    args: &DataloaderArgs,
+pub fn sample_context_features_rs(
+    _args: &DataloaderArgs,
     tmap: &TokenMap,
     _relevant_lemmas: &Vec<String>,
     prev_tactics: &Vec<String>,
@@ -331,9 +343,10 @@ pub fn score_hyps<'a>(
     hyps: &Vec<String>,
     goal: &String,
 ) -> Vec<f64> {
+    let truncated_goal: String = goal.chars().take(128).collect();
     hyps.into_iter()
         .map(|hyp| {
-            gestalt_ratio(goal, get_hyp_type(hyp))
+            gestalt_ratio(goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
         })
         .collect()
 }

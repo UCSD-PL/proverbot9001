@@ -46,8 +46,8 @@ extern crate lazy_static;
 extern crate rayon;
 #[pymodule]
 fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
-    #[pyfn(m, "features_to_total_distances_tensors")]
-    fn parallel_features_to_total_distances_tensors(
+    #[pyfn(m)]
+    fn features_to_total_distances_tensors(
         py: Python,
         args: DataloaderArgs,
         filename: String,
@@ -59,10 +59,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         Vec<i64>,
         i64,
     )> {
-        py.allow_threads(move || features_to_total_distances_tensors(args, filename, None))
+        py.allow_threads(move || features_to_total_distances_tensors_rs(args, filename, None))
     }
-    #[pyfn(m, "features_to_total_distances_tensors_with_map")]
-    fn parallel_features_to_total_distances_tensors_with_map(
+    #[pyfn(m)]
+    fn features_to_total_distances_tensors_with_map(
         py: Python,
         args: DataloaderArgs,
         filename: String,
@@ -75,10 +75,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         Vec<i64>,
         i64,
     )> {
-        py.allow_threads(move || features_to_total_distances_tensors(args, filename, Some(map)))
+        py.allow_threads(move || features_to_total_distances_tensors_rs(args, filename, Some(map)))
     }
-    #[pyfn(m, "features_polyarg_tensors")]
-    fn parallel_features_polyarg_tensors_py(
+    #[pyfn(m)]
+    fn features_polyarg_tensors(
         py: Python,
         args: DataloaderArgs,
         filename: String,
@@ -97,10 +97,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         ),
         (Vec<i64>, i64),
     )> {
-        py.allow_threads(move || features_polyarg_tensors(args, filename, None))
+        py.allow_threads(move || features_polyarg_tensors_rs(args, filename, None))
     }
-    #[pyfn(m, "features_polyarg_tensors_with_meta")]
-    fn parallel_features_polyarg_tensors_with_meta(
+    #[pyfn(m)]
+    fn features_polyarg_tensors_with_meta(
         py: Python,
         args: DataloaderArgs,
         filename: String,
@@ -120,10 +120,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         ),
         (Vec<i64>, i64),
     )> {
-        py.allow_threads(move || features_polyarg_tensors(args, filename, Some(meta)))
+        py.allow_threads(move || features_polyarg_tensors_rs(args, filename, Some(meta)))
     }
-    #[pyfn(m, "sample_fpa_batch")]
-    fn sample_fpa_batch_py(
+    #[pyfn(m)]
+    fn sample_fpa_batch(
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
@@ -137,10 +137,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         LongTensor2D,
         FloatTensor2D,
     ) {
-        sample_fpa_batch(args, metadata, context_batch)
+        sample_fpa_batch_rs(args, metadata, context_batch)
     }
-    #[pyfn(m, "sample_fpa")]
-    fn sample_fpa_py(
+    #[pyfn(m)]
+    fn sample_fpa(
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
@@ -157,7 +157,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         LongTensor2D,
         FloatTensor2D,
     ) {
-        sample_fpa(
+        sample_fpa_rs(
             args,
             metadata,
             relevant_lemmas,
@@ -166,8 +166,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             goal,
         )
     }
-    #[pyfn(m, "decode_fpa_result")]
-    fn decode_fpa_result_py(
+    #[pyfn(m)]
+    fn decode_fpa_result(
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
@@ -176,50 +176,50 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         tac_idx: i64,
         arg_idx: i64,
     ) -> String {
-        decode_fpa_result(args, metadata, hyps, goal, tac_idx, arg_idx)
+        decode_fpa_result_rs(args, metadata, hyps, goal, tac_idx, arg_idx)
     }
-    #[pyfn(m, "tokenize")]
-    fn tokenize_fpa_py(
+    #[pyfn(m)]
+    fn tokenize(
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         term: String) -> LongTensor1D {
         tokenize_fpa(args, metadata, term)
     }
-    #[pyfn(m, "get_premise_features")]
-    pub fn get_premise_features_py(
+    #[pyfn(m)]
+    pub fn get_premise_features(
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         goal: String,
         premise: String) -> FloatTensor1D {
-        get_premise_features(args, metadata, goal, premise)
+        get_premise_features_rs(args, metadata, goal, premise)
     }
-    #[pyfn(m, "get_premise_features_size")]
-    pub fn get_premise_features_size_py(
+    #[pyfn(m)]
+    pub fn get_premise_features_size(
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata) -> i64 {
-        get_premise_features_size(args, metadata)
+        get_premise_features_size_rs(args, metadata)
     }
-    #[pyfn(m, "decode_fpa_stem")]
-    fn decode_fpa_stem_py(
+    #[pyfn(m)]
+    fn decode_fpa_stem(
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         tac_idx: i64,
     ) -> String {
-        decode_fpa_stem(&args, metadata, tac_idx)
+        decode_fpa_stem_rs(&args, metadata, tac_idx)
     }
-    #[pyfn(m, "encode_fpa_stem")]
-    fn encode_fpa_stem_py(
+    #[pyfn(m)]
+    fn encode_fpa_stem(
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         tac_stem: String,
     ) -> i64 {
-        encode_fpa_stem(&args, metadata, tac_stem)
+        encode_fpa_stem_rs(&args, metadata, tac_stem)
     }
-    #[pyfn(m, "decode_fpa_arg")]
-    fn decode_fpa_arg_py(
+    #[pyfn(m)]
+    fn decode_fpa_arg(
         _py: Python,
         args: DataloaderArgs,
         _metadata: PickleableFPAMetadata,
@@ -227,10 +227,10 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         goal: &str,
         arg_idx: i64,
     ) -> String {
-        decode_fpa_arg(&args, hyps, goal, arg_idx)
+        decode_fpa_arg_rs(&args, hyps, goal, arg_idx)
     }
-    #[pyfn(m, "encode_fpa_arg")]
-    fn encode_fpa_arg_py(
+    #[pyfn(m)]
+    fn encode_fpa_arg(
         _py: Python,
         args: DataloaderArgs,
         _metadata: PickleableFPAMetadata,
@@ -240,57 +240,57 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> Option<i64> {
         match encode_fpa_arg_unbounded(&args, hyps, goal, arg) {
             Ok(val) => Some(val),
-            Err(err) => None
+            Err(_err) => None
         }
     }
-    #[pyfn(m, "get_num_tokens")]
+    #[pyfn(m)]
     fn get_num_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
         let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
         tokenizer.num_tokens()
     }
-    #[pyfn(m, "fpa_get_num_possible_args")]
-    fn get_num_possible_args(_py: Python, args: DataloaderArgs) -> i64 {
-        fpa_get_num_possible_args(&args)
+    #[pyfn(m)]
+    fn fpa_get_num_possible_args(_py: Python, args: DataloaderArgs) -> i64 {
+        fpa_get_num_possible_args_rs(&args)
     }
-    #[pyfn(m, "get_num_indices")]
+    #[pyfn(m)]
     fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> (PickleableFPAMetadata, i64) {
         let (mut indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         indexer.freeze();
         let num_indices = indexer.num_indices();
         (fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)), num_indices)
     }
-    #[pyfn(m, "get_all_tactics")]
+    #[pyfn(m)]
     fn get_all_tactics(_py: Python, metadata: PickleableFPAMetadata) -> Vec<String> {
 	let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
 	indexer.get_all_tactics()
     }
-    #[pyfn(m, "get_word_feature_vocab_sizes")]
+    #[pyfn(m)]
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
         let (_indexer, _tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         ftmap.word_features_sizes()
     }
-    #[pyfn(m, "get_vec_features_size")]
+    #[pyfn(m)]
     fn get_vec_features_size(_py: Python, _metadata: PickleableFPAMetadata) -> i64 {
         VEC_FEATURES_SIZE
     }
-    #[pyfn(m, "get_fpa_words")]
+    #[pyfn(m)]
     fn get_fpa_words(_py: Python, s: String) -> Vec<String> {
         get_words(&s).into_iter().map(|s| s.to_string()).collect()
     }
 
-    #[pyfn(m, "goals_to_total_distances_tensors")]
-    fn _goals_to_total_distances_tensors(
+    #[pyfn(m)]
+    fn goals_to_total_distances_tensors(
         py: Python,
         args: DataloaderArgs,
         filename: String,
     ) -> PyResult<(GoalEncMetadata, LongTensor2D, FloatTensor1D)> {
         py.allow_threads(move || {
-            Ok(goals_to_total_distances_tensors(args, filename, None)
+            Ok(goals_to_total_distances_tensors_rs(args, filename, None)
                 .map_err(|err| exceptions::PyValueError::new_err(err))?)
         })
     }
-    #[pyfn(m, "goals_to_total_distances_tensors_with_meta")]
-    fn _goals_to_total_distances_tensors_with_meta(
+    #[pyfn(m)]
+    fn goals_to_total_distances_tensors_with_meta(
         py: Python,
         args: DataloaderArgs,
         filename: String,
@@ -298,17 +298,17 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> PyResult<(LongTensor2D, FloatTensor1D)> {
         py.allow_threads(move || {
             let (_, goals, outputs) =
-                goals_to_total_distances_tensors(args, filename, Some(metadata))
+                goals_to_total_distances_tensors_rs(args, filename, Some(metadata))
                     .map_err(|err| exceptions::PyValueError::new_err(err))?;
             Ok((goals, outputs))
         })
     }
-    #[pyfn(m, "goal_enc_get_num_tokens")]
-    fn _goal_enc_get_num_tokens(_py: Python, metadata: &GoalEncMetadata) -> i64 {
-        goal_enc_get_num_tokens(metadata)
+    #[pyfn(m)]
+    fn goal_enc_get_num_tokens(_py: Python, metadata: &GoalEncMetadata) -> i64 {
+        goal_enc_get_num_tokens_rs(metadata)
     }
-    #[pyfn(m, "goal_enc_tokenize_goal")]
-    fn _goal_enc_tokenize_goal(
+    #[pyfn(m)]
+    fn goal_enc_tokenize_goal(
         _py: Python,
         args: DataloaderArgs,
         metadata: &GoalEncMetadata,
@@ -316,8 +316,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> Vec<i64> {
         tokenize_goal(args, metadata, s)
     }
-    #[pyfn(m, "scraped_tactics_from_file")]
-    fn _scraped_tactics_from_file(
+    #[pyfn(m)]
+    fn scraped_tactics_from_file(
         _py: Python,
         filename: String,
 	filter_spec: String,
@@ -339,8 +339,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         }
     }
 
-    #[pyfn(m, "tactic_transitions_from_file")]
-    fn _tactic_transitions_from_file(
+    #[pyfn(m)]
+    fn tactic_transitions_from_file(
         _py: Python,
         args: &DataloaderArgs,
         filename: String,
@@ -366,7 +366,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         hypotheses: Vec<String>,
         goal: String,
     ) -> (LongTensor1D, FloatTensor1D) {
-        crate::features::sample_context_features(
+        crate::features::sample_context_features_rs(
             args,
             &TokenMap::from_dicts(metadata.2),
             &relevant_lemmas,

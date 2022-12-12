@@ -29,18 +29,17 @@ import subprocess
 import signal
 import shutil
 import functools
-from tqdm import tqdm
 from pathlib import Path
 from datetime import datetime, timedelta
-
 from typing import List, NamedTuple, Dict, Any
 
-from search_file import (add_args_to_parser, get_predictor,
+from tqdm import tqdm
+
+
+from search_file import (add_args_to_parser,
                          get_already_done_jobs, remove_already_done_jobs,
-                         project_dicts_from_args)
+                         project_dicts_from_args, format_arg_value)
 from search_worker import ReportJob
-from search_report import generate_report
-import coq_serapy
 import util
 
 details_css = "details.css"
@@ -65,27 +64,18 @@ def main(arg_list: List[str]) -> None:
         assert len(args.filenames) == 1
         args.splits_file = args.filenames[0]
         args.filenames = []
-    predictor = get_predictor(arg_parser, args)
     base = Path(os.path.dirname(os.path.abspath(__file__)))
     assert Path(args.prelude).exists(), "Prelude directory doesn't exist!"
 
     os.makedirs(str(args.output_dir), exist_ok=True)
-    if args.splits_file:
-        with args.splits_file.open('r') as splits_f:
-            project_dicts = json.loads(splits_f.read())
-        for project_dict in project_dicts:
-            project_output_dir = args.output_dir / project_dict["project_name"]
-            if len(project_dict["test_files"]) == 0:
-                continue
-            os.makedirs(str(project_output_dir), exist_ok=True)
-            for filename in [details_css, details_javascript]:
-                destpath = args.output_dir / project_dict["project_name"] / filename
-                if not destpath.exists():
-                    srcpath = base.parent / 'reports' / filename
-                    shutil.copyfile(srcpath, destpath)
-    else:
+    project_dicts = project_dicts_from_args(args)
+    for project_dict in project_dicts:
+        project_output_dir = args.output_dir / project_dict["project_name"]
+        if len(project_dict["test_files"]) == 0:
+            continue
+        os.makedirs(str(project_output_dir), exist_ok=True)
         for filename in [details_css, details_javascript]:
-            destpath = args.output_dir / filename
+            destpath = args.output_dir / project_dict["project_name"] / filename
             if not destpath.exists():
                 srcpath = base.parent / 'reports' / filename
                 shutil.copyfile(srcpath, destpath)
@@ -119,27 +109,31 @@ def main(arg_list: List[str]) -> None:
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
             show_progress(args)
         cancel_workers(args)
-        with open(args.output_dir / "time_so_far.txt", 'w') as f:
-            time_taken = datetime.now() - start_time
-            print(str(time_taken), file=f)
+        write_time(args)
     else:
-        assert len(solved_jobs) == len(jobs), f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
+        assert len(solved_jobs) == len(jobs), \
+          f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
 
     if args.generate_report:
         with open(args.output_dir / "args.json", 'w') as f:
-            json.dump({k: f"\"{v}\"" if isinstance(v, str) or isinstance(v, Path) else str(v) for k, v in vars(args).items()}, f)
+            json.dump({k: format_arg_value(v) for k, v in vars(args).items()}, f)
         cur_dir = os.path.realpath(os.path.dirname(__file__))
 
         for project_dict in project_dicts:
             if len(project_dict["test_files"]) == 0:
                 continue
-            subprocess.run([f"{cur_dir}/sbatch-retry.sh",
+            if project_dict['project_name'] == ".":
+                report_output_name = "report.out"
+            else:
+                report_output_name = f"{project_dict['project_name']}-report.out"
+            command = [f"{cur_dir}/sbatch-retry.sh",
                             "-o", str(args.output_dir / args.workers_output_dir
-                                      / f"{project_dict['project_name']}-report.out"),
+                                      / report_output_name),
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
-                            "-p", project_dict['project_name']])
+                            "-p", project_dict['project_name']]
+            subprocess.run(command)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
             show_report_progress(args.output_dir, project_dicts)
@@ -150,6 +144,15 @@ def main(arg_list: List[str]) -> None:
                         f"{cur_dir}/search_report.sh",
                         str(args.output_dir),
                         "-i"])
+        print("Generating report index...")
+        while True:
+            indexes_generated = int(subprocess.check_output(
+                f"find {args.output_dir} -name 'index.html' | wc -l",
+                shell=True, text=True))
+            if indexes_generated > 0:
+                break
+            else:
+                time.sleep(0.2)
 
 
 def get_all_jobs_cluster(args: argparse.Namespace) -> None:
@@ -235,11 +238,14 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
                         f"{cur_dir}/search_file_cluster_worker.sh"] + rest_args)
         num_workers_left -= num_dispatching_workers
 
-def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
-    cancel_workers(args)
+def write_time(args: argparse.Namespace) -> None:
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
+
+def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
+    write_time(args)
+    cancel_workers(args)
     sys.exit()
 def cancel_workers(args: argparse.Namespace) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
@@ -255,6 +261,8 @@ def show_progress(args: argparse.Namespace) -> None:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
         num_workers_scheduled = len([line for line in f])
+    num_workers_alive = int(subprocess.check_output(
+        f"squeue -u $USER -h -n proverbot9001-worker | wc -l", text=True, shell=True))
 
     with tqdm(desc="Jobs finished", total=num_jobs_total,
               initial=num_jobs_done, dynamic_ncols=True) as bar, \
@@ -267,6 +275,22 @@ def show_progress(args: argparse.Namespace) -> None:
 
             with (args.output_dir / "workers_scheduled.txt").open('r') as f:
                 new_workers_scheduled = len([line for line in f])
+            new_workers_alive = int(subprocess.check_output(
+                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
+                text=True, shell=True))
+            if new_workers_alive < num_workers_alive:
+                num_workers_alive = new_workers_alive
+                if num_workers_alive < (num_jobs_total - num_jobs_done):
+                    util.eprint("One of the workers crashed!")
+            elif new_workers_alive > num_workers_alive:
+                num_workers_alive = new_workers_alive
+            if num_workers_alive == 0:
+                time.sleep(1)
+                num_jobs_done = len(get_already_done_jobs(args))
+                if num_jobs_done < num_jobs_total:
+                    util.eprint("All workers exited, but jobs aren't done!")
+                write_time(args)
+                sys.exit(1)
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
 
@@ -278,7 +302,7 @@ def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) 
     with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
         while num_projects_done < test_projects_total:
             new_projects_done = int(subprocess.check_output(
-                f"find search-report-gym/ -wholename '*/index.html' | wc -l",
+                f"find {report_dir} -wholename '*/index.html' | wc -l",
                 shell=True, text=True))
             bar.update(new_projects_done - num_projects_done)
             num_projects_done = new_projects_done

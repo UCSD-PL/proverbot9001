@@ -22,7 +22,6 @@
 use crate::tokenizer::get_symbols;
 use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use pyo3::prelude::*;
-use pyo3::types::PyAny;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
@@ -567,35 +566,5 @@ impl DataloaderArgs {
     fn new() -> Self {
         let d: DataloaderArgs = Default::default();
         d
-    }
-}
-
-pub struct NormalFloat(f64);
-impl NormalFloat {
-    pub fn new(v: f64) -> NormalFloat {
-        assert_eq!(v, v);
-        NormalFloat(v)
-    }
-}
-impl PartialEq for NormalFloat {
-    fn eq(&self, other: &Self) -> bool {
-        self.0 == other.0
-    }
-}
-impl Eq for NormalFloat {}
-impl PartialOrd for NormalFloat {
-    fn partial_cmp(&self, other: &Self) -> Option<Ordering> {
-        if self.eq(other) {
-            Some(Ordering::Equal)
-        } else if self.0 > other.0 {
-            Some(Ordering::Greater)
-        } else {
-            Some(Ordering::Less)
-        }
-    }
-}
-impl Ord for NormalFloat {
-    fn cmp(&self, other: &Self) -> Ordering {
-        self.partial_cmp(other).unwrap()
     }
 }

@@ -167,6 +167,9 @@ impl Tokenizer {
         (self.token_dict.len() + self.num_reserved_tokens + if self.use_unknowns { 1 } else { 0 })
             as i64
     }
+    pub fn tokens(&self) -> Vec<String> {
+	self.token_dict.keys().cloned().collect()
+    }
 }
 static SYMBOLS_REGEX: &'static str = r",|:=|:>|:|=>|<=|>=|=|<>|>|<[^-]|->|<-|@@|\+{1,2}|\*{1,2}|-|~|/\\|\\/|/|%|\^|\|=|&&|\|\||\)|\(|\|\}|\{\||@\{|\{|\}|;|\|)|\{\||\|\}|\[|\]";
 pub fn get_words(string: &str) -> Vec<&str> {

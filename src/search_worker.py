@@ -40,6 +40,7 @@ class Worker:
     last_program_statement: Optional[str]
     lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
+    axioms_already_added: bool
 
     def __init__(self, args: argparse.Namespace, worker_idx: int,
                  predictor: TacticPredictor,
@@ -54,6 +55,7 @@ class Worker:
         self.lemmas_encountered: List[ReportJob] = []
         self.remaining_commands: List[str] = []
         self.switch_dict = switch_dict
+        self.axioms_already_added = False
 
     def __enter__(self) -> 'Worker':
         self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
@@ -93,6 +95,7 @@ class Worker:
         self.last_program_statement = None
         self.lemmas_encountered = []
         self.remaining_commands = []
+        self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
         assert self.coq
@@ -101,8 +104,10 @@ class Worker:
         self.coq.run_stmt(f"Module {module_name}.")
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
+        self.axioms_already_added = False
 
     def exit_cur_file(self) -> None:
+        assert self.coq
         self.coq.reset()
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
@@ -135,7 +140,7 @@ class Worker:
                                       self.remaining_commands)))
                     assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except coq_serapy.CoqAnomaly:
-                if restart:
+                if restart_anomaly:
                     self.restart_coq()
                     self.reset_file_state()
                     self.enter_file(job_file)
@@ -162,7 +167,7 @@ class Worker:
                             coq_serapy.kill_comments(
                                 command).strip()):
                     self.last_program_statement = command
-                    obligation_num = 0
+                    self.obligation_num = 0
             lemma_statement = run_commands[-1]
             if re.match(r"\s*Next\s+Obligation\s*\.\s*",
                         coq_serapy.kill_comments(
@@ -170,8 +175,8 @@ class Worker:
                 assert self.last_program_statement
                 unique_lemma_statement = \
                     self.last_program_statement + \
-                    f" Obligation {obligation_num}."
-                obligation_num += 1
+                    f" Obligation {self.obligation_num}."
+                self.obligation_num += 1
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
@@ -239,6 +244,21 @@ class Worker:
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
+        if self.args.add_axioms and not self.axioms_already_added:
+            self.axioms_already_added = True
+            # Cancel the lemma statement so we can run the axiom
+            self.coq.cancel_last()
+            with self.args.add_axioms.open('r') as f:
+                for signature in f:
+                    try:
+                        self.coq.run_stmt(signature)
+                        self.coq.run_stmt("Admitted.")
+                    except coq_serapy.CoqExn:
+                        axiom_name = coq_serapy.lemma_name_from_statement(
+                            signature)
+                        eprint(f"Couldn't declare axiom {axiom_name} "
+                               f"at this point in the proof")
+            self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         try:
             search_status, tactic_solution = \
@@ -278,7 +298,7 @@ class Worker:
                 eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                        "due to multiple failures",
                        guard=self.args.verbose >= 1)
-                return SearchResult(search_status, solution)
+                return SearchResult(search_status, solution, 0)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -299,7 +319,7 @@ class Worker:
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
-        return SearchResult(search_status, solution)
+        return SearchResult(search_status, solution, 0)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
@@ -401,17 +421,14 @@ def get_files_jobs(args: argparse.Namespace,
     for project, filename in proj_filename_tuples:
         yield from get_file_jobs(args, project, filename)
 
-def get_predictor(parser: argparse.ArgumentParser,
-                  args: argparse.Namespace) -> TacticPredictor:
+def get_predictor(args: argparse.Namespace) -> TacticPredictor:
     predictor: TacticPredictor
     if args.weightsfile:
         predictor = loadPredictorByFile(args.weightsfile)
     elif args.predictor:
         predictor = loadPredictorByName(args.predictor)
     else:
-        print("You must specify either --weightsfile or --predictor!")
-        parser.print_help()
-        sys.exit(1)
+        raise ValueError("Can't load a predictor from given args!")
     return predictor
 
 def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:

@@ -1,6 +1,0 @@
-0b6702c8a4f9aa4d57362fc83c99e0c0
-Require Export ExtLib.Tactics.Consider.
-Require Export ExtLib.Tactics.Cases.
-Require Export ExtLib.Tactics.Injection.
-Require Export ExtLib.Tactics.Forward.
-Require Export ExtLib.Tactics.EqDep.

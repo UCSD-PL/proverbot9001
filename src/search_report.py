@@ -79,6 +79,7 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
 def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor,
                             project_dict: Dict[str, Any], time_taken: datetime.timedelta) \
                             -> None:
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
     model_name = dict(predictor.getOptions())["predictor"]
     stats: List[ReportStats] = []
     for filename in [details_css, details_javascript]:
@@ -105,7 +106,7 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
             continue
         for (sol_project, sol_filename, _, _), _ in file_solutions:
             assert sol_project == project_dict["project_name"], \
-              (project, project_dict["project_name"])
+              (sol_project, project_dict["project_name"])
             assert sol_filename == filename, \
               (sol_filename, filename)
         blocks = blocks_from_scrape_and_sols(
@@ -617,10 +618,12 @@ def main() -> None:
         for k, v in args_dict.items():
             if k in ["output_dir", "prelude"]:
                 setattr(args, k, Path(eval(v)))
+            elif k == "filenames":
+                setattr(args, k, [Path(f) for f in eval(v)])
             else:
                 setattr(args, k, eval(v))
 
-    predictor = get_predictor(arg_parser, args)
+    predictor = get_predictor(args)
     project_dicts = project_dicts_from_args(args)
     with open(top_args.report_dir / "time_so_far.txt", 'r') as f:
         time_taken = util.read_time_taken(f.read())
