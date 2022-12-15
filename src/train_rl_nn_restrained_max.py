@@ -1,4 +1,4 @@
-from collections import defaultdict, deque
+from collections import deque
 from sklearn.ensemble import RandomForestRegressor
 import torch
 import torch.nn as nn
@@ -9,7 +9,7 @@ import time, argparse, random
 from pathlib_revised import Path2
 import dataloader
 import coq_serapy as serapi_instance
-from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic
+from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic, contextSurjective
 from coq_serapy.contexts import truncate_tactic_context, FullContext
 from search_file import loadPredictorByFile
 from search_strategies import completed_proof
@@ -20,42 +20,37 @@ import gym
 import fasttext
 import os, sys
 from util import nostderr, unwrap, eprint, mybarfmt
-import coq2vec
-
-
-vectorizer = coq2vec.CoqTermRNNVectorizer()
-vectorizer.load_weights("data/term2vec-weights.dat")
+from collections import defaultdict
 
 np.random.seed(2)
 
-# scraped_tactics = dataloader.scraped_tactics_from_file(str(args.scrape_file), args.max_tuples)
-
-# print(type(scraped_tactics), len(scraped_tactics))
-
-# for tactics in scraped_tactics :
-#     print("Tactic", tactics.tactic.strip())
-#     print("Relavant Lemmas : ", tactics.relevant_lemmas)
-#     print("previous_tactics : ", tactics.prev_tactics)
-#     print("Proof context : ")
-#     print("    Foreground goals :" )
-#     for i in tactics.context.fg_goals :
-#         print("           Hypothesis : ", i.hypotheses)
-#         print("           Goals : ", i.goal)
-#     print("    Background goals :" )
-#     for i in tactics.context.bg_goals :
-#         print("           Hypothesis : ", i.hypotheses)
-#         print("           Goals : ", i.goal)
-#     print("    Shelved goals :" )
-#     for i in tactics.context.shelved_goals :
-#         print("           Hypothesis : ", i.hypotheses)
-#         print("           Goals : ", i.goal)
-#     print("    Given up goals :" )
-#     for i in tactics.context.given_up_goals :
-#         print("           Hypothesis : ", i.hypotheses)
-#         print("           Goals : ", i.goal)       
-#     print("The tactic : ", tactics.tactic)
-#     print()
-#     print()
+class Agent_model(nn.Module) :
+	def __init__(self,input_size,output_size) :
+		super(Agent_model,self).__init__()
+		self.lin1 = nn.Linear(input_size,1000)
+		self.lin2 = nn.Linear(1000,500)
+		self.lin3 = nn.Linear(500,200)
+		self.lin4 = nn.Linear(200,100)
+		self.lin5 = nn.Linear(100,50)
+		self.lin6 = nn.Linear(100,50)
+		self.lin7 = nn.Linear(100,50)
+		self.lin8 = nn.Linear(100,50)
+		self.linfinal = nn.Linear(50,output_size)
+		self.softmax = nn.Softmax()
+		self.relu = nn.LeakyReLU()
+		# self.apply(self.init_weights)
+		
+	def forward(self,x) :
+		x = self.relu(self.lin1(x))
+		x = self.relu(self.lin2(x))
+		x = self.relu(self.lin3(x))
+		x = self.relu(self.lin4(x))
+		x = self.relu(self.lin5(x))
+		# x = self.relu(self.lin6(x))
+		# x = self.relu(self.lin7(x))
+		# x = self.relu(self.lin8(x))
+		x = self.linfinal(x)
+		return x
 
 
 class ProofEnv(gym.Env) :
@@ -76,12 +71,14 @@ class ProofEnv(gym.Env) :
 		self.time_per_command= time_per_command
 		self.load_state_model()
 		self.load_language_model()
-		self.max_attempts = 15
+		self.max_attempts = 30
 		self.test_file = open("output/output_test_file.txt","w")
 		self.curr_proof_tactics = []
 		self.max_num_proofs = 15
 		self.num_proofs = 0
+		self.restrictions = defaultdict(lambda: [])
 		self.load_list_tactic_classes()
+
 	
 	def load_list_tactic_classes(self) :
 		with open("tactics.txt", "r") as f :
@@ -97,6 +94,7 @@ class ProofEnv(gym.Env) :
 		assert self.in_file_proof_mode == True
 
 		self.num_commands = 0
+		self.proof_contexts_in_path = []
 		print("Before : ",self.coq.proof_context)
 		while self.proof_line_num < len(self.commands) :# and  self.num_proofs <= self.max_num_proofs :
 			not_function = kill_comments(self.commands[self.proof_line_num - 1]).lstrip().rstrip().split()[0].lower() != "function"
@@ -124,7 +122,7 @@ class ProofEnv(gym.Env) :
 			
 			return self.goto_next_proof()
 
-		return self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip())
+		return None #self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip())
 
 
 	def navigate_file_end_of_current_proof(self) :
@@ -186,9 +184,6 @@ class ProofEnv(gym.Env) :
 
 
 	def get_state_vector_from_text(self,state_text) :
-
-		return np.append(vectorizer.term_to_vector(state_text),[self.num_commands]).astype("float")
-
 		state_sentence = get_symbols(state_text)
 		print(state_text)#,state_sentence)
 		state_tensor = tensorFromSentence(self.language_model,state_sentence,self.device, ignore_missing = True)
@@ -202,8 +197,30 @@ class ProofEnv(gym.Env) :
 			
 			state= state_model_hidden
 		state = state.cpu().detach().numpy().flatten()
-		# state = np.append(state,[self.num_commands]).astype("float") 
+		state = np.append(state,[self.num_commands]).astype("float") 
 		return state
+
+	def abort_and_finish_proof(self) :
+		self.in_agent_proof_mode= False
+		self.in_file_proof_mode = True
+		print("Too many attempts, aborting training on current proof")
+		self.coq.run_stmt("Abort.", timeout= self.time_per_command)
+		if args.wandb_log :
+			wandb.log({"Num command Attempts" : self.num_commands  })
+		
+		self.solve_curr_from_file()
+		self.goto_next_proof()
+		done = True
+		next_state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal)
+		r = -5
+		return next_state, r, done, {}
+
+	def is_context_fresh(self) :
+		for contexts in self.proof_contexts_in_path :
+			if contextSurjective(self.env.proof_context, contexts) :
+				return False
+		
+		return True
 
 
 	def step(self, action):
@@ -211,6 +228,7 @@ class ProofEnv(gym.Env) :
 		# prediction = self.get_pred(action)
 		prediction = action
 		self.num_commands += 1
+		info = {"state_change" : True}
 		
 		try:
 			self.coq.run_stmt(prediction, timeout= self.time_per_command)
@@ -221,7 +239,10 @@ class ProofEnv(gym.Env) :
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
 			print("One of known errors", e)
-			r = -1
+			self.restrictions[self.coq.proof_context.fg_goals[0].goal].append(prediction)
+			r = 0
+			self.num_commands -= 1
+			info["state_change"] = False
 		except serapi_instance.CoqAnomaly:
 			print("Coq Anomaly")
 			self.kill()
@@ -246,13 +267,14 @@ class ProofEnv(gym.Env) :
 				self.curr_proof_tactics.append("{")
 			
 			if completed_proof(self.coq) :
+				if args.wandb_log :
+					wandb.log({"Num command Attempts" : self.num_commands  })
 				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
 				self.curr_proof_tactics.append("Qed.")
-				r = 40
+				r = 5
 				print("Current proof fin with Good rewards")
 				self.test_file.write("\n".join(self.curr_proof_tactics) )
 				self.test_file.flush()
-
 				self.num_proofs_solved += 1
 				self.in_agent_proof_mode= False
 				self.in_file_proof_mode = False
@@ -261,6 +283,14 @@ class ProofEnv(gym.Env) :
 				self.in_file_proof_mode = True
 				self.goto_next_proof()
 				done = True
+			
+			if not self.is_context_fresh() :
+				r = 0
+				self.num_commands -= 1
+				info["state_change"] = False
+				self.coq.cancel_last()
+				self.restrictions[self.coq.proof_context.fg_goals[0].goal].append(prediction)
+
 			if self.coq.proof_context == None :
 				print("No context")
 				quit()
@@ -269,7 +299,7 @@ class ProofEnv(gym.Env) :
 
 
 		if self.num_commands > self.max_attempts :
-			r = -20
+			r = -5
 			self.in_agent_proof_mode= False
 			self.in_file_proof_mode = True
 			print("Too many attempts, aborting training on current proof")
@@ -279,61 +309,42 @@ class ProofEnv(gym.Env) :
 			
 			self.solve_curr_from_file()
 			self.goto_next_proof()
-			done = True   
+			done = True 
 		
 		
-		next_state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal)
-		return next_state, r, done, {}
+		next_state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip() )
+		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+		return next_state, r, done, info
 
 
 	def reset(self):
 		self.reset_to_start_of_file()
-		state = self.goto_next_proof()
-		return state
-
-
-
-
-# class Memory :
-# 	def __init__(self) :
-# 		self.mem = []
-# 		self.num_items = 0
-# 		self.index_dict = defaultdict(lambda : None)
-				
-# 	def add(self,s_vector ,s_text, g) :
-# 		if s_text in self.index_dict :
-# 			i = self.index_dict[s_text]
-# 			self.mem[i][1] = max(g, self.mem[i][1]) #Index 1 is the reward, 0 is the vector
-		
-# 		else :
-# 			self.index_dict[s_text] = self.num_items
-# 			self.mem.append([s_vector,g])
-# 			self.num_items += 1
-# 			if args.wandb_log :
-# 				wandb.log({'Num Proof states' : self.num_items})
-	
-# 	def clear(self) :
-# 		self.mem = []
-# 		self.num_items = 0
-	
-# 	def sample_random_minibatch(self,n = None) :
-# 		if n :
-# 			mem_batch = random.sample(self.mem,n)
-# 		else :
-# 			mem_batch = list(self.mem)
-# 			random.shuffle(mem_batch)
-# 		return mem_batch
-
+		self.goto_next_proof()
+		state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip() )
+		info = {}
+		info["state_text"] =self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+		return state,info
 
 
 class Memory :
 	def __init__(self) :
 		self.mem = []
 		self.num_items = 0
+		self.index_dict = defaultdict(lambda : None)
 				
-	def add(self,s,r) :
-		self.mem.append([s,r])
-		self.num_items += 1
+	def add(self,s_vector ,s_text, r) :
+		print(self.index_dict, self.mem)
+		print("Who shaoll say ....", s_text, r)
+		if s_text in self.index_dict :
+			i = self.index_dict[s_text]
+			self.mem[i][1] = max(r, self.mem[i][1]) #Index 1 is the reward, 0 is the vector
+		
+		else :
+			self.index_dict[s_text] = self.num_items
+			self.mem.append([s_vector,r])
+			self.num_items += 1
+			if args.wandb_log :
+				wandb.log({'Num Proof states' : self.num_items})
 	
 	def clear(self) :
 		self.mem = []
@@ -356,11 +367,12 @@ def get_epsilon_greedy(qvals,epsilon):
 		return np.random.randint(low = 0, high=len(qvals))
 
 
-
 def get_qvals(state_actions, agent_model):
-	qvals = agent_model.predict(state_actions)
+	state_actions = torch.tensor(state_actions,dtype=torch.float32)
+	with torch.no_grad() :
+		qvals = agent_model(state_actions)
+	print(qvals)
 	return qvals
-
 
 def is_hyp_token(arg, obligation) :
 	
@@ -385,8 +397,12 @@ def get_state_action(s, tactic_space_model, env, predictor) :
 	
 
 	state_action = []
+	list_of_pred = []
 	for prediction_idx, prediction in enumerate(predictions):
 		curr_pred = prediction.prediction.lstrip().rstrip()
+		if curr_pred in env.restrictions[ env.coq.proof_context.fg_goals[0].goal ] :
+			continue
+		list_of_pred.append( prediction )
 		tactic_class,tactic_args = split_tactic(curr_pred.lstrip().rstrip().rstrip("."))
 		# tactic_class_vec = np.eye(len(list_of_tactic_classes), 0, list_of_tactic_classes.index(tactic_class)).flatten()
 		tactic_class_vec = np.zeros(len(env.list_of_tactic_classes) + 1)
@@ -411,12 +427,17 @@ def get_state_action(s, tactic_space_model, env, predictor) :
 		final_state_action_vec = np.concatenate((tactic_class_vec, tactic_args_type_vec, tactic_args_vec))
 		state_action.append(final_state_action_vec)
 
-	return state_action, predictions
+	
+	return state_action, list_of_pred
 
 
 def select_action(s, agent_model, tactic_space_model, env, predictor, epsilon) :
 
 	state_action, predictions = get_state_action(s, tactic_space_model, env, predictor)
+	if len(state_action) == 0 or len(predictions) == 0 :
+		print("No predictions available for the current state")
+		return None, None, {"qval" : -5}
+
 	qvals = get_qvals(state_action, agent_model)
 	
 	print("Current Options : ", [predictions[i].prediction.lstrip().rstrip() + " : " + str(qvals[i]) for i in range(len(qvals)) ])
@@ -426,64 +447,76 @@ def select_action(s, agent_model, tactic_space_model, env, predictor, epsilon) :
 
 def select_random_action(s, tactic_space_model, env, predictor) :
 	state_action, predictions = get_state_action(s, tactic_space_model, env, predictor)
+
+	if len(state_action) == 0 or len(predictions) == 0 :
+		print("No predictions available for the current state")
+		return None, None, None
+
 	action_idx = np.random.choice(range(len(state_action)))
 	return predictions[action_idx].prediction,state_action[action_idx]
 
 
-def RF_QLearning(T_max, gamma, batch_size, args) :
+def NN_QLearning(T_max, gamma, batch_size, args) :
 
 	env = ProofEnv(args.proof_file.path, args.prelude)
 	predictor = loadPredictorByFile(args.weightsfile)
 	tactic_space_model = fasttext.train_unsupervised(args.proof_file.path, model='cbow', lr = 0.1,epoch = 1000)
 	memory = Memory()
-	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
-	s = env.reset()
+	s,info = env.reset()
+	prediction, state_action = select_random_action(s, tactic_space_model, env, predictor)
+
+	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+	agent_model = Agent_model(state_action.shape[0],1).to(device) #DNNScorer(1,5,2) 
+	optimizer =  optim.Adam(agent_model.parameters(),lr = 0.001)
+	loss_object = torch.nn.MSELoss()
 
 	# with open("data/Rf_agent_model.pkl", 'rb') as f:
 	# 	# agent_model = RandomForestRegressor()
 	# 	agent_model = pickle.load(f)
 
-	agent_model = RandomForestRegressor()
-
-	temp_x = []
-	temp_y = []
-	for _ in range(10) :
-		prediction, state_action = select_random_action(s, tactic_space_model, env, predictor)
-		s_next,episode_r, done, info = env.step(prediction)
-		temp_x.append(state_action)
-		temp_y.append(episode_r)
-	agent_model.fit(temp_x, temp_y)
-	s = env.reset()
-	print("Setup Done")
 
 
 	
 	T = 0
 	episode_r = 0
-	curr_epsilon = 0.1
-	epsilon_increment = 10/T_max
+	curr_epsilon = 0.5
+	epsilon_increment = 0.001 #10/T_max
 	perf_queue = deque(maxlen=20)
 
 	state_rewards = []
 	states_in_this_proof = []
 	agent_qval = []
 	live_rewards = []
+	state_texts = []
 	while T <= T_max :
 		print(T)
 		# a = get_epsilon_greedy( agent_model.get_qvals(torch.tensor(s)), curr_epsilon )
 		# print(s)
-		
-		prediction,state_action,agent_info = select_action(s, agent_model, tactic_space_model, env, predictor, curr_epsilon)
-		print("Selected action :" +  prediction.prediction  + "; Take step <press Enter>?")
-		s_next,episode_r, done, _ = env.step(prediction.prediction)
-		print("Step taken")
-		episode_r += prediction.certainty
 
-		state_rewards.append(episode_r)
-		states_in_this_proof.append(state_action)
-		agent_qval.append(agent_info["qval"])
-		live_rewards.append(episode_r)
+		info["state_change"]= False
+		while info["state_change"] == False :
+			prediction,state_action,agent_info = select_action(s, agent_model, tactic_space_model, env, predictor, curr_epsilon)
+			if prediction == None and state_action == None :
+				print("Exiting the loop")
+				s_next,episode_r, done, info = env.abort_and_finish_proof()
+				break
+			print("Selected action :" +  prediction.prediction  + "; Take step <press Enter>?")
+			s_next,episode_r, done, info = env.step(prediction.prediction)
+
+		print("Step taken")
+		if not done :
+			episode_r += prediction.certainty
+
+		if prediction == None :
+			state_rewards[-1] = episode_r
+			live_rewards.append(episode_r)
+		else :
+			state_rewards.append(episode_r)
+			state_texts.append(info["state_text"])
+			states_in_this_proof.append(state_action)
+			agent_qval.append(agent_info["qval"])
+			live_rewards.append(episode_r)
 
 		if args.wandb_log :
 			wandb.log({"T" : T})
@@ -494,7 +527,7 @@ def RF_QLearning(T_max, gamma, batch_size, args) :
 			true_qvals = []
 			for i in range(len(state_rewards) - 1, -1, -1) :
 				total_curr_rewards = state_rewards[i] + total_curr_rewards*gamma
-				memory.add(states_in_this_proof[i], total_curr_rewards)
+				memory.add(states_in_this_proof[i], state_texts[i], total_curr_rewards)
 				true_qvals.insert(0,total_curr_rewards)
 			
 
@@ -514,11 +547,22 @@ def RF_QLearning(T_max, gamma, batch_size, args) :
 				wandb.log({"Exploration Factor":curr_epsilon})
 				wandb.log({"Gain" : sum(perf_queue)/len(perf_queue)})
 				
-			
-			mem_batch = memory.sample_random_minibatch()
-			state_actions, rewards = zip(*mem_batch)
-			agent_model.fit(state_actions, rewards)
-		
+			if memory.num_items > batch_size :
+				for _ in range(200) :
+					mem_batch = memory.sample_random_minibatch(batch_size)
+					state_actions, rewards = zip(*mem_batch)
+					state_actions = torch.tensor(state_actions, dtype=torch.float32)
+					rewards = torch.tensor(rewards,dtype=torch.float32)
+					optimizer.zero_grad()
+					y_pred = agent_model(state_actions)
+					loss =  loss_object(y_pred,rewards)
+					print(loss)
+					loss.backward()
+					optimizer.step()
+					if args.wandb_log :                
+						wandb.log({"Loss" : loss})
+
+
 			if curr_epsilon < 1 :
 				curr_epsilon += epsilon_increment
 				
@@ -544,7 +588,7 @@ if __name__ == "__main__" :
 	parser.add_argument('--wandb_log', action= 'store_true')
 	parser.add_argument('--weightsfile', default = "data/polyarg-weights.dat", type=Path2)
 	parser.add_argument("--max_term_length", type=int, default=256)
-	parser.add_argument("--max_attempts", type=int, default=7)
+	parser.add_argument("--max_attempts", type=int, default=5)
 	parser.add_argument('--prelude', default=".")
 	parser.add_argument('--run_name', type=str, default=None)
 
@@ -558,11 +602,12 @@ if __name__ == "__main__" :
 			wandb.init(project="Proverbot", entity="avarghese")
 
 
-	total_num_steps = 100000
+	total_num_steps = 10000
 	gamma = 1
 	batch_size = 100
 	
 
-	RF_QLearning(T_max= total_num_steps, gamma = gamma, args = args, batch_size = batch_size)
+	NN_QLearning(T_max= total_num_steps, gamma = gamma, args = args, batch_size = batch_size)
+
 
 		

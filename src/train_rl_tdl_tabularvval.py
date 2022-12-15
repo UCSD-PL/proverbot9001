@@ -1,4 +1,5 @@
 from collections import deque
+import json
 from sklearn.ensemble import RandomForestRegressor
 import torch
 import torch.nn as nn
@@ -22,19 +23,25 @@ import os, sys
 from util import nostderr, unwrap, eprint, mybarfmt
 from collections import defaultdict
 from coqproofenv import *
-
-
+from multiprocessing import Pool
+from mpire import WorkerPool
+import copy
 
 np.random.seed(2)
 
 
 def eprint(*args, **kwargs):
-    if "guard" not in kwargs or kwargs["guard"]:
-        print(*args, file=sys.stderr,
-              **{i: kwargs[i] for i in kwargs if i != 'guard'})
-        sys.stderr.flush()
+	if "guard" not in kwargs or kwargs["guard"]:
+		print(*args, file=sys.stderr,
+			  **{i: kwargs[i] for i in kwargs if i != 'guard'})
+		sys.stderr.flush()
 
 
+
+class Agent_model :
+	def __init__(self) :
+		self.vtable = defaultdict(lambda : random.random())
+		self.etable = defaultdict(lambda : 0)
 
 class Memory :
 	def __init__(self) :
@@ -45,6 +52,43 @@ class Memory :
 		self.mem.append([s,r])
 		self.num_items += 1
 	
+	def clear(self) :
+		self.mem = []
+		self.num_items = 0
+	
+	def sample_random_minibatch(self,n = None) :
+		if n :
+			mem_batch = random.sample(self.mem,n)
+		else :
+			mem_batch = list(self.mem)
+			random.shuffle(mem_batch)
+		return mem_batch
+
+
+class Memory_max :
+	def __init__(self) :
+		self.mem = []
+		self.num_items = 0
+		self.index_dict = defaultdict(lambda : None)
+		self.add_called = 0
+				
+	def add(self,s_vector ,s_text, G) :
+		print("Who shaoll say ....", s_text, G)
+		print("debug",(s_text in self.index_dict, s_text, self.index_dict))
+		self.add_called += 1
+		if s_text in self.index_dict :
+			i = self.index_dict[s_text]
+			self.mem[i][1] = max(G, self.mem[i][1]) #Index 1 is the reward, 0 is the vector
+		
+		else :
+			self.index_dict[s_text] = self.num_items
+			self.mem.append([s_vector,G])
+			self.num_items += 1
+		if args.wandb_log :
+			wandb.log({"Num times add called" : self.add_called})
+			
+			wandb.log({ "debug" : (s_text in self.index_dict, s_text, self.index_dict)})
+
 	def clear(self) :
 		self.mem = []
 		self.num_items = 0
@@ -71,10 +115,11 @@ def get_epsilon_greedy(vvals,epsilon):
 
 
 
-def get_vvals(next_states, agent_model):
-	vvals = agent_model.predict(next_states)
-	return vvals
-
+def get_vvals(next_state_names, agent_model):
+	to_ret = []
+	for each_state in next_state_names :
+		to_ret.append(agent_model.vtable[each_state])
+	return to_ret
 
 def is_hyp_token(arg, obligation) :
 	
@@ -96,6 +141,7 @@ def get_available_actions_with_next_state_vectors(env, predictor) :
 	# print(len( env.coq.proof_context.fg_goals),  env.coq.proof_context.fg_goals)
 	# print(completed_proof(env.coq))
 	relevant_lemmas = env.coq.local_lemmas[:-1]
+	print(env.coq.proof_context)
 	full_context_before = FullContext(relevant_lemmas, env.coq.prev_tactics,  env.coq.proof_context)
 	predictions = predictor.predictKTactics(
 		truncate_tactic_context(full_context_before.as_tcontext(),
@@ -104,14 +150,25 @@ def get_available_actions_with_next_state_vectors(env, predictor) :
 	next_states = []
 	list_of_pred = []
 	print("Available actions", [_.prediction for _ in predictions])
-	for prediction_idx, prediction in enumerate(predictions):
-		curr_pred = prediction.prediction.lstrip().rstrip()
-		state_vec = env.check_next_state(curr_pred)
-		if len(state_vec) == 0 :
-			continue
-		else :
-			list_of_pred.append( prediction )
-			next_states.append(state_vec)
+	if args.use_fast_check :
+		all_available_pred =  [_.prediction.lstrip().rstrip() for _ in predictions]
+		all_next_states = env.check_next_states(all_available_pred)
+		for next_state_ind in range(len(all_next_states)) :
+			curr_next_state = all_next_states[next_state_ind]
+			if len(curr_next_state) == 0 :
+				continue
+			else :
+				next_states.append(preprocess_state(curr_next_state))
+				list_of_pred.append( predictions[next_state_ind] )
+	else :
+		for prediction_idx, prediction in enumerate(predictions):
+			curr_pred = prediction.prediction.lstrip().rstrip()
+			state_vec = env.check_next_state(curr_pred)
+			if len(state_vec) == 0 :
+				continue
+			else :
+				list_of_pred.append( prediction )
+				next_states.append(preprocess_state(state_vec))
 
 	
 	return next_states, list_of_pred
@@ -120,83 +177,91 @@ def get_available_actions_with_next_state_vectors(env, predictor) :
 def select_action(agent_model, env, predictor, epsilon) :
 
 	next_states, predictions = get_available_actions_with_next_state_vectors(env, predictor)
-
+	
 	if len(next_states) == 0 or len(predictions) == 0 :
 		print("No predictions available for the current state in select action")
 		return None, None, {"vval" : -5}
 
-	if "fin" in next_states :
-		action_idx = next_states.index("fin")
-		return predictions[action_idx],[],{"vval" : FINAL_REWARD}
+	for i in range(len(next_states)) :
+		if type(next_states[i]) == str and next_states[i] == "fin" :
+			action_idx = i
+			return predictions[action_idx],[],{"vval" : FINAL_REWARD}
+		else :
+			print("Passed",  type(next_states[i]) )
 
 	vvals = get_vvals(next_states, agent_model)
+	print(vvals)
 	
 	print("Current Options : ", [predictions[i].prediction.lstrip().rstrip() + " : " + str(vvals[i]) for i in range(len(vvals)) ])
-	action_idx = get_epsilon_greedy([i.item() for i in vvals],epsilon)
+	action_idx = get_epsilon_greedy([i for i in vvals],epsilon)
 
 	return predictions[action_idx],next_states[action_idx],{"vval" : vvals[action_idx]}
 
 
-def select_random_action(env, predictor) :
-	print("Selecting Completely Random Action")
-	next_states, predictions = get_available_actions_with_next_state_vectors(env, predictor)
 
-	if len(next_states) == 0 or len(predictions) == 0 :
-		print("No predictions available for the current state in completely random action")
-		return None, None #, None
-
-	if "fin" in next_states :
-		action_idx = next_states.index("fin")
-		return predictions[action_idx], []
-
-	action_idx = np.random.choice(range(len(next_states)))
-	return predictions[action_idx],next_states[action_idx]
+def preprocess_state(state_text_vec) :
+	#make this cleaner in association with select action and get all states, especially checking if state is string part
+	if type(state_text_vec) == str :
+		return state_text_vec
+	if len(state_text_vec) < MAX_STATE_SYMBOLS :
+		state_text_vec = np.pad(state_text_vec, pad_width= ((0,MAX_STATE_SYMBOLS - len(state_text_vec)),) )
+	else :
+		state_text_vec = np.array(state_text_vec)
+		state_text_vec = state_text_vec[:MAX_STATE_SYMBOLS]
+	return state_text_vec
 
 
-def RF_QLearning(T_max, gamma, batch_size, args) :
 
-	env = FastProofEnv(args.proof_file.path, args.prelude, args.wandb_log)
+def train_step( agent_model ,optimizer, loss_object,memory,batch_size = 200, device="cpu") :
+	minibatch = memory.sample_random_minibatch(batch_size)
+	states, rewards = zip(*minibatch)
+	
+	
+	state_tensor = torch.tensor(states).to(device)
+	reward_tensor = torch.tensor(rewards).to(device)
+
+
+	optimizer.zero_grad()
+	predicted_rewards = agent_model(state_tensor)
+
+	loss = loss_object(predicted_rewards,reward_tensor)
+	loss.backward()
+	optimizer.step()
+	return loss.item()
+
+
+def NN_VLearning(T_max, gamma, args) :
+
+	with open("compcert_projs_splits.json",'r') as f :
+		data = json.load(f)
+	# proof_files = data[0]["test_files"]
+	proof_files = [args.proof_file.path]
+
+	if args.use_fast_check :
+		env = FastProofEnv(proof_files, args.prelude, args.wandb_log, state_type = "text", num_check_engines = args.max_attempts)
+	else :
+		env = ProofEnv(proof_files, args.prelude, args.wandb_log, state_type = "text")
 	predictor = loadPredictorByFile(args.weightsfile)
-	tactic_space_model = fasttext.train_unsupervised(args.proof_file.path, model='cbow', lr = 0.1,epoch = 1000)
-	memory = Memory()
-	device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+	memory = Memory_max()
 
-	s = env.reset()
+	s,_ = env.reset()
 
 	# with open("data/Rf_agent_model.pkl", 'rb') as f:
 	# 	# agent_model = RandomForestRegressor()
 	# 	agent_model = pickle.load(f)
 
-	agent_model = RandomForestRegressor()
-
-	temp_x = []
-	temp_y = []
-	for _ in range(10) :
-		prediction, next_state = select_random_action(env, predictor)
-		if prediction == None :
-			continue
-		print("Selected action :" +  prediction.prediction  + "; Take step <press Enter>?")
-		s_next,episode_r, done, info = env.step(prediction.prediction)
-		assert len(next_state) != 0
-		temp_x.append(next_state)
-		temp_y.append(episode_r)
-
-	print(np.array(temp_x).shape, np.array(temp_y).shape)
-	print(temp_x)
-	agent_model.fit(temp_x, temp_y)
-	s,info = env.reset()
-	print("Setup Done")
-
+	agent_model = Agent_model()
 
 	
 	T = 0
 	episode_r = 0
 	curr_epsilon = 0.1
-	epsilon_increment = 10/T_max
+	epsilon_increment = 5/T_max
 	perf_queue = deque(maxlen=20)
 
 	state_rewards = []
 	states_in_this_proof = []
+	state_names = []
 	agent_vval = []
 	live_rewards = []
 	while T <= T_max :
@@ -204,11 +269,11 @@ def RF_QLearning(T_max, gamma, batch_size, args) :
 		# a = get_epsilon_greedy( agent_model.get_qvals(torch.tensor(s)), curr_epsilon )
 		# print(s)
 
-		info = {"state_change": False}
-		print("Entering the loop")
-		
+		print("Starting evaluation of 1 pass of the main timestep T loop")
+		print(env.coq.proof_context)
+		curr_state_name = env.coq.proof_context.fg_goals[0].goal.strip()
+		print("State Name : ", curr_state_name)
 		prediction,_,agent_info = select_action(agent_model, env, predictor, curr_epsilon)
-		
 		if prediction == None :
 			print("No actions available")
 			s_next,episode_r, done, info = env.abort_and_finish_proof()
@@ -217,20 +282,22 @@ def RF_QLearning(T_max, gamma, batch_size, args) :
 			s_next,episode_r, done, info = env.step(prediction.prediction)
 
 		print("Step taken")
-		if not done :
-			episode_r += prediction.certainty
+		# if not done :
+		# 	episode_r += prediction.certainty
 
 		if args.wandb_log :
 			wandb.log({"T" : T})
 			wandb.log({"Num Proofs encountered" : env.num_proofs, "Num Proofs Solved" : env.num_proofs_solved})
 
-			
+		
+
 		if prediction == None :
 			state_rewards[-1] = episode_r
 			live_rewards.append(episode_r)
 		else :
 			state_rewards.append(episode_r)
-			states_in_this_proof.append(s)
+			states_in_this_proof.append(preprocess_state(s))
+			state_names.append(curr_state_name)
 			agent_vval.append(agent_info["vval"])
 			live_rewards.append(episode_r)
 
@@ -241,9 +308,15 @@ def RF_QLearning(T_max, gamma, batch_size, args) :
 			true_vvals = []
 			for i in range(len(state_rewards) - 1, -1, -1) :
 				total_curr_rewards = state_rewards[i] + total_curr_rewards*gamma
-				memory.add(states_in_this_proof[i], total_curr_rewards)
+				memory.add(states_in_this_proof[i], state_names[i], total_curr_rewards)
 				true_vvals.insert(0,total_curr_rewards)
 			
+			for i in range(len(state_rewards) - 1) :
+				delta = state_rewards[i] + gamma*agent_model.vtable[state_names[i+1]] - agent_model.vtable[state_names[i]]
+				agent_model.etable[state_names[i]] += 1
+				for each_state in agent_model.etable :
+					agent_model.vtable[each_state] += args.lr* delta*agent_model.etable[each_state]
+					agent_model.etable[each_state] = gamma*args.l*agent_model.etable[each_state]
 
 			
 			for i in range(len(state_rewards)):	
@@ -255,22 +328,22 @@ def RF_QLearning(T_max, gamma, batch_size, args) :
 			state_rewards = []
 			states_in_this_proof = []
 			agent_vval = []
+			state_names = []
 			live_rewards = []
 			if args.wandb_log :
 				wandb.log({"Episode Total Rewards":total_curr_rewards})
 				wandb.log({"Exploration Factor":curr_epsilon})
 				wandb.log({"Gain" : sum(perf_queue)/len(perf_queue)})
-				
-			
-			mem_batch = memory.sample_random_minibatch()
-			states, rewards = zip(*mem_batch)
-			print(states)
-			agent_model.fit(states, rewards)
-		
-			if curr_epsilon < 1 :
-				curr_epsilon += epsilon_increment
-				
+				wandb.log({"Unique states encountered" : memory.num_items})
+				wandb.log({"Proof times" : env.proof_time})
 
+
+
+
+
+		if curr_epsilon < 1 :
+			curr_epsilon += epsilon_increment
+				
 		s = s_next
 		T += 1
 	
@@ -294,6 +367,12 @@ if __name__ == "__main__" :
 	parser.add_argument("--max_attempts", type=int, default=5)
 	parser.add_argument('--prelude', default=".")
 	parser.add_argument('--run_name', type=str, default=None)
+	parser.add_argument('--nepochs', type=int, default=200)
+	parser.add_argument('--batch_size', type=int, default=200)
+	parser.add_argument('--update_every', type=int, default=200)
+	parser.add_argument('--use_fast_check',  action= 'store_true')
+	parser.add_argument('--lambda', dest='l', type=float, default = 0.5)
+	parser.add_argument('--lr', type=float, default = 0.01)
 
 
 	args = parser.parse_args()
@@ -305,11 +384,10 @@ if __name__ == "__main__" :
 			wandb.init(project="Proverbot", entity="avarghese")
 
 
-	total_num_steps = 20000
+	total_num_steps = 10000
 	gamma = 1
-	batch_size = 100
 	FINAL_REWARD = 5
-
-	RF_QLearning(T_max= total_num_steps, gamma = gamma, args = args, batch_size = batch_size)
+	MAX_STATE_SYMBOLS = 30
+	NN_VLearning(T_max= total_num_steps, gamma = gamma, args = args)
 
 		
