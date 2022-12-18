@@ -137,6 +137,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                                         bar_format=mybarfmt):
                         module = serapi_instance.get_module_from_filename(filename)
                         process_statement(args, keywords, coq, command, f)
+                    print("(* End of File *)", file=f)
                 shutil.move(temp_file, result_file)
                 return result_file
             except serapi_instance.TimeoutError:

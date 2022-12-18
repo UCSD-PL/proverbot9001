@@ -261,7 +261,7 @@ class Worker:
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         try:
-            search_status, tactic_solution = \
+            search_status, tactic_solution, steps_taken = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
                              self.coq,
@@ -284,21 +284,20 @@ class Worker:
             if restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
-            else:
-                if self.args.log_hard_anomalies:
-                    with self.args.log_hard_anomalies.open('a') as f:
-                        print(
-                            f"HARD ANOMALY at "
-                            f"{job_file}:{job_lemma}",
-                            file=f)
-                        traceback.print_exc(file=f)
+            if self.args.log_hard_anomalies:
+                with self.args.log_hard_anomalies.open('a') as f:
+                    print(
+                        f"HARD ANOMALY at "
+                        f"{job_file}:{job_lemma}",
+                        file=f)
+                    traceback.print_exc(file=f)
 
-                search_status = SearchStatus.CRASHED
-                solution: List[TacticInteraction] = []
-                eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
-                       "due to multiple failures",
-                       guard=self.args.verbose >= 1)
-                return SearchResult(search_status, solution, 0)
+            search_status = SearchStatus.CRASHED
+            solution: List[TacticInteraction] = []
+            eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
+                   "due to multiple failures",
+                   guard=self.args.verbose >= 1)
+            return SearchResult(search_status, solution, 0)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -319,7 +318,7 @@ class Worker:
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
-        return SearchResult(search_status, solution, 0)
+        return SearchResult(search_status, solution, steps_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
