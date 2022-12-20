@@ -67,6 +67,21 @@ impl ScrapedTactic {
             tactic: tactic,
         }
     }
+    pub fn with_focused_obl(&self, fg_obl: Obligation) -> Self {
+	let mut fg_goals = vec![fg_obl];
+	fg_goals.extend(self.context.fg_goals.iter().skip(1).cloned());
+	ScrapedTactic {
+	    relevant_lemmas: self.relevant_lemmas.clone(),
+	    prev_tactics: self.prev_tactics.clone(),
+	    context: ProofContext {
+		fg_goals,
+		bg_goals: self.context.bg_goals.clone(),
+		shelved_goals: self.context.shelved_goals.clone(),
+		given_up_goals: self.context.given_up_goals.clone(),
+	    },
+	    tactic: self.tactic.clone()
+	}
+    }
 }
 #[pyclass]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
@@ -340,7 +355,7 @@ pub fn get_stem(full_tactic: &str) -> Option<String> {
     split_tactic(full_tactic).map(|(stem, _args)| stem)
 }
 
-pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
+pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
     let tacstr = kill_comments(&datum.tactic);
     let mut newtac = tacstr.trim().to_string();
     // Truncate semicolons
@@ -374,33 +389,89 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
     if let Some((stem, argstr)) = split_tactic(&newtac) {
         if stem == "induction" || stem == "destruct" {
             // println!("Preprocessing {}", datum.tactic);
+	    // Figure out the numeric argument
             let argstr = if argstr.chars().last() == Some('.') {
                 argstr.chars().take(argstr.len() - 1).collect()
             } else {
                 argstr
             };
             let argstr_tokens: Vec<_> = argstr.split_whitespace().collect();
-            if argstr_tokens.len() == 1 {
-                let new_argstr = argstr_tokens
-                    .into_iter()
-                    .map(|token| match token.parse::<i64>() {
-                        Ok(var_idx) => {
-                            match get_binder_var(datum.context.focused_goal(), var_idx) {
-                                Some(var) => var,
-                                None => token,
-                            }
-                        }
-                        Err(_) => token,
-                    })
-                    .collect::<Vec<_>>()
-                    .join(" ");
-                newtac = vec![stem, new_argstr].join(" ");
-                newtac.push('.');
-            }
+	    if argstr_tokens.len() != 1 {
+		return vec![datum.with_tactic(newtac)];
+	    }
+	    let arg_num = match argstr_tokens[0].parse::<i64>() {
+		Ok(var_idx) => var_idx,
+		Err(_) => { return vec![datum.with_tactic(newtac)]; }
+	    };
+
+	    // Set up a vector to hold the interactions that this unfolds to.
+	    let mut new_scrapeds = Vec::new();
+
+	    // Get interactions from introing the named variables first
+	    let mut hyps_list = datum.context.focused_hyps().clone();
+	    let mut curgoal = datum.context.focused_goal().clone();
+	    loop {
+		match get_named_intro_result(datum.context.focused_goal()) {
+		    Some((new_hyp, new_goal)) => {
+			let new_hyp_var = new_hyp.split(":").next().unwrap().trim();
+			new_scrapeds.push(datum.with_focused_obl(Obligation{
+			    hypotheses:hyps_list.clone(),
+			    goal: curgoal})
+					 .with_tactic(format!("intro {}.", new_hyp_var)));
+			hyps_list.push(new_hyp);
+			curgoal = new_goal;
+		    },
+		    None => break,
+		}
+	    }
+
+	    // Get interactions introing unnamed variables matching
+	    // the argument number
+	    let mut induction_target_var = None;
+	    for _ in 0..arg_num {
+		let fresh_hyp_name = {
+		    let existing_hyp_names: Vec<_> = hyps_list.iter().map(
+			|hyp| hyp.split(":").next().unwrap().trim()).collect();
+		    let alts = ["H", "H0", "H1", "H2"];
+		    let mut optional_result = None;
+		    for alt in alts.into_iter() {
+			if !existing_hyp_names.contains(&alt) {
+			    optional_result = Some(alt);
+			    break;
+			}
+		    }
+		    optional_result.expect(
+			&format!("Couldn't find fresh hyp name from {:?}, \
+				  existing hyps were {:?}",
+				 alts, hyps_list))
+		};
+		new_scrapeds.push(datum.with_focused_obl(Obligation{
+		    hypotheses: hyps_list.clone(),
+		    goal: curgoal}).with_tactic(format!("intro {}.", fresh_hyp_name)));
+		let unnamed_intro_result = get_unnamed_intro_result(
+		    datum.context.focused_goal(), fresh_hyp_name);
+		let (new_hyp, new_goal) = unnamed_intro_result.unwrap();
+		hyps_list.push(new_hyp);
+		curgoal = new_goal;
+		induction_target_var = Some(fresh_hyp_name);
+	    }
+
+	    new_scrapeds.push(datum.with_focused_obl(Obligation{
+		hypotheses: hyps_list.clone(),
+		goal: curgoal}).with_tactic(
+		format!("induction {}.", induction_target_var.unwrap())));
+
+	    println!("Converted tactic {} with goal {} to tactics:",
+		     datum.tactic, datum.context.focused_goal());
+	    for scraped in new_scrapeds.iter() {
+		println!("{}", scraped.tactic);
+	    }
+
+	    return new_scrapeds;
         }
     }
 
-    datum.with_tactic(newtac)
+    vec![datum.with_tactic(newtac)]
 }
 
 pub fn tactic_takes_hyp_args(tactic_stem: &str) -> bool {
@@ -454,6 +525,64 @@ pub fn indexed_premises<'a>(premises: impl Iterator<Item = &'a str>) -> Vec<(usi
         result.extend(vars);
     }
     result
+}
+
+fn get_named_intro_result(goal: &str) -> Option<(String, String)> {
+    match get_intro_result(goal) {
+	Some((result_hyp, result_goal)) => {
+	    let hyp_parts: Vec<_> = result_hyp.split(":").collect();
+	    if hyp_parts[0] == "_" {
+		return None;
+	    }
+	    Some((result_hyp, result_goal))
+	}
+	None => None
+    }
+}
+/// A function for doing some quick & dirty parsing of forall
+/// binders. Ported from similar logic in coq_serapy.
+fn get_unnamed_intro_result(goal: &str, fresh_hyp_name: &str) -> Option<(String, String)> {
+    match get_intro_result(goal) {
+	Some((result_hyp, result_goal)) => {
+	    let hyp_parts: Vec<_> = result_hyp.split(":").collect();
+	    if hyp_parts[0] != "_" {
+		return None;
+	    }
+	    Some((format!("{} : {}", fresh_hyp_name, hyp_parts[1]), result_goal))
+	}
+	None => None
+    }
+}
+
+/// A function for doing some quick & dirty parsing of forall
+/// binders. Ported from similar logic in coq_serapy.
+fn get_intro_result(goal: &str) -> Option<(String, String)> {
+    let mut paren_depth = 0;
+    let mut got_binder = false;
+    let goal_symbols = get_symbols(goal);
+    if goal_symbols[0] != "forall" {
+	return None
+    }
+    let mut new_hyp_symbols = vec![];
+    let mut new_goal_symbols = vec![goal_symbols[0]];
+    for w in goal_symbols[1..].iter() {
+	if got_binder {
+	    new_goal_symbols.push(w);
+	} else if *w == "(" {
+	    paren_depth += 1;
+	} else if *w == ")" {
+	    paren_depth -= 1;
+	    if paren_depth == 1 {
+		got_binder = true;
+	    }
+	} else if *w == "," {
+	    got_binder = true;
+	} else {
+	    new_hyp_symbols.push(*w)
+	}
+    }
+    assert_eq!(new_hyp_symbols[1], ":", "Can't figure out how to parse goal {}", goal);
+    Some((new_hyp_symbols.join(" "), new_goal_symbols.join(" ")))
 }
 
 /// A function for doing some quick & dirty parsing of forall
