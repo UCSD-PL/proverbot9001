@@ -432,7 +432,7 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
                 let fresh_hyp_name = {
                     let existing_hyp_names: Vec<_> = hyps_list.iter().map(
                         |hyp| hyp.split(":").next().unwrap().trim()).collect();
-                    let alts = ["H", "H0", "H1", "H2"];
+                    let alts = ["H", "H0", "H1", "H2", "H3", "H4", "H5", "H6", "H7"];
                     let mut optional_result = None;
                     for alt in alts.into_iter() {
                         if !existing_hyp_names.contains(&alt) {
