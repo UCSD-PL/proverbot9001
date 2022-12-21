@@ -597,7 +597,7 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
                     }
                 }
 	    }
-	} else if *w == "," {
+	} else if *w == "," && paren_depth == 0 {
 	    got_binder = true;
 	} else {
 	    new_hyp_symbols.push(*w)
