@@ -579,7 +579,7 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
 		new_goal_symbols.push(w);
 	    }
 	} else if *w == "(" {
-		paren_depth += 1;
+            paren_depth += 1;
 	} else if *w == ")" {
 	    paren_depth -= 1;
 	    if paren_depth == 0 {
