@@ -585,6 +585,17 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
 	    if paren_depth == 0 {
 		got_binder = true;
 		new_goal_symbols.push(&goal_symbols[0]);
+                // If we're dealing with multiple variables in a single type binding,
+                // like `forall ( a a' : expr) ...`, then we need to leave one and
+                // take the other.
+                if new_hyp_symbols[1] != ":" {
+                    new_goal_symbols.push("(");
+                    new_goal_symbols.extend(new_hyp_symbols.iter().skip(1));
+                    new_goal_symbols.push(")");
+                    while new_hyp_symbols[1] != ":" {
+                        new_hyp_symbols.remove(1);
+                    }
+                }
 	    }
 	} else if *w == "," {
 	    got_binder = true;
