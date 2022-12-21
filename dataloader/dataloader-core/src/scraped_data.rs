@@ -241,7 +241,8 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
                 command: serde_json::from_str(&actual_line).expect("Couldn't parse string"),
             })
         } else {
-            ScrapedData::Tactic(serde_json::from_str(&actual_line).expect("Couldn't parse line"))
+            ScrapedData::Tactic(serde_json::from_str(&actual_line)
+                                .expect(&format!("Couldn't parse line {}", actual_line)))
         }
     })
 }
