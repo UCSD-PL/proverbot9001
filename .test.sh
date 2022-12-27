@@ -2,6 +2,8 @@
 
 date
 
+git rev-parse HEAD
+
 echo Hello from lambda.
 
 # install rust
