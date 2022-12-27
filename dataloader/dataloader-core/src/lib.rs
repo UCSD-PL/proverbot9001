@@ -39,7 +39,7 @@ use models::features_polyarg_predictor::*;
 use models::goal_enc_evaluator::*;
 use paren_util::parse_sexp_one_level;
 use scraped_data::*;
-use tokenizer::{get_words, PyIdentChunkTokenizer, IdentChunk};
+use tokenizer::{get_words, IdentChunk, PyIdentChunkTokenizer};
 
 #[macro_use]
 extern crate lazy_static;
@@ -83,11 +83,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         py: Python,
         args: DataloaderArgs,
         filename: String,
-    ) -> PyResult<(
-        PickleableFPAMetadata,
-        FPATensorDataset,
-        (Vec<i64>, i64),
-    )> {
+    ) -> PyResult<(PickleableFPAMetadata, FPATensorDataset, (Vec<i64>, i64))> {
         py.allow_threads(move || features_polyarg_tensors_rs(args, filename, None))
     }
     #[pyfn(m)]
@@ -96,11 +92,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         args: DataloaderArgs,
         filename: String,
         meta: PickleableFPAMetadata,
-    ) -> PyResult<(
-        PickleableFPAMetadata,
-        FPATensorDataset,
-        (Vec<i64>, i64),
-    )> {
+    ) -> PyResult<(PickleableFPAMetadata, FPATensorDataset, (Vec<i64>, i64))> {
         py.allow_threads(move || features_polyarg_tensors_rs(args, filename, Some(meta)))
     }
     #[pyfn(m)]
@@ -109,17 +101,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         context_batch: Vec<TacticContext>,
-    ) -> (
-        (Vec<Vec<Vec<i64>>>,
-         Vec<Vec<Vec<Vec<i64>>>>),
-        FloatUnpaddedTensor3D,
-        LongTensor1D,
-        (Vec<Vec<i64>>,
-         Vec<Vec<Vec<i64>>>),
-        BoolTensor2D,
-        LongTensor2D,
-        FloatTensor2D,
-    ) {
+    ) -> FPAInputTensorDataset {
         sample_fpa_batch_rs(args, metadata, context_batch)
     }
     #[pyfn(m)]
@@ -131,17 +113,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         prev_tactics: Vec<String>,
         hypotheses: Vec<String>,
         goal: String,
-    ) -> (
-        (Vec<Vec<Vec<i64>>>,
-         Vec<Vec<Vec<Vec<i64>>>>),
-        FloatUnpaddedTensor3D,
-        LongTensor1D,
-        (Vec<Vec<i64>>,
-         Vec<Vec<Vec<i64>>>),
-        BoolTensor2D,
-        LongTensor2D,
-        FloatTensor2D,
-    ) {
+    ) -> FPAInputTensorSample {
         sample_fpa_rs(
             args,
             metadata,
@@ -168,7 +140,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
-        term: String) -> Vec<IdentChunk> {
+        term: String,
+    ) -> Vec<IdentChunk> {
         tokenize_fpa(args, metadata, term)
     }
     #[pyfn(m)]
@@ -176,13 +149,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         goal: String,
-        premise: String) -> FloatTensor1D {
+        premise: String,
+    ) -> FloatTensor1D {
         get_premise_features_rs(args, metadata, goal, premise)
     }
     #[pyfn(m)]
-    pub fn get_premise_features_size(
-        args: DataloaderArgs,
-        metadata: PickleableFPAMetadata) -> i64 {
+    pub fn get_premise_features_size(args: DataloaderArgs, metadata: PickleableFPAMetadata) -> i64 {
         get_premise_features_size_rs(args, metadata)
     }
     #[pyfn(m)]
@@ -225,7 +197,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> Option<i64> {
         match encode_fpa_arg_unbounded(&args, hyps, goal, arg) {
             Ok(val) => Some(val),
-            Err(_err) => None
+            Err(_err) => None,
         }
     }
     #[pyfn(m, "get_num_keywords")]
@@ -243,16 +215,22 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         fpa_get_num_possible_args_rs(&args)
     }
     #[pyfn(m)]
-    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> (PickleableFPAMetadata, i64) {
+    fn get_num_indices(
+        _py: Python,
+        metadata: PickleableFPAMetadata,
+    ) -> (PickleableFPAMetadata, i64) {
         let (mut indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         indexer.freeze();
         let num_indices = indexer.num_indices();
-        (fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)), num_indices)
+        (
+            fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)),
+            num_indices,
+        )
     }
     #[pyfn(m)]
     fn get_all_tactics(_py: Python, metadata: PickleableFPAMetadata) -> Vec<String> {
-	let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
-	indexer.get_all_tactics()
+        let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
+        indexer.get_all_tactics()
     }
     #[pyfn(m)]
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
@@ -310,11 +288,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn scraped_tactics_from_file(
         _py: Python,
         filename: String,
-	filter_spec: String,
-	max_term_length: usize,
-	num_tactics: Option<usize>,
+        filter_spec: String,
+        max_term_length: usize,
+        num_tactics: Option<usize>,
     ) -> PyResult<Vec<ScrapedTactic>> {
-	let filter = parse_filter(&filter_spec);
+        let filter = parse_filter(&filter_spec);
         let iter = scraped_from_file(
             File::open(filename)
                 .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
@@ -322,7 +300,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
-        }).filter(|datum| apply_filter(max_term_length, &filter, datum));
+        })
+        .filter(|datum| apply_filter(max_term_length, &filter, datum));
         match num_tactics {
             Some(num) => Ok(iter.take(num).collect()),
             None => Ok(iter.collect()),

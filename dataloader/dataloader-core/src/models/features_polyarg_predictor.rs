@@ -1,3 +1,4 @@
+use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressStyle};
 use itertools::multiunzip;
 use pyo3::exceptions;
 use pyo3::prelude::*;
@@ -8,10 +9,8 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::{Write, stdout};
-use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
-use crate::context_filter::{apply_filter, filter_data, parse_filter};
+use crate::context_filter::{apply_filter, parse_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
 use crate::features::TokenMap as FeaturesTokenMap;
 use crate::features::*;
@@ -176,7 +175,7 @@ impl From<Vec<FPAInputTensorSample>> for FPAInputTensorDataset {
 
             goal_keywords: goal_keys,
             goal_subwords: goal_subs,
-            goal_masks: goal_masks,
+            goal_masks,
 
             word_features: word_feats,
             vec_features: vec_feats,
@@ -191,8 +190,8 @@ impl From<Vec<FPAOutputTensorSample>> for FPAOutputTensorDataset {
             .map(|output| (output.tactic_stem_idx, output.tactic_arg_idx))
             .unzip();
         FPAOutputTensorDataset {
-            tactic_stem_idxs: tactic_stem_idxs,
-            tactic_arg_idxs: tactic_arg_idxs,
+            tactic_stem_idxs,
+            tactic_arg_idxs,
         }
     }
 }
@@ -421,7 +420,9 @@ pub fn features_polyarg_tensors_rs(
 ) -> PyResult<(PickleableFPAMetadata, FPATensorDataset, (Vec<i64>, i64))> {
     let filter = parse_filter(&args.context_filter);
     let my_bar_style = ProgressStyle::with_template("{msg}: {wide_bar} [{elapsed}/{eta}]").unwrap();
-    let spinner = ProgressBar::new(341028).with_message("Loading data from file").with_style(my_bar_style.clone());
+    let spinner = ProgressBar::new(341028)
+        .with_message("Loading data from file")
+        .with_style(my_bar_style.clone());
 
     let mut raw_data_iter = scraped_from_file(
         File::open(filename)
@@ -429,21 +430,24 @@ pub fn features_polyarg_tensors_rs(
     )
     .flat_map(|datum| match datum {
         ScrapedData::Vernac(_) => None,
-        ScrapedData::Tactic(t) => { spinner.inc(1); Some(t)},
+        ScrapedData::Tactic(t) => {
+            spinner.inc(1);
+            Some(t)
+        }
     })
     .flat_map(preprocess_datum)
-    .filter(|datum| apply_filter(&args, &filter, datum));
+    .filter(|datum| apply_filter(args.max_length, &filter, datum));
 
-    let length: u64 = raw_data.len().try_into().unwrap();
     let features_data_sample: Vec<ScrapedTactic> = raw_data_iter.by_ref().take(4096).collect();
     // Put the data used for constructing the features metadata back
     // at the beginning of the raw data iter.
-    let raw_data_iter = features_data_sample.into_iter().chain(raw_data_iter);
+    let raw_data_iter = features_data_sample.iter().cloned().chain(raw_data_iter);
 
-    let mut raw_data: Vec<ScrapedTactic> = match args.max_tuples {
+    let raw_data: Vec<ScrapedTactic> = match args.max_tuples {
         Some(max) => raw_data_iter.take(max).collect(),
         None => raw_data_iter.collect(),
     };
+    let length: u64 = raw_data.len().try_into().unwrap();
     let (indexer, rest_meta) = match metadata {
         Some((indexer, tokenizer, tmap)) => (
             OpenIndexer::from_pickleable(indexer),
@@ -499,12 +503,15 @@ pub fn features_polyarg_tensors_rs(
     };
 
     let metadata = (indexer, tokenizer, features_token_map.clone());
-    let samples: Vec<FPATensorSample> = raw_data_iter
-        .par_bridge()
+    let samples: Vec<FPATensorSample> = raw_data
+        .into_par_iter()
         .map(|sample| fpa_tensors(sample, &metadata, &args))
-        .progress_with(ProgressBar::new(length).with_message("Processing samples")
-                                               .with_style(my_bar_style)
-                                               .with_finish(ProgressFinish::AndLeave))
+        .progress_with(
+            ProgressBar::new(length)
+                .with_message("Processing samples")
+                .with_style(my_bar_style)
+                .with_finish(ProgressFinish::AndLeave),
+        )
         .collect();
     Ok((
         fpa_metadata_to_pickleable(metadata),
@@ -569,7 +576,8 @@ pub fn get_premise_features_rs(
 }
 pub fn get_premise_features_size_rs(
     _args: DataloaderArgs,
-    _metadata: PickleableFPAMetadata) -> i64 {
+    _metadata: PickleableFPAMetadata,
+) -> i64 {
     2
 }
 
@@ -782,7 +790,7 @@ pub fn encode_fpa_stem_rs(
     metadata: PickleableFPAMetadata,
     tac_stem: String,
 ) -> i64 {
-    let (mut indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+    let (indexer, _tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
     indexer.lookup(tac_stem)
 }
 
@@ -852,8 +860,7 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
     }
 }
 
-pub fn fpa_get_num_possible_args_rs(
-    args: &DataloaderArgs) -> i64 {
+pub fn fpa_get_num_possible_args_rs(args: &DataloaderArgs) -> i64 {
     (args.max_length + args.max_premises + 1) as i64
 }
 

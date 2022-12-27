@@ -19,12 +19,14 @@
 //
 /* *********************************************************************** */
 
+use indicatif::{
+    ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressIterator, ProgressStyle,
+};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::{BinaryHeap, HashMap};
 use std::fs::File;
-use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
 use crate::scraped_data::*;
 // use crate::tokenizer::get_symbols;
@@ -49,9 +51,12 @@ pub fn context_features(
                 &scraped.context.focused_goal(),
             )
         })
-        .progress_with(ProgressBar::new(length).with_message("Finding best scoring hypotheses and their scores")
-                                               .with_style(my_bar_style.clone())
-                                               .with_finish(ProgressFinish::AndLeave))
+        .progress_with(
+            ProgressBar::new(length)
+                .with_message("Finding best scoring hypotheses and their scores")
+                .with_style(my_bar_style.clone())
+                .with_finish(ProgressFinish::AndLeave),
+        )
         .unzip();
 
     let word_features = data
@@ -64,9 +69,12 @@ pub fn context_features(
                 hyp_head_feature(tmap, best_hyp),
             ]
         })
-        .progress_with(ProgressBar::new(length).with_message("Gathering word features")
-                                               .with_style(my_bar_style.clone())
-                                               .with_finish(ProgressFinish::AndLeave))
+        .progress_with(
+            ProgressBar::new(length)
+                .with_message("Gathering word features")
+                .with_style(my_bar_style.clone())
+                .with_finish(ProgressFinish::AndLeave),
+        )
         .collect();
 
     let vec_features = best_hyp_scores
@@ -79,9 +87,12 @@ pub fn context_features(
                 // (std::cmp::min(datum.context.focused_hyps().len(), 20) as f64) / 20.0
             ]
         })
-        .progress_with(ProgressBar::new(length).with_message("Gathering vec features")
-                                               .with_style(my_bar_style.clone())
-                                               .with_finish(ProgressFinish::AndLeave))
+        .progress_with(
+            ProgressBar::new(length)
+                .with_message("Gathering vec features")
+                .with_style(my_bar_style.clone())
+                .with_finish(ProgressFinish::AndLeave),
+        )
         .collect();
 
     (word_features, vec_features)
@@ -95,10 +106,7 @@ pub fn sample_context_features_rs(
     hypotheses: &Vec<String>,
     goal: &String,
 ) -> (LongTensor1D, FloatTensor1D) {
-    let (best_hyp, best_score) = best_scored_hyp(
-        &hypotheses,
-        &goal,
-    );
+    let (best_hyp, best_score) = best_scored_hyp(&hypotheses, &goal);
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),
         goal_head_feature(tmap, &goal),
@@ -158,7 +166,6 @@ pub type PickleableTokenMap = (
     HashMap<String, usize>,
     HashMap<String, usize>,
 );
-
 
 fn flip_vec<T>(vec: Vec<T>) -> HashMap<T, usize>
 where
@@ -275,29 +282,34 @@ impl TokenMap {
         let json_data = serde_json::from_reader(file).expect("Couldn't parse json data");
         let (goal_tokens, tactics, hyp_tokens) = match json_data {
             serde_json::Value::Object(vals) => {
-                match (vals["goal_tokens"].clone(),
-                       vals["tactics"].clone(),
-                       vals["hyp_tokens"].clone()) {
+                match (
+                    vals["goal_tokens"].clone(),
+                    vals["tactics"].clone(),
+                    vals["hyp_tokens"].clone(),
+                ) {
                     (
                         serde_json::Value::Array(gts),
                         serde_json::Value::Array(ts),
                         serde_json::Value::Array(hts),
                     ) => (
-                        gts.iter().map(|gt| match gt {
-                            serde_json::Value::String(s) => s.clone(),
-                            _ => panic!("Invalid data"),
-                        })
-                        .collect::<Vec<_>>(),
-                        ts.iter().map(|t| match t {
-                            serde_json::Value::String(s) => s.clone(),
-                            _ => panic!("Invalid data"),
-                        })
-                        .collect::<Vec<_>>(),
-                        hts.iter().map(|ht| match ht {
-                            serde_json::Value::String(s) => s.clone(),
-                            _ => panic!("Invalid data"),
-                        })
-                        .collect::<Vec<_>>(),
+                        gts.iter()
+                            .map(|gt| match gt {
+                                serde_json::Value::String(s) => s.clone(),
+                                _ => panic!("Invalid data"),
+                            })
+                            .collect::<Vec<_>>(),
+                        ts.iter()
+                            .map(|t| match t {
+                                serde_json::Value::String(s) => s.clone(),
+                                _ => panic!("Invalid data"),
+                            })
+                            .collect::<Vec<_>>(),
+                        hts.iter()
+                            .map(|ht| match ht {
+                                serde_json::Value::String(s) => s.clone(),
+                                _ => panic!("Invalid data"),
+                            })
+                            .collect::<Vec<_>>(),
                     ),
                     _ => panic!("Invalid data"),
                 }
@@ -339,22 +351,19 @@ fn index_common<'a>(items: impl Iterator<Item = String>, n: usize) -> Vec<String
     }
     result
 }
-pub fn score_hyps<'a>(
-    hyps: &Vec<String>,
-    goal: &String,
-) -> Vec<f64> {
+pub fn score_hyps<'a>(hyps: &Vec<&String>, goal: &String) -> Vec<f64> {
     let truncated_goal: String = goal.chars().take(128).collect();
     hyps.into_iter()
         .map(|hyp| {
-            gestalt_ratio(goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
+            gestalt_ratio(
+                goal,
+                &get_hyp_type(hyp).chars().take(128).collect::<String>(),
+            )
         })
         .collect()
 }
 
-fn best_scored_hyp<'a>(
-    hyps: &'a Vec<String>,
-    goal: &String,
-) -> (&'a str, f64) {
+fn best_scored_hyp<'a>(hyps: &'a Vec<String>, goal: &String) -> (&'a str, f64) {
     let mut best_hyp = "";
     let mut best_score = 1.0;
     for hyp in hyps.iter() {

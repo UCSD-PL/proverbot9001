@@ -20,7 +20,6 @@
 /* *********************************************************************** */
 
 use crate::tokenizer::{get_symbols, get_words};
-use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
 use serde_json;
