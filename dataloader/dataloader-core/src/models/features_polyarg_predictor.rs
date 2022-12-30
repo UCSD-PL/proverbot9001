@@ -212,7 +212,7 @@ impl From<Vec<FPATensorSample>> for FPATensorDataset {
 }
 
 fn trim_premises<'a>(
-    premises: &'a Vec<String>,
+    premises: &'a Vec<&'a String>,
     tac_arg: TacticArgument,
 ) -> Vec<&'a String> {
     max_premises: usize,
@@ -220,7 +220,8 @@ fn trim_premises<'a>(
         match tac_arg {
             TacticArgument::HypVar(hyp_idx) => {
                 let mut other_prems = premises.clone();
-                let arg_hyp = other_prems.remove(hyp_idx);
+                other_prems.remove(hyp_idx);
+                let arg_hyp: &String = &premises[hyp_idx];
                 let mut selected: Vec<&String> = other_prems
                     .choose_multiple(&mut thread_rng(), max_premises - 1)
                     .copied()
