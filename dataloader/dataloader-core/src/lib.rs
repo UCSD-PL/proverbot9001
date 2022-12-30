@@ -200,12 +200,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             Err(_err) => None,
         }
     }
-    #[pyfn(m, "get_num_keywords")]
+    #[pyfn(m)]
     fn get_num_keywords(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
         let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
         tokenizer.num_keywords()
     }
-    #[pyfn(m, "get_num_subwords")]
+    #[pyfn(m)]
     fn get_num_subwords(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
         let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
         tokenizer.num_subwords()
