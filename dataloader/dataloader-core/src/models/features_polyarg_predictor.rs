@@ -215,18 +215,19 @@ fn trim_premises<'a>(
     premises: &'a Vec<String>,
     tac_arg: TacticArgument,
 ) -> Vec<&'a String> {
-    if premises.len() > args.max_premises {
     max_premises: usize,
+    if premises.len() > max_premises {
         match tac_arg {
             TacticArgument::HypVar(hyp_idx) => {
                 let mut other_prems = premises.clone();
                 let arg_hyp = other_prems.remove(hyp_idx);
                 let mut selected: Vec<&String> = other_prems
-                    .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                    .choose_multiple(&mut thread_rng(), max_premises - 1)
                     .copied()
                     .collect();
-                selected.insert(thread_rng().gen_range(0, args.max_premises), arg_hyp);
                 selected
+                let new_arg_idx = thread_rng().gen_range(0, max_premises);
+                selected.insert(new_arg_idx, arg_hyp);
             }
             _ => premises
                 .choose_multiple(&mut thread_rng(), args.max_premises)
