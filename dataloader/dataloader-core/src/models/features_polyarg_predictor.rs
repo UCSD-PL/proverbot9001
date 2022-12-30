@@ -214,8 +214,8 @@ impl From<Vec<FPATensorSample>> for FPATensorDataset {
 fn trim_premises<'a>(
     premises: &'a Vec<&'a String>,
     tac_arg: TacticArgument,
-) -> Vec<&'a String> {
     max_premises: usize,
+) -> (TacticArgument, Vec<&'a String>) {
     if premises.len() > max_premises {
         match tac_arg {
             TacticArgument::HypVar(hyp_idx) => {
@@ -226,38 +226,35 @@ fn trim_premises<'a>(
                     .choose_multiple(&mut thread_rng(), max_premises - 1)
                     .copied()
                     .collect();
-                selected
                 let new_arg_idx = thread_rng().gen_range(0, max_premises);
                 selected.insert(new_arg_idx, arg_hyp);
+                (TacticArgument::HypVar(new_arg_idx), selected)
             }
-            _ => premises
-                .choose_multiple(&mut thread_rng(), args.max_premises)
-                .copied()
-                .collect(),
+            _ => (
+                tac_arg,
+                premises
+                    .choose_multiple(&mut thread_rng(), max_premises)
+                    .copied()
+                    .collect(),
+            ),
         }
     } else if premises.len() == 0 {
         lazy_static! {
             static ref COLONSTRING: String = ":".to_string();
         }
-        vec![&COLONSTRING]
+        (tac_arg, vec![&COLONSTRING])
     } else {
-        all_premises.iter().collect()
-    };
+        (tac_arg, premises.iter().copied().collect())
+    }
 }
 
 fn fpa_input_tensors(
     sample: TacticContext,
-    tac_arg: TacticArgument,
+    trimmed_premises: Vec<&String>,
     metadata: &FPAMetadata,
     args: &DataloaderArgs,
 ) -> FPAInputTensorSample {
     let (_, tokenizer, tokenmap) = metadata;
-    let all_premises = sample
-        .obligation
-        .hypotheses
-        .iter()
-        .chain(sample.relevant_lemmas.iter())
-        .collect::<Vec<_>>();
     let (word_features, vec_features) = sample_context_features_rs(
         &args,
         tokenmap,
@@ -275,32 +272,7 @@ fn fpa_input_tensors(
     .into_iter()
     .unzip();
     let goal_mask = get_goal_mask(&sample.obligation.goal, args.max_length);
-    let selected_prems: Vec<&String> = if all_premises.len() > args.max_premises {
-        match tac_arg {
-            TacticArgument::HypVar(hyp_idx) => {
-                let mut other_prems = all_premises.clone();
-                let arg_hyp = other_prems.remove(hyp_idx);
-                let mut selected: Vec<&String> = other_prems
-                    .choose_multiple(&mut thread_rng(), args.max_premises - 1)
-                    .copied()
-                    .collect();
-                selected.insert(thread_rng().gen_range(0, args.max_premises), arg_hyp);
-                selected
-            }
-            _ => all_premises
-                .choose_multiple(&mut thread_rng(), args.max_premises)
-                .copied()
-                .collect(),
-        }
-    } else if all_premises.len() == 0 {
-        lazy_static! {
-            static ref COLONSTRING: String = ":".to_string();
-        }
-        vec![&COLONSTRING]
-    } else {
-        all_premises.clone()
-    };
-    let (premise_keywords, premise_subwords): (Vec<Vec<_>>, Vec<Vec<_>>) = selected_prems
+    let (premise_keywords, premise_subwords): (Vec<Vec<_>>, Vec<Vec<_>>) = trimmed_premises
         .iter()
         .map(|prem| {
             normalize_sentence_length(
@@ -314,19 +286,16 @@ fn fpa_input_tensors(
         })
         .unzip();
 
-    let premise_features: Vec<Vec<f64>> = score_hyps(
-        &selected_prems.iter().cloned().cloned().collect(),
-        &sample.obligation.goal,
-    )
-    .into_iter()
-    .zip(selected_prems)
-    .map(|(score, hyp)| vec![score, equality_hyp_feature(hyp, &sample.obligation.goal)])
-    .collect();
+    let premise_features: Vec<Vec<f64>> = score_hyps(&trimmed_premises, &sample.obligation.goal)
+        .into_iter()
+        .zip(trimmed_premises)
+        .map(|(score, hyp)| vec![score, equality_hyp_feature(&hyp, &sample.obligation.goal)])
+        .collect();
     FPAInputTensorSample {
         premise_keywords,
         premise_subwords,
         premise_features,
-        num_premises: all_premises.len() as i64,
+        num_premises: (sample.relevant_lemmas.len() + sample.obligation.hypotheses.len()) as i64,
         goal_keywords,
         goal_subwords,
         goal_mask,
@@ -335,7 +304,6 @@ fn fpa_input_tensors(
     }
 }
 
-// Note: This is probably wrong since the premises get trimmed, invalidating indices.
 fn parse_fpa_argument(
     dargs: &DataloaderArgs,
     hyps: &Vec<&String>,
@@ -381,22 +349,9 @@ fn parse_fpa_argument(
         }
     }
 }
-fn parse_tactic(
-    tactic: &str,
-    context: TacticContext,
-    metadata: &FPAMetadata,
-    dargs: &DataloaderArgs,
-) -> FPAOutput {
-    let (tac, arg) = split_tactic(tactic).expect(&format!("Couldn't split tactic {}", tactic));
-    FPAOutput {
-        tactic: metadata.0.lookup(tac.to_string()) as usize,
-        argument: parse_fpa_argument(
-            dargs,
-            context.obligation.hypotheses,
-            &context.obligation.goal,
-            &arg,
-        ),
-    }
+
+fn encode_tactic_stem(tactic: &str, metadata: &FPAMetadata) -> usize {
+    metadata.0.lookup(tactic.to_string()) as usize
 }
 
 fn fpa_tensors(
@@ -404,15 +359,30 @@ fn fpa_tensors(
     metadata: &FPAMetadata,
     args: &DataloaderArgs,
 ) -> FPATensorSample {
-    let sample_output: FPAOutput =
-        parse_tactic(&sample.tactic, sample.clone().into(), metadata, args);
-    FPATensorSample {
-        input: fpa_input_tensors(
-            sample.into(),
-            sample_output.argument.clone(),
-            metadata,
+    let (tactic_stem, tactic_arg) =
+        split_tactic(&sample.tactic).expect(&format!("Couldn't split tactic {}", &sample.tactic));
+    let all_premises: Vec<&String> = sample
+        .context
+        .focused_hyps()
+        .iter()
+        .chain(sample.relevant_lemmas.iter())
+        .collect();
+    let (encoded_arg, trimmed_premises) = trim_premises(
+        &all_premises,
+        parse_fpa_argument(
             args,
+            &all_premises,
+            &sample.context.focused_goal(),
+            &tactic_arg,
         ),
+        args.max_premises,
+    );
+    let sample_output = FPAOutput {
+        tactic: encode_tactic_stem(&tactic_stem, metadata),
+        argument: encoded_arg,
+    };
+    FPATensorSample {
+        input: fpa_input_tensors(sample.clone().into(), trimmed_premises, metadata, args),
         output: sample_output.as_tensors(args),
     }
 }
@@ -590,106 +560,15 @@ pub fn sample_fpa_batch_rs(
     metadata: PickleableFPAMetadata,
     context_batch: Vec<TacticContext>,
 ) -> FPAInputTensorDataset {
-    let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    // context_batch.par_iter().map(|sample| fpa_input_tensors(sample,
-    let (word_features_batch, vec_features_batch) = context_batch
-        .iter()
-        .map(|ctxt| {
-            sample_context_features_rs(
-                &args,
-                &ftmap,
-                &ctxt.relevant_lemmas,
-                &ctxt.prev_tactics,
-                &ctxt.obligation.hypotheses,
-                &ctxt.obligation.goal,
-            )
+    let meta = fpa_metadata_from_pickleable(metadata);
+    context_batch
+        .into_par_iter()
+        .map(|sample| {
+            let trimmed_premises = sample.obligation.hypotheses.iter().collect();
+            fpa_input_tensors(sample.clone(), trimmed_premises, &meta, &args)
         })
-        .unzip();
-
-    let premises_batch: Vec<Vec<String>> = context_batch
-        .par_iter()
-        .map(|ctxt| {
-            ctxt.obligation
-                .hypotheses
-                .iter()
-                .chain(ctxt.relevant_lemmas.iter())
-                .map(|p| p.clone())
-                .collect()
-        })
-        .collect();
-
-    let premise_scores_batch: Vec<Vec<f64>> = premises_batch
-        .par_iter()
-        .zip(context_batch.par_iter())
-        .map(|(premises, context)| score_hyps(premises, &context.obligation.goal))
-        .collect();
-
-    let premise_features_batch = premises_batch
-        .par_iter()
-        .zip(premise_scores_batch.par_iter())
-        .zip(context_batch.par_iter())
-        .map(|((premises, scores), ctxt)| {
-            premises
-                .iter()
-                .zip(scores.iter())
-                .map(|(premise, score)| {
-                    vec![*score, equality_hyp_feature(premise, &ctxt.obligation.goal)]
-                })
-                .collect()
-        })
-        .collect();
-
-    let tgoals_batch = context_batch
-        .par_iter()
-        .map(|ctxt| {
-            normalize_sentence_length(
-                tokenizer.tokenize(&ctxt.obligation.goal),
-                args.max_length,
-                args.max_subwords,
-                0,
-            )
-            .into_iter()
-            .unzip()
-        })
-        .unzip();
-    let goal_symbols_mask: BoolTensor2D = context_batch
-        .par_iter()
-        .map(|ctxt| get_goal_mask(&ctxt.obligation.goal, args.max_length))
-        .collect();
-    let tprems_batch: (Vec<Vec<Vec<i64>>>, Vec<Vec<Vec<Vec<i64>>>>) = premises_batch
-        .into_iter()
-        .map(|premises| {
-            premises
-                .into_iter()
-                .map(|premise| {
-                    normalize_sentence_length(
-                        tokenizer.tokenize(get_hyp_type(&premise)),
-                        args.max_length,
-                        args.max_subwords,
-                        0,
-                    )
-                    .into_iter()
-                    .unzip()
-                })
-                .unzip()
-        })
-        .unzip();
-
-    let num_hyps_batch = tprems_batch
-        .0
-        .iter()
-        .map(|tprems| tprems.len() as i64)
-        .collect();
-
-    (
-        tprems_batch,
-        premise_features_batch,
-        num_hyps_batch,
-        tgoals_batch,
-        goal_symbols_mask,
-        word_features_batch,
-        vec_features_batch,
-    )
+        .collect::<Vec<_>>()
+        .into()
 }
 
 pub fn sample_fpa_rs(
@@ -699,67 +578,20 @@ pub fn sample_fpa_rs(
     prev_tactics: Vec<String>,
     hypotheses: Vec<String>,
     goal: String,
-) -> (
-    (Vec<Vec<Vec<i64>>>, Vec<Vec<Vec<Vec<i64>>>>),
-    FloatUnpaddedTensor3D,
-    LongTensor1D,
-    (Vec<Vec<i64>>, Vec<Vec<Vec<i64>>>),
-    BoolTensor2D,
-    LongTensor2D,
-    FloatTensor2D,
-) {
-    let (_indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
-    let (word_features, vec_features) = sample_context_features_rs(
+) -> FPAInputTensorSample {
+    let trimmed_premises = hypotheses.iter().collect();
+    fpa_input_tensors(
+        TacticContext {
+            relevant_lemmas,
+            prev_tactics,
+            obligation: Obligation {
+                hypotheses: hypotheses.clone(),
+                goal,
+            },
+        },
+        trimmed_premises,
+        &fpa_metadata_from_pickleable(metadata),
         &args,
-        &ftmap,
-        &relevant_lemmas,
-        &prev_tactics,
-        &hypotheses,
-        &goal,
-    );
-    let all_premises: Vec<String> = hypotheses
-        .into_iter()
-        .chain(relevant_lemmas.into_iter())
-        .collect();
-    let premise_scores = score_hyps(&all_premises, &goal);
-    let premise_features = all_premises
-        .iter()
-        .zip(premise_scores.iter())
-        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
-        .collect();
-    let tokenized_goal = normalize_sentence_length(
-        tokenizer.tokenize(&goal),
-        args.max_length,
-        args.max_subwords,
-        0,
-    )
-    .into_iter()
-    .unzip();
-
-    let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
-
-    let tokenized_premises: (Vec<Vec<i64>>, Vec<Vec<Vec<i64>>>) = all_premises
-        .into_iter()
-        .map(|premise| {
-            normalize_sentence_length(
-                tokenizer.tokenize(get_hyp_type(&premise)),
-                args.max_length,
-                args.max_subwords,
-                0,
-            )
-            .into_iter()
-            .unzip()
-        })
-        .unzip();
-    let num_hyps = tokenized_premises.0.len();
-    (
-        (vec![tokenized_premises.0], vec![tokenized_premises.1]),
-        vec![premise_features],
-        vec![num_hyps as i64],
-        (vec![tokenized_goal.0], vec![tokenized_goal.1]),
-        vec![goal_symbols_mask],
-        vec![word_features],
-        vec![vec_features],
     )
 }
 
@@ -914,98 +746,6 @@ pub fn encode_fpa_arg_unbounded(
     }
 }
 
-fn get_argument<'a>(
-    args: &DataloaderArgs,
-    scraped: &'a ScrapedTactic,
-) -> (TacticArgument, Vec<&'a String>) {
-    let all_hyps: Vec<&String> = scraped
-        .context
-        .focused_hyps()
-        .iter()
-        .chain(scraped.relevant_lemmas.iter())
-        .collect();
-    macro_rules! rand_bounded_hyps {
-        () => {
-            if all_hyps.len() > args.max_premises {
-                // all_hyps.iter().take(args.max_premises).cloned().collect()
-                all_hyps
-                    .choose_multiple(&mut thread_rng(), args.max_premises)
-                    .map(|s| *s)
-                    .collect()
-            } else if all_hyps.len() == 0 {
-                lazy_static! {
-                    static ref COLONSTRING: String = ":".to_string();
-                }
-                vec![&COLONSTRING]
-            } else {
-                all_hyps
-            }
-        };
-    }
-    let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
-        None => return (TacticArgument::Unrecognized, rand_bounded_hyps!()),
-        Some(x) => x,
-    };
-    let argstr_tokens: Vec<&str> = tactic_argstr[..tactic_argstr.len() - 1]
-        .split_whitespace()
-        .collect();
-    if argstr_tokens.len() == 0 {
-        (TacticArgument::NoArg, rand_bounded_hyps!())
-    } else if argstr_tokens.len() > 1 {
-        panic!(
-            "A multi argument tactic made it past the context filter! {}",
-            scraped.tactic
-        )
-    } else {
-        let goal_symbols = get_words(scraped.context.focused_goal());
-        let arg_token = argstr_tokens[0];
-        match goal_symbols
-            .into_iter()
-            .take(args.max_length)
-            .enumerate()
-            .find(|(_idx, symbol)| symbol_matches(*symbol, arg_token))
-        {
-            Some((idx, _symbol)) => {
-                return (TacticArgument::GoalToken(idx), rand_bounded_hyps!());
-            }
-            None => (),
-        };
-        match indexed_premises(all_hyps.iter().map(|s| s.as_ref()))
-            .into_iter()
-            .find(|(_idx, hname)| *hname == arg_token)
-        {
-            Some((idx, _hname)) => {
-                if all_hyps.len() > args.max_premises {
-                    let mut other_hyps = all_hyps.clone();
-                    other_hyps.remove(idx);
-                    let mut selected_hyps: Vec<&String> = other_hyps
-                        .choose_multiple(&mut thread_rng(), args.max_premises - 1)
-                        .map(|s| *s)
-                        .collect();
-                    // let mut selected_hyps: Vec<&String> =
-                    //     other_hyps.into_iter().take(args.max_premises - 1).collect();
-                    let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
-                    // let new_hyp_idx = args.max_premises - 1;
-                    selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
-                    return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
-                } else {
-                    return (TacticArgument::HypVar(idx), all_hyps);
-                }
-            }
-            None => (),
-        };
-        assert!(
-            false,
-            "An unknown tactic made it past the context filter: {}, arg {}, arg_token {}\n\
-             Goal is {}",
-            scraped.tactic,
-            argstr_tokens[0],
-            arg_token,
-            scraped.context.focused_goal()
-        );
-        (TacticArgument::Unrecognized, rand_bounded_hyps!())
-    }
-}
 fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
     match arg {
         // For compatibility with the python version, we'll treat these as the same for now.
