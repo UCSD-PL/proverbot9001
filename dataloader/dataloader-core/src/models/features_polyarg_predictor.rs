@@ -338,7 +338,7 @@ fn fpa_input_tensors(
 // Note: This is probably wrong since the premises get trimmed, invalidating indices.
 fn parse_fpa_argument(
     dargs: &DataloaderArgs,
-    hyps: Vec<String>,
+    hyps: &Vec<&String>,
     goal: &str,
     arg: &str,
 ) -> TacticArgument {
