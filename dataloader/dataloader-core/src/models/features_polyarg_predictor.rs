@@ -68,6 +68,8 @@ pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata 
     )
 }
 
+#[pyclass(module = "dataloader")]
+#[derive(Serialize, Deserialize, Clone)]
 pub struct FPAInputTensorSample {
     premise_keywords: Vec<Vec<i64>>,
     premise_subwords: Vec<Vec<Vec<i64>>>,
