@@ -258,7 +258,7 @@ fn fpa_input_tensors(
         .iter()
         .chain(sample.relevant_lemmas.iter())
         .collect::<Vec<_>>();
-    let (word_features, vec_features) = sample_context_features(
+    let (word_features, vec_features) = sample_context_features_rs(
         &args,
         tokenmap,
         &sample.relevant_lemmas,
