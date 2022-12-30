@@ -214,9 +214,9 @@ impl From<Vec<FPATensorSample>> for FPATensorDataset {
 fn trim_premises<'a>(
     premises: &'a Vec<String>,
     tac_arg: TacticArgument,
-    max_premises: i64,
 ) -> Vec<&'a String> {
     if premises.len() > args.max_premises {
+    max_premises: usize,
         match tac_arg {
             TacticArgument::HypVar(hyp_idx) => {
                 let mut other_prems = premises.clone();
