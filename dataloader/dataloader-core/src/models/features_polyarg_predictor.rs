@@ -235,7 +235,7 @@ fn trim_premises<'a>(
                 .copied()
                 .collect(),
         }
-    } else if all_premises.len() == 0 {
+    } else if premises.len() == 0 {
         lazy_static! {
             static ref COLONSTRING: String = ":".to_string();
         }
