@@ -940,8 +940,6 @@ def best_first_proof_search(lemma_name: str,
                     num_successful_predictions += 1
                 prediction_node.setNodeColor("red")
                 continue
-            else:
-                num_successful_predictions += 1
             # Check if we've gone in circles
             if contextInHistory(context_after, prediction_node):
                 if args.count_softfail_predictions:
@@ -951,6 +949,7 @@ def best_first_proof_search(lemma_name: str,
                 for _ in range(num_stmts):
                     coq.cancel_last()
                 continue
+            num_successful_predictions += 1
             # Check if the resulting context is too big
             if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
               contextIsBig(context_after):
