@@ -35,6 +35,7 @@ class TacticInteraction(NamedTuple):
 
 class SearchResult(NamedTuple):
     status: SearchStatus
+    context_lemmas: List[str]
     commands: Optional[List[TacticInteraction]]
     steps_taken: int
 
@@ -46,10 +47,11 @@ class SearchResult(NamedTuple):
         else:
             commands = list(map(TacticInteraction.from_dict,
                                 data['commands']))
-        return cls(status, commands, data['steps_taken'])
+        return cls(status, data['context_lemmas'], commands, data['steps_taken'])
 
     def to_dict(self):
         return {'status': self.status.name,
+                'context_lemmas': self.context_lemmas,
                 'commands': list(map(TacticInteraction.to_dict,
                                      self.commands)),
                 'steps_taken': self.steps_taken}
