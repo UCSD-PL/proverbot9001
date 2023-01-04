@@ -281,7 +281,9 @@ def show_progress(args: argparse.Namespace) -> None:
             if new_workers_alive < num_workers_alive:
                 num_workers_alive = new_workers_alive
                 if num_workers_alive < (num_jobs_total - num_jobs_done):
-                    util.eprint("One of the workers crashed!")
+                    util.eprint(f"One of the workers crashed! "
+                                f"We have only {num_workers_alive} workers left alive, "
+                                f"but still {num_jobs_total - num_jobs_done} jobs left")
             elif new_workers_alive > num_workers_alive:
                 num_workers_alive = new_workers_alive
             if num_workers_alive == 0:
