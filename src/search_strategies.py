@@ -1015,3 +1015,30 @@ def best_first_proof_search(lemma_name: str,
     if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, None, step)
     return SearchResult(SearchStatus.FAILURE, None, step)
+
+def dfs_estimated(lemma_name: str,
+                  module_prefix: str,
+                  relevant_lemmas: List[str],
+                  coq: coq_serapy.SerapiInstance,
+                  output_dir: Path,
+                  args: argparse.Namespace,
+                  bar_idx: int,
+                  predictor: TacticPredictor) \
+                  -> SearchResult:
+    with args.pickled_estimator.open('rb') as f:
+        with nostderr():
+            john_model = pickle.load(f)
+
+    est_sol_length = 0.
+    for obl in coq.proof_context.fg_goals:
+        est_sol_length += max(1, john_model.predict_obl(obl))
+    temp_args = copyArgs(args)
+    caution_factor = 1.4
+    if est_sol_length * caution_factor < args.search_depth:
+        eprint(f"Estimated solution length is {est_sol_length}, "
+               f"giving proof only {int(est_sol_length * caution_factor)} depth budget")
+        temp_args.search_depth = math.ceil(est_sol_length * caution_factor)
+    return dfs_proof_search_with_graph(
+        lemma_name, module_prefix,
+        relevant_lemmas, coq, output_dir,
+        temp_args, bar_idx, predictor)

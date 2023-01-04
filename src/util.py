@@ -337,6 +337,11 @@ def split_by_char_outside_matching(openpat: str, closepat: str,
                 curpos = nextsplitpos
     return None
 
+def copyArgs(args: argparse.Namespace) -> argparse.Namespace:
+    result = argparse.Namespace()
+    for k in vars(args).keys():
+        setattr(result, k, getattr(args, k))
+    return result
 
 def get_possible_arg(args: argparse.Namespace, argname: str,
                      default: Any) -> Any:
