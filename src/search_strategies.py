@@ -367,7 +367,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                       prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
-        substeps_explored = 0
+        substeps_explored = 1
         for _prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
                 break
@@ -377,7 +377,6 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
                                   time_on_path(current_path[-1]))
-                substeps_explored += 1
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
