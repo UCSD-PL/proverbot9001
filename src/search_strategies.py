@@ -517,10 +517,10 @@ def dfs_proof_search_with_graph(lemma_name: str,
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
     if command_list:
-        return SearchResult(SearchStatus.SUCCESS, command_list, total_steps)
+        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None, total_steps)
-    return SearchResult(SearchStatus.FAILURE, None, total_steps)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
 
 
 def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
@@ -783,7 +783,7 @@ def bfs_beam_proof_search(lemma_name: str,
                     if completed_proof(coq):
                         prediction_node.mkQED()
                         start_node.draw_graph(graph_file)
-                        return SearchResult(SearchStatus.SUCCESS,
+                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
                                             prediction_node.interactions()[1:], 0)
 
                     if args.scoring_function == "certainty":
@@ -856,9 +856,9 @@ def bfs_beam_proof_search(lemma_name: str,
 
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None, 0)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
     else:
-        return SearchResult(SearchStatus.FAILURE, None, 0)
+        return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, 0)
 
 @dataclass(order=True)
 class AStarTask:
@@ -964,8 +964,8 @@ def best_first_proof_search(lemma_name: str,
             if completed_proof(coq):
                 prediction_node.mkQED()
                 start_node.draw_graph(graph_file)
-                return SearchResult(SearchStatus.SUCCESS,
-                                    prediction_node.interactions()[1:], step)
+                return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
+                                    prediction_node.interactions()[1:], step+1)
             if args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
@@ -1013,8 +1013,8 @@ def best_first_proof_search(lemma_name: str,
     hasUnexploredNode = len(nodes_todo) > 0
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None, step)
-    return SearchResult(SearchStatus.FAILURE, None, step)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, step)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, step)
 
 def dfs_estimated(lemma_name: str,
                   module_prefix: str,

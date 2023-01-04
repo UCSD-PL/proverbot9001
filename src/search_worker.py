@@ -260,10 +260,12 @@ class Worker:
                                f"at this point in the proof")
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
+        context_lemmas = context_lemmas_from_args(self.args, self.coq)
         try:
-            search_status, tactic_solution, steps_taken = \
+            search_status, _, tactic_solution, steps_taken = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
+                             context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
                              self.widx, self.predictor)
@@ -297,7 +299,7 @@ class Worker:
             eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                    "due to multiple failures",
                    guard=self.args.verbose >= 1)
-            return SearchResult(search_status, solution, 0)
+            return SearchResult(search_status, context_lemmas, solution, 0)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -318,25 +320,14 @@ class Worker:
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
-        return SearchResult(search_status, solution, steps_taken)
+        return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
     return coq.check_term(lemma_name).replace("\n", "")
 
-import _thread
-import threading
-
-# This method attempts to complete proofs using search.
-def attempt_search(args: argparse.Namespace,
-                   lemma_statement: str,
-                   module_name: Optional[str],
-                   coq: coq_serapy.SerapiInstance,
-                   output_dir: Path,
-                   bar_idx: int,
-                   predictor: TacticPredictor) \
-        -> SearchResult:
-    global unnamed_goal_number
+def context_lemmas_from_args(args: argparse.Namespace,
+                             coq: coq_serapy.SerapiInstance) -> List[str]:
     if args.add_env_lemmas:
         with args.add_env_lemmas.open('r') as f:
             env_lemmas = [get_lemma_declaration_from_name(coq,
@@ -351,7 +342,23 @@ def attempt_search(args: argparse.Namespace,
     elif args.relevant_lemmas == "searchabout":
         relevant_lemmas = coq.get_lemmas_about_head()
     else:
-        assert False, args.relevant_lemmas
+        assert False, f"Unrecognized relevant lemmas option {args.relevant_lemmas}"
+    return env_lemmas + relevant_lemmas
+
+import _thread
+import threading
+
+# This method attempts to complete proofs using search.
+def attempt_search(args: argparse.Namespace,
+                   lemma_statement: str,
+                   module_name: Optional[str],
+                   context_lemmas: List[str],
+                   coq: coq_serapy.SerapiInstance,
+                   output_dir: Path,
+                   bar_idx: int,
+                   predictor: TacticPredictor) \
+        -> SearchResult:
+    global unnamed_goal_number
     if module_name:
         module_prefix = escape_lemma_name(module_name)
     else:
@@ -368,7 +375,7 @@ def attempt_search(args: argparse.Namespace,
     try:
         if args.search_type == 'dfs':
             result = dfs_proof_search_with_graph(lemma_name, module_prefix,
-                                                 env_lemmas + relevant_lemmas,
+                                                 context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor)
         elif args.search_type == 'dfs-est':
@@ -378,12 +385,12 @@ def attempt_search(args: argparse.Namespace,
                                    args, bar_idx, predictor)
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
-                                           env_lemmas + relevant_lemmas, coq,
+                                           context_lemmas, coq,
                                            output_dir,
                                            args, bar_idx, predictor)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
-                                             env_lemmas + relevant_lemmas, coq,
+                                             context_lemmas, coq,
                                              output_dir,
                                              args, bar_idx, predictor)
         else:
