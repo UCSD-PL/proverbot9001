@@ -23,7 +23,7 @@ import tokenizer
 from models.tactic_predictor import Prediction, TacticPredictor
 from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_results import TacticInteraction, SearchResult, SearchStatus
-from util import nostderr, unwrap, eprint, mybarfmt
+from util import nostderr, unwrap, eprint, mybarfmt, copyArgs
 
 from value_estimator import Estimator
 import dataloader
