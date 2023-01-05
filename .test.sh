@@ -41,4 +41,4 @@ make compcert-train
 python src/search_file.py -j 1 --prelude ./CompCert/ lib/Parmov.v --weightsfile=data/polyarg-weights.dat --no-generate-report
 
 echo proofs succeeded:
-cat search-report/proofs.csv  | grep SUCCESS | wc -l
+cat search-report/Parmov-proofs.txt  | grep SUCCESS | wc -l
