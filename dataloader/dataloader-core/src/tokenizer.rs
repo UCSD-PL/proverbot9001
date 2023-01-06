@@ -438,8 +438,6 @@ pub fn normalize_sentence_length(
         normalized_sentence.push((pad_value, vec![0; chunk_length]))
     }
     normalized_sentence.truncate(length);
-    for (keyword_idx, subwords) in normalized_sentence.iter() {
-    }
     normalized_sentence
 }
 
