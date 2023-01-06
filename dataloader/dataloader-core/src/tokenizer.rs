@@ -48,6 +48,9 @@ where
         }
     }
     pub fn lookup(&self, v: T) -> i64 {
+        if !self.map.contains_key(&v) {
+            return 0;
+        }
         self.map.get(&v).copied().unwrap()
     }
     pub fn reverse_lookup(&self, i: i64) -> T {
