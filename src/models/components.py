@@ -257,7 +257,8 @@ class EncoderRNNFloat(nn.Module):
 
     def forward(self, input_seq: torch.FloatTensor) -> torch.FloatTensor:
         batch_size = input_seq.size()[0]
-        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        hidden = maybe_cuda(torch.zeros(1, batch_size, self.hidden_size))
+        token_out = torch.zeros([batch_size,self.hidden_size])
         for i in range(input_seq.size()[1]):
             token_batch = input_seq[:,i]\
                 .view(1, batch_size, self.input_size)

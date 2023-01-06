@@ -115,8 +115,7 @@ class GoalTokenEncoderModel(nn.Module):
         self.hidden_size = hidden_size
         self._stem_embedding = maybe_cuda(
             nn.Embedding(stem_vocab_size, hidden_size))
-        self._token_size = input_vocab_size
-        self._gru = maybe_cuda(nn.GRU(input_vocab_size, hidden_size, batch_first=True))
+        self._gru = maybe_cuda(nn.GRU(chunk_size, hidden_size, batch_first=True))
         # localize global variable for compilation
         self._EOS_token = EOS_token
         self._chunk_size = chunk_size
@@ -126,12 +125,11 @@ class GoalTokenEncoderModel(nn.Module):
         goal_var = maybe_cuda(goal_batch)
         stem_var = maybe_cuda(stem_batch)
         batch_size = goal_batch.size()[0]
-        # embed every goal token
-        tokens_embedded = F.relu(goal_var.flatten()\
-                .reshape([goal_var.shape[0],goal_var.shape[1],self.hidden_size]))
+
+        initial_hidden = self._stem_embedding(stem_var)\
+                             .view(1, batch_size, self.hidden_size)
         # suffix with EOS_token embedding
-        EOS = F.relu(self._token_embedding(LongTensor([self._EOS_token])))
-        tokens_embedded_EOS = torch.cat([tokens_embedded, EOS[None,:,:].broadcast_to([batch_size,1,self.hidden_size])],dim=1)
+        tokens_embedded_EOS = torch.cat([goal_batch, maybe_cuda(torch.zeros([batch_size,1,self._chunk_size]))],dim=1)
 
         # run GRU on every sequence
         encoded_tokens, hidden = self._gru(tokens_embedded_EOS,initial_hidden)
@@ -154,7 +152,7 @@ class GoalTokenArgModel(nn.Module):
             EncoderDNN(hidden_size, hidden_size, 1, 2))
 
     def forward(self, stem_batch: torch.LongTensor,
-                goal_batch: torch.LongTensor) -> torch.FloatTensor:
+                goal_batch: torch.FloatTensor) -> torch.FloatTensor:
         encoded = self.encoder_model(stem_batch, goal_batch)
         score = self._likelyhood_layer(F.relu(encoded))
         return score
@@ -194,7 +192,7 @@ class HypArgEncoder(nn.Module):
             .view(1, batch_size, self.hidden_size)
         # embed every hypothesis token
         tokens_embedded = F.relu(hyps_var.flatten()\
-                .reshape([hyps_var.shape[0],hyps_var.shape[1],self.hidden_size]))
+                .reshape([hyps_var.shape[0],hyps_var.shape[1],self.chunk_size]))
 
         # run GRU on every sequence
         encoded_tokens, hidden = self._hyp_gru(tokens_embedded,initial_hidden)
@@ -273,14 +271,15 @@ class IdentChunkEncoder(nn.Module):
         self._num_keywords = num_keywords
         self._term_length = term_length
         self._subwords_length = subwords_length
+    @torch.jit.export
     def out_size(self) -> int:
         return self._subword_hidden_size + self._keyword_hidden_size
     # keywords_batch: [batch_size, max_length]
     # subwords_batch: [batch_size, max_length, max_subwords]
     def forward(self, keywords_batch: torch.LongTensor,
                 subwords_batch: torch.LongTensor) -> torch.FloatTensor:
-        keywords_var = maybe_cuda(Variable(keywords_batch))
-        subwords_var = maybe_cuda(Variable(subwords_batch))
+        keywords_var = maybe_cuda(keywords_batch)
+        subwords_var = maybe_cuda(subwords_batch)
         batch_size = subwords_batch.size()[0]
         keywords_embedded = self._keyword_embedding(keywords_var)\
           .view(batch_size * self._term_length, self._keyword_hidden_size)
@@ -305,7 +304,7 @@ class FeaturesPolyArgModel(nn.Module):
                  stem_classifier: FeaturesClassifier,
                  ident_chunk_encoder: IdentChunkEncoder,
                  goal_args_model: GoalTokenArgModel,
-                 goal_encoder: EncoderRNNFloat,
+                 goal_encoder: GoalTokenEncoderModel,
                  hyp_model: HypArgModel) -> None:
         super().__init__()
         self.stem_classifier = torch.jit.script(maybe_cuda(stem_classifier))
@@ -413,7 +412,7 @@ class FeaturesPolyargPredictor(
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
             stem_idxs, tokenized_goals, maybe_cuda(torch.BoolTensor(goal_mask)))
-        tokenized_premises = self.encode_hyp_chunks(self.training_args, self._model,
+        tokenized_premises = self.encode_term_chunks(self.training_args, self._model,
                                                     (LongTensor(premise_chunks[0][0]),
                                                      LongTensor(premise_chunks[1][0]))).view(
             1, nhyps_batch[0], self.training_args.max_length,
@@ -641,8 +640,8 @@ class FeaturesPolyargPredictor(
                           ) -> torch.FloatTensor:
         batch_size = stem_idxs.size()[0]
         stem_width = stem_idxs.size()[1]
-        goal_len = self.training_args.max_length
-        chunk_size = self._model.ident_chunk_encoder.out_size()
+        goal_len = args.max_length
+        chunk_size = model.ident_chunk_encoder.out_size()
         # The goal probabilities include the "no argument" probability
         num_goal_probs = goal_len + 1
         chunk_size = model.ident_chunk_encoder.out_size()
@@ -974,6 +973,7 @@ class FeaturesPolyargPredictor(
                                                         goal_keywords, goal_subwords)
         chunk_size = model.ident_chunk_encoder.out_size()
         batch_size, num_hyps, term_length, subword_length = hyp_subwords.size()
+        assert hyp_keywords.size() == torch.Size([batch_size, num_hyps, term_length]), hyp_keywords
         goal_size = tokenized_goals_batch.size()[1]
         num_stem_poss = get_num_indices(metadata)[1]
         stem_width = min(arg_values.max_beam_width, num_stem_poss)
@@ -993,20 +993,17 @@ class FeaturesPolyargPredictor(
         correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
                                                   idxList, stem_idx
                                                   in zip(mergedStemIdxs, stem_var)])
-        # The dimensions of this are wrong
-        batch_size, num_hyps, term_length, subword_length = hyp_chunks_subwords.size()
-        assert hyp_chunks_key_idxs.size() == torch.Size([batch_size, num_hyps, term_length]), hyp_chunks_key_idxs
         chunk_size = model.ident_chunk_encoder.out_size()
         if arg_values.hyp_rnn:
-            tokenized_hyps_var = self.encode_hyp_chunks(
+            tokenized_hyps_var = self.encode_term_chunks(
                 arg_values, model,
-                (maybe_cuda(hyp_chunks_key_idxs).view(batch_size * num_hyps, term_length),
-                 maybe_cuda(hyp_chunks_subwords).view(batch_size * num_hyps, term_length,
-                                                     subword_length))).view(
+                maybe_cuda(hyp_keywords).view(batch_size * num_hyps, term_length),
+                maybe_cuda(hyp_subwords).view(batch_size * num_hyps, term_length,
+                                                    subword_length)).view(
                   batch_size, num_hyps, term_length, chunk_size)
         else:
             tokenized_hyps_var = maybe_cuda(
-                Variable(torch.zeros_like(tokenized_hyp_types_batch)))
+                torch.zeros_like(tokenized_hyp_types_batch))
 
         if arg_values.hyp_features:
             hyp_features_var = maybe_cuda(hyp_features_batch)
