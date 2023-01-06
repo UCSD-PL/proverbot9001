@@ -435,7 +435,7 @@ pub fn normalize_sentence_length(
                 (key_idx, norm_chunks)
             }).collect();
     while normalized_sentence.len() < length {
-        normalized_sentence.push((0, vec![0; chunk_length]))
+        normalized_sentence.push((pad_value, vec![0; chunk_length]))
     }
     normalized_sentence.truncate(length);
     for (keyword_idx, subwords) in normalized_sentence.iter() {
