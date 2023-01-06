@@ -356,7 +356,7 @@ pub fn score_hyps<'a>(hyps: &Vec<&String>, goal: &String) -> Vec<f64> {
     hyps.into_iter()
         .map(|hyp| {
             gestalt_ratio(
-                goal,
+                &truncated_goal,
                 &get_hyp_type(hyp).chars().take(128).collect::<String>(),
             )
         })
