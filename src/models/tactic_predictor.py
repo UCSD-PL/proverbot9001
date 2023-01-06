@@ -501,6 +501,7 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                                                  lr=arg_values.learning_rate)
     adjuster = scheduler.StepLR(optimizer, arg_values.epoch_step,
                                 gamma=arg_values.gamma)
+    best_valid_loss = float("+Inf")
     writer = SummaryWriter()
     training_start = time.time()
     print("Training...")
@@ -545,9 +546,14 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                   f"Validation accuracy: {valid_accuracy.item() / num_batches_valid}")
         adjuster.step()
 
-        yield NeuralPredictorState(epoch,
-                                   epoch_loss / num_batches,
-                                   model.state_dict())
+        if valid_loss.item() < best_valid_loss:
+            yield NeuralPredictorState(epoch,
+                                       epoch_loss / num_batches,
+                                       model.state_dict())
+            best_valid_loss = valid_loss.item()
+        else:
+            print("WARNING: Skipping yielding this epoch's results because validation loss got worse")
+            print(f"Previous best validation loss: {best_valid_loss}")
     writer.flush()
 
 def embed_data(data : RawDataset, embedding : Optional[Embedding] = None) \
