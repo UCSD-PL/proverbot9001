@@ -339,24 +339,6 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         }
     }
 
-    #[pyfn(m)]
-    fn tactic_transitions_from_file(
-        _py: Python,
-        args: &DataloaderArgs,
-        filename: String,
-        num_tactics: usize,
-    ) -> PyResult<Vec<ScrapedTransition>> {
-        let filter = parse_filter(&args.context_filter);
-        let raw_iter = scraped_from_file(
-            File::open(filename)
-                .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
-        );
-        let transition_iter = scraped_transition_iter(raw_iter);
-        let filtered_iter = transition_iter
-            .filter(|transition| apply_filter(args.max_length, &filter, &transition.scraped_before()));
-        Ok(filtered_iter.take(num_tactics).collect::<Vec<_>>())
-    }
-
     #[pyfunction]
     pub fn sample_context_features(
         args: &DataloaderArgs,
