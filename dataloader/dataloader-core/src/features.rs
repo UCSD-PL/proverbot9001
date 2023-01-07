@@ -27,10 +27,10 @@ use std::fs::File;
 use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
 use crate::scraped_data::*;
-// use crate::tokenizer::get_symbols;
+use crate::tokenizer::get_symbols;
 use rayon::prelude::*;
 
-use gestalt_ratio::gestalt_ratio;
+use gestalt_ratio::gestalt_ratio_seq;
 
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
@@ -340,13 +340,12 @@ fn index_common<'a>(items: impl Iterator<Item = String>, n: usize) -> Vec<String
     result
 }
 pub fn score_hyps<'a>(
-    hyps: &Vec<String>,
-    goal: &String,
+    hyps: &Vec<Vec<i64>>,
+    goal: &Vec<i64>,
 ) -> Vec<f64> {
-    let truncated_goal: String = goal.chars().take(128).collect();
     hyps.into_iter()
         .map(|hyp| {
-            gestalt_ratio(goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
+            gestalt_ratio_seq(goal, hyp)
         })
         .collect()
 }
@@ -358,7 +357,7 @@ fn best_scored_hyp<'a>(
     let mut best_hyp = "";
     let mut best_score = 1.0;
     for hyp in hyps.iter() {
-        let score = gestalt_ratio(goal, get_hyp_type(hyp));
+        let score = gestalt_ratio_seq(&get_symbols(goal), &get_symbols(hyp));
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;

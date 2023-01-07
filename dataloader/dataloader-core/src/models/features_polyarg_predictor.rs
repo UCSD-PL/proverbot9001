@@ -7,7 +7,7 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::{Write, stdout};
+use std::io::stdout;
 use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
 use crate::context_filter::{parse_filter, apply_filter};
@@ -207,28 +207,6 @@ pub fn features_polyarg_tensors_rs(
                                                  .with_style(my_bar_style.clone())
                                                  .with_finish(ProgressFinish::AndLeave))
         .collect();
-    let hyp_features = raw_data
-        .par_iter()
-        .zip(selected_prems)
-        .map(|(scraped, selected)| {
-            score_hyps(
-                &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
-                &scraped.context.focused_goal(),
-            )
-            .iter()
-            .zip(selected)
-            .map(|(score, hyp)| {
-                vec![
-                    *score,
-                    equality_hyp_feature(hyp, &scraped.context.focused_goal()),
-                ]
-            })
-            .collect()
-        }).progress_with(ProgressBar::new(length).with_message("Getting hypotheses features")
-                                                 .with_style(my_bar_style.clone())
-                                                 .with_finish(ProgressFinish::AndLeave))
-        .collect();
-    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
     let tokenized_goals: Vec<_> = raw_data
         .par_iter()
         .map(|tac| {
@@ -241,6 +219,30 @@ pub fn features_polyarg_tensors_rs(
                                                  .with_style(my_bar_style.clone())
                                                  .with_finish(ProgressFinish::AndLeave))
         .collect();
+    let hyp_features = raw_data
+        .par_iter()
+        .zip(tokenized_hyps.par_iter())
+        .zip(tokenized_goals.par_iter())
+        .zip(selected_prems.par_iter())
+        .map(|(((scraped, tok_hyps), tok_goal), selected_prems)| {
+            score_hyps(
+                &tok_hyps.iter().cloned().collect(),
+                &tok_goal,
+            )
+            .iter()
+            .zip(selected_prems)
+            .map(|(score, prem)| {
+                vec![
+                    *score,
+                    equality_hyp_feature(prem, &scraped.context.focused_goal()),
+                ]
+            })
+            .collect()
+        }).progress_with(ProgressBar::new(length).with_message("Getting hypotheses features")
+                                                 .with_style(my_bar_style.clone())
+                                                 .with_finish(ProgressFinish::AndLeave))
+        .collect();
+    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
     let goal_symbols_mask = raw_data
         .par_iter()
         .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
@@ -362,10 +364,36 @@ pub fn sample_fpa_batch_rs(
         })
         .collect();
 
-    let premise_scores_batch: Vec<Vec<f64>> = premises_batch
+    let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
         .par_iter()
-        .zip(context_batch.par_iter())
-        .map(|(premises, context)| score_hyps(premises, &context.obligation.goal))
+        .map(|premises| {
+            premises
+                .iter()
+                .map(|premise| {
+                    normalize_sentence_length(
+                        tokenizer.tokenize(get_hyp_type(&premise)),
+                        args.max_length,
+                        0,
+                    )
+                })
+                .collect()
+        })
+        .collect();
+    let tgoals_batch: Vec<_> = context_batch
+        .par_iter()
+        .map(|ctxt| {
+            normalize_sentence_length(
+                tokenizer.tokenize(&ctxt.obligation.goal),
+                args.max_length,
+                0,
+            )
+        })
+        .collect();
+
+    let premise_scores_batch: Vec<Vec<f64>> = tprems_batch
+        .par_iter()
+        .zip(tgoals_batch.par_iter())
+        .map(|(tprems, tgoal)| score_hyps(tprems, tgoal))
         .collect();
 
     let premise_features_batch = premises_batch
@@ -383,34 +411,9 @@ pub fn sample_fpa_batch_rs(
         })
         .collect();
 
-    let tgoals_batch = context_batch
-        .par_iter()
-        .map(|ctxt| {
-            normalize_sentence_length(
-                tokenizer.tokenize(&ctxt.obligation.goal),
-                args.max_length,
-                0,
-            )
-        })
-        .collect();
     let goal_symbols_mask = context_batch
         .par_iter()
         .map(|ctxt| get_goal_mask(&ctxt.obligation.goal, args.max_length))
-        .collect();
-    let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
-        .into_iter()
-        .map(|premises| {
-            premises
-                .into_iter()
-                .map(|premise| {
-                    normalize_sentence_length(
-                        tokenizer.tokenize(get_hyp_type(&premise)),
-                        args.max_length,
-                        0,
-                    )
-                })
-                .collect()
-        })
         .collect();
 
     let num_hyps_batch = tprems_batch
@@ -458,18 +461,9 @@ pub fn sample_fpa_rs(
         .into_iter()
         .chain(relevant_lemmas.into_iter())
         .collect();
-    let premise_scores = score_hyps(&all_premises, &goal);
-    let premise_features = all_premises
-        .iter()
-        .zip(premise_scores.iter())
-        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
-        .collect();
     let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
-
-    let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
-
     let tokenized_premises: Vec<Vec<i64>> = all_premises
-        .into_iter()
+        .par_iter()
         .map(|premise| {
             normalize_sentence_length(
                 tokenizer.tokenize(get_hyp_type(&premise)),
@@ -478,6 +472,15 @@ pub fn sample_fpa_rs(
             )
         })
         .collect();
+    let premise_scores = score_hyps(&tokenized_premises, &tokenized_goal);
+    let premise_features = all_premises
+        .into_par_iter()
+        .zip(premise_scores.into_par_iter())
+        .map(|(premise, score)| vec![score, equality_hyp_feature(&premise, &goal)])
+        .collect();
+
+    let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
+
     let num_hyps = tokenized_premises.len();
     (
         vec![tokenized_premises],
