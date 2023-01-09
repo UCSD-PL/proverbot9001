@@ -51,7 +51,7 @@ pub fn goals_to_total_distances_tensors_rs(
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file)
+            Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file, &args.paths_file)
         }
     };
     let tokenized_goals: Vec<Vec<i64>> = tactics
@@ -73,6 +73,14 @@ pub fn goal_enc_get_num_tokens_rs(metadata: &GoalEncMetadata) -> i64 {
         .as_ref()
         .expect("No tokenizer")
         .num_tokens()
+}
+
+pub fn goal_enc_get_num_paths_tokens_rs(metadata: &GoalEncMetadata) -> i64 {
+    metadata
+        .tokenizer
+        .as_ref()
+        .expect("No tokenizer")
+        .num_paths_tokens()
 }
 
 pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: String) -> Vec<i64> {

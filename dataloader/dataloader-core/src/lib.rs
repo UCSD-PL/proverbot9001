@@ -89,6 +89,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             FloatUnpaddedTensor3D,
             LongTensor1D,
             LongTensor2D,
+            LongTensor2D,
             BoolTensor2D,
             LongTensor2D,
             FloatTensor2D,
@@ -112,6 +113,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             FloatUnpaddedTensor3D,
             LongTensor1D,
             LongTensor2D,
+            LongTensor2D,
             BoolTensor2D,
             LongTensor2D,
             FloatTensor2D,
@@ -133,6 +135,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         FloatUnpaddedTensor3D,
         LongTensor1D,
         LongTensor2D,
+        LongTensor2D,
         BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
@@ -152,6 +155,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         LongUnpaddedTensor3D,
         FloatUnpaddedTensor3D,
         LongTensor1D,
+        LongTensor2D,
         LongTensor2D,
         BoolTensor2D,
         LongTensor2D,
@@ -247,6 +251,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn get_num_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
         let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
         tokenizer.num_tokens()
+    }
+    #[pyfn(m)]
+    fn get_num_paths_tokens(_py: Python, metadata: PickleableFPAMetadata) -> i64 {
+        let (_indexer, tokenizer, _ftmap) = fpa_metadata_from_pickleable(metadata);
+        tokenizer.num_paths_tokens()
     }
     #[pyfn(m)]
     fn fpa_get_num_possible_args(_py: Python, args: DataloaderArgs) -> i64 {

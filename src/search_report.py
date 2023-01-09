@@ -610,6 +610,7 @@ def main() -> None:
     arg_parser.add_argument("-p", "--project", type=str, default=None)
     arg_parser.add_argument("-i", "--project-index-only", action="store_true")
     top_args = arg_parser.parse_args()
+    print(f"Running main with {top_args}")
     assert not (top_args.project and top_args.project_index_only)
 
     with open(top_args.report_dir / "args.json", 'r') as f:

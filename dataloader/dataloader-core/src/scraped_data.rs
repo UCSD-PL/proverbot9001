@@ -370,8 +370,10 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
         newtac = newtac[1..newtac.len() - 1].to_string();
     }
     if let Some((before_semi, _)) = split_to_next_pat_outside_parens(&newtac, ";") {
+
         newtac = before_semi.trim().to_string();
         newtac.push('.');
+
     }
 
     // Substitutions
@@ -401,15 +403,47 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> ScrapedTactic {
             } else {
                 argstr
             };
+            // let mut updated_goal: String = "".to_string();
+            // let words: Vec<&str> = datum.context.focused_goal().split(" ").collect();
+            // for word in words{
+            //     let split: Vec<&str> = word.split("|-path-|").collect();
+            //     updated_goal = updated_goal + " " + split[0];
+            // }
             let argstr_tokens: Vec<_> = argstr.split_whitespace().collect();
             if argstr_tokens.len() == 1 {
                 let new_argstr = argstr_tokens
                     .into_iter()
                     .map(|token| match token.parse::<i64>() {
                         Ok(var_idx) => {
-                            match get_binder_var(datum.context.focused_goal(), var_idx) {
-                                Some(var) => var,
-                                None => token,
+                            // match get_binder_var(&updated_goal, var_idx) {
+                            if datum.context.focused_goal().contains("|-path-|") {
+                                match get_binder_var_with_paths(&datum.context.focused_goal(), var_idx) {
+                                    Some(var) => var,
+                                    None => {
+                                        assert!(
+                                            false,
+                                            "Binder var issue on token {} for goal {}", 
+                                            token,
+                                            datum.context.focused_goal()
+                                        );
+                                        token
+
+                                    }
+                                }
+                            } else {
+                                match get_binder_var(&datum.context.focused_goal(), var_idx) {
+                                    Some(var) => var,
+                                    None => {
+                                        assert!(
+                                            false,
+                                            "Binder var issue on token {} for goal {}", 
+                                            token,
+                                            datum.context.focused_goal()
+                                        );
+                                        token
+
+                                    }
+                                }
                             }
                         }
                         Err(_) => token,
@@ -515,6 +549,43 @@ fn get_binder_var(goal: &str, binder_idx: i64) -> Option<&str> {
     panic!("Not enough binders!")
 }
 
+fn get_binder_var_with_paths(goal: &str, binder_idx: i64) -> Option<&str> {
+    let mut paren_depth = 0;
+    let mut binders_passed = 0;
+    let mut skip = false;
+    lazy_static! {
+        static ref FORALL: Regex = Regex::new(r"forall\|-path-\|\s+").unwrap();
+    }
+    let forall_match = match FORALL.find(goal) {
+        Some(m) => m,
+        None => return None,
+    };
+    let rest_goal = &goal[forall_match.end()..];
+    let words: Vec<&str> = rest_goal.split(" ").collect();
+    for w in words {
+        let path_parts: Vec<&str> = w.split("|-path-|").collect();
+        let b = path_parts[0];
+        if b == "(" {
+            paren_depth += 1;
+        } else if b == ")" {
+            paren_depth -= 1;
+            if paren_depth < 2 {
+                skip = false;
+            }
+        } else if paren_depth < 2 && !skip {
+            if b == ":" {
+                skip = true;
+            } else {
+                binders_passed += 1;
+                if binders_passed == binder_idx {
+                    return Some(b);
+                }
+            }
+        }
+    }
+    panic!("Not enough binders!")
+}
+
 pub fn get_hyp_type(hyp: &str) -> &str {
     lazy_static! {
         static ref TYPECOLON: Regex = Regex::new(r":[^=]").unwrap();
@@ -549,6 +620,8 @@ pub struct DataloaderArgs {
     pub num_relevance_samples: usize,
     #[pyo3(get, set)]
     pub keywords_file: String,
+    #[pyo3(get, set)]
+    pub paths_file: String,
     #[pyo3(get, set)]
     pub context_filter: String,
     #[pyo3(get, set)]

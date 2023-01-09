@@ -163,6 +163,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
     parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
     parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
+    parser.add_argument("--paths-file", type=Path, default=Path("common_paths.txt"))
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--features-json", action='store_true')
@@ -255,7 +256,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                 with proofs_file.open('r') as f:
                     for idx, line in enumerate(f):
                         try:
-                            (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                            (job_project, job_file, job_module, job_lemma), sol = json.loads(line, strict=False)
                         except json.decoder.JSONDecodeError:
                             print(f"On line {idx} in file {proofs_file}")
                             raise
@@ -402,7 +403,9 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
     write_time(args)
     time_taken = datetime.now() - start_time
     write_time(args)
+    print("Here trying to generate report.")
     if args.generate_report:
+        print("Here deeper trying to generate report.")
         with open(args.output_dir / "args.json", 'w') as f:
             json.dump({k: f"\"{v}\"" if isinstance(v, (Path, str))
                        else str(v) for k, v in vars(args).items()}, f)

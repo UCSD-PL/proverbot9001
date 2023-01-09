@@ -427,6 +427,7 @@ def encode_seq_classify_data(data : RawDataset,
                              num_reserved_tokens : int,
                              save_tokens : Optional[str] = None,
                              load_tokens : Optional[str] = None,
+                             load_paths : Optional[str] = None,
                              num_relevance_samples : int = 1000) \
     -> Tuple[ClassifySequenceDataset, Tokenizer, SimpleEmbedding]:
     embedding = SimpleEmbedding()

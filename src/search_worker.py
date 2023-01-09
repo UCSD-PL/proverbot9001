@@ -240,6 +240,7 @@ class Worker:
             self.remaining_commands.pop(0)
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
+        eprint("RUNNING JOB")
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job

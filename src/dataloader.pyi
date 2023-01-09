@@ -21,6 +21,7 @@ class ScrapedTactic:
     prev_tactics: List[str]
     context: ProofContext
     tactic: str
+    goals: List[str]
 
 
 @dataclass
@@ -60,7 +61,6 @@ class Tokenizer:
     num_reserved_tokens: int
     unknown_token: int
     token_dict: Dict[str, int]
-    paths_dict: Dict[str, int]
 
 
 class GoalEncMetadata:
@@ -72,7 +72,7 @@ class TokenMap:
 
 
 PickleableIndexer = Tuple[int, Dict[str, int], bool]
-PickleableTokenizer = Tuple[bool, int, int, Dict[str, int], Dict[str, int]]
+PickleableTokenizer = Tuple[bool, int, int, Dict[str, int], Dict[str,int]]
 PickleableFeaturesTokenMap = Tuple[Dict[str, int],
                                    Dict[str, int],
                                    Dict[str, int]]
@@ -114,7 +114,6 @@ def features_polyarg_tensors(args: DataloaderArgs, filename: str) \
                  List[List[List[float]]],
                  List[int],
                  List[List[int]],
-                 List[List[int]],
                  List[List[bool]],
                  List[List[int]],
                  List[List[float]],
@@ -131,7 +130,6 @@ def features_polyarg_tensors_with_meta(args: DataloaderArgs, filename: str,
               List[List[List[int]]],
               List[List[List[float]]],
               List[int],
-              List[List[int]],
               List[List[int]],
               List[List[bool]],
               List[List[int]],
@@ -151,7 +149,6 @@ def sample_fpa(args: DataloaderArgs, metadata: PickleableFPAMetadata,
                    List[List[List[int]]],
                    List[List[List[float]]],
                    List[int],
-                   List[List[int]],
                    List[List[int]],
                    List[List[bool]],
                    List[List[int]],
@@ -189,8 +186,6 @@ def features_vocab_sizes(tmap: TokenMap) -> Tuple[List[int], int]:
 def get_num_tokens(metadata: PickleableFPAMetadata) -> int:
     ...
 
-def get_num_paths_tokens(metadata: PickleableFPAMetadata) -> int:
-    ...
 
 def get_num_indices(metadata: PickleableFPAMetadata) -> \
   Tuple[PickleableFPAMetadata, int]:
@@ -221,8 +216,6 @@ def goals_to_total_distances_tensors_with_meta(args: DataloaderArgs,
 def goal_enc_get_num_tokens(metadata: GoalEncMetadata) -> int:
     ...
 
-def goal_enc_get_num_paths_tokens(metadata: GoalEncMetadata) -> int:
-    ...
 
 def goal_enc_tokenize_goal(args: DataloaderArgs,
                            metadata: GoalEncMetadata,
@@ -254,9 +247,4 @@ def tactic_transitions_from_file(args: DataloaderArgs,
 
 
 def rust_parse_sexp_one_level(sexpstr: str) -> List[str]:
-    ...
-
-def get_all_tactics(metadata: PickleableFPAMetadata) -> List[str]:
-    ...
-def get_token(metadata: PickleableFPAMetadata) -> List[str]:
     ...

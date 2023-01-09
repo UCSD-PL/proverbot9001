@@ -23,7 +23,7 @@
 import signal
 import sys
 from collections import Counter
-from tokenizer import tokenizers
+from tokenizer import tokenizers, get_symbols
 import search_file
 import dynamic_report
 import static_report
@@ -177,6 +177,7 @@ def get_data(args : List[str]) -> None:
                                   "prev_goal": point.goal,
                                   "tactic": point.tactic}))
 
+
 import random
 import contextlib
 from pathlib_revised import Path2
@@ -250,7 +251,42 @@ def get_tokens(args: List[str]):
           else contextlib.nullcontext(sys.stdout)) as f:
         for keyword in keywords:
             f.write(keyword + "\n")
+def common_paths(args : List[str]) -> None:
+    parser = argparse.ArgumentParser(description=
+                                     "Get 40 most common paths")
+    parser.add_argument("scrape_file", type=Path)
+    parser.add_argument("paths_file", type=Path)
+    parser.add_argument("--num-most-common", default=40, type=int)
+    parser.add_argument("--context-filter", default="default")
+    parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
+    parser.add_argument("--max-term-length", default=30, type=int)
+    arg_values = parser.parse_args(args)
 
+    print("RUNNING")
+
+    raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
+                                                        arg_values.max_tuples)
+
+    print("RAN?" + str(arg_values.num_most_common))
+    all_paths = []
+    for scraped in raw_data:
+        for agoal in scraped.context.fg_goals:
+            goalwords = agoal.goal.split(' ')
+            for word in goalwords:
+                if '|-path-|' in word:
+                    path = word.split('|-path-|')[1].strip(' ')
+                    if path:
+                        all_paths.append(path)
+
+    paths_counter = Counter(all_paths)
+    f = open(arg_values.paths_file, "w")
+    for path_tuple in paths_counter.most_common(arg_values.num_most_common):
+        print(path_tuple[0])
+        f.write(path_tuple[0]+"\n")
+
+    f.close()
 
 modules = {
     "train": train,
@@ -260,6 +296,7 @@ modules = {
     "evaluator-report": evaluator_report.main,
     "data": get_data,
     "tokens": get_tokens,
+    "paths": common_paths,
     "tactics": get_tactics,
     "predict": interactive_predictor.predict,
 }

@@ -172,6 +172,8 @@ def extract_dataloader_args(args: argparse.Namespace) -> DataloaderArgs:
     dargs.context_filter = args.context_filter
     assert args.load_tokens, "Must provide a keywords file for rust dataloader."
     dargs.keywords_file = args.load_tokens
+    assert args.load_paths, "Must provide a paths file for rust dataloader."
+    dargs.paths_file = args.load_paths
     return dargs
 
 def main(arg_list : List[str]) -> None:
