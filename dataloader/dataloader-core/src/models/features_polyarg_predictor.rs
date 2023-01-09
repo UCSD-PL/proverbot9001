@@ -2,10 +2,8 @@ use indicatif::{ParallelProgressIterator, ProgressBar, ProgressFinish, ProgressS
 use itertools::multiunzip;
 use pyo3::exceptions;
 use pyo3::prelude::*;
-use rand::seq::SliceRandom;
-use rand::thread_rng;
-use rand::Rng;
 use rayon::prelude::*;
+use std::iter::once;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
@@ -228,16 +226,14 @@ fn trim_premises<'a>(
     if premises.len() > max_premises {
         match tac_arg {
             TacticArgument::HypVar(hyp_idx) => {
-                let mut other_prems = premises.clone();
-                other_prems.remove(hyp_idx);
-                let arg_hyp: &String = &premises[hyp_idx];
-                let mut selected: Vec<&String> = other_prems
-                    .choose_multiple(&mut thread_rng(), max_premises - 1)
-                    .copied()
-                    .collect();
-                let new_arg_idx = thread_rng().gen_range(0, max_premises);
-                selected.insert(new_arg_idx, arg_hyp);
-                (TacticArgument::HypVar(new_arg_idx), selected)
+                if hyp_idx < max_premises {
+                    (TacticArgument::HypVar(hyp_idx),
+                     premises.iter().take(max_premises).cloned().collect())
+                } else {
+                    (TacticArgument::HypVar(max_premises - 1),
+                     premises.iter().take(max_premises - 1).cloned()
+                             .chain(once(premises[hyp_idx])).collect())
+                }
             }
             _ => (
                 tac_arg,
