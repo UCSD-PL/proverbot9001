@@ -379,49 +379,41 @@ class FeaturesPolyargPredictor(
         self.metadata, num_stem_poss = get_num_indices(self.metadata)
         stem_width = min(16, num_stem_poss)
 
-        (premise_keywords, premise_subwords), hyp_features, \
-            nhyps_batch, (goal_keywords, goal_subwords), \
-            goal_mask, \
-            word_features, vec_features = \
+        tensor_sample = \
             sample_fpa(extract_dataloader_args(self.training_args),
                        self.metadata,
                        context.relevant_lemmas,
                        context.prev_tactics,
                        context.hypotheses,
                        context.goal)
+        term_length = self.training_args.max_length
 
         _, stem_certainties, stem_idxs = self.predict_stems(
-            self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
-        num_hyps = nhyps_batch[0]
-        term_length = self.training_args.max_length
+            self._model, stem_width,
+            LongTensor([tensor_sample.word_features]),
+            FloatTensor([tensor_sample.vec_features]))
         subword_length = self.training_args.max_subwords
         chunk_size = self._model.ident_chunk_encoder.out_size()
 
-        tokenized_premises = self.encode_term_chunks(self.training_args, self._model,
-                                                    LongTensor(premise_keywords).view(
-                                                        num_hyps, term_length),
-                                                    LongTensor(premise_subwords).view(
-                                                        num_hyps, term_length,
-                                                        subword_length)).view(
-                                                            1, num_hyps,
-                                                            term_length, chunk_size)
-
         tokenized_goal = self.encode_term_chunks(self.training_args, self._model,
-                                                 LongTensor(goal_keywords),
-                                                 LongTensor(goal_subwords))
+                                                 LongTensor([tensor_sample.goal_keywords]),
+                                                 LongTensor([tensor_sample.goal_subwords]))
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
-            stem_idxs, tokenized_goals, maybe_cuda(torch.BoolTensor(goal_mask)))
-        tokenized_premises = self.encode_term_chunks(self.training_args, self._model,
-                                                    (LongTensor(premise_chunks[0][0]),
-                                                     LongTensor(premise_chunks[1][0]))).view(
-            1, nhyps_batch[0], self.training_args.max_length,
-            self._model.ident_chunk_encoder.out_size())
+            stem_idxs, tokenized_goal.unsqueeze(dim=0), maybe_cuda(torch.BoolTensor(tensor_sample.goal_mask)))
 
-        if len(tokenized_premises[0]) > 0:
+        if len(tensor_sample.premise_keywords) > 0:
+            tokenized_premises = self.encode_term_chunks(self.training_args, self._model,
+                                                         LongTensor(tensor_sample.premise_keywords).view(
+                                                             tensor_sample.num_premises, term_length),
+                                                         LongTensor(tensor_sample.premise_subwords).view(
+                                                             tensor_sample.num_premises, term_length,
+                                                             subword_length)).view(
+                                                                1, tensor_sample.num_premises,
+                                                                term_length, chunk_size)
             hyp_arg_values = self.hyp_name_scores(
                 stem_idxs[0], tokenized_goal,
-                tokenized_premises, hyp_features[0])
+                tokenized_premises, tensor_sample.premise_features)
 
             total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
         else:

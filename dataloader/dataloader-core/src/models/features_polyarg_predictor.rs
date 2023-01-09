@@ -71,16 +71,25 @@ pub fn fpa_metadata_from_pickleable(pick: PickleableFPAMetadata) -> FPAMetadata 
 #[pyclass(module = "dataloader")]
 #[derive(Serialize, Deserialize, Clone)]
 pub struct FPAInputTensorSample {
+    #[pyo3(get, set)]
     premise_keywords: Vec<Vec<i64>>,
+    #[pyo3(get, set)]
     premise_subwords: Vec<Vec<Vec<i64>>>,
+    #[pyo3(get, set)]
     premise_features: Vec<Vec<f64>>,
+    #[pyo3(get, set)]
     num_premises: i64,
 
+    #[pyo3(get, set)]
     goal_keywords: Vec<i64>,
+    #[pyo3(get, set)]
     goal_subwords: Vec<Vec<i64>>,
+    #[pyo3(get, set)]
     goal_mask: Vec<bool>,
 
+    #[pyo3(get, set)]
     word_features: Vec<i64>,
+    #[pyo3(get, set)]
     vec_features: Vec<f64>,
 }
 #[pyclass(module = "dataloader")]
@@ -579,10 +588,10 @@ pub fn sample_fpa_rs(
     hypotheses: Vec<String>,
     goal: String,
 ) -> FPAInputTensorSample {
-    let trimmed_premises = hypotheses.iter().collect();
+    let trimmed_premises = hypotheses.iter().chain(relevant_lemmas.iter()).collect();
     fpa_input_tensors(
         TacticContext {
-            relevant_lemmas,
+            relevant_lemmas: relevant_lemmas.clone(),
             prev_tactics,
             obligation: Obligation {
                 hypotheses: hypotheses.clone(),
