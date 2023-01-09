@@ -30,7 +30,7 @@ lalrpop-util = "0.19.0"
 bincode = "*"
 indicatif = {version = "*", features = ["rayon"]}
 gestalt_ratio = { path = "../gestalt-ratio" }
-itertools = "*"
+itertools = "0.10.5"
 
 [build-dependencies]
 lalrpop = { version = "0.19.0", features = ["lexer"] }
