@@ -417,11 +417,6 @@ pub fn features_polyarg_tensors_rs(
     .flat_map(preprocess_datum)
     .filter(|datum| apply_filter(args.max_length, &filter, datum));
 
-    let features_data_sample: Vec<ScrapedTactic> = raw_data_iter.by_ref().take(4096).collect();
-    // Put the data used for constructing the features metadata back
-    // at the beginning of the raw data iter.
-    let raw_data_iter = features_data_sample.iter().cloned().chain(raw_data_iter);
-
     let raw_data: Vec<ScrapedTactic> = match args.max_tuples {
         Some(max) => raw_data_iter.take(max).collect(),
         None => raw_data_iter.collect(),
@@ -440,7 +435,7 @@ pub fn features_polyarg_tensors_rs(
             }
             None => {
                 let mut indexer = OpenIndexer::new();
-                for sample in features_data_sample.iter() {
+                for sample in raw_data.iter() {
                     match get_stem(&sample.tactic) {
                         Some(stem) => indexer.add(stem),
                         None => (),
@@ -471,7 +466,7 @@ pub fn features_polyarg_tensors_rs(
             );
             let tmap = match &args.load_features_state {
                 Some(path) => FeaturesTokenMap::load_from_text(path),
-                None => FeaturesTokenMap::initialize(&features_data_sample, args.num_keywords),
+                None => FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
             };
             (tokenizer, tmap)
         }
