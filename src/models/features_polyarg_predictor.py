@@ -836,6 +836,18 @@ class FeaturesPolyargPredictor(
                     features_polyarg_tensors(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file))
+                with open("tensors.json", 'r') as f:
+                    loaded_metadata, loaded_dataset = json.load(f)
+                assert loaded_metadata == metadata, f"Metadata doesn't match reference! {loaded_metadata} vs {metadata}"
+                assert loaded_dataset[0] == dataset.inputs.premise_keywords
+                assert loaded_dataset[1] == dataset.inputs.premise_features
+                assert loaded_dataset[2] == dataset.inputs.num_premises
+                assert loaded_dataset[3] == dataset.inputs.goal_keywords
+                assert loaded_dataset[4] == dataset.inputs.goal_masks
+                assert loaded_dataset[5] == dataset.inputs.word_features
+                assert loaded_dataset[6] == dataset.inputs.vec_features
+                assert loaded_dataset[7] == dataset.outputs.tactic_stem_idxs
+                assert loaded_dataset[8] == dataset.outputs.tactic_arg_idxs
         with print_time("Converting data to tensors", guard=arg_values.verbose):
             unpadded_tokenized_hyp_types = dataset.inputs.premise_keywords
             unpadded_hyp_subwords = dataset.inputs.premise_subwords
