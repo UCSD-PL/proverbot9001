@@ -7,8 +7,8 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::{Write, stdout};
-use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
+use indicatif::{ProgressBar, ParallelProgressIterator, ProgressStyle, ProgressFinish};
+use std::iter::once;
 
 use crate::context_filter::{parse_filter, apply_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
