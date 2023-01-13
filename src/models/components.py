@@ -196,33 +196,36 @@ class DNNScorer(nn.Module):
 class WordFeaturesEncoder(nn.Module):
     def __init__(self, input_vocab_sizes : List[int],
                  hidden_size : int, num_layers : int,
-                 output_vocab_size : int) -> None:
+                 output_size : int) -> None:
         super().__init__()
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.num_word_features = len(input_vocab_sizes)
+        self.output_size = output_size
+        self.input_vocab_sizes = maybe_cuda(torch.tensor(input_vocab_sizes))
         self.word_embeddings = nn.ModuleList([maybe_cuda(nn.Embedding(vocab_size,hidden_size)) for vocab_size in input_vocab_sizes])
         self._in_layer = maybe_cuda(nn.Linear(hidden_size * len(input_vocab_sizes),
                                               hidden_size))
         self.layers = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size,hidden_size)) for _ in range(num_layers-1)])
-        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_size))
 
     def forward(self, input_vec : torch.LongTensor) -> torch.FloatTensor:
         batch_size = input_vec.size()[0]
-        word_embedded_features = []
-        for i,word_embedding in enumerate(self.word_embeddings):
-            word_feature_var = maybe_cuda(input_vec[:,i])
-            embedded = word_embedding(word_feature_var)\
-                .view(batch_size, self.hidden_size)
-            word_embedded_features.append(embedded)
-        word_embedded_features_vec = \
-            torch.cat(word_embedded_features, dim=1)
+        assert torch.all(input_vec < self.input_vocab_sizes)
+        word_embedded_features_vec =\
+            torch.cat([embedding(maybe_cuda(input_vec[:,i]))
+                           .view(batch_size, self.hidden_size)
+                       for i, embedding in enumerate(self.word_embeddings)], dim=1)
+        assert not torch.any(torch.isnan(word_embedded_features_vec))
         vals = self._in_layer(word_embedded_features_vec)
+        assert not torch.any(torch.isnan(vals))
         for layer in self.layers:
             vals = F.relu(vals)
             vals = layer(vals)
+            assert not torch.any(torch.isnan(vals))
         vals = F.relu(vals)
-        result = self._out_layer(vals).view(batch_size, -1)
+        assert not torch.any(torch.isnan(vals))
+        result = self._out_layer(vals).view(batch_size, self.output_size)
         return result
 
 class EncoderRNN(nn.Module):
