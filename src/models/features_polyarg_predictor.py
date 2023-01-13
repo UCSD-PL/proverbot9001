@@ -35,6 +35,7 @@ from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
                   ByteTensor, print_time, unwrap)
 import util
 import math
+import json
 from coq_serapy.contexts import TacticContext
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, EncoderRNN,
@@ -798,6 +799,8 @@ class FeaturesPolyargPredictor(
                     features_polyarg_tensors(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file))
+                with open("tensors.json", 'w') as f:
+                    json.dump((metadata, data_lists), f)
         with print_time("Converting data to tensors", guard=arg_values.verbose):
             unpadded_tokenized_hyp_types, \
                 unpadded_hyp_features, \
