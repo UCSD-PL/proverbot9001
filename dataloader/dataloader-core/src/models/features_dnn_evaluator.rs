@@ -25,7 +25,7 @@ use pyo3::prelude::*;
 use std::fs::File;
 
 use crate::models::evaluator_common::*;
-use crate::features::{context_features, TokenMap, VEC_FEATURES_SIZE};
+use crate::features::{context_features, TokenMap, VEC_FEATURES_SIZE, score_hyps};
 use crate::scraped_data::*;
 
 pub fn features_to_total_distances_tensors_rs(
@@ -54,7 +54,10 @@ pub fn features_to_total_distances_tensors_rs(
                 Some(m) => m,
                 None => TokenMap::initialize(&tactics, args.num_keywords),
             };
-            let (word_features, float_features) = context_features(&args, &tmap, &tactics);
+            let (word_features, float_features) = context_features(
+                &args, &tmap, &tactics,
+                tactics.iter().map(|scraped| score_hyps(scraped.context.focused_hyps(),
+                                                        scraped.context.focused_goal())).collect());
             let word_features_sizes = tmap.word_features_sizes();
 
             Ok((

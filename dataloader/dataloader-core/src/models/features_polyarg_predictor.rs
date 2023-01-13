@@ -207,7 +207,7 @@ pub fn features_polyarg_tensors_rs(
                                                  .with_style(my_bar_style.clone())
                                                  .with_finish(ProgressFinish::AndLeave))
         .collect();
-    let hyp_features = raw_data
+    let hyp_features: Vec<Vec<Vec<f64>>> = raw_data
         .par_iter()
         .zip(selected_prems)
         .map(|(scraped, selected)| {
@@ -228,7 +228,9 @@ pub fn features_polyarg_tensors_rs(
                                                  .with_style(my_bar_style.clone())
                                                  .with_finish(ProgressFinish::AndLeave))
         .collect();
-    let (word_features, vec_features) = context_features(&args, &features_token_map, &raw_data);
+    let (word_features, vec_features) = context_features(
+        &args, &features_token_map,
+        &raw_data, hyp_features.iter().map(|fvecs| fvecs.iter().map(|fvec| fvec[0]).collect()).collect());
     let tokenized_goals: Vec<_> = raw_data
         .par_iter()
         .map(|tac| {

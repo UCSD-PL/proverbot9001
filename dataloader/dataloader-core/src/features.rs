@@ -38,15 +38,17 @@ pub fn context_features(
     _args: &DataloaderArgs,
     tmap: &TokenMap,
     data: &Vec<ScrapedTactic>,
+    hyp_scores: Vec<Vec<f64>>,
 ) -> (LongTensor2D, FloatTensor2D) {
     let my_bar_style = ProgressStyle::with_template("{msg}: {wide_bar} [{elapsed}/{eta}]").unwrap();
     let length: u64 = data.len().try_into().unwrap();
     let (best_hyps, best_hyp_scores): (Vec<&str>, Vec<f64>) = data
         .par_iter()
-        .map(|scraped| {
+        .zip(hyp_scores.par_iter())
+        .map(|(scraped, scores)| {
             best_scored_hyp(
                 &scraped.context.focused_hyps(),
-                &scraped.context.focused_goal(),
+                scores.clone(),
             )
         })
         .progress_with(ProgressBar::new(length).with_message("Finding best scoring hypotheses and their scores")
@@ -97,7 +99,7 @@ pub fn sample_context_features_rs(
 ) -> (LongTensor1D, FloatTensor1D) {
     let (best_hyp, best_score) = best_scored_hyp(
         &hypotheses,
-        &goal,
+        score_hyps(hypotheses, goal),
     );
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),
@@ -353,16 +355,14 @@ pub fn score_hyps<'a>(
 
 fn best_scored_hyp<'a>(
     hyps: &'a Vec<String>,
-    goal: &String,
+    hyp_scores: Vec<f64>,
 ) -> (&'a str, f64) {
-    let mut best_hyp = "";
-    let mut best_score = 1.0;
-    for hyp in hyps.iter() {
-        let score = gestalt_ratio(goal, get_hyp_type(hyp));
-        if score < best_score {
-            best_score = score;
-            best_hyp = &hyp;
-        }
+    if hyps.len() == 0 {
+        return ("", 0.0)
+    } else {
+        hyps.iter().zip(hyp_scores.into_iter()).min_by(|(_hyp1, hyp_score1), (_hyp2, hyp_score2)|
+                                                        hyp_score1.partial_cmp(hyp_score2).unwrap())
+            .map(|(hyp, hyp_score)| (hyp.as_str(), hyp_score))
+            .unwrap()
     }
-    (best_hyp, best_score)
 }
