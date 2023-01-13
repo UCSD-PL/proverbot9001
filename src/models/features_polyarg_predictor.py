@@ -322,13 +322,12 @@ class FeaturesPolyargPredictor(
         arg_values = argparser.parse_args(args)
         torch.cuda.set_device(arg_values.gpu)
         util.cuda_device = f"cuda:{arg_values.gpu}"
-        with autograd.detect_anomaly():
-            save_states = self._optimize_model(arg_values)
+        save_states = self._optimize_model(arg_values)
 
-            for metadata, state in save_states:
-                with open(arg_values.save_file, 'wb') as f:
-                    torch.save((self.shortname(),
-                                (arg_values, sys.argv, metadata, state)), f)
+        for metadata, state in save_states:
+            with open(arg_values.save_file, 'wb') as f:
+                torch.save((self.shortname(),
+                            (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, contexts: List[TacticContext], k: int,
                               verbosity:int = 0) -> List[List[Prediction]]:
