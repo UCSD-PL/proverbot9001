@@ -1,4 +1,5 @@
 from collections import deque
+import multiprocessing
 from sklearn.ensemble import RandomForestRegressor
 import torch
 import torch.nn as nn
@@ -26,11 +27,12 @@ from mpire import WorkerPool
 from multiprocessing import Pool, Pipe, Process
 import itertools
 import io
-
+import coq2vec
 
 
 class ProofEnv() :
-	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True, state_type = "index", info_on_check = False):
+	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True, 
+				state_type = "index", info_on_check = False):
 		self.action_space = None
 		self.observation_space = None
 		self.prelude= prelude
@@ -63,6 +65,12 @@ class ProofEnv() :
 		self.context_file =  "output/output_context_file.txt"
 		with open(self.context_file,"w") as f :
 			f.write("")
+		
+		if "vector" in state_type :		
+			self.termvectorizer = coq2vec.CoqTermRNNVectorizer()
+			self.termvectorizer.load_weights("data/term2vec-weights-59.dat")
+			num_hyps_encoded = 4
+			self.obligationvectorizer = coq2vec.CoqContextVectorizer(self.termvectorizer, num_hyps_encoded)
 		self.curr_proof_tactics = []
 		self.max_num_proofs = 15
 		self.num_proofs = 0
@@ -154,7 +162,9 @@ class ProofEnv() :
 		print("Context After finding proof : ",self.coq.proof_context)
 		self.proof_time = self.end_proof_time - self.start_proof_time
 		self.start_proof_time = time.time()
-		return None #self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip())
+		self.proof_time_calculated = sum(self.debug_time)
+		self.debug_time = []
+		return None #self.get_state_vector( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip())
 
 
 	def navigate_file_end_of_current_proof(self) :
@@ -237,36 +247,35 @@ class ProofEnv() :
 			self.language_model = pickle.load(f)
 
 
-	def get_state_vector_from_text(self,state_text) :
-		state_sentence = get_symbols(state_text)
+	def get_state_vector(self,proof_state) :
+		state_text = proof_state.fg_goals[0].goal.strip()
 		print("State Text : ",state_text)
-		if self.state_type == "index" :
+		if self.state_type == "goal_index" :
+			state_sentence = get_symbols(state_text)
 			indexes = indexesFromSentence(self.language_model, state_sentence, ignore_missing = True)
 			# indexes.append(EOS_token)
 			return  indexes
-		elif self.state_type == "text" :
+		elif self.state_type == "goal_text" :
 			return state_text
-		# ---------------------------------IF Not ---------------------------------------------------
-		state_tensor = tensorFromSentence(self.language_model,state_sentence,self.device, ignore_missing = True)
-		print("Debug : Going into Torch no grad")
-		with torch.no_grad() :
-			print("Debug : Now inside torch.no_grad")
-			state_model_hidden = self.state_model.initHidden(self.device)
-			state_model_cell = self.state_model.initCell(self.device)
-			input_length = state_tensor.size(0)
-			print("Debug : before Forloop")
-			for ei in range(input_length):
-				print("Inside For loop", ei,"/", input_length)
-				_, state_model_hidden,state_model_cell = self.state_model(state_tensor[ei], state_model_hidden,state_model_cell)
-				print("{Part loop done",ei,"/", input_length)
-			print("Debug : after Forloop")
-			
-			state= state_model_hidden
-		print("Debug : Exiting from Torch no grad")
-		state = state.cpu().detach().numpy().flatten()
-		state = np.append(state,[self.num_commands]).astype("float") 
-		print("State Vector returned")
-		return state
+		elif self.state_type == "goal_vector" :
+			return self.termvectorizer.term_to_vector(state_text)
+		elif self.state_type == "obligation" :
+			return proof_state.fg_goals[0]
+		elif self.state_type == "obligation_index" :
+			goal_state_sentence = get_symbols( proof_state.fg_goals[0].goal.strip())
+			goal_indexes = indexesFromSentence(self.language_model, goal_state_sentence, ignore_missing = True)
+			all_hyp_indexes = []
+			for hyp in proof_state.fg_goals[0].hypotheses :
+				hyp_sentence =  get_symbols( hyp.strip())
+				hyp_indexes = indexesFromSentence(self.language_model, hyp_sentence, ignore_missing = True)
+				all_hyp_indexes.append(hyp_indexes)
+
+			all_hyp_indexes.append(indexesFromSentence(self.language_model, ":", ignore_missing = True))
+			return [goal_indexes, all_hyp_indexes]
+		elif self.state_type == "obligation_vector" :
+			return self.obligationvectorizer.obligation_to_vector(proof_state.fg_goals[0])
+		else :
+			raise ValueError("Invalid State type", self.state_type)
 
 	def admit_and_skip_proof(self) :
 		self.in_agent_proof_mode= False
@@ -283,7 +292,7 @@ class ProofEnv() :
 		self.in_file_proof_mode = True
 		self.goto_next_proof()
 		done = True
-		next_state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal)
+		next_state = self.get_state_vector( self.coq.proof_context)
 		r = 0#-1
 		self.in_agent_proof_mode= True
 		self.in_file_proof_mode = False
@@ -306,7 +315,12 @@ class ProofEnv() :
 		# print(contextSurjective(context1, context2))
 		# print(contextSurjective(context2, context1))
 		return contextSurjective(context1, context2) and contextSurjective(context2, context1)
-
+	
+	def is_tactics_repeating(self,context, cutoff = 4) :
+		tactics_used = context.prev_tactics
+		if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
+			return True
+		return False
 	
 	def check_next_state(self,prediction) :
 		info = {}
@@ -319,8 +333,11 @@ class ProofEnv() :
 				return []
 		next_state = []
 		context_before = self.coq.proof_context
+		a= time.time()
 		try:
+			
 			self.coq.run_stmt(prediction, timeout= self.time_per_command)
+			
 		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
 				serapi_instance.CoqExn, serapi_instance.OverflowError,
 				serapi_instance.ParseError,
@@ -336,8 +353,15 @@ class ProofEnv() :
 			self.kill()
 			quit()
 		else :
+			b = time.time()
+			print("Time for running the above command", b-a)
 			num_brackets_run = 0
 			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
+				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
+					print("Running Unshelve.")
+					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command)
+					num_brackets_run += 1
+					continue
 				print("Running }")
 				self.coq.run_stmt("}", timeout= self.time_per_command)
 				num_brackets_run += 1
@@ -367,7 +391,7 @@ class ProofEnv() :
 
 			if self.is_context_fresh(self.coq.proof_context) :
 				next_state_name =  self.coq.proof_context.fg_goals[0].goal
-				next_state = self.get_state_vector_from_text(next_state_name)
+				next_state = self.get_state_vector(self.coq.proof_context)
 				info["state_text"] = next_state_name.strip()
 				print("Context is fresh for this actions")
 			else :
@@ -412,7 +436,7 @@ class ProofEnv() :
 		prediction = action
 		info = {}
 		eprint("Taking step -", action)
-
+		a= time.time()
 		try:
 			self.coq.run_stmt(prediction, timeout= self.time_per_command)
 		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
@@ -432,22 +456,44 @@ class ProofEnv() :
 			self.kill()
 			quit()
 		else :
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time for running the above command", b-a)
 			r = 0 #No rewards for progress
 			self.curr_proof_tactics.append(prediction)
+
+			
+
+			a = time.time()
 			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
+				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
+					print("Running Unshelve.")
+					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command)
+					continue
 				print("Running }")
 				self.coq.run_stmt("}", timeout= self.time_per_command)
 				self.curr_proof_tactics.append("}")
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time for the first while loop", b-a)
 
+			a = time.time()
 			if len(self.coq.proof_context.fg_goals) > 1 :
 				print(self.coq.proof_context.fg_goals,self.coq.proof_context.bg_goals)
 				print("Running {")
 				self.coq.run_stmt( "{", timeout= self.time_per_command)
 				self.curr_proof_tactics.append("{")
-			
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time taken for opening brackets", b-a)
+
+			a= time.time()
 			if completed_proof(self.coq) :
 				if self.wandb_log :
 					wandb.log({"Num command Attempts" : self.num_commands  })
+				b = time.time()
+				self.debug_time.append(b-a)
+				print("Time taken to check completed proof", b - a)
 				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
 				self.curr_proof_tactics.append("Qed.")
 				r = 1
@@ -457,22 +503,36 @@ class ProofEnv() :
 				self.num_proofs_solved += 1
 				self.in_agent_proof_mode= False
 				self.in_file_proof_mode = False
+				a = time.time()
 				self.navigate_file_end_of_current_proof()
+				b = time.time()
+				self.debug_time.append(b-a)
+				print("Time taken to naviagate file to the end of current proof", b -a)
 				self.in_agent_proof_mode= False
 				self.in_file_proof_mode = True
+				a = time.time()
 				self.goto_next_proof()
+				b = time.time()
+				self.debug_time.append(b-a)
+				print("Time taken to run goto_next_proof function", b-a)
 				done = True
-				next_state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip() )
+				next_state = self.get_state_vector( self.coq.proof_context )
 				info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 				return next_state, r, done, info
-
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time taken to check completed proof", b - a)
 
 			if self.coq.proof_context == None :
 				print("No context")
 				quit()
 			
 			self.num_commands += 1
+			a = time.time()
 			assert self.is_context_fresh(self.coq.proof_context)
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time taken to check if context fresh", b - a)
 			self.proof_contexts_in_path.append(self.coq.proof_context)
 
 
@@ -491,9 +551,14 @@ class ProofEnv() :
 			# self.in_agent_proof_mode= True
 			# self.in_file_proof_mode = False
 			# done = True 
-			return self.admit_and_skip_proof()
+			a = time.time()
+			result = self.admit_and_skip_proof()
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time taken to run admit and skip proof", b-a)
+			return result
 		
-		next_state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip() )
+		next_state = self.get_state_vector( self.coq.proof_context )
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		return next_state, r, done, info
 
@@ -502,9 +567,10 @@ class ProofEnv() :
 		
 		self.reset_to_start_of_file()
 		self.start_proof_time = 0
+		self.debug_time = []
 		self.goto_next_proof()
 		print("Proof context after reset and next file start: ", self.coq.proof_context)
-		state = self.get_state_vector_from_text( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip() )
+		state = self.get_state_vector( self.coq.proof_context )
 		info = {}
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		print("Reset done")
@@ -541,6 +607,8 @@ def child_process(pid, critical, pipe) :
 			result = test_env.run_to_proof(args)
 		elif func == 'terminate' :
 			break
+		elif func == 'keepalive' :
+			result = ""
 		else :
 			raise ValueError("Unknown function")
 
@@ -550,7 +618,8 @@ def child_process(pid, critical, pipe) :
 
 
 class FastProofEnv() :
-	def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector", max_proof_len = 30, num_check_engines = 5,info_on_check = False):
+	def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector", 
+					max_proof_len = 30, num_check_engines = 5, info_on_check = False):
 		self.num_check_engines = num_check_engines
 		self.proof_file = proof_file
 		self.prelude = prelude
@@ -577,6 +646,9 @@ class FastProofEnv() :
 	def proof_time(self) :
 		return self.main_engine.proof_time
 	@property
+	def proof_time_calculated(self) :
+		return self.main_engine.proof_time_calculated
+	@property
 	def curr_proof_tactics(self) :
 		return self.main_engine.curr_proof_tactics
 
@@ -595,8 +667,9 @@ class FastProofEnv() :
 		# 		self.wandb, self.time_per_command, self.text_based_state)), 
 		# 		self.child_end_pipes ) )
 		process_list = []
+		context = multiprocessing.get_context('fork')
 		for i in range(self.num_check_engines) :
-			p = Process(target=child_process, args=(i,(self.proof_file, self.prelude, 
+			p = context.Process(target=child_process, args=(i,(self.proof_file, self.prelude, 
 				self.time_per_command, self.state_type, self.info_on_check,  self.max_proof_len),self.child_end_pipes[i] ) )
 			p.start()
 			process_list.append(p)
@@ -639,14 +712,17 @@ class FastProofEnv() :
 
 	def check_next_states(self,predictions) :
 		print("Checking next States on all Test Engines")
+		a = time.time()
 		for i in range(len(predictions)) :
 			self.server_end_pipes[i].send(["check_next_state",predictions[i]])
 		results = []
 		for pipe in self.server_end_pipes :
 			recv_obj = pipe.recv()
 			results.append(recv_obj)
+		b = time.time()
 		print("Checked next States on all Test Enignes")
 		print(results)
+		print("Time for check next states", b - a)
 		# quit()
 		if self.info_on_check :
 			return list(zip(*results))
@@ -661,6 +737,15 @@ class FastProofEnv() :
 			pipe.recv()
 		print("Stepped on all Test Engines")
 		return self.main_engine.run_to_proof(proof_contains)
+	
+	def keepalive(self) :
+		for pipe in self.server_end_pipes :
+			pipe.send(["reset",None])
+		for pipe in self.server_end_pipes :
+			print(pipe.recv())
+		print("Keepalive")
+		# quit()
+		return ""
 
 
 
