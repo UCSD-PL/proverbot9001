@@ -270,15 +270,16 @@ def show_progress(args: argparse.Namespace) -> None:
          tqdm(desc="Workers scheduled", total=num_workers_total,
               initial=num_workers_scheduled, dynamic_ncols=True) as wbar:
         while num_jobs_done < num_jobs_total:
+            new_workers_alive = int(subprocess.check_output(
+                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
+                text=True, shell=True))
+            time.sleep(0.2)
             new_jobs_done = len(get_already_done_jobs(args))
             bar.update(new_jobs_done - num_jobs_done)
             num_jobs_done = new_jobs_done
 
             with (args.output_dir / "workers_scheduled.txt").open('r') as f:
                 new_workers_scheduled = len([line for line in f])
-            new_workers_alive = int(subprocess.check_output(
-                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
-                text=True, shell=True))
             if new_workers_alive < num_workers_alive:
                 num_workers_alive = new_workers_alive
                 if num_workers_alive < (num_jobs_total - num_jobs_done):
@@ -292,12 +293,10 @@ def show_progress(args: argparse.Namespace) -> None:
                 num_jobs_done = len(get_already_done_jobs(args))
                 if num_jobs_done < num_jobs_total:
                     util.eprint("All workers exited, but jobs aren't done!")
-                write_time(args)
-                sys.exit(1)
+                    write_time(args)
+                    sys.exit(1)
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
-
-            time.sleep(0.2)
 
 def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) -> None:
     test_projects_total = len([d for d in project_dicts if len(d["test_files"]) > 0])
