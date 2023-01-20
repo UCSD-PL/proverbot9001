@@ -129,6 +129,7 @@ def main(arg_list: List[str]) -> None:
             command = [f"{cur_dir}/sbatch-retry.sh",
                             "-o", str(args.output_dir / args.workers_output_dir
                                       / report_output_name),
+                            "-t", str(args.worker_timeout),
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
