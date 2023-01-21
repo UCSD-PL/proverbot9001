@@ -702,18 +702,32 @@ fn get_argument<'a>(
         {
             Some((idx, _hname)) => {
                 if all_hyps.len() > args.max_premises {
-                    let mut other_hyps = all_hyps.clone();
-                    other_hyps.remove(idx);
-                    let mut selected_hyps: Vec<&String> = other_hyps
-                        .choose_multiple(&mut thread_rng(), args.max_premises - 1)
-                        .map(|s| *s)
-                        .collect();
-                    // let mut selected_hyps: Vec<&String> =
-                    //     other_hyps.into_iter().take(args.max_premises - 1).collect();
-                    let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
-                    // let new_hyp_idx = args.max_premises - 1;
-                    selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
-                    return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
+                    if idx < args.max_premises {
+                        let mut other_hyps = all_hyps.clone();
+                        other_hyps.remove(idx);
+                        let mut selected_hyps: Vec<&String> = other_hyps
+                            .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                            .copied()
+                            .collect();
+                        let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
+                        selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
+                        return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
+                    } else {
+                        //return (TacticArgument::HypVar(args.max_premises - 1),
+                        //        all_hyps.iter().take(args.max_premises-1).cloned().chain(once(all_hyps[idx])).collect())
+                        let mut other_hyps = all_hyps.clone();
+                        other_hyps.remove(idx);
+                        let mut selected_hyps: Vec<&String> = other_hyps
+                            .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                            .copied()
+                            .collect();
+                        // let mut selected_hyps: Vec<&String> =
+                        //     other_hyps.into_iter().take(args.max_premises - 1).collect();
+                        let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
+                        //let new_hyp_idx = args.max_premises - 1;
+                        selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
+                        return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
+                    }
                 } else {
                     return (TacticArgument::HypVar(idx), all_hyps);
                 }
