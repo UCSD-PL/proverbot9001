@@ -348,7 +348,7 @@ pub fn score_hyps<'a>(
     let truncated_goal: String = goal.chars().take(128).collect();
     hyps.into_iter()
         .map(|hyp| {
-            gestalt_ratio(goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
+            gestalt_ratio(&truncated_goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
         })
         .collect()
 }
