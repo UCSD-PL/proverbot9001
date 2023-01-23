@@ -652,10 +652,14 @@ fn get_argument<'a>(
         .iter()
         .chain(scraped.relevant_lemmas.iter())
         .collect();
-    macro_rules! head_bounded_hyps {
+    macro_rules! rand_bounded_hyps {
         () => {
             if all_hyps.len() > args.max_premises {
-                all_hyps.iter().take(args.max_premises).cloned().collect()
+                // all_hyps.iter().take(args.max_premises).cloned().collect()
+                all_hyps
+                    .choose_multiple(&mut thread_rng(), args.max_premises)
+                    .map(|s| *s)
+                    .collect()
             } else if all_hyps.len() == 0 {
                 lazy_static! {
                     static ref COLONSTRING: String = ":".to_string();
@@ -667,21 +671,21 @@ fn get_argument<'a>(
         };
     }
     let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
-        None => return (TacticArgument::Unrecognized, head_bounded_hyps!()),
+        None => return (TacticArgument::Unrecognized, rand_bounded_hyps!()),
         Some(x) => x,
     };
     let argstr_tokens: Vec<&str> = tactic_argstr[..tactic_argstr.len() - 1]
         .split_whitespace()
         .collect();
     if argstr_tokens.len() == 0 {
-        (TacticArgument::NoArg, head_bounded_hyps!())
+        (TacticArgument::NoArg, rand_bounded_hyps!())
     } else if argstr_tokens.len() > 1 {
         assert!(
             false,
             "A multi argument tactic made it past the context filter! {}",
             scraped.tactic
         );
-        (TacticArgument::Unrecognized, head_bounded_hyps!())
+        (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
         let goal_symbols = get_words(scraped.context.focused_goal());
         let arg_token = argstr_tokens[0];
@@ -692,7 +696,7 @@ fn get_argument<'a>(
             .find(|(_idx, symbol)| symbol_matches(*symbol, arg_token))
         {
             Some((idx, _symbol)) => {
-                return (TacticArgument::GoalToken(idx), head_bounded_hyps!());
+                return (TacticArgument::GoalToken(idx), rand_bounded_hyps!());
             }
             None => (),
         };
@@ -743,7 +747,7 @@ fn get_argument<'a>(
             arg_token,
             scraped.context.focused_goal()
         );
-        (TacticArgument::Unrecognized, head_bounded_hyps!())
+        (TacticArgument::Unrecognized, rand_bounded_hyps!())
     }
 }
 fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
