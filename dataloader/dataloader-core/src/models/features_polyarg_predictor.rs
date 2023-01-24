@@ -1,14 +1,14 @@
 use pyo3::exceptions;
 use pyo3::prelude::*;
 use rand::seq::SliceRandom;
-use rand::thread_rng;
 use rand::Rng;
+use rand_core::SeedableRng;
+use rand_chacha::ChaCha8Rng;
 use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
 use indicatif::{ProgressBar, ParallelProgressIterator, ProgressStyle, ProgressFinish};
-use std::iter::once;
 
 use crate::context_filter::{parse_filter, apply_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
@@ -184,10 +184,11 @@ pub fn features_polyarg_tensors_rs(
         .iter()
         .map(|prems| prems.len() as i64)
         .collect();
+    let mut rng = ChaCha8Rng::seed_from_u64(10);
     let (arg_indices, selected_prems): (Vec<i64>, Vec<Vec<&String>>) = raw_data
-        .par_iter()
+        .iter()
         .map(|scraped| {
-            let (arg, selected) = get_argument(&args, scraped);
+            let (arg, selected) = get_argument(&args, scraped, &mut rng);
             (arg_to_index(&args, arg), selected)
         })
         .unzip();
@@ -645,6 +646,7 @@ pub fn encode_fpa_arg_unbounded(
 fn get_argument<'a>(
     args: &DataloaderArgs,
     scraped: &'a ScrapedTactic,
+    rng: &mut impl Rng,
 ) -> (TacticArgument, Vec<&'a String>) {
     let all_hyps: Vec<&String> = scraped
         .context
@@ -657,7 +659,7 @@ fn get_argument<'a>(
             if all_hyps.len() > args.max_premises {
                 // all_hyps.iter().take(args.max_premises).cloned().collect()
                 all_hyps
-                    .choose_multiple(&mut thread_rng(), args.max_premises)
+                    .choose_multiple(rng, args.max_premises)
                     .map(|s| *s)
                     .collect()
             } else if all_hyps.len() == 0 {
@@ -710,10 +712,10 @@ fn get_argument<'a>(
                         let mut other_hyps = all_hyps.clone();
                         other_hyps.remove(idx);
                         let mut selected_hyps: Vec<&String> = other_hyps
-                            .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                            .choose_multiple(rng, args.max_premises - 1)
                             .copied()
                             .collect();
-                        let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
+                        let new_hyp_idx = rng.gen_range(0, args.max_premises);
                         selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
                         return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
                     } else {
@@ -722,12 +724,12 @@ fn get_argument<'a>(
                         let mut other_hyps = all_hyps.clone();
                         other_hyps.remove(idx);
                         let mut selected_hyps: Vec<&String> = other_hyps
-                            .choose_multiple(&mut thread_rng(), args.max_premises - 1)
+                            .choose_multiple(rng, args.max_premises - 1)
                             .copied()
                             .collect();
                         // let mut selected_hyps: Vec<&String> =
                         //     other_hyps.into_iter().take(args.max_premises - 1).collect();
-                        let new_hyp_idx = thread_rng().gen_range(0, args.max_premises);
+                        let new_hyp_idx = rng.gen_range(0, args.max_premises);
                         //let new_hyp_idx = args.max_premises - 1;
                         selected_hyps.insert(new_hyp_idx, all_hyps[idx]);
                         return (TacticArgument::HypVar(new_hyp_idx), selected_hyps);
