@@ -821,7 +821,7 @@ class FeaturesPolyargPredictor(
                                     batch_first=True),
                        torch.LongTensor(num_hyps),
                        torch.LongTensor(tokenized_goals),
-                       torch.ByteTensor(goal_masks),
+                       torch.BoolTensor(goal_masks),
                        torch.LongTensor(word_features),
                        torch.FloatTensor(vec_features),
                        torch.LongTensor(tactic_stem_indices),
@@ -899,7 +899,7 @@ class FeaturesPolyargPredictor(
             word_features_batch, vec_features_batch, \
             stem_idxs_batch, arg_total_idxs_batch = \
             cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.LongTensor,
-                       torch.LongTensor, torch.ByteTensor,
+                       torch.LongTensor, torch.BoolTensor,
                        torch.LongTensor, torch.FloatTensor,
                        torch.LongTensor, torch.LongTensor],
                  batch)
