@@ -3,6 +3,9 @@ use itertools::multiunzip;
 use pyo3::exceptions;
 use pyo3::prelude::*;
 use rayon::prelude::*;
+use rand::prelude::SliceRandom;
+use rand::thread_rng;
+use rand::Rng;
 use std::iter::once;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
@@ -226,14 +229,16 @@ fn trim_premises<'a>(
     if premises.len() > max_premises {
         match tac_arg {
             TacticArgument::HypVar(hyp_idx) => {
-                if hyp_idx < max_premises {
-                    (TacticArgument::HypVar(hyp_idx),
-                     premises.iter().take(max_premises).cloned().collect())
-                } else {
-                    (TacticArgument::HypVar(max_premises - 1),
-                     premises.iter().take(max_premises - 1).cloned()
-                             .chain(once(premises[hyp_idx])).collect())
-                }
+                let mut selected_hyps: Vec<_> = {
+                    let mut hyps_copy = premises.clone();
+                    hyps_copy.remove(hyp_idx);
+                    hyps_copy
+                       .choose_multiple(&mut thread_rng(), max_premises - 1)
+                       .copied().collect()
+                };
+                let new_hyp_idx = thread_rng().gen_range(0, max_premises);
+                selected_hyps.insert(new_hyp_idx, premises[hyp_idx]);
+                (TacticArgument::HypVar(new_hyp_idx), selected_hyps)
             }
             _ => (
                 tac_arg,
