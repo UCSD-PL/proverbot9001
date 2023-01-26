@@ -51,12 +51,12 @@ pub fn goals_to_total_distances_tensors_rs(
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file)
+            Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file, &args.paths_file)
         }
     };
     let tokenized_goals: Vec<Vec<i64>> = tactics
         .par_iter()
-        .map(|tac| truncate_to_length(tokenizer.tokenize(&tac.context.focused_goal()), args.max_length))
+        .map(|tac| truncate_to_length(tokenizer.tokenize(&remove_paths_from_goal(tac.context.focused_goal())), args.max_length))  //(tokenizer.pathstokenize(&tac.context.focused_goal()).0, args.max_length))
         .collect();
     Ok((
         GoalEncMetadata {
@@ -75,13 +75,21 @@ pub fn goal_enc_get_num_tokens_rs(metadata: &GoalEncMetadata) -> i64 {
         .num_tokens()
 }
 
+pub fn goal_enc_get_num_paths_tokens_rs(metadata: &GoalEncMetadata) -> i64 {
+    metadata
+        .tokenizer
+        .as_ref()
+        .expect("No tokenizer")
+        .num_paths_tokens()
+}
+
 pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: String) -> Vec<i64> {
     normalize_sentence_length(
         metadata
             .tokenizer
             .as_ref()
             .expect("No tokenizer")
-            .tokenize(&goal),
+            .tokenize(&remove_paths_from_goal(&goal)),
         args.max_length,
         1,
     )
@@ -91,3 +99,18 @@ fn truncate_to_length(mut sentence: Vec<i64>, max_length: usize) -> Vec<i64> {
     sentence.truncate(max_length);
     sentence
 }
+
+fn remove_paths_from_goal(goal: &str) -> String {
+    println!("The original string...");
+    println!("{}", goal);
+    let mut updated_goal: String = "".to_string();
+    let words: Vec<&str> = goal.split(" ").collect();
+    for word in words{
+        let split: Vec<&str> = word.split("|-path-|").collect();
+        updated_goal = updated_goal + " " + split[0];
+        }
+    updated_goal = updated_goal.trim().to_string();
+    println!("The new string...");
+    println!("{}", updated_goal);
+    updated_goal
+    }

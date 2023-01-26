@@ -357,10 +357,57 @@ def dfs_proof_search_with_graph(lemma_name: str,
         full_context_before = FullContext(relevant_lemmas,
                                           coq.prev_tactics,
                                           unwrap(coq.proof_context))
-        predictions = predictor.predictKTactics(
-            truncate_tactic_context(full_context_before.as_tcontext(),
-                                    args.max_term_length),
-                    args.max_attempts)
+
+
+        truncated_tactic_context = truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length)
+
+        PATH_SEP = "|-path-|"
+        worddict = {}
+        keywords = ["_", "Axiom", "CoFixpoint", "Definition", "Fixpoint", "Hypothesis", "Parameter", "Prop", "SProp", "Set", "Theorem", "Type", "Variable", "as", "at", "cofix", "else", "end", "fix", "for", "forall", "fun", "if", "in", "let", "match", "return", "then", "where", "with", "by", "exists", "exists2", "using",]
+
+        new_goal = ""
+        for word in tokenizer.get_symbols(truncated_tactic_context.goal):
+            if word not in keywords and word[0].isalpha():
+                if word in worddict.keys():
+                    out_msg = worddict[word]
+                else:
+                    out_msg = coq.get_scrape_path(word)
+                    worddict[word] = out_msg
+                if out_msg == "ERROR":
+                    print("Error happened.")
+                    #print(coq.proof_context)
+                if out_msg:
+                    new_out_msg = out_msg.replace(r"\.", ".")
+                    new_out_msg = new_out_msg.rsplit('.',1)[0]
+                    #new_goal = (new_goal + word + PATH_SEP + new_out_msg + " ")
+                    new_goal = (new_goal + word + " ")
+                else:
+                    #new_goal = (new_goal + word + PATH_SEP + " ")
+                    new_goal = (new_goal + word + " ")
+            else:
+                #new_goal = (new_goal + word + PATH_SEP + " ")
+                new_goal = (new_goal + word + " ")
+            """
+            if word not in keywords and word[0].isalpha():
+                if word in worddict.keys(): #cached
+                    out_msg = worddict[word]
+                else: # get path and cache
+                    out_msg = coq.get_path(word)
+                    worddict[word] = out_msg
+                assert out_msg != "ERROR", "Error Happened"
+                if out_msg: # if not empty string then path was returned
+                    new_out_msg = out_msg.replace(r"\.", ".")
+                    new_out_msg = new_out_msg.rsplit('.',1)[0]
+                    new_goal = (new_goal + word + PATH_SEP + new_out_msg + " ")
+                else: # no path returned
+                    new_goal = (new_goal + word + PATH_SEP + " ")
+            else: # was a keyword or a symbol
+                new_goal = (new_goal + word + PATH_SEP + " ")
+            """
+        new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, new_goal)
+        #new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, truncated_tactic_context.goal)
+
+        predictions = predictor.predictKTactics( truncated_tactic_context, args.max_attempts)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",

@@ -151,6 +151,9 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
         parser.add_argument("--load-tokens", dest="load_tokens",
                             default=default_values.get("load-tokens", None),
                             type=Path2)
+        parser.add_argument("--load-paths", dest="load_paths",
+                            default=default_values.get("load-paths", None),
+                            type=Path2)
         parser.add_argument("--print-keywords", dest="print_keywords",
                             default=False, action='store_const', const=True)
     @abstractmethod
@@ -679,5 +682,7 @@ def add_tokenizer_args(parser : argparse.ArgumentParser,
                         default=default_values.get("save-tokens", None))
     parser.add_argument("--load-tokens", dest="load_tokens",
                         default=default_values.get("load-tokens", None))
+    parser.add_argument("--load-paths", dest="load_paths",
+                        default=default_values.get("load-paths", None))
     parser.add_argument("--print-keywords", dest="print_keywords",
                         default=False, action='store_const', const=True)

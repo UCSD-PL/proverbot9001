@@ -81,7 +81,8 @@ pub fn apply_filter(
         ContextFilterAST::None => false,
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
-            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+            let updated_goal = &remove_paths_from_goal(scraped.context.focused_goal());
+            let goal_symbols: Vec<&str> = get_words(updated_goal)
                 .into_iter()
                 .take(max_term_length)
                 .collect();
@@ -206,3 +207,19 @@ pub fn apply_filter(
         }
     }
 }
+
+fn remove_paths_from_goal(goal: &str) -> String {
+    println!("The original string...");
+    println!("{}", goal);
+    let mut updated_goal: String = "".to_string();
+    let words: Vec<&str> = goal.split(" ").collect();
+    for word in words{
+    let split: Vec<&str> = word.split("|-path-|").collect();
+        updated_goal = updated_goal + " " + split[0];
+            }
+
+    updated_goal = updated_goal.trim().to_string();
+    println!("The new string...");
+    println!("{}", updated_goal);
+    updated_goal
+    }

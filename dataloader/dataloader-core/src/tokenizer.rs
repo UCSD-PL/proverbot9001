@@ -11,6 +11,7 @@ extern crate regex;
 use regex::Regex;
 
 pub type Token = i64;
+pub type Path = i64;
 
 pub struct OpenIndexer<T>
 where
@@ -101,12 +102,13 @@ pub struct Tokenizer {
     num_reserved_tokens: usize,
     unknown_token: Token,
     token_dict: HashMap<String, Token>,
+    paths_dict: HashMap<String, Path>,
 }
 
-pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>);
+pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>, HashMap<String, Token>);
 
 impl Tokenizer {
-    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str) -> Self {
+    pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str, paths_filepath: &str) -> Self {
         let keywords: Vec<_> = io::BufReader::new(File::open(keywords_filepath).expect(&format!(
             "Couldn't open keywords file \"{}\"",
             keywords_filepath
@@ -124,11 +126,23 @@ impl Tokenizer {
         for (idx, keyword) in keywords.into_iter().enumerate() {
             token_dict.insert(keyword, idx as i64 + first_token);
         }
+        let paths: Vec<_> = io::BufReader::new(File::open("/home/zhannakaufma_umass_edu/work/proverbot9001/common_paths.txt").expect(&format!(
+            "Couldn't open paths file \"{}\"",
+            paths_filepath
+        )))
+        .lines()
+        .map(|path| path.unwrap())
+        .collect();
+        let mut paths_dict = HashMap::new();
+        for (idx, path) in paths.into_iter().enumerate() {
+            paths_dict.insert(path, idx as i64 + first_token);
+        }
         Tokenizer {
             use_unknowns,
             num_reserved_tokens,
             unknown_token,
             token_dict,
+            paths_dict,
         }
     }
     pub fn tokenize(&self, sentence: &str) -> Vec<Token> {
@@ -147,12 +161,56 @@ impl Tokenizer {
             })
             .collect()
     }
+    pub fn pathstokenize(&self, sentence: &str) -> (Vec<Token>, Vec<Path>) {
+        let wordsplit = sentence.split(' ');
+        let wordsplit_two = sentence.split(' ');
+        let words = wordsplit.collect::<Vec<&str>>();
+        let words_two = wordsplit_two.collect::<Vec<&str>>();
+
+
+        let goalstokens: Vec<Token> = words
+            .into_iter()
+            .flat_map(|word| match self.token_dict.get(word.split("|-path-|").collect::<Vec<&str>>()[0]) {
+                None => {
+                    if self.use_unknowns {
+                        Some(self.unknown_token)
+                    } else {
+                        None
+                    }
+                }
+                Some(tok) => Some(*tok),
+            })
+            .collect();
+
+        let path_lookup_closure = |word: &str| -> Option<Path> {
+            let word_split = word.split("|-path-|").collect::<Vec<&str>>();
+            if word_split.len() == 1 {
+                Some((self.paths_dict.len() as i64))
+            }
+            else {
+                match self.paths_dict.get(word_split[1]) {
+                    None => Some((self.paths_dict.len() as i64) + 1),
+                    Some(tok) => Some(*tok),
+                }
+            }
+        };
+
+        let pathstokens: Vec<Path> = words_two
+            .into_iter()
+            .flat_map(path_lookup_closure)
+            .collect();
+
+        assert_eq!(goalstokens.len(), pathstokens.len());
+        (goalstokens, pathstokens)
+     }
+
     pub fn to_pickleable(self) -> PickleableTokenizer {
         (
             self.use_unknowns,
             self.num_reserved_tokens,
             self.unknown_token,
             self.token_dict,
+            self.paths_dict,
         )
     }
     pub fn from_pickleable(tup: PickleableTokenizer) -> Self {
@@ -161,14 +219,22 @@ impl Tokenizer {
             num_reserved_tokens: tup.1,
             unknown_token: tup.2,
             token_dict: tup.3,
+            paths_dict: tup.4,
         }
     }
     pub fn num_tokens(&self) -> i64 {
         (self.token_dict.len() + self.num_reserved_tokens + if self.use_unknowns { 1 } else { 0 })
             as i64
     }
+    pub fn num_paths_tokens(&self) -> i64 {
+        (self.paths_dict.len() + 2)
+            as i64
+    }
     pub fn tokens(&self) -> Vec<String> {
 	self.token_dict.keys().cloned().collect()
+    }
+    pub fn paths_tokens(&self) -> Vec<String> {
+	self.paths_dict.keys().cloned().collect()
     }
 }
 static SYMBOLS_REGEX: &'static str = r",|:=|:>|:|=>|<=|>=|=|<>|>|<[^-]|->|<-|@@|\+{1,2}|\*{1,2}|-|~|/\\|\\/|/|%|\^|\|=|&&|\|\||\)|\(|\|\}|\{\||@\{|\{|\}|;|\|)|\{\||\|\}|\[|\]";
@@ -179,6 +245,7 @@ pub fn get_words(string: &str) -> Vec<&str> {
     }
     WORDS.find_iter(string).map(|m| m.as_str()).collect()
 }
+
 pub fn get_symbols(string: &str) -> Vec<&str> {
     lazy_static! {
         static ref WORDS: Regex =

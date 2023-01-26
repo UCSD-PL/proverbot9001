@@ -46,21 +46,21 @@ pub fn context_features(
         .map(|scraped| {
             best_scored_hyp(
                 &scraped.context.focused_hyps(),
-                &scraped.context.focused_goal(),
+                &remove_paths_from_goal(&scraped.context.focused_goal())
             )
         })
         .progress_with(ProgressBar::new(length).with_message("Finding best scoring hypotheses and their scores")
                                                .with_style(my_bar_style.clone())
                                                .with_finish(ProgressFinish::AndLeave))
         .unzip();
-
+    
     let word_features = data
         .iter()
         .zip(best_hyps)
         .map(|(scraped, best_hyp): (&ScrapedTactic, &str)| {
             vec![
                 prev_tactic_feature(tmap, &scraped.prev_tactics),
-                goal_head_feature(tmap, &scraped.context.focused_goal()),
+                goal_head_feature(tmap, &remove_paths_from_goal(scraped.context.focused_goal())),
                 hyp_head_feature(tmap, best_hyp),
             ]
         })
@@ -97,11 +97,11 @@ pub fn sample_context_features_rs(
 ) -> (LongTensor1D, FloatTensor1D) {
     let (best_hyp, best_score) = best_scored_hyp(
         &hypotheses,
-        &goal,
+        &remove_paths_from_goal(goal),
     );
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),
-        goal_head_feature(tmap, &goal),
+        goal_head_feature(tmap, &remove_paths_from_goal(goal)),
         hyp_head_feature(tmap, best_hyp),
     ];
     let vec_features = vec![
@@ -343,10 +343,11 @@ pub fn score_hyps<'a>(
     hyps: &Vec<String>,
     goal: &String,
 ) -> Vec<f64> {
-    let truncated_goal: String = goal.chars().take(128).collect();
+    let truncated_goal: String = remove_paths_from_goal(goal).chars().take(128).collect();
+    let updated_goal = &remove_paths_from_goal(goal);
     hyps.into_iter()
         .map(|hyp| {
-            gestalt_ratio(goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
+            gestalt_ratio(updated_goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
         })
         .collect()
 }
@@ -358,7 +359,7 @@ fn best_scored_hyp<'a>(
     let mut best_hyp = "";
     let mut best_score = 1.0;
     for hyp in hyps.iter() {
-        let score = gestalt_ratio(goal, get_hyp_type(hyp));
+        let score = gestalt_ratio(&remove_paths_from_goal(goal), get_hyp_type(hyp));
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;
@@ -366,3 +367,19 @@ fn best_scored_hyp<'a>(
     }
     (best_hyp, best_score)
 }
+
+fn remove_paths_from_goal(goal: &str) -> String {
+    println!("The original string...");
+    println!("{}", goal);
+    let mut updated_goal: String = "".to_string();
+    let words: Vec<&str> = goal.split(" ").collect();
+    for word in words{
+        let split: Vec<&str> = word.split("|-path-|").collect();
+        updated_goal = updated_goal + " " + split[0];
+        }
+    updated_goal = updated_goal.trim().to_string();
+    println!("The new string...");
+    println!("{}", updated_goal);
+    updated_goal
+    }
+

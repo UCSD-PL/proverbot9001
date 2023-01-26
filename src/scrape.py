@@ -37,6 +37,8 @@ from util import eprint, mybarfmt
 from typing import TextIO, List, Tuple, Optional
 from tqdm import tqdm
 
+import tokenizer as tk
+from tokenizer import get_words, get_symbols
 
 def main():
     # Parse the command line arguments.
@@ -65,6 +67,7 @@ def main():
     parser.add_argument("--linearizer-timeout", type=int,
                         default=(60 * 60))
     parser.add_argument("-s", "--switch", default=None, type=str)
+    parser.add_argument('--keyword-file', default="./coq_keywords.txt", type=str, dest="keyword_file")
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -97,6 +100,11 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
     sys.setrecursionlimit(4500)
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
+    
+    keywords = []
+    with open(args.keyword_file, 'r') as f:
+        for keyword in f.readlines():
+            keywords.append(keyword.strip())
     result_file = full_filename + ".scrape"
     temp_file = full_filename + ".scrape.partial"
     if args.cont:
@@ -106,6 +114,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                     eprint(f"Found existing scrape at {result_file}! Using it")
                 return result_file
     try:
+        print(serapi_instance.get_module_from_filename(filename))
         if args.linearize:
             commands = linearize_semicolons.get_linearized(args, coqargs, file_idx, filename)
         else:
@@ -120,14 +129,16 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:
+                    worddict = {}
                     for command in tqdm(commands, file=sys.stdout,
                                         disable=(not args.progress),
                                         position=file_idx * 2,
                                         desc="Scraping file", leave=False,
                                         dynamic_ncols=True,
                                         bar_format=mybarfmt):
-                        process_statement(args, coq, command, f)
-                    print(json.dumps("(* End of File *)"), file=f)
+                        module = serapi_instance.get_module_from_filename(filename)
+                        process_statement(args, keywords, worddict, coq, command, f)
+                    print("(* End of File *)", file=f)
                 shutil.move(temp_file, result_file)
                 return result_file
             except serapi_instance.TimeoutError:
@@ -141,12 +152,41 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
     return None
 
 
-def process_statement(args: argparse.Namespace,
+def process_statement(args: argparse.Namespace, keywords: list[str], worddict,
                       coq: serapi_instance.SerapiInstance, command: str,
                       result_file: TextIO) -> None:
+    PATH_SEP = "|-path-|"
     if coq.proof_context:
         prev_tactics = coq.prev_tactics
         context = coq.proof_context
+        #hypothesis = coq.proof_context.get_hypothesis()
+        #for goal in coq.proof_context.all_goals:
+        precontext = context.to_dict()
+        if(len(precontext['fg_goals']) > 0):
+            for i in range(len(precontext['fg_goals'])):
+                new_goal = ""
+                for word in get_symbols(precontext['fg_goals'][i]['goal']):
+                    if word not in keywords and word[0].isalpha():
+                        if word in worddict.keys():
+                            out_msg = worddict[word]
+                        else:
+                            out_msg = coq.get_scrape_path(word)
+                            worddict[word] = out_msg
+                        if out_msg == "ERROR":
+                            print("Error happened.")
+                            #print(coq.proof_context)
+                        if out_msg:
+                            new_out_msg = out_msg.replace(r"\.", ".")
+                            new_out_msg = new_out_msg.rsplit('.',1)[0]
+                            new_goal = (new_goal + word + PATH_SEP + new_out_msg + " ")
+                        else:
+                            new_goal = (new_goal + word + PATH_SEP + " ")
+                    else:
+                        new_goal = (new_goal + word + PATH_SEP + " ")
+                precontext['fg_goals'][i]['goal'] = new_goal
+        #goal = coq.proof_context.get_goal
+        #print(goal)
+        #print(coq.proof_context)
         if args.relevant_lemmas == "local":
             relevant_lemmas = [re.sub("\n", " ", lemma)
                                for lemma in coq.local_lemmas[:-1]]
@@ -159,7 +199,7 @@ def process_statement(args: argparse.Namespace,
 
         result_file.write(json.dumps({"relevant_lemmas": relevant_lemmas,
                                       "prev_tactics": prev_tactics,
-                                      "context": context.to_dict(),
+                                      "context": precontext,
                                       "tactic": command}))
     else:
         result_file.write(json.dumps(command))

@@ -136,7 +136,7 @@ pub fn features_polyarg_tensors_rs(
         None => {
             let use_unknowns = true;
             let num_reserved_tokens = 2;
-            let tokenizer = Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file);
+            let tokenizer = Tokenizer::new(use_unknowns, num_reserved_tokens, &args.keywords_file,  &args.paths_file);
             let tmap = match &args.load_features_state {
                 Some(path) => FeaturesTokenMap::load_from_text(path),
                 None => FeaturesTokenMap::initialize(&raw_data, args.num_keywords),
@@ -213,14 +213,14 @@ pub fn features_polyarg_tensors_rs(
         .map(|(scraped, selected)| {
             score_hyps(
                 &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
-                &scraped.context.focused_goal(),
+                &remove_paths_from_goal(&scraped.context.focused_goal()),
             )
             .iter()
             .zip(selected)
             .map(|(score, hyp)| {
                 vec![
                     *score,
-                    equality_hyp_feature(hyp, &scraped.context.focused_goal()),
+                    equality_hyp_feature(hyp, &remove_paths_from_goal(&scraped.context.focused_goal())),
                 ]
             })
             .collect()
@@ -233,7 +233,7 @@ pub fn features_polyarg_tensors_rs(
         .par_iter()
         .map(|tac| {
             normalize_sentence_length(
-                tokenizer.tokenize(&tac.context.focused_goal()),
+                tokenizer.tokenize(&remove_paths_from_goal(tac.context.focused_goal())),
                 args.max_length,
                 0,
             )
@@ -243,7 +243,7 @@ pub fn features_polyarg_tensors_rs(
         .collect();
     let goal_symbols_mask = raw_data
         .par_iter()
-        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
+        .map(|scraped| get_goal_mask(&remove_paths_from_goal(scraped.context.focused_goal()), args.max_length))
         .progress_with(ProgressBar::new(length).with_message("Getting goal masks")
                                                .with_style(my_bar_style)
                                                .with_finish(ProgressFinish::AndLeave))
@@ -282,8 +282,8 @@ fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
         static ref STARTS_WITH_LETTER: Regex =
             Regex::new(r"^\w.*").expect("Couldn't compile regex");
     }
-
-    let words = get_words(goal);
+    let updated_goal = &remove_paths_from_goal(goal);
+    let words = get_words(updated_goal);
     let mut mask_vec: Vec<_> = words
         .into_iter()
         .take(max_length)
@@ -312,8 +312,8 @@ pub fn get_premise_features_rs(
     _metadata: PickleableFPAMetadata,
     goal: String,
     premise: String) -> FloatTensor1D {
-    let score = gestalt_ratio(&goal, get_hyp_type(&premise));
-    let eq_feat = equality_hyp_feature(&premise, &goal);
+    let score = gestalt_ratio(&remove_paths_from_goal(&goal), get_hyp_type(&premise));
+    let eq_feat = equality_hyp_feature(&premise, &remove_paths_from_goal(&goal));
     vec![score, eq_feat]
 }
 pub fn get_premise_features_size_rs(
@@ -365,7 +365,7 @@ pub fn sample_fpa_batch_rs(
     let premise_scores_batch: Vec<Vec<f64>> = premises_batch
         .par_iter()
         .zip(context_batch.par_iter())
-        .map(|(premises, context)| score_hyps(premises, &context.obligation.goal))
+        .map(|(premises, context)| score_hyps(premises, &remove_paths_from_goal(&context.obligation.goal)))
         .collect();
 
     let premise_features_batch = premises_batch
@@ -377,7 +377,7 @@ pub fn sample_fpa_batch_rs(
                 .iter()
                 .zip(scores.iter())
                 .map(|(premise, score)| {
-                    vec![*score, equality_hyp_feature(premise, &ctxt.obligation.goal)]
+                    vec![*score, equality_hyp_feature(premise, &remove_paths_from_goal(&ctxt.obligation.goal))]
                 })
                 .collect()
         })
@@ -387,7 +387,7 @@ pub fn sample_fpa_batch_rs(
         .par_iter()
         .map(|ctxt| {
             normalize_sentence_length(
-                tokenizer.tokenize(&ctxt.obligation.goal),
+                tokenizer.tokenize(&remove_paths_from_goal(&ctxt.obligation.goal)),
                 args.max_length,
                 0,
             )
@@ -395,7 +395,7 @@ pub fn sample_fpa_batch_rs(
         .collect();
     let goal_symbols_mask = context_batch
         .par_iter()
-        .map(|ctxt| get_goal_mask(&ctxt.obligation.goal, args.max_length))
+        .map(|ctxt| get_goal_mask(&remove_paths_from_goal(&ctxt.obligation.goal), args.max_length))
         .collect();
     let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
         .into_iter()
@@ -458,15 +458,15 @@ pub fn sample_fpa_rs(
         .into_iter()
         .chain(relevant_lemmas.into_iter())
         .collect();
-    let premise_scores = score_hyps(&all_premises, &goal);
+    let premise_scores = score_hyps(&all_premises, &remove_paths_from_goal(&goal));
     let premise_features = all_premises
         .iter()
         .zip(premise_scores.iter())
-        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
+        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &remove_paths_from_goal(&goal))])
         .collect();
-    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
+    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&remove_paths_from_goal(&goal)), args.max_length, 0);
 
-    let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
+    let goal_symbols_mask = get_goal_mask(&remove_paths_from_goal(&goal), args.max_length);
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
@@ -499,7 +499,7 @@ pub fn decode_fpa_result_rs(
     arg_idx: i64,
 ) -> String {
     let stem = decode_fpa_stem_rs(&args, metadata, tac_idx);
-    let arg = decode_fpa_arg_rs(&args, premises, goal, arg_idx);
+    let arg = decode_fpa_arg_rs(&args, premises, &remove_paths_from_goal(goal), arg_idx);
     if arg == "" {
         format!("{}.", stem)
     } else {
@@ -543,10 +543,11 @@ pub fn decode_fpa_arg_rs(
         TacticArgument::Unrecognized => "".to_string(),
         TacticArgument::GoalToken(tidx) => {
             // assert!(tidx < get_words(goal).len(), format!("{}, {:?}, {}", goal, get_words(goal), tidx));
-            if tidx >= get_words(goal).len() {
+            let updated_goal = &remove_paths_from_goal(goal);
+            if tidx >= get_words(updated_goal).len() {
                 "<INVALID>".to_string()
             } else {
-                get_words(goal)[tidx].to_string()
+                get_words(updated_goal)[tidx].to_string()
             }
         }
         TacticArgument::HypVar(hidx) => {
@@ -570,7 +571,7 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
         static ref EQ: Regex = Regex::new(r"^\s*eq\s+(.*)").expect("Can't build eq regex");
     }
     let normalized_hyp_type = get_hyp_type(hyp).replace("\n", " ");
-    let normalized_goal = goal.replace("\n", " ");
+    let normalized_goal = &remove_paths_from_goal(goal).replace("n", " ");
     let equals_match = EQ.captures(&normalized_hyp_type);
     if let Some(captures) = equals_match {
         let normalized_string = captures
@@ -610,7 +611,8 @@ pub fn encode_fpa_arg_unbounded(
         Err(format!("A multi argument tactic made it past the context filter! arg is {}",
                     arg))
     } else {
-        let goal_symbols = get_words(goal);
+        let updated_goal = &remove_paths_from_goal(goal);
+        let goal_symbols = get_words(updated_goal);
         let arg_token = argstr_tokens[0];
         match goal_symbols
             .into_iter()
@@ -685,7 +687,8 @@ fn get_argument<'a>(
         );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let goal_symbols = get_words(scraped.context.focused_goal());
+        let updated_goal = &remove_paths_from_goal(scraped.context.focused_goal());
+        let goal_symbols = get_words(updated_goal);
         let arg_token = argstr_tokens[0];
         match goal_symbols
             .into_iter()
@@ -743,3 +746,18 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
         TacticArgument::HypVar(hidx) => (hidx + dargs.max_length + 1) as i64,
     }
 }
+
+fn remove_paths_from_goal(goal: &str) -> String {
+    println!("The original string...");
+    println!("{}", goal);
+    let mut updated_goal: String = "".to_string();
+    let words: Vec<&str> = goal.split(" ").collect();
+    for word in words{
+        let split: Vec<&str> = word.split("|-path-|").collect();
+        updated_goal = updated_goal + " " + split[0];
+            }
+    updated_goal = updated_goal.trim().to_string();
+    println!("The new string...");
+    println!("{}", updated_goal);
+    updated_goal
+    }

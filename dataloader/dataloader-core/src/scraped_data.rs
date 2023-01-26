@@ -408,7 +408,7 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
 	    let mut new_scrapeds = Vec::new();
 
 	    let mut hyps_list = datum.context.focused_hyps().clone();
-	    let mut curgoal = datum.context.focused_goal().clone();
+	    let mut curgoal = remove_paths_from_goal(&datum.context.focused_goal()).clone();
 	    let mut induction_target_var = None;
 
 	    for _ in 0..arg_num {
@@ -643,6 +643,8 @@ pub struct DataloaderArgs {
     #[pyo3(get, set)]
     pub keywords_file: String,
     #[pyo3(get, set)]
+    pub paths_file: String,
+    #[pyo3(get, set)]
     pub context_filter: String,
     #[pyo3(get, set)]
     pub save_embedding: Option<String>,
@@ -661,3 +663,18 @@ impl DataloaderArgs {
         d
     }
 }
+
+fn remove_paths_from_goal(goal: &str) -> String {
+    println!("The original string...");
+    println!("{}", goal);
+    let mut updated_goal: String = "".to_string();
+    let words: Vec<&str> = goal.split(" ").collect();
+    for word in words{
+        let split: Vec<&str> = word.split("|-path-|").collect();
+        updated_goal = updated_goal + " " + split[0];
+        }
+    updated_goal = updated_goal.trim().to_string();
+    println!("The new string...");
+    println!("{}", updated_goal);
+    updated_goal
+    }
