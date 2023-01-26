@@ -209,8 +209,6 @@ pub fn apply_filter(
 }
 
 fn remove_paths_from_goal(goal: &str) -> String {
-    println!("The original string...");
-    println!("{}", goal);
     let mut updated_goal: String = "".to_string();
     let words: Vec<&str> = goal.split(" ").collect();
     for word in words{
@@ -219,7 +217,5 @@ fn remove_paths_from_goal(goal: &str) -> String {
             }
 
     updated_goal = updated_goal.trim().to_string();
-    println!("The new string...");
-    println!("{}", updated_goal);
     updated_goal
     }

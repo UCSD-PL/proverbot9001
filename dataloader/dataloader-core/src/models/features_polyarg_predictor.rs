@@ -79,6 +79,7 @@ pub fn features_polyarg_tensors_rs(
         FloatUnpaddedTensor3D,
         LongTensor1D,
         LongTensor2D,
+        LongTensor2D,
         BoolTensor2D,
         LongTensor2D,
         FloatTensor2D,
@@ -241,6 +242,18 @@ pub fn features_polyarg_tensors_rs(
                                                  .with_style(my_bar_style.clone())
                                                  .with_finish(ProgressFinish::AndLeave))
         .collect();
+    let tokenized_paths: Vec<_> = raw_data
+        .par_iter()
+        .map(|tac| {
+            normalize_sentence_length(
+                tokenizer.pathstokenize(&tac.context.focused_goal()).1,
+                args.max_length,
+                0,
+            )
+        }).progress_with(ProgressBar::new(length).with_message("Tokenizing goals")
+                                                 .with_style(my_bar_style.clone())
+                                                 .with_finish(ProgressFinish::AndLeave))
+        .collect();
     let goal_symbols_mask = raw_data
         .par_iter()
         .map(|scraped| get_goal_mask(&remove_paths_from_goal(scraped.context.focused_goal()), args.max_length))
@@ -256,6 +269,7 @@ pub fn features_polyarg_tensors_rs(
             hyp_features,
             num_prems,
             tokenized_goals,
+            tokenized_paths,
             goal_symbols_mask,
             word_features,
             vec_features,
@@ -331,6 +345,7 @@ pub fn sample_fpa_batch_rs(
     FloatUnpaddedTensor3D,
     LongTensor1D,
     LongTensor2D,
+    LongTensor2D,
     BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
@@ -345,7 +360,7 @@ pub fn sample_fpa_batch_rs(
                 &ctxt.relevant_lemmas,
                 &ctxt.prev_tactics,
                 &ctxt.obligation.hypotheses,
-                &ctxt.obligation.goal,
+                &ctxt.obligation.goal, //TODO: possibly remove paths here?
             )
         })
         .unzip();
@@ -393,6 +408,16 @@ pub fn sample_fpa_batch_rs(
             )
         })
         .collect();
+    let tpaths_batch = context_batch 
+        .par_iter()
+        .map(|ctxt| {
+            normalize_sentence_length(
+                tokenizer.pathstokenize(&ctxt.obligation.goal).1,
+                args.max_length,
+                0,
+            )
+        })
+        .collect();
     let goal_symbols_mask = context_batch
         .par_iter()
         .map(|ctxt| get_goal_mask(&remove_paths_from_goal(&ctxt.obligation.goal), args.max_length))
@@ -423,6 +448,7 @@ pub fn sample_fpa_batch_rs(
         premise_features_batch,
         num_hyps_batch,
         tgoals_batch,
+        tpaths_batch,
         goal_symbols_mask,
         word_features_batch,
         vec_features_batch,
@@ -441,6 +467,7 @@ pub fn sample_fpa_rs(
     FloatUnpaddedTensor3D,
     LongTensor1D,
     LongTensor2D,
+    LongTensor2D,
     BoolTensor2D,
     LongTensor2D,
     FloatTensor2D,
@@ -452,7 +479,7 @@ pub fn sample_fpa_rs(
         &relevant_lemmas,
         &prev_tactics,
         &hypotheses,
-        &goal,
+        &goal, //TODO: possibly remove paths here?
     );
     let all_premises: Vec<String> = hypotheses
         .into_iter()
@@ -465,6 +492,8 @@ pub fn sample_fpa_rs(
         .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &remove_paths_from_goal(&goal))])
         .collect();
     let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&remove_paths_from_goal(&goal)), args.max_length, 0);
+    let pretokenized_path = tokenizer.pathstokenize(&goal).1;
+    let tokenized_path = normalize_sentence_length(pretokenized_path, args.max_length, 0);
 
     let goal_symbols_mask = get_goal_mask(&remove_paths_from_goal(&goal), args.max_length);
 
@@ -484,6 +513,7 @@ pub fn sample_fpa_rs(
         vec![premise_features],
         vec![num_hyps as i64],
         vec![tokenized_goal],
+        vec![tokenized_path],
         vec![goal_symbols_mask],
         vec![word_features],
         vec![vec_features],
@@ -748,8 +778,6 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
 }
 
 fn remove_paths_from_goal(goal: &str) -> String {
-    println!("The original string...");
-    println!("{}", goal);
     let mut updated_goal: String = "".to_string();
     let words: Vec<&str> = goal.split(" ").collect();
     for word in words{
@@ -757,7 +785,5 @@ fn remove_paths_from_goal(goal: &str) -> String {
         updated_goal = updated_goal + " " + split[0];
             }
     updated_goal = updated_goal.trim().to_string();
-    println!("The new string...");
-    println!("{}", updated_goal);
     updated_goal
     }

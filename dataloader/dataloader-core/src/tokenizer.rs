@@ -167,7 +167,6 @@ impl Tokenizer {
         let words = wordsplit.collect::<Vec<&str>>();
         let words_two = wordsplit_two.collect::<Vec<&str>>();
 
-
         let goalstokens: Vec<Token> = words
             .into_iter()
             .flat_map(|word| match self.token_dict.get(word.split("|-path-|").collect::<Vec<&str>>()[0]) {
@@ -184,6 +183,7 @@ impl Tokenizer {
 
         let path_lookup_closure = |word: &str| -> Option<Path> {
             let word_split = word.split("|-path-|").collect::<Vec<&str>>();
+            println!("{}",word);
             if word_split.len() == 1 {
                 Some((self.paths_dict.len() as i64))
             }
@@ -199,6 +199,8 @@ impl Tokenizer {
             .into_iter()
             .flat_map(path_lookup_closure)
             .collect();
+
+        println!("{:?}", pathstokens);
 
         assert_eq!(goalstokens.len(), pathstokens.len());
         (goalstokens, pathstokens)

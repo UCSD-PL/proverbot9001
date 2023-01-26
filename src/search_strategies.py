@@ -375,18 +375,15 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     worddict[word] = out_msg
                 if out_msg == "ERROR":
                     print("Error happened.")
-                    #print(coq.proof_context)
+                    print(coq.proof_context)
                 if out_msg:
                     new_out_msg = out_msg.replace(r"\.", ".")
                     new_out_msg = new_out_msg.rsplit('.',1)[0]
-                    #new_goal = (new_goal + word + PATH_SEP + new_out_msg + " ")
-                    new_goal = (new_goal + word + " ")
+                    new_goal = (new_goal + word + PATH_SEP + new_out_msg + " ")
                 else:
-                    #new_goal = (new_goal + word + PATH_SEP + " ")
-                    new_goal = (new_goal + word + " ")
+                    new_goal = (new_goal + word + PATH_SEP + " ")
             else:
-                #new_goal = (new_goal + word + PATH_SEP + " ")
-                new_goal = (new_goal + word + " ")
+                new_goal = (new_goal + word + PATH_SEP + " ")
             """
             if word not in keywords and word[0].isalpha():
                 if word in worddict.keys(): #cached
@@ -407,7 +404,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
         new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, new_goal)
         #new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, truncated_tactic_context.goal)
 
-        predictions = predictor.predictKTactics( truncated_tactic_context, args.max_attempts)
+        predictions = predictor.predictKTactics(new_tactic_context, args.max_attempts)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",

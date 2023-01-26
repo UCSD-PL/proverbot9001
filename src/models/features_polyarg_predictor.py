@@ -321,13 +321,13 @@ class FeaturesPolyargPredictor(
         arg_values = argparser.parse_args(args)
         torch.cuda.set_device(arg_values.gpu)
         util.cuda_device = f"cuda:{arg_values.gpu}"
-        with autograd.detect_anomaly():
-            save_states = self._optimize_model(arg_values)
+        #with autograd.detect_anomaly():
+        save_states = self._optimize_model(arg_values)
 
-            for metadata, state in save_states:
-                with open(arg_values.save_file, 'wb') as f:
-                    torch.save((self.shortname(),
-                                (arg_values, sys.argv, metadata, state)), f)
+        for metadata, state in save_states:
+            with open(arg_values.save_file, 'wb') as f:
+                torch.save((self.shortname(),
+                            (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, contexts: List[TacticContext], k: int,
                               verbosity:int = 0) -> List[List[Prediction]]:
@@ -361,7 +361,7 @@ class FeaturesPolyargPredictor(
         stem_width = min(16, num_stem_poss)
 
         tokenized_premises, hyp_features, \
-            nhyps_batch, tokenized_goal, \
+            nhyps_batch, tokenized_goal, tokenized_path,\
             goal_mask, \
             word_features, vec_features = \
             sample_fpa(extract_dataloader_args(self.training_args),
@@ -374,13 +374,16 @@ class FeaturesPolyargPredictor(
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
 
+        print("My tokenized path")
+        print(tokenized_path)
+
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
-            stem_idxs, LongTensor(tokenized_goal), maybe_cuda(torch.BoolTensor(goal_mask)))
+            stem_idxs, LongTensor(tokenized_goal), LongTensor(tokenized_path), maybe_cuda(torch.BoolTensor(goal_mask)))
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
-                stem_idxs[0], tokenized_goal[0],
+                stem_idxs[0], tokenized_goal[0], tokenized_path[0],
                 tokenized_premises[0], hyp_features[0])
 
             total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
@@ -403,7 +406,7 @@ class FeaturesPolyargPredictor(
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises_batch, premise_features_batch, \
-            nhyps_batch, tokenized_goal_batch, \
+            nhyps_batch, tokenized_goal_batch, tokenized_path_batch, \
             goal_mask, \
             word_features, vec_features = \
             sample_fpa_batch(extract_dataloader_args(self.training_args),
@@ -414,19 +417,22 @@ class FeaturesPolyargPredictor(
         _, stem_certainties_batch, stem_idxs_batch = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
 
+        print("My tokenized path batch")
+        print(tokenized_path_batch)
+
         goal_arg_values_batch = self.goal_token_scores(
             self._model, self.training_args,
-            stem_idxs_batch, LongTensor(tokenized_goal_batch),
+            stem_idxs_batch, LongTensor(tokenized_goal_batch), LongTensor(tokenized_path_batch),
             maybe_cuda(torch.BoolTensor(goal_mask)))
 
         idxs_batch = []
 
         for (stem_certainties, stem_idxs,
-             goal_arg_values, tokenized_goal,
+             goal_arg_values, tokenized_goal, tokenized_path,
              tokenized_premises,
              premise_features) in \
             tqdm(zip(stem_certainties_batch, stem_idxs_batch,
-                     goal_arg_values_batch, tokenized_goal_batch,
+                     goal_arg_values_batch, tokenized_goal_batch, tokenized_path_batch,
                      tokenized_premises_batch, premise_features_batch),
                  desc="Assessing hyp args and decoding indices",
                  total=len(contexts),
@@ -435,6 +441,7 @@ class FeaturesPolyargPredictor(
                 premise_arg_values = self.hyp_name_scores(
                     stem_idxs,
                     tokenized_goal,
+                    tokenized_path,
                     tokenized_premises,
                     premise_features)
                 total_scores = torch.cat((goal_arg_values.unsqueeze(0),
@@ -507,7 +514,7 @@ class FeaturesPolyargPredictor(
         stem_width = min(self.training_args.max_beam_width, num_stem_poss)
 
         tokenized_premises, hyp_features, \
-            nhyps_batch, tokenized_goal, \
+            nhyps_batch, tokenized_goal, tokenized_path,\
             goal_mask, \
             word_features, vec_features = \
             sample_fpa(extract_dataloader_args(self.training_args),
@@ -552,14 +559,17 @@ class FeaturesPolyargPredictor(
              [serapi_instance.get_var_term_in_hyp(hyp) for hyp
               in context.hypotheses + context.relevant_lemmas])
 
+        print("My second tokenized path")
+        print(tokenized_path)
+
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
-            merged_stem_idxs, LongTensor(tokenized_goal),
+            merged_stem_idxs, LongTensor(tokenized_goal), LongTensor(tokenized_path),
             maybe_cuda(torch.BoolTensor(goal_mask)))
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
-                merged_stem_idxs[0], tokenized_goal[0],
+                merged_stem_idxs[0], tokenized_goal[0], tokenized_path[0],
                 tokenized_premises[0], hyp_features[0])
 
             total_scores = torch.cat((goal_arg_values, hyp_arg_values), dim=2)
@@ -598,6 +608,7 @@ class FeaturesPolyargPredictor(
     def goal_token_scores(self, model: FeaturesPolyArgModel, args: argparse.Namespace,
                           stem_idxs: torch.LongTensor,
                           tokenized_goals: torch.LongTensor,
+                          tokenized_paths: torch.LongTensor,
                           goal_masks: torch.BoolTensor,
                           ) -> torch.FloatTensor:
         batch_size = stem_idxs.size()[0]
@@ -605,13 +616,27 @@ class FeaturesPolyargPredictor(
         goal_len = args.max_length
         # The goal probabilities include the "no argument" probability
         num_goal_probs = goal_len + 1
-        unmasked_probabilities = model.goal_args_model(
-            stem_idxs.view(batch_size * stem_width),
-            tokenized_goals.view(
-                batch_size, 1, goal_len)
-            .expand(-1, stem_width, -1).contiguous()
-            .view(batch_size * stem_width, goal_len))\
-            .view(batch_size, stem_width, num_goal_probs)
+        #unmasked_probabilities = model.goal_args_model(
+        #    stem_idxs.view(batch_size * stem_width),
+        #    tokenized_goals.view(
+        #        batch_size, 1, goal_len)
+        #    .expand(-1, stem_width, -1).contiguous()
+        #    .view(batch_size * stem_width, goal_len))\
+        #    .view(batch_size, stem_width, num_goal_probs)
+
+        print("tokenized paths 3")
+        print(tokenized_paths)
+
+        num_goal_probs = goal_len + 1
+        expanded_tokenized_goals = tokenized_goals.view(batch_size, 1, goal_len)\
+            .expand(-1, stem_width, -1).contiguous()\
+            .view(batch_size * stem_width, goal_len)
+        expanded_tokenized_paths = tokenized_paths.view(batch_size, 1, goal_len)\
+            .expand(-1, stem_width, -1).contiguous()\
+            .view(batch_size * stem_width, goal_len)
+        unmasked_probabilities_pre = model.goal_args_model( stem_idxs.view(batch_size * stem_width), expanded_tokenized_goals)
+
+        unmasked_probabilities = unmasked_probabilities_pre.view(batch_size, stem_width, num_goal_probs)
 
         masked_probabilities = torch.where(
             goal_masks
@@ -627,6 +652,7 @@ class FeaturesPolyargPredictor(
     def hyp_name_scores(self,
                         stem_idxs: torch.LongTensor,
                         tokenized_goal: List[int],
+                        tokenized_path: List[int],
                         tokenized_premises: List[List[int]],
                         premise_features: List[List[float]]
                         ) -> torch.FloatTensor:
@@ -634,7 +660,12 @@ class FeaturesPolyargPredictor(
         assert len(stem_idxs.size()) == 1
         stem_width = stem_idxs.size()[0]
         num_hyps = len(tokenized_premises)
-        encoded_goals = self._model.goal_encoder(LongTensor([tokenized_goal]))
+        #encoded_goals = self._model.goal_encoder(LongTensor([tokenized_goal]))
+        goals_tensor = LongTensor([tokenized_goal])
+        print("tokenized path 4")
+        print(tokenized_path)
+        paths_and_goals_tensor = torch.cat((goals_tensor, (LongTensor([tokenized_path]))), dim=1)
+        encoded_goals = self._model.goal_encoder(goals_tensor)
         hyp_arg_values = self.runHypModel(stem_idxs.unsqueeze(0),
                                           encoded_goals,
                                           LongTensor([tokenized_premises]),
@@ -803,6 +834,7 @@ class FeaturesPolyargPredictor(
                 unpadded_hyp_features, \
                 num_hyps, \
                 tokenized_goals, \
+                tokenized_paths, \
                 goal_masks, \
                 word_features, \
                 vec_features, \
@@ -819,6 +851,7 @@ class FeaturesPolyargPredictor(
                                     batch_first=True),
                        torch.LongTensor(num_hyps),
                        torch.LongTensor(tokenized_goals),
+                       torch.LongTensor(tokenized_paths),
                        torch.ByteTensor(goal_masks),
                        torch.LongTensor(word_features),
                        torch.FloatTensor(vec_features),
@@ -893,11 +926,11 @@ class FeaturesPolyargPredictor(
                                 batch: Sequence[torch.Tensor],
                                 model: FeaturesPolyArgModel) -> torch.FloatTensor:
         tokenized_hyp_types_batch, hyp_features_batch, num_hyps_batch, \
-            tokenized_goals_batch, goal_masks_batch, \
+            tokenized_goals_batch, tokenized_paths_batch, goal_masks_batch,  \
             word_features_batch, vec_features_batch, \
             stem_idxs_batch, arg_total_idxs_batch = \
             cast(Tuple[torch.LongTensor, torch.FloatTensor, torch.LongTensor,
-                       torch.LongTensor, torch.ByteTensor,
+                       torch.LongTensor, torch.LongTensor, torch.ByteTensor,
                        torch.LongTensor, torch.FloatTensor,
                        torch.LongTensor, torch.LongTensor],
                  batch)
@@ -932,10 +965,16 @@ class FeaturesPolyargPredictor(
         else:
             hyp_features_var = maybe_cuda(torch.zeros_like(hyp_features_batch))
 
+        print("my tokenized paths 5")
+        print(tokenized_paths_batch)
+
         goal_arg_values = self.goal_token_scores(model, arg_values,
                                                  mergedStemIdxsT, tokenized_goals_batch,
+                                                 tokenized_paths_batch, 
                                                  maybe_cuda(goal_masks_batch))
+        paths_and_goals_tensor = torch.cat((tokenized_goals_batch, tokenized_paths_batch), dim=1)
         encoded_goals = model.goal_encoder(tokenized_goals_batch)
+        #encoded_goals = model.goal_encoder(tokenized_goals_batch)
 
         hyp_lists_length = tokenized_hyp_types_batch.size()[1]
         hyp_length = tokenized_hyp_types_batch.size()[2]
