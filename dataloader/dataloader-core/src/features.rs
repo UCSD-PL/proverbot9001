@@ -32,6 +32,8 @@ use rayon::prelude::*;
 
 use gestalt_ratio::gestalt_ratio;
 
+use crate::tokenizer::remove_paths_from_goal;
+
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
 pub fn context_features(
@@ -189,10 +191,14 @@ impl TokenMap {
             }),
             count,
         );
+
         let index_to_goal_token = index_common(
             init_data
-                .iter()
-                .flat_map(|scraped| scraped.context.focused_goal().split_whitespace().next())
+                .into_iter()
+                .flat_map(
+                    |scraped| 
+                    remove_paths_from_goal(scraped.context.focused_goal()).split_whitespace().next().map(|v| v.to_owned())
+                )
                 .map(|s| s.to_string()),
             count,
         );
@@ -367,15 +373,3 @@ fn best_scored_hyp<'a>(
     }
     (best_hyp, best_score)
 }
-
-fn remove_paths_from_goal(goal: &str) -> String {
-    let mut updated_goal: String = "".to_string();
-    let words: Vec<&str> = goal.split(" ").collect();
-    for word in words{
-        let split: Vec<&str> = word.split("|-path-|").collect();
-        updated_goal = updated_goal + " " + split[0];
-        }
-    updated_goal = updated_goal.trim().to_string();
-    updated_goal
-    }
-

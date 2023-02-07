@@ -252,6 +252,44 @@ def get_tokens(args: List[str]):
             f.write(keyword + "\n")
 
 
+def common_paths(args : List[str]) -> None:
+    parser = argparse.ArgumentParser(description=
+                                     "Get 120 most common paths")
+    parser.add_argument("scrape_file", type=Path)
+    parser.add_argument("paths_file", type=Path)
+    parser.add_argument("--num-most-common", default=120, type=int)
+    parser.add_argument("--context-filter", default="default")
+    parser.add_argument("--max-tuples", dest="max_tuples", default=None, type=int)
+    parser.add_argument("--max-term-length", default=30, type=int)
+    arg_values = parser.parse_args(args)
+
+    print("RUNNING")
+
+    raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
+                                                        arg_values.max_tuples)
+
+    print("RAN?" + str(arg_values.num_most_common))
+    all_paths = []
+    for scraped in raw_data:
+        for agoal in scraped.context.fg_goals:
+            goalwords = agoal.goal.split(' ')
+            for word in goalwords:
+                if '|-path-|' in word:
+                    path = word.split('|-path-|')[1].strip(' ')
+                    if path:
+                        all_paths.append(path)
+
+    paths_counter = Counter(all_paths)
+    f = open(arg_values.paths_file, "w")
+    for path_tuple in paths_counter.most_common(arg_values.num_most_common):
+        print(path_tuple[0])
+        f.write(path_tuple[0]+"\n")
+
+    f.close()
+
+
 modules = {
     "train": train,
     "search-report": search_file.main,
@@ -261,6 +299,7 @@ modules = {
     "data": get_data,
     "tokens": get_tokens,
     "tactics": get_tactics,
+    "paths": common_paths,
     "predict": interactive_predictor.predict,
 }
 

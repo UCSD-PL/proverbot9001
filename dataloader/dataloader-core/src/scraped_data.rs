@@ -19,7 +19,7 @@
 //
 /* *********************************************************************** */
 
-use crate::tokenizer::{get_symbols, get_words};
+use crate::tokenizer::{get_symbols, get_words, remove_paths_from_goal};
 use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use pyo3::prelude::*;
 use serde::{Deserialize, Serialize};
@@ -663,14 +663,3 @@ impl DataloaderArgs {
         d
     }
 }
-
-fn remove_paths_from_goal(goal: &str) -> String {
-    let mut updated_goal: String = "".to_string();
-    let words: Vec<&str> = goal.split(" ").collect();
-    for word in words{
-        let split: Vec<&str> = word.split("|-path-|").collect();
-        updated_goal = updated_goal + " " + split[0];
-        }
-    updated_goal = updated_goal.trim().to_string();
-    updated_goal
-    }

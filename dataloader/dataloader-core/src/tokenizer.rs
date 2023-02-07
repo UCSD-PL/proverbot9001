@@ -6,6 +6,7 @@ use std::fs::File;
 use std::hash::Hash;
 use std::io::prelude::*;
 use std::io::{self, BufRead};
+use rand::Rng;
 
 extern crate regex;
 use regex::Regex;
@@ -101,11 +102,13 @@ pub struct Tokenizer {
     use_unknowns: bool,
     num_reserved_tokens: usize,
     unknown_token: Token,
+    paths_unknown_one: Token,
+    paths_unknown_two: Token,
     token_dict: HashMap<String, Token>,
     paths_dict: HashMap<String, Path>,
 }
 
-pub type PickleableTokenizer = (bool, usize, Token, HashMap<String, Token>, HashMap<String, Token>);
+pub type PickleableTokenizer = (bool, usize, Token, Token, Token, HashMap<String, Token>, HashMap<String, Token>);
 
 impl Tokenizer {
     pub fn new(use_unknowns: bool, num_reserved_tokens: usize, keywords_filepath: &str, paths_filepath: &str) -> Self {
@@ -133,14 +136,21 @@ impl Tokenizer {
         .lines()
         .map(|path| path.unwrap())
         .collect();
+
         let mut paths_dict = HashMap::new();
         for (idx, path) in paths.into_iter().enumerate() {
             paths_dict.insert(path, idx as i64 + first_token);
         }
+
+        let paths_unknown_one = (paths_dict.len() + num_reserved_tokens) as i64;
+        let paths_unknown_two = (paths_dict.len() + num_reserved_tokens + 1) as i64;
+
         Tokenizer {
             use_unknowns,
             num_reserved_tokens,
             unknown_token,
+            paths_unknown_one,
+            paths_unknown_two,
             token_dict,
             paths_dict,
         }
@@ -162,14 +172,20 @@ impl Tokenizer {
             .collect()
     }
     pub fn pathstokenize(&self, sentence: &str) -> (Vec<Token>, Vec<Path>) {
-        let wordsplit = sentence.split(' ');
-        let wordsplit_two = sentence.split(' ');
-        let words = wordsplit.collect::<Vec<&str>>();
-        let words_two = wordsplit_two.collect::<Vec<&str>>();
+        let pathswordsplit = sentence.split_terminator(' ');
+        let paths_words = pathswordsplit.collect::<Vec<&str>>();
+        let goalswordstogether = remove_paths_from_goal(sentence);
+        let goalswordsplit = goalswordstogether.split_terminator(' ');
+        let goals_words = goalswordsplit.collect::<Vec<&str>>();
+        
+        let mut rang = rand::thread_rng();
+        let rng: u8 = rang.gen();
+        //println!("new thing {}", rng);
+        //io::stdout().flush().unwrap();
 
-        let goalstokens: Vec<Token> = words
+        let goalstokens: Vec<Token> = goals_words
             .into_iter()
-            .flat_map(|word| match self.token_dict.get(word.split("|-path-|").collect::<Vec<&str>>()[0]) {
+            .flat_map(|word| match self.token_dict.get(word) {
                 None => {
                     if self.use_unknowns {
                         Some(self.unknown_token)
@@ -182,25 +198,27 @@ impl Tokenizer {
             .collect();
 
         let path_lookup_closure = |word: &str| -> Option<Path> {
-            let word_split = word.split("|-path-|").collect::<Vec<&str>>();
-            println!("{}",word);
-            if word_split.len() == 1 {
-                Some((self.paths_dict.len() as i64))
+            let word_split = word.trim().split("|-path-|").collect::<Vec<&str>>();
+            //println!("word {}: {}",rng, word);
+            //io::stdout().flush().unwrap();
+            if (word_split[1] == "") {
+                Some(self.paths_unknown_one)
             }
             else {
                 match self.paths_dict.get(word_split[1]) {
-                    None => Some((self.paths_dict.len() as i64) + 1),
+                    None => Some(self.paths_unknown_two),
                     Some(tok) => Some(*tok),
                 }
             }
         };
 
-        let pathstokens: Vec<Path> = words_two
+        let pathstokens: Vec<Path> = paths_words
             .into_iter()
             .flat_map(path_lookup_closure)
             .collect();
-
-        println!("{:?}", pathstokens);
+        
+        //println!("tokens {} {:?}", rng, pathstokens);
+        //io::stdout().flush().unwrap();
 
         assert_eq!(goalstokens.len(), pathstokens.len());
         (goalstokens, pathstokens)
@@ -211,6 +229,8 @@ impl Tokenizer {
             self.use_unknowns,
             self.num_reserved_tokens,
             self.unknown_token,
+            self.paths_unknown_one,
+            self.paths_unknown_two,
             self.token_dict,
             self.paths_dict,
         )
@@ -220,8 +240,10 @@ impl Tokenizer {
             use_unknowns: tup.0,
             num_reserved_tokens: tup.1,
             unknown_token: tup.2,
-            token_dict: tup.3,
-            paths_dict: tup.4,
+            paths_unknown_one: tup.3,
+            paths_unknown_two: tup.4,
+            token_dict: tup.5,
+            paths_dict: tup.6,
         }
     }
     pub fn num_tokens(&self) -> i64 {
@@ -266,5 +288,17 @@ pub fn normalize_sentence_length(
     } else if tokenlist.len() < length {
         tokenlist.extend([pad_value].repeat(length - tokenlist.len()));
     }
+    io::stdout().flush().unwrap();
     tokenlist
 }
+
+pub fn remove_paths_from_goal(goal: &str) -> String {
+    let mut updated_goal: String = "".to_string();
+    let words: Vec<&str> = goal.split_terminator(" ").collect();
+    for word in words{
+        let split: Vec<&str> = word.split("|-path-|").collect();
+        updated_goal = updated_goal + " " + split[0];
+        }
+    updated_goal = updated_goal.trim().to_string();
+    updated_goal
+    }

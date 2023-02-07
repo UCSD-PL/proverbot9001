@@ -374,9 +374,6 @@ class FeaturesPolyargPredictor(
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
 
-        print("My tokenized path")
-        print(tokenized_path)
-
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
             stem_idxs, LongTensor(tokenized_goal), LongTensor(tokenized_path), maybe_cuda(torch.BoolTensor(goal_mask)))
@@ -416,9 +413,6 @@ class FeaturesPolyargPredictor(
 
         _, stem_certainties_batch, stem_idxs_batch = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
-
-        print("My tokenized path batch")
-        print(tokenized_path_batch)
 
         goal_arg_values_batch = self.goal_token_scores(
             self._model, self.training_args,
@@ -559,9 +553,6 @@ class FeaturesPolyargPredictor(
              [serapi_instance.get_var_term_in_hyp(hyp) for hyp
               in context.hypotheses + context.relevant_lemmas])
 
-        print("My second tokenized path")
-        print(tokenized_path)
-
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
             merged_stem_idxs, LongTensor(tokenized_goal), LongTensor(tokenized_path),
@@ -624,9 +615,6 @@ class FeaturesPolyargPredictor(
         #    .view(batch_size * stem_width, goal_len))\
         #    .view(batch_size, stem_width, num_goal_probs)
 
-        print("tokenized paths 3")
-        print(tokenized_paths)
-
         num_goal_probs = goal_len + 1
         expanded_tokenized_goals = tokenized_goals.view(batch_size, 1, goal_len)\
             .expand(-1, stem_width, -1).contiguous()\
@@ -662,8 +650,6 @@ class FeaturesPolyargPredictor(
         num_hyps = len(tokenized_premises)
         #encoded_goals = self._model.goal_encoder(LongTensor([tokenized_goal]))
         goals_tensor = LongTensor([tokenized_goal])
-        print("tokenized path 4")
-        print(tokenized_path)
         paths_and_goals_tensor = torch.cat((goals_tensor, (LongTensor([tokenized_path]))), dim=1)
         encoded_goals = self._model.goal_encoder(goals_tensor)
         hyp_arg_values = self.runHypModel(stem_idxs.unsqueeze(0),
@@ -964,9 +950,6 @@ class FeaturesPolyargPredictor(
             hyp_features_var = maybe_cuda(hyp_features_batch)
         else:
             hyp_features_var = maybe_cuda(torch.zeros_like(hyp_features_batch))
-
-        print("my tokenized paths 5")
-        print(tokenized_paths_batch)
 
         goal_arg_values = self.goal_token_scores(model, arg_values,
                                                  mergedStemIdxsT, tokenized_goals_batch,

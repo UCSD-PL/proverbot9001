@@ -28,7 +28,7 @@ use crate::scraped_data::*;
 
 use crate::context_filter_ast::ContextFilterAST;
 
-use crate::tokenizer::get_words;
+use crate::tokenizer::{get_words, remove_paths_from_goal};
 use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(context_filter_parser);
@@ -207,15 +207,3 @@ pub fn apply_filter(
         }
     }
 }
-
-fn remove_paths_from_goal(goal: &str) -> String {
-    let mut updated_goal: String = "".to_string();
-    let words: Vec<&str> = goal.split(" ").collect();
-    for word in words{
-    let split: Vec<&str> = word.split("|-path-|").collect();
-        updated_goal = updated_goal + " " + split[0];
-            }
-
-    updated_goal = updated_goal.trim().to_string();
-    updated_goal
-    }

@@ -8,7 +8,7 @@ use std::fs::File;
 use crate::context_filter::filter_data_by_key;
 use crate::models::evaluator_common::*;
 use crate::scraped_data::*;
-use crate::tokenizer::{normalize_sentence_length, Tokenizer};
+use crate::tokenizer::{normalize_sentence_length, Tokenizer, remove_paths_from_goal};
 
 #[pyclass(module = "dataloader")]
 pub struct GoalEncMetadata {
@@ -99,14 +99,3 @@ fn truncate_to_length(mut sentence: Vec<i64>, max_length: usize) -> Vec<i64> {
     sentence.truncate(max_length);
     sentence
 }
-
-fn remove_paths_from_goal(goal: &str) -> String {
-    let mut updated_goal: String = "".to_string();
-    let words: Vec<&str> = goal.split(" ").collect();
-    for word in words{
-        let split: Vec<&str> = word.split("|-path-|").collect();
-        updated_goal = updated_goal + " " + split[0];
-        }
-    updated_goal = updated_goal.trim().to_string();
-    updated_goal
-    }

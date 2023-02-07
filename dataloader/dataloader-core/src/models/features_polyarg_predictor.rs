@@ -17,7 +17,7 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
+    get_words, remove_paths_from_goal, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
     Token, Tokenizer,
 };
 use gestalt_ratio::gestalt_ratio;
@@ -360,7 +360,7 @@ pub fn sample_fpa_batch_rs(
                 &ctxt.relevant_lemmas,
                 &ctxt.prev_tactics,
                 &ctxt.obligation.hypotheses,
-                &ctxt.obligation.goal, //TODO: possibly remove paths here?
+                &remove_paths_from_goal(&ctxt.obligation.goal), 
             )
         })
         .unzip();
@@ -479,7 +479,7 @@ pub fn sample_fpa_rs(
         &relevant_lemmas,
         &prev_tactics,
         &hypotheses,
-        &goal, //TODO: possibly remove paths here?
+        &remove_paths_from_goal(&goal),
     );
     let all_premises: Vec<String> = hypotheses
         .into_iter()
@@ -776,14 +776,3 @@ fn arg_to_index(dargs: &DataloaderArgs, arg: TacticArgument) -> i64 {
         TacticArgument::HypVar(hidx) => (hidx + dargs.max_length + 1) as i64,
     }
 }
-
-fn remove_paths_from_goal(goal: &str) -> String {
-    let mut updated_goal: String = "".to_string();
-    let words: Vec<&str> = goal.split(" ").collect();
-    for word in words{
-        let split: Vec<&str> = word.split("|-path-|").collect();
-        updated_goal = updated_goal + " " + split[0];
-            }
-    updated_goal = updated_goal.trim().to_string();
-    updated_goal
-    }
