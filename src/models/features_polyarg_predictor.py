@@ -501,6 +501,9 @@ class FeaturesPolyargPredictor(
         num_valid_probs = (1 + len(all_hyps) +
                            len(get_fpa_words(context.goal))) * stem_width
         while len(prediction_strs) < k and next_i < num_valid_probs:
+            if all_idxs[next_i][1] == 0:
+                next_i += 1
+                continue
             next_pred_str = decode_fpa_result(
                 extract_dataloader_args(self.training_args),
                 self.metadata,
