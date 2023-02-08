@@ -842,7 +842,13 @@ class FeaturesPolyargPredictor(
                         str(arg_values.scrape_file))
                 with open("tensors.json", 'r') as f:
                     loaded_metadata, loaded_dataset = json.load(f)
-                assert loaded_metadata == metadata, f"Metadata doesn't match reference! {loaded_metadata} vs {metadata}"
+                assert loaded_metadata[0] == json.loads(json.dumps(metadata[0])), f"Indexer doesn't match reference! {loaded_metadata[0]} vs "\
+                  f"{json.loads(json.dumps(metadata[0]))}"
+                assertEqMaps(loaded_metadata[2][0],json.loads(json.dumps(metadata[2][0])))
+                assert loaded_metadata[2][1] == json.loads(json.dumps(metadata[2][1])), f"Goal token to index map doesn't match reference! {loaded_metadata[2][1]} vs "\
+                  f"{json.loads(json.dumps(metadata[2][1]))}"
+                assert loaded_metadata[2][2] == json.loads(json.dumps(metadata[2][2])), f"hyp token to index map doesn't match reference! {loaded_metadata[2][2]} vs "\
+                  f"{json.loads(json.dumps(metadata[2][2]))}"
                 assert loaded_dataset[0] == dataset.inputs.premise_keywords
                 assert loaded_dataset[1] == dataset.inputs.premise_features
                 assert loaded_dataset[2] == dataset.inputs.num_premises
@@ -1129,6 +1135,13 @@ def context_py2r(py_context: TacticContext) -> dataloader.TacticContext:
     return dataloader.TacticContext(
         py_context.relevant_lemmas, py_context.prev_tactics,
         dataloader.Obligation(py_context.hypotheses, py_context.goal))
+
+def assertEqMaps(map1: Dict[Any, Any], map2: Dict[Any, Any]) -> None:
+    for k, v in map1.items():
+        assert k in map2, f"Can't find key {k} from first map in second map"
+        assert map2[k] == v, f"Value for key {k} doesn't match: {v} in first map vs {map2[k]} in second map"
+    for k, v in map2.items():
+        assert k in map1, f"Can't find key {k} from second map in first map"
 
 
 def main(arg_list: List[str]) -> None:
