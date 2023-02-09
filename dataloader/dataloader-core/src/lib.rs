@@ -300,7 +300,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
-        })
+        }).flat_map(preprocess_datum)
         .filter(|datum| apply_filter(max_term_length, &filter, datum));
         match num_tactics {
             Some(num) => Ok(iter.take(num).collect()),
