@@ -59,7 +59,8 @@ from dataloader import (features_polyarg_tensors,
                         get_word_feature_vocab_sizes,
                         get_vec_features_size,
                         DataloaderArgs,
-                        get_fpa_words)
+                        get_fpa_words,
+                        scraped_tactics_from_file)
 
 import coq_serapy as serapi_instance
 
@@ -840,6 +841,10 @@ class FeaturesPolyargPredictor(
                     features_polyarg_tensors(
                         extract_dataloader_args(arg_values),
                         str(arg_values.scrape_file))
+                scraped_tactics = scraped_tactics_from_file(str(arg_values.scrape_file),
+                                                            arg_values.context_filter,
+                                                            arg_values.max_length,
+                                                            arg_values.max_tuples)
                 with open("tensors.json", 'r') as f:
                     loaded_metadata, loaded_dataset = json.load(f)
                 assert loaded_metadata[0] == json.loads(json.dumps(metadata[0])), f"Indexer doesn't match reference! {loaded_metadata[0]} vs "\
@@ -851,7 +856,10 @@ class FeaturesPolyargPredictor(
                   f"{json.loads(json.dumps(metadata[2][2]))}"
                 assert loaded_dataset[0] == dataset.inputs.premise_keywords
                 assert loaded_dataset[1] == dataset.inputs.premise_features
-                assert loaded_dataset[2] == dataset.inputs.num_premises
+                # assert loaded_dataset[2] == dataset.inputs.num_premises
+                for i, (n, m) in enumerate(zip(loaded_dataset[2], dataset.inputs.num_premises)):
+                    assert n == m, (str(scraped_tactics[i]), n, m, i)
+
                 assert loaded_dataset[3] == dataset.inputs.goal_keywords
                 assert loaded_dataset[4] == dataset.inputs.goal_masks
                 assert loaded_dataset[5] == dataset.inputs.word_features
