@@ -862,7 +862,9 @@ class FeaturesPolyargPredictor(
                 for i, (n, m) in enumerate(zip(loaded_dataset[2], dataset.inputs.num_premises)):
                     assert n == m, (str(scraped_tactics[i]), n, m, i)
 
-                assert loaded_dataset[3] == dataset.inputs.goal_keywords
+                # assert loaded_dataset[3] == dataset.inputs.goal_keywords
+                for i, (n, m) in enumerate(zip(loaded_dataset[3], dataset.inputs.goal_keywords)):
+                    assert n == m, (str(scraped_tactics[i]), n, m, i)
                 assert loaded_dataset[4] == dataset.inputs.goal_masks
                 assert loaded_dataset[5] == dataset.inputs.word_features
                 assert loaded_dataset[6] == dataset.inputs.vec_features
