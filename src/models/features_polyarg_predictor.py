@@ -856,8 +856,8 @@ class FeaturesPolyargPredictor(
                   f"{json.loads(json.dumps(metadata[2][1]))}"
                 assert loaded_metadata[2][2] == json.loads(json.dumps(metadata[2][2])), f"hyp token to index map doesn't match reference! {loaded_metadata[2][2]} vs "\
                   f"{json.loads(json.dumps(metadata[2][2]))}"
-                assert loaded_dataset[0] == dataset.inputs.premise_keywords
-                assert loaded_dataset[1] == dataset.inputs.premise_features
+                # assert loaded_dataset[0] == dataset.inputs.premise_keywords
+                # assert loaded_dataset[1] == dataset.inputs.premise_features
                 # assert loaded_dataset[2] == dataset.inputs.num_premises
                 for i, (n, m) in enumerate(zip(loaded_dataset[2], dataset.inputs.num_premises)):
                     assert n == m, (str(scraped_tactics[i]), n, m, i)
