@@ -106,6 +106,7 @@ pub struct IdentChunkTokenizer {
     subword_vocab_size: i64,
     tok_trie: IndexedTrie,
     keywords: HashMap<String, i64>,
+    num_reserved_tokens: i64,
 }
 pub type IdentChunk = (Token, Vec<Token>);
 
@@ -140,7 +141,7 @@ impl IdentChunkTokenizer {
         let mut keywords_map = HashMap::new();
         for (idx, keyword) in keywords.into_iter().enumerate() {
             assert!(!keywords_map.contains_key(&keyword), "Duplicate keyword {}", &keyword);
-            keywords_map.insert(keyword, (idx+2) as i64);
+            keywords_map.insert(keyword, (idx+num_reserved_tokens) as i64);
         }
 
         IdentChunkTokenizer {
@@ -148,13 +149,14 @@ impl IdentChunkTokenizer {
             subword_vocab_size: next_vocab_idx + if use_unknowns { 1 } else { 0 },
             tok_trie: trie,
             keywords: keywords_map,
+            num_reserved_tokens: num_reserved_tokens as i64
         }
     }
     pub fn num_subwords(&self) -> i64 {
         self.subword_vocab_size
     }
     pub fn num_keywords(&self) -> i64 {
-        (self.keywords.len() + 2) as i64
+        self.keywords.len() as i64 + self.num_reserved_tokens
     }
     pub fn tokenize(&self, sentence: &str) -> Vec<(Token, Vec<Token>)> {
         let mut tokens = Vec::new();
