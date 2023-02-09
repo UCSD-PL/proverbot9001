@@ -847,6 +847,8 @@ class FeaturesPolyargPredictor(
                                                             arg_values.max_tuples)
                 with open("tensors.json", 'r') as f:
                     loaded_metadata, loaded_dataset = json.load(f)
+                if arg_values.max_tuples:
+                    loaded_dataset = loaded_dataset[:arg_values.max_tuples]
                 assert loaded_metadata[0] == json.loads(json.dumps(metadata[0])), f"Indexer doesn't match reference! {loaded_metadata[0]} vs "\
                   f"{json.loads(json.dumps(metadata[0]))}"
                 assertEqMaps(loaded_metadata[2][0],json.loads(json.dumps(metadata[2][0])))
