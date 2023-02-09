@@ -181,7 +181,7 @@ impl IdentChunkTokenizer {
             match self.keywords.get(word) {
                 Some(kidx) => tokens.push((*kidx, word_tokens)),
                 None => {
-                    tokens.push((1, word_tokens));
+                    tokens.push((self.num_keywords(), word_tokens));
                 }
             }
         }
