@@ -82,6 +82,14 @@ impl ScrapedTactic {
 	}
     }
 }
+#[pymethods]
+impl ScrapedTactic {
+    fn __str__(&self) -> PyResult<String> {
+        Ok(format!("ScrapedTactic(Relevant Lemmas: {:?}; Previous Tactics: {:?}; Context: {:?}; Tactic: {})",
+                   self.relevant_lemmas, self.prev_tactics, self.context, self.tactic))
+    }
+}
+
 #[pyclass]
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct TacticContext {
