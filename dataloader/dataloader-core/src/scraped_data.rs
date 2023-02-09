@@ -521,6 +521,7 @@ pub fn tactic_takes_hyp_args(tactic_stem: &str) -> bool {
             || tactic_stem == "inv"
             || tactic_stem == "subst"
             || tactic_stem == "specialize"
+            || tactic_stem == "induction"
     }
 }
 
