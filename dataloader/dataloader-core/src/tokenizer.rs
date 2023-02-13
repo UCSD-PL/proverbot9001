@@ -156,7 +156,7 @@ impl IdentChunkTokenizer {
         self.subword_vocab_size
     }
     pub fn num_keywords(&self) -> i64 {
-        self.keywords.len() as i64 + self.num_reserved_tokens
+        self.keywords.len() as i64 + self.num_reserved_tokens + 1
     }
     pub fn tokenize(&self, sentence: &str) -> Vec<(Token, Vec<Token>)> {
         let mut tokens = Vec::new();
@@ -181,7 +181,7 @@ impl IdentChunkTokenizer {
             match self.keywords.get(word) {
                 Some(kidx) => tokens.push((*kidx, word_tokens)),
                 None => {
-                    tokens.push((self.num_keywords(), word_tokens));
+                    tokens.push((self.num_keywords() - 1, word_tokens));
                 }
             }
         }
