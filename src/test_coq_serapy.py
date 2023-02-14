@@ -1,4 +1,5 @@
 from collections import deque
+import traceback
 from sklearn.ensemble import RandomForestRegressor
 import torch
 import torch.nn as nn
@@ -90,81 +91,89 @@ def is_context_fresh(proof_contexts_in_path, curr_proof_context) :
 # test_include = "Remark store_zeros_unchanged:"
 # new_commands = ['Proof.', 'simpl.', 'intros.','exploit store_init_data_perm.', '{'] + ['exploit store_init_data_perm.', '{']*27
 
-["Let HF': helper_functions_declared tprog hf.", 'Proof.', 'eapply helper_functions_preserved.', 'apply get_helpers_correct.']
+# ["Let HF': helper_functions_declared tprog hf.", 'Proof.', 'eapply helper_functions_preserved.', 'apply get_helpers_correct.']
+test_include = 'Theorem find_funct_inv:\n  forall ge v f,\n  find_funct ge v = Some f -> exists b, v = Vptr b Ptrofs.zero.'
+new_commands = ['Proof.', 'induction v.', '{', 'simpl.', 'try congruence.', '}', '{', 'simpl _.', 'intros.', 'inv H.', '}', '{', 'intros.', 'econstructor.', 'try discriminate.', '}', '{', 'unfold find_funct.', 'zify.', 'inv H.', '}', '{', 'intros.', 'simpl in H.', 'destruct f.', '{', 'discriminate.', '}', '{', 'destruct s.', '{', 'discriminate.', '}', 'discriminate.', '}', '{', 'destruct pl.', '{', 'discriminate.', '}', '{', 'discriminate.', '}', 'destruct ge.', 'destruct genv_next0.', '{', 'discriminate.', '}', '{', 'destruct genv_next0.', '{', 'discriminate.', '}', '{', 'discriminate.', '}', 'discriminate.', '}', 'discriminate.', '}', 'discriminate.', '}', 'simpl _.', 'destruct Ptrofs.eq_dec.', '{', 'intros.', 'subst.', 'econstructor.', 'eauto.', '}', 'try discriminate.', "}"]
 
-# print(test_include in commands)
-# start_time = time.time()
-# for command in commands :
-# 	# print(test_include, command, test_include in command)
-# 	if not test_include in command :
-# 		coq.run_stmt(command, timeout= 100)
-# 	else :
-# 		print("Starting that particular test")
-# 		coq.verbose = 0
-# 		print("Running -", command)
-# 		coq.run_stmt(command, timeout= 100)
-# 		# quit()
+print(test_include in commands)
+start_time = time.time()
+for command in commands :
+	# print(test_include, command, test_include in command)
+	if not test_include in command :
+		coq.run_stmt(command, timeout= 100)
+	else :
+		print("Starting that particular test")
+		coq.verbose = 0
+		print("Running -", command)
+		coq.run_stmt(command, timeout= 100)
+		# quit()
 		
-# 		contexts = []
-# 		# for new_command in new_commands_before :
-# 		#     # print(coq.proof_context)
-# 		#     coq.run_stmt(new_command.lstrip().rstrip(), timeout= 100)
-# 		#     contexts.append("Running - " + new_command.lstrip().rstrip())
-# 		#     contexts.append(coq.proof_context)
+		contexts = []
+		# for new_command in new_commands_before :
+		#     # print(coq.proof_context)
+		#     coq.run_stmt(new_command.lstrip().rstrip(), timeout= 100)
+		#     contexts.append("Running - " + new_command.lstrip().rstrip())
+		#     contexts.append(coq.proof_context)
 		
 		
-# 		print(coq.proof_context)
-# 		# contexts.append(coq.proof_context)
+		print(coq.proof_context)
+		# contexts.append(coq.proof_context)
 		
-# 		clear_coq_proof_context(coq)
-# 		print(coq.proof_context)
-# 		# contexts.append(coq.proof_context)
-# 		coq.run_stmt(command, timeout= 100)
+		clear_coq_proof_context(coq)
+		print(coq.proof_context)
+		# contexts.append(coq.proof_context)
+		coq.run_stmt(command, timeout= 100)
 		
-# 		coq.run_stmt("Proof.",timeout=100)
-# 		contexts.append(coq.proof_context)
-# 		for new_command_ind in range(1,len( new_commands)) :
-# 			new_command = new_commands[new_command_ind]
-# 			# print(coq.proof_context)
-# 			coq.run_stmt(new_command.lstrip().rstrip(), timeout= 100)
-# 			# contexts.append("Running - " + new_command.lstrip().rstrip())
-# 			print("Running - " + new_command.lstrip().rstrip())
-# 			print("Is context Fresh after the above command? -  ",is_context_fresh(contexts, coq.proof_context))
-# 			contexts.append(coq.proof_context)
+		coq.run_stmt("Proof.",timeout=100)
+		contexts.append(coq.proof_context)
+		try :
+			for new_command_ind in range(1,len( new_commands)) :
+				new_command = new_commands[new_command_ind]
+				# print(coq.proof_context)
 
+				print("Running - " + new_command.lstrip().rstrip())
+				print(completed_proof(coq))
+				contexts.append("Running - " + new_command.lstrip().rstrip())
+				coq.run_stmt(new_command.lstrip().rstrip(), timeout= 100)
+				# print("Is context Fresh after the above command? -  ",is_context_fresh(contexts, coq.proof_context))
+				contexts.append(coq.proof_context)
+		except Exception:
+			print(traceback.format_exc())
+			contexts.append(traceback.format_exc())
+			
 		
-# 		# print(coq.proof_context)
-# 		# coq.cancel_last()
-# 		# contexts.append(coq.proof_context)
-# 		print(is_same_context(contexts[-1], contexts[-3]))
-# 		print(is_same_context(contexts[-1], contexts[-5]))
-# 		print(is_same_context(contexts[-1], contexts[-7]))
-# 		print(is_same_context(contexts[-3], contexts[-5]))
-# 		print(is_same_context(contexts[-3], contexts[-7]))
-# 		print(is_same_context(contexts[-5], contexts[-7]))
+		# print(coq.proof_context)
+		# coq.cancel_last()
+		# contexts.append(coq.proof_context)
+		# print(is_same_context(contexts[-1], contexts[-3]))
+		# print(is_same_context(contexts[-1], contexts[-5]))
+		# print(is_same_context(contexts[-1], contexts[-7]))
+		# print(is_same_context(contexts[-3], contexts[-5]))
+		# print(is_same_context(contexts[-3], contexts[-7]))
+		# print(is_same_context(contexts[-5], contexts[-7]))
 
-# 		print("\n Everything should be false below this")
-# 		for i in contexts :
-# 			print( is_same_context(coq.proof_context, i), contextSurjective(coq.proof_context, i) )
-# 		# print("History is ->",  " ".join(new_commands))
-# 		# for obligation in contexts[-1].all_goals :
-# 		#     print(obligation.goal)
+		# print("\n Everything should be false below this")
+		# for i in contexts :
+		# 	print( is_same_context(coq.proof_context, i), contextSurjective(coq.proof_context, i) )
+		# print("History is ->",  " ".join(new_commands))
+		# for obligation in contexts[-1].all_goals :
+		#     print(obligation.goal)
 		
-# 		# print("History is -> {, eauto")
-# 		# for obligation in contexts[-2].all_goals :
-# 		#     print(obligation.goal)
+		# print("History is -> {, eauto")
+		# for obligation in contexts[-2].all_goals :
+		#     print(obligation.goal)
 		
-# 		# print("History is -> { ")
-# 		# for obligation in contexts[-3].all_goals :
-# 		#     print(obligation.goal)
+		# print("History is -> { ")
+		# for obligation in contexts[-3].all_goals :
+		#     print(obligation.goal)
 		
-# 		with open("output/output_test_context_file.txt", "w") as f :
-# 			for context in contexts :
-# 				f.write(str(context) + "\n")
+		with open("output/output_test_context_file.txt", "w") as f :
+			for context in contexts :
+				f.write(str(context) + "\n")
 		
-# 		end_time = time.time()
-# 		print(end_time - start_time)
-# 		quit()
+		end_time = time.time()
+		print(end_time - start_time)
+		quit()
 	
 
 # ---------------------------------------------- Test 2 ----------------------------------------------------------------------
@@ -178,84 +187,84 @@ def is_context_fresh(proof_contexts_in_path, curr_proof_context) :
 
 
 #----------------------------------------------- Test 3 ---------------------------------------------------------------------
-test_include = "Lemma store_init_data_neutral:"
-new_commands = ['Proof.', 'intros.', 'destruct H.', ' eapply store_zeros_neutral.', '{'] + [' eapply store_zeros_neutral.', '{']*27
-time_dict = defaultdict(lambda : [])
-pred_gen_time = []
-context_check_time = []
-predictor = loadPredictorByFile(args.weightsfile)
-for command in commands :
-	# print(test_include, command, test_include in command)
-	if not test_include in command :
-		coq.run_stmt(command, timeout= 100)
-	else :
-		print("Starting test")
-		coq.run_stmt(command)
-		contexts = []
-		coq.verbose = 0
-		time_start = time.time()
-		for new_command_ind in range(len(new_commands) - 1) :
-			new_command = new_commands[new_command_ind]
-			if new_commands[new_command_ind + 1] == '{' :
-				print("Running ", new_command)
-				a= time.time()
-				coq.run_stmt(new_command)
-				b = time.time()
-				time_dict['{'].append(b - a)
-				continue
+# test_include = "Lemma store_init_data_neutral:"
+# new_commands = ['Proof.', 'intros.', 'destruct H.', ' eapply store_zeros_neutral.', '{'] + [' eapply store_zeros_neutral.', '{']*27
+# time_dict = defaultdict(lambda : [])
+# pred_gen_time = []
+# context_check_time = []
+# predictor = loadPredictorByFile(args.weightsfile)
+# for command in commands :
+# 	# print(test_include, command, test_include in command)
+# 	if not test_include in command :
+# 		coq.run_stmt(command, timeout= 100)
+# 	else :
+# 		print("Starting test")
+# 		coq.run_stmt(command)
+# 		contexts = []
+# 		coq.verbose = 0
+# 		time_start = time.time()
+# 		for new_command_ind in range(len(new_commands) - 1) :
+# 			new_command = new_commands[new_command_ind]
+# 			if new_commands[new_command_ind + 1] == '{' :
+# 				print("Running ", new_command)
+# 				a= time.time()
+# 				coq.run_stmt(new_command)
+# 				b = time.time()
+# 				time_dict['{'].append(b - a)
+# 				continue
 
-			print("Running ", new_command)
-			a = time.time()
-			coq.run_stmt(new_command)
-			b = time.time()
-			time_dict[new_command].append(b - a)
+# 			print("Running ", new_command)
+# 			a = time.time()
+# 			coq.run_stmt(new_command)
+# 			b = time.time()
+# 			time_dict[new_command].append(b - a)
 			
-			a = time.time()
-			relevant_lemmas = coq.local_lemmas[:-1]
-			full_context_before = FullContext(relevant_lemmas, coq.prev_tactics,  coq.proof_context)
-			predictions = predictor.predictKTactics(
-				truncate_tactic_context(full_context_before.as_tcontext(),
-										args.max_term_length), args.max_attempts)
-			b = time.time()
-			pred_gen_time.append(b-a)
-			for prediction_idx, prediction in enumerate(predictions):
-				curr_pred = prediction.prediction.strip()
-				a = time.time()
-				try :
-					print("trying",curr_pred)
+# 			a = time.time()
+# 			relevant_lemmas = coq.local_lemmas[:-1]
+# 			full_context_before = FullContext(relevant_lemmas, coq.prev_tactics,  coq.proof_context)
+# 			predictions = predictor.predictKTactics(
+# 				truncate_tactic_context(full_context_before.as_tcontext(),
+# 										args.max_term_length), args.max_attempts)
+# 			b = time.time()
+# 			pred_gen_time.append(b-a)
+# 			for prediction_idx, prediction in enumerate(predictions):
+# 				curr_pred = prediction.prediction.strip()
+# 				a = time.time()
+# 				try :
+# 					print("trying",curr_pred)
 					
-					coq.run_stmt(curr_pred, timeout=100)
-					coq.cancel_last()
+# 					coq.run_stmt(curr_pred, timeout=100)
+# 					coq.cancel_last()
 					
 					
-				except (serapi_instance.TimeoutError, serapi_instance.ParseError,
-					serapi_instance.CoqExn, serapi_instance.OverflowError,
-					serapi_instance.ParseError,
-					RecursionError,
-					serapi_instance.UnrecognizedError) as e:
-					print("One of known errors",)
-				b = time.time()
-				time_dict[curr_pred].append(b - a)
+# 				except (serapi_instance.TimeoutError, serapi_instance.ParseError,
+# 					serapi_instance.CoqExn, serapi_instance.OverflowError,
+# 					serapi_instance.ParseError,
+# 					RecursionError,
+# 					serapi_instance.UnrecognizedError) as e:
+# 					print("One of known errors",)
+# 				b = time.time()
+# 				time_dict[curr_pred].append(b - a)
 			
-			a = time.time()
-			print("Is context Fresh after the above command",new_command, "?", is_context_fresh(contexts, coq.proof_context))
-			b = time.time()
-			context_check_time.append(b-a)
-			contexts.append(coq.proof_context)
+# 			a = time.time()
+# 			print("Is context Fresh after the above command",new_command, "?", is_context_fresh(contexts, coq.proof_context))
+# 			b = time.time()
+# 			context_check_time.append(b-a)
+# 			contexts.append(coq.proof_context)
 		
-		break
+# 		break
 
-time_stop = time.time()
-total_sum = 0
-for i in time_dict :
-	total_sum +=  np.sum(time_dict[i])
-	print("%s : %.4f, %.4f, %.4f, %d, %.4f"%(i, np.mean(time_dict[i]), np.std(time_dict[i]), np.max(time_dict[i]), len(time_dict[i]), np.sum(time_dict[i])))
+# time_stop = time.time()
+# total_sum = 0
+# for i in time_dict :
+# 	total_sum +=  np.sum(time_dict[i])
+# 	print("%s : %.4f, %.4f, %.4f, %d, %.4f"%(i, np.mean(time_dict[i]), np.std(time_dict[i]), np.max(time_dict[i]), len(time_dict[i]), np.sum(time_dict[i])))
 
-print("Pred Gen time", np.mean(pred_gen_time), np.std(pred_gen_time),np.max(pred_gen_time),len(pred_gen_time),np.sum(pred_gen_time))
-print("Time taken to run the test : ",time_stop - time_start)
-print("Time Taken for running all the tactics :", total_sum)
-print("Time Taken to check all contexts :", np.sum(context_check_time))
-quit()
+# print("Pred Gen time", np.mean(pred_gen_time), np.std(pred_gen_time),np.max(pred_gen_time),len(pred_gen_time),np.sum(pred_gen_time))
+# print("Time taken to run the test : ",time_stop - time_start)
+# print("Time Taken for running all the tactics :", total_sum)
+# print("Time Taken to check all contexts :", np.sum(context_check_time))
+# quit()
 
 
 

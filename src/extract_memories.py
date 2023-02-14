@@ -185,7 +185,7 @@ device = "cuda"
 
 agent_model = Agent_model( language_model.n_chars, 500,1, device).to(device)
 loss_object = nn.MSELoss()
-optimizer = optim.SGD(agent_model.parameters(),lr = 0.0001)
+optimizer = optim.SGD(agent_model.parameters(),lr = 0.001)
 
 for _ in range(1000) :
 	loss = train_step( agent_model ,optimizer, loss_object, X_train,y_train,batch_size = len(X_train), device = device)

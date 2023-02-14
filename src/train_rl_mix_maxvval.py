@@ -81,6 +81,7 @@ class Agent_model(nn.Module):
 		self.encoder = EncoderRNN(dictionary_size,hidden_size)
 		self.regressor = RegressorNN(hidden_size,output_size)
 		self.device = device
+		self.sigmoid  = nn.Sigmoid()
 
 	
 	def forward(self,input_tensor) :
@@ -88,7 +89,8 @@ class Agent_model(nn.Module):
 		# print("EH",encoder_hidden.shape)
 		encoder_hidden = torch.squeeze(encoder_hidden)
 		regressor_output = self.regressor(encoder_hidden)
-		return regressor_output
+		softmaxed = self.sigmoid(regressor_output)
+		return softmaxed
 
 class Memory_max :
 	def __init__(self) :
@@ -139,7 +141,7 @@ def get_epsilon_greedy(vvals,probs= None, epsilon = 1):
 		return np.argmax(vvals)
 	else :
 		coin = np.random.rand()
-		if coin >= epsilon and 0.4 < epsilon < 0.6 :
+		if coin >= epsilon  and 0.4 < epsilon < 0.6: #
 			return np.random.choice( range(0, len(vvals)), p = probs)
 		else :
 			return np.random.choice( range(0, len(vvals)), p = None)
@@ -153,12 +155,14 @@ def get_vvals(next_states, next_state_texts, agent_model, memory, device):
 		vvals = agent_model(next_states_tensor)
 	
 	vvals = vvals.detach().cpu().numpy()
-
+	print(vvals.shape)
 	for i in range(len(next_states)) :
 		if next_state_texts[i] in memory.index_dict :
 			j = memory.index_dict[ next_state_texts[i]]
 			if memory.mem[j][1] > 0.5 :
 				vvals[i] = memory.mem[j][1]
+
+	print(vvals)
 	return vvals
 	
 
@@ -224,9 +228,10 @@ def get_available_actions_with_next_state_vectors(env, predictor) :
 
 
 def select_action(agent_model, memory, env, predictor, epsilon, device = "cpu") :
-
+	a = time.time()
 	next_states, predictions, next_state_texts = get_available_actions_with_next_state_vectors(env, predictor)
-	
+	b = time.time()
+	print("Time for running Get_vailable_actions_with... within select action", b - a)
 	if len(next_states) == 0 or len(predictions) == 0 :
 		print("No predictions available for the current state in select action")
 		return None, None, {"vval" : -5}
@@ -238,7 +243,10 @@ def select_action(agent_model, memory, env, predictor, epsilon, device = "cpu") 
 		# else :
 		# 	print("Passed",  type(next_states[i]) )
 
+	a = time.time()
 	vvals = get_vvals(next_states, next_state_texts, agent_model, memory, device)
+	b = time.time()
+	print("Time for running get vvals within select action", b - a)
 	print(vvals)
 	
 	print("Current Options : ", [predictions[i].prediction.lstrip().rstrip() + " : " + str(vvals[i]) for i in range(len(vvals)) ])
@@ -273,7 +281,10 @@ def train_step( agent_model ,optimizer, loss_object,memory,batch_size = 200, dev
 
 
 	optimizer.zero_grad()
-	predicted_rewards = agent_model(state_tensor)
+	predicted_rewards = agent_model(state_tensor).squeeze()
+
+	# print("Shapes - predicted, reward_tensor", predicted_rewards.shape, reward_tensor.shape)
+	# quit()
 
 	loss = loss_object(predicted_rewards,reward_tensor)
 	loss.backward()
@@ -289,16 +300,16 @@ def NN_VLearning(T_max, gamma, args) :
 	proof_files = [args.proof_file.path]
 
 	if args.use_fast_check :
-		env = FastProofEnv(proof_files, args.prelude, args.wandb_log, state_type = "index", max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts, info_on_check = True)
+		env = FastProofEnv(proof_files, args.prelude, args.wandb_log, state_type = "goal_index", max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts, info_on_check = True)
 	else :
-		env = ProofEnv(proof_files, args.prelude, args.wandb_log, state_type = "index",  max_proof_len = args.max_proof_len, info_on_check=True)
+		env = ProofEnv(proof_files, args.prelude, args.wandb_log, state_type = "goal_index",  max_proof_len = args.max_proof_len, info_on_check=True)
 	predictor = loadPredictorByFile(args.weightsfile)
 	
 	memory = Memory_max()
 	s,_ = env.reset()
 	device = "cuda"
 	agent_model = Agent_model( env.language_model.n_chars, 500,1, device).to(device)
-	loss_object = nn.MSELoss()
+	loss_object = nn.BCELoss()
 	optimizer = optim.SGD(agent_model.parameters(),lr = 0.01)
 
 
@@ -316,6 +327,9 @@ def NN_VLearning(T_max, gamma, args) :
 	state_names = []
 	agent_vval = []
 	live_rewards = []
+	a = time.time()
+	time_outside_env = []
+	time_for_select_action = []
 	while T <= T_max :
 		print(T)
 		# a = get_epsilon_greedy( agent_model.get_qvals(torch.tensor(s)), curr_epsilon )
@@ -325,7 +339,14 @@ def NN_VLearning(T_max, gamma, args) :
 		# print(env.coq.proof_context)
 		curr_state_name = env.coq.proof_context.fg_goals[0].goal.strip()
 		print("State Name : ", curr_state_name)
+		c = time.time()
 		prediction,_,agent_info = select_action(agent_model, memory, env, predictor, curr_epsilon, device = device)
+		d = time.time()
+		print("Time for select action", d - c)
+		time_for_select_action.append(d -c)
+
+		b = time.time()
+		time_outside_env.append(b - a)
 		if prediction == None :
 			print("No actions available")
 			s_next,episode_r, done, info = env.admit_and_skip_proof()
@@ -334,6 +355,7 @@ def NN_VLearning(T_max, gamma, args) :
 			s_next,episode_r, done, info = env.step(prediction.prediction)
 
 		print("Step taken")
+		a = time.time()
 		# if not done :
 		# 	episode_r += prediction.certainty
 
@@ -357,6 +379,13 @@ def NN_VLearning(T_max, gamma, args) :
 		
 
 		if done :
+			print("Current Proof time", env.proof_time)
+			print("Current calculated proof time", env.proof_time_calculated) 
+			print("Current calculated proof time outside", sum(time_outside_env)) 
+			print("Current total calculated proof time", sum(time_outside_env) +  env.proof_time_calculated)
+			print("Time for select action in this proof", sum(time_for_select_action))
+			time_outside_env = []
+			time_for_select_action = []
 			total_curr_rewards = 0
 			true_vvals = []
 			for i in range(len(state_rewards) - 1, -1, -1) :
@@ -386,7 +415,7 @@ def NN_VLearning(T_max, gamma, args) :
 				wandb.log({"Proof times" : env.proof_time})
 
 
-		if memory.num_items > args.batch_size and T% args.update_every == 0:
+		if memory.num_items >= args.batch_size and T% args.update_every == 0:
 			for _ in range(args.nepochs) :
 				loss = train_step( agent_model ,optimizer, loss_object,memory,batch_size = args.batch_size, device = device)
 				if args.wandb_log :
@@ -399,7 +428,7 @@ def NN_VLearning(T_max, gamma, args) :
 		
 		if T%1000 == 0 :
 			torch.save(agent_model,"data/nn_mixval_agent.model")
-			with open("data/memory_2_mix_maxval.pkl","wb") as f:
+			with open("data/memory_mix_maxval.pkl","wb") as f:
 				pickle.dump(memory, f)
 		
 

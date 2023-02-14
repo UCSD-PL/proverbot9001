@@ -12,4 +12,4 @@
 module add opam
 module load opam
 
-python -u src/train_rl_mix_maxvval.py --prelude CompCert --proof_file CompCert/common/Globalenvs.v --use_fast_check --max_attempts 10 --wandb_log --max_proof_len 50
+python -u src/train_rl_memgraph_vval_coq2vec_obligation.py --prelude CompCert --proof_file CompCert/common/Globalenvs.v --use_fast_check --max_attempts 10 --max_proof_len 50 --update_every 1000 --batch_size 100 --wandb_log --resume

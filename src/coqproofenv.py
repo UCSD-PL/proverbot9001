@@ -274,8 +274,13 @@ class ProofEnv() :
 			return [goal_indexes, all_hyp_indexes]
 		elif self.state_type == "obligation_vector" :
 			return self.obligationvectorizer.obligation_to_vector(proof_state.fg_goals[0])
+		elif self.state_type == "proof_context" :
+			return proof_state
 		else :
 			raise ValueError("Invalid State type", self.state_type)
+
+	def get_index_from_sentence(self, sentence) :
+		return indexesFromSentence(self.language_model, sentence, ignore_missing = True)
 
 	def admit_and_skip_proof(self) :
 		self.in_agent_proof_mode= False
@@ -293,7 +298,7 @@ class ProofEnv() :
 		self.goto_next_proof()
 		done = True
 		next_state = self.get_state_vector( self.coq.proof_context)
-		r = 0#-1
+		r = -1 #0 Remember to change all negative rewards
 		self.in_agent_proof_mode= True
 		self.in_file_proof_mode = False
 		info = {}
@@ -316,22 +321,23 @@ class ProofEnv() :
 		# print(contextSurjective(context2, context1))
 		return contextSurjective(context1, context2) and contextSurjective(context2, context1)
 	
-	def is_tactics_repeating(self,context, cutoff = 4) :
-		tactics_used = context.prev_tactics
+	def is_tactics_repeating(self,tactics_used, cutoff = 4) :
 		if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
 			return True
 		return False
 	
 	def check_next_state(self,prediction) :
+		k = time.time()
 		info = {}
+		next_state = None
 		print("Checking next state for action -", prediction)
 		tactic_class,tactic_args = split_tactic(prediction.strip().rstrip("."))
 		if tactic_class.lower().strip() == "exploit" :
 			if self.info_on_check :
-				return [],info
+				return next_state,info
 			else :
-				return []
-		next_state = []
+				return next_state
+		
 		context_before = self.coq.proof_context
 		a= time.time()
 		try:
@@ -396,8 +402,12 @@ class ProofEnv() :
 				print("Context is fresh for this actions")
 			else :
 				print("Context is not fresh for this action")
-				next_state = []
+				next_state = None #[]
 			
+			if self.is_tactics_repeating(self.coq.proof_context.tactics_used) :
+				print("Repeating Tactics")
+				next_state = None
+
 			if num_brackets_run > 0 :
 				print("Cancelling", num_brackets_run, "Brackets")
 				for _ in range(num_brackets_run) :
@@ -424,6 +434,8 @@ class ProofEnv() :
 		# 		print(obligation.goal)
 		# 	assert self.is_same_context(context_before,context_after)
 
+		l  = time.time()
+		print("Time taken to check state inside the check state function", l - k)
 		if self.info_on_check :
 			return next_state,info
 		else :
@@ -445,7 +457,8 @@ class ProofEnv() :
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
 			print("One of known errors", e)
-			r = 0
+			raise ValueError("Shouldn't have had encountered this error inside step when already checked on tactic -", action)
+			r = -1 #Remember to change all negative rewards
 
 		except serapi_instance.CoqAnomaly:
 			print("Coq Anomaly")
@@ -651,6 +664,9 @@ class FastProofEnv() :
 	@property
 	def curr_proof_tactics(self) :
 		return self.main_engine.curr_proof_tactics
+	@property
+	def get_index_from_sentence(self) :
+		return self.main_engine.get_index_from_sentence
 
 	def create_pipes_and_children(self) :
 		self.server_end_pipes = []

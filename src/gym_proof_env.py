@@ -344,8 +344,13 @@ class ProofEnv(gym.Env):
 			else :
 				list_of_pred.append( prediction )
 				next_states.append(preprocess_state(state_vec))
-	return next_states, list_of_pred, next_state_texts
 	
+		return next_states, list_of_pred, next_state_texts
+
+
+
+
+
 	def is_context_fresh(self, curr_proof_context) :
 		# print(len(self.proof_contexts_in_path))
 		for context in self.proof_contexts_in_path :
@@ -415,6 +420,7 @@ class ProofEnv(gym.Env):
 				print("Context after running open brace :",self.coq.proof_context)
 				num_brackets_run += 1
 
+			
 			if completed_proof(self.coq) :
 				for _ in range(num_brackets_run) :
 					self.coq.cancel_last()
@@ -472,37 +478,40 @@ class ProofEnv(gym.Env):
 
 
 	def step(self, action=None):
-    """
-    Run one timestep of the environment's dynamics using the agent actions.
-        When the end of an episode is reached (``terminated or truncated``), it is necessary to call :meth:`reset` to
-        reset this environment's state for the next episode.
-        .. versionchanged:: 0.26
-            The Step API was changed removing ``done`` in favor of ``terminated`` and ``truncated`` to make it clearer
-            to users when the environment had terminated or truncated which is critical for reinforcement learning
-            bootstrapping algorithms.
-        Args:
-            action (ActType): an action provided by the agent to update the environment state.
-        Returns:
-            observation (ObsType): An element of the environment's :attr:`observation_space` as the next observation due to the agent actions.
-                An example is a numpy array containing the positions and velocities of the pole in CartPole.
-            reward (SupportsFloat): The reward as a result of taking the action.
-            terminated (bool): Whether the agent reaches the terminal state (as defined under the MDP of the task)
-                which can be positive or negative. An example is reaching the goal state or moving into the lava from
-                the Sutton and Barton, Gridworld. If true, the user needs to call :meth:`reset`.
-            truncated (bool): Whether the truncation condition outside the scope of the MDP is satisfied.
-                Typically, this is a timelimit, but could also be used to indicate an agent physically going out of bounds.
-                Can be used to end the episode prematurely before a terminal state is reached.
-                If true, the user needs to call :meth:`reset`.
-            info (dict): Contains auxiliary diagnostic information (helpful for debugging, learning, and logging).
-                This might, for instance, contain: metrics that describe the agent's performance state, variables that are
-                hidden from observations, or individual reward terms that are combined to produce the total reward.
-                In OpenAI Gym <v26, it contains "TimeLimit.truncated" to distinguish truncation and termination,
-                however this is deprecated in favour of returning terminated and truncated variables.
-            done (bool): (Deprecated) A boolean value for if the episode has ended, in which case further :meth:`step` calls will
-                return undefined results. This was removed in OpenAI Gym v26 in favor of terminated and truncated attributes.
-                A done signal may be emitted for different reasons: Maybe the task underlying the environment was solved successfully,
-                a certain timelimit was exceeded, or the physics simulation has entered an invalid state.
-    """
+		"""
+			Run one timestep of the environment's dynamics using the agent actions.
+				When the end of an episode is reached (``terminated or truncated``), it is necessary to call :meth:`reset` to
+				reset this environment's state for the next episode.
+				.. versionchanged:: 0.26
+					The Step API was changed removing ``done`` in favor of ``terminated`` and ``truncated`` to make it clearer
+					to users when the environment had terminated or truncated which is critical for reinforcement learning
+					bootstrapping algorithms.
+				Args:
+					action (ActType): an action provided by the agent to update the environment state.
+				Returns:
+					observation (ObsType): An element of the environment's :attr:`observation_space` as the next observation due to the agent actions.
+						An example is a numpy array containing the positions and velocities of the pole in CartPole.
+					reward (SupportsFloat): The reward as a result of taking the action.
+					terminated (bool): Whether the agent reaches the terminal state (as defined under the MDP of the task)
+						which can be positive or negative. An example is reaching the goal state or moving into the lava from
+						the Sutton and Barton, Gridworld. If true, the user needs to call :meth:`reset`.
+					truncated (bool): Whether the truncation condition outside the scope of the MDP is satisfied.
+						Typically, this is a timelimit, but could also be used to indicate an agent physically going out of bounds.
+						Can be used to end the episode prematurely before a terminal state is reached.
+						If true, the user needs to call :meth:`reset`.
+					info (dict): Contains auxiliary diagnostic information (helpful for debugging, learning, and logging).
+						This might, for instance, contain: metrics that describe the agent's performance state, variables that are
+						hidden from observations, or individual reward terms that are combined to produce the total reward.
+						In OpenAI Gym <v26, it contains "TimeLimit.truncated" to distinguish truncation and termination,
+						however this is deprecated in favour of returning terminated and truncated variables.
+					done (bool): (Deprecated) A boolean value for if the episode has ended, in which case further :meth:`step` calls will
+						return undefined results. This was removed in OpenAI Gym v26 in favor of terminated and truncated attributes.
+						A done signal may be emitted for different reasons: Maybe the task underlying the environment was solved successfully,
+						a certain timelimit was exceeded, or the physics simulation has entered an invalid state.
+		"""
+		if action == None:
+			s_next,episode_r, done, info = self.admit_and_skip_proof()
+			return s_next,episode_r, done, info
 		done = False
 		# prediction = self.get_pred(action)
 		prediction = action
@@ -518,8 +527,7 @@ class ProofEnv(gym.Env):
 				serapi_instance.UnrecognizedError) as e:
 			print("One of known errors", e)
 			r = 0
-			s_next,episode_r, done, info = self.admit_and_skip_proof()
-			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
+
 		except serapi_instance.CoqAnomaly:
 			print("Coq Anomaly")
 			self.kill()
@@ -628,7 +636,7 @@ class ProofEnv(gym.Env):
 			print("Time taken to run admit and skip proof", b-a)
 			return result
 		# next_state = self.get_state_vector( self.coq.proof_context )
-        next_state = self.coq.proof_context
+		next_state = self.coq.proof_context
 		
 		# if self.info_on_check :
 		# return next_state,info
@@ -644,9 +652,7 @@ class ProofEnv(gym.Env):
 		self.debug_time = []
 		self.goto_next_proof()
 		print("Proof context after reset and next file start: ", self.coq.proof_context)
-		# state = self.get_state_vector( self.coq.proof_context )
-		state = self.coq.proof_context
-
+		state = self.get_state_vector( self.coq.proof_context )
 		info = {}
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		print("Reset done")
@@ -823,14 +829,14 @@ def is_same_context(context1, context2) :
 		return contextSurjective(context1, context2) and contextSurjective(context2, context1)
 
 def is_context_fresh_utils( context_history, curr_proof_context) :
-	print(len(context_history))
-	for context in context_history :
-		if contextSurjective(curr_proof_context, context) :
-			print("False")
-			return False
-		else:
-			print("True")
-	return True
+		print(len(context_history))
+		for context in context_history :
+			if contextSurjective(curr_proof_context, context) :
+				print("False")
+				return False
+			else:
+				print("True")
+		return True
 
 def get_available_actions_with_next_state_vectors(self) :
 	relevant_lemmas = self.coq.local_lemmas[:-1]

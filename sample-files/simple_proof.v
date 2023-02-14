@@ -16,6 +16,7 @@ Qed.
 
 
 Lemma t : forall n: nat, (S n) > n.
+Proof.
   intros.
   induction n.
   { auto. }
