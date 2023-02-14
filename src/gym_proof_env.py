@@ -345,11 +345,7 @@ class ProofEnv(gym.Env):
 				list_of_pred.append( prediction )
 				next_states.append(preprocess_state(state_vec))
 	return next_states, list_of_pred, next_state_texts
-
-
-
-
-
+	
 	def is_context_fresh(self, curr_proof_context) :
 		# print(len(self.proof_contexts_in_path))
 		for context in self.proof_contexts_in_path :
@@ -419,7 +415,6 @@ class ProofEnv(gym.Env):
 				print("Context after running open brace :",self.coq.proof_context)
 				num_brackets_run += 1
 
-			
 			if completed_proof(self.coq) :
 				for _ in range(num_brackets_run) :
 					self.coq.cancel_last()
@@ -508,9 +503,6 @@ class ProofEnv(gym.Env):
                 A done signal may be emitted for different reasons: Maybe the task underlying the environment was solved successfully,
                 a certain timelimit was exceeded, or the physics simulation has entered an invalid state.
     """
-		if action == None:
-			s_next,episode_r, done, info = self.admit_and_skip_proof()
-			return s_next,episode_r, done, info
 		done = False
 		# prediction = self.get_pred(action)
 		prediction = action
@@ -526,7 +518,8 @@ class ProofEnv(gym.Env):
 				serapi_instance.UnrecognizedError) as e:
 			print("One of known errors", e)
 			r = 0
-
+			s_next,episode_r, done, info = self.admit_and_skip_proof()
+			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
 		except serapi_instance.CoqAnomaly:
 			print("Coq Anomaly")
 			self.kill()
@@ -651,7 +644,9 @@ class ProofEnv(gym.Env):
 		self.debug_time = []
 		self.goto_next_proof()
 		print("Proof context after reset and next file start: ", self.coq.proof_context)
-		state = self.get_state_vector( self.coq.proof_context )
+		# state = self.get_state_vector( self.coq.proof_context )
+		state = self.coq.proof_context
+
 		info = {}
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		print("Reset done")
@@ -828,14 +823,14 @@ def is_same_context(context1, context2) :
 		return contextSurjective(context1, context2) and contextSurjective(context2, context1)
 
 def is_context_fresh_utils( context_history, curr_proof_context) :
-		print(len(context_history))
-		for context in context_history :
-			if contextSurjective(curr_proof_context, context) :
-				print("False")
-				return False
-			else:
-				print("True")
-		return True
+	print(len(context_history))
+	for context in context_history :
+		if contextSurjective(curr_proof_context, context) :
+			print("False")
+			return False
+		else:
+			print("True")
+	return True
 
 def get_available_actions_with_next_state_vectors(self) :
 	relevant_lemmas = self.coq.local_lemmas[:-1]
