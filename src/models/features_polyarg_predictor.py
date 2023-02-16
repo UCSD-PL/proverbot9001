@@ -23,6 +23,7 @@ from tqdm import tqdm
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
+from torch import autograd
 from torch.nn.utils.rnn import pad_sequence
 
 from features import (WordFeature, VecFeature, Feature,
@@ -261,8 +262,13 @@ class FeaturesClassifier(nn.Module):
                 vec_features_batch: torch.FloatTensor) -> torch.FloatTensor:
         encoded_word_features = self._word_features_encoder(
             maybe_cuda(word_features_batch))
-        stem_distribution = self._softmax(self._features_classifier(
-            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1)))
+        assert not torch.any(torch.isnan(encoded_word_features))
+        assert not torch.any(torch.isnan(vec_features_batch))
+        scores = self._features_classifier(
+            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))
+        assert not torch.any(torch.isnan(scores))
+        stem_distribution = self._softmax(scores)
+        assert not torch.any(torch.isnan(stem_distribution))
         return stem_distribution
 
 
@@ -315,12 +321,13 @@ class FeaturesPolyargPredictor(
         arg_values = argparser.parse_args(args)
         torch.cuda.set_device(arg_values.gpu)
         util.cuda_device = f"cuda:{arg_values.gpu}"
-        save_states = self._optimize_model(arg_values)
+        with autograd.detect_anomaly():
+            save_states = self._optimize_model(arg_values)
 
-        for metadata, state in save_states:
-            with open(arg_values.save_file, 'wb') as f:
-                torch.save((self.shortname(),
-                            (arg_values, sys.argv, metadata, state)), f)
+            for metadata, state in save_states:
+                with open(arg_values.save_file, 'wb') as f:
+                    torch.save((self.shortname(),
+                                (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, contexts: List[TacticContext], k: int,
                               verbosity:int = 0) -> List[List[Prediction]]:
@@ -579,8 +586,10 @@ class FeaturesPolyargPredictor(
                       ) -> Tuple[torch.FloatTensor, torch.LongTensor]:
         assert len(word_features) == len(vec_features)
         batch_size = len(word_features)
+        assert not torch.any(torch.isnan(vec_features))
         stem_distribution = model.stem_classifier(
             word_features, vec_features)
+        assert not torch.any(torch.isnan(stem_distribution))
         stem_probs, stem_idxs = stem_distribution.topk(k)
         assert stem_probs.size() == torch.Size([batch_size, k])
         assert stem_idxs.size() == torch.Size([batch_size, k])
@@ -963,6 +972,8 @@ class FeaturesPolyargPredictor(
         total_arg_values = torch.cat((goal_arg_values, hyp_arg_values),
                                      dim=2)
         num_probs = hyp_lists_length + goal_size + 1
+        assert not torch.any(torch.isnan(predictedProbs))
+        assert not torch.any(torch.isnan(total_arg_values))
         total_arg_distribution = \
             self._softmax(total_arg_values.view(
                 batch_size, stem_width * num_probs) +
@@ -974,10 +985,13 @@ class FeaturesPolyargPredictor(
                                             (correctPredictionIdxs * num_probs))\
             .view(batch_size)
         loss = FloatTensor([0.])
+        assert not torch.any(torch.isnan(stemDistributions))
+        assert not torch.any(torch.isnan(total_arg_distribution))
         loss += self._criterion(stemDistributions, stem_var)
         loss += self._criterion(total_arg_distribution, total_arg_var)
         prediction_probs, arg_idxs = torch.max(total_arg_distribution,dim=1)
         accuracy = torch.sum(arg_idxs == total_arg_var) / batch_size
+        assert loss == loss
         return loss, accuracy
 
     def share_memory(self) -> None:

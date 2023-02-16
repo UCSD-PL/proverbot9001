@@ -53,10 +53,13 @@ StateType = TypeVar('StateType', bound=PredictorState)
 
 class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, StateType],
                          metaclass=ABCMeta):
-    def train(self, args : List[str]) -> None:
+    def parse_args(self, args: List[str]) -> argparse.Namespace:
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
-        arg_values = argparser.parse_args(args)
+        return argparser.parse_args(args)
+
+    def train(self, args : List[str]) -> None:
+        arg_values = self.parse_args(args)
         text_data = get_text_data(arg_values)
         encoded_data, encdec_state = self._encode_data(text_data, arg_values)
         del text_data
@@ -67,8 +70,8 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                            parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
         -> None:
-        parser.add_argument("scrape_file", type=Path2)
-        parser.add_argument("save_file", type=Path2)
+        parser.add_argument("scrape_file", type=str)
+        parser.add_argument("save_file", type=str)
         parser.add_argument("--save-all-epochs", action='store_true', dest='save_all_epochs')
         parser.add_argument("--num-threads", "-j", dest="num_threads", type=int,
                             default=default_values.get("num-threads", None))

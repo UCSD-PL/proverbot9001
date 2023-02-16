@@ -10,9 +10,9 @@ then
     ~/.local/ruby-build 3.1.2 ~/.local/
 fi
 
-git submodule update && git submodule init
+git submodule init && git submodule update
 
-# Sync opam state to local
+# Sync opam state to local. If you're not running on the swarm cluster at UMass Amherst, you can remove this line
 rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
 
 # Create the 8.10 switch
@@ -90,5 +90,5 @@ git clone git@github.com:uwplse/cheerios.git deps/cheerios
 (cd coq-projects/verdi && opam install -y --ignore-constraints-on=coq . )
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
 
-# Finally, sync the opam state back to global
+# Finally, sync the opam state back to global. If you're not running on the swarm cluster at UMass Amherst, you can remove this line.
 rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null

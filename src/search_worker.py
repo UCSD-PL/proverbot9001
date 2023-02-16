@@ -13,7 +13,7 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 
@@ -167,7 +167,7 @@ class Worker:
                             coq_serapy.kill_comments(
                                 command).strip()):
                     self.last_program_statement = command
-                    obligation_num = 0
+                    self.obligation_num = 0
             lemma_statement = run_commands[-1]
             if re.match(r"\s*Next\s+Obligation\s*\.\s*",
                         coq_serapy.kill_comments(
@@ -175,8 +175,8 @@ class Worker:
                 assert self.last_program_statement
                 unique_lemma_statement = \
                     self.last_program_statement + \
-                    f" Obligation {obligation_num}."
-                obligation_num += 1
+                    f" Obligation {self.obligation_num}."
+                self.obligation_num += 1
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
@@ -260,10 +260,12 @@ class Worker:
                                f"at this point in the proof")
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
+        context_lemmas = context_lemmas_from_args(self.args, self.coq)
         try:
-            search_status, tactic_solution = \
+            search_status, _, tactic_solution, steps_taken = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
+                             context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
                              self.widx, self.predictor)
@@ -284,21 +286,20 @@ class Worker:
             if restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
-            else:
-                if self.args.log_hard_anomalies:
-                    with self.args.log_hard_anomalies.open('a') as f:
-                        print(
-                            f"HARD ANOMALY at "
-                            f"{job_file}:{job_lemma}",
-                            file=f)
-                        traceback.print_exc(file=f)
+            if self.args.log_hard_anomalies:
+                with self.args.log_hard_anomalies.open('a') as f:
+                    print(
+                        f"HARD ANOMALY at "
+                        f"{job_file}:{job_lemma}",
+                        file=f)
+                    traceback.print_exc(file=f)
 
-                search_status = SearchStatus.CRASHED
-                solution: List[TacticInteraction] = []
-                eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
-                       "due to multiple failures",
-                       guard=self.args.verbose >= 1)
-                return SearchResult(search_status, solution)
+            search_status = SearchStatus.CRASHED
+            solution: List[TacticInteraction] = []
+            eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
+                   "due to multiple failures",
+                   guard=self.args.verbose >= 1)
+            return SearchResult(search_status, context_lemmas, solution, 0)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -319,25 +320,14 @@ class Worker:
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
-        return SearchResult(search_status, solution)
+        return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
     return coq.check_term(lemma_name).replace("\n", "")
 
-import _thread
-import threading
-
-# This method attempts to complete proofs using search.
-def attempt_search(args: argparse.Namespace,
-                   lemma_statement: str,
-                   module_name: Optional[str],
-                   coq: coq_serapy.SerapiInstance,
-                   output_dir: Path,
-                   bar_idx: int,
-                   predictor: TacticPredictor) \
-        -> SearchResult:
-    global unnamed_goal_number
+def context_lemmas_from_args(args: argparse.Namespace,
+                             coq: coq_serapy.SerapiInstance) -> List[str]:
     if args.add_env_lemmas:
         with args.add_env_lemmas.open('r') as f:
             env_lemmas = [get_lemma_declaration_from_name(coq,
@@ -352,7 +342,23 @@ def attempt_search(args: argparse.Namespace,
     elif args.relevant_lemmas == "searchabout":
         relevant_lemmas = coq.get_lemmas_about_head()
     else:
-        assert False, args.relevant_lemmas
+        assert False, f"Unrecognized relevant lemmas option {args.relevant_lemmas}"
+    return env_lemmas + relevant_lemmas
+
+import _thread
+import threading
+
+# This method attempts to complete proofs using search.
+def attempt_search(args: argparse.Namespace,
+                   lemma_statement: str,
+                   module_name: Optional[str],
+                   context_lemmas: List[str],
+                   coq: coq_serapy.SerapiInstance,
+                   output_dir: Path,
+                   bar_idx: int,
+                   predictor: TacticPredictor) \
+        -> SearchResult:
+    global unnamed_goal_number
     if module_name:
         module_prefix = escape_lemma_name(module_name)
     else:
@@ -369,17 +375,22 @@ def attempt_search(args: argparse.Namespace,
     try:
         if args.search_type == 'dfs':
             result = dfs_proof_search_with_graph(lemma_name, module_prefix,
-                                                 env_lemmas + relevant_lemmas,
+                                                 context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor)
+        elif args.search_type == 'dfs-est':
+            result = dfs_estimated(lemma_name, module_prefix,
+                                   context_lemmas,
+                                   coq, output_dir,
+                                   args, bar_idx, predictor)
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
-                                           env_lemmas + relevant_lemmas, coq,
+                                           context_lemmas, coq,
                                            output_dir,
                                            args, bar_idx, predictor)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
-                                             env_lemmas + relevant_lemmas, coq,
+                                             context_lemmas, coq,
                                              output_dir,
                                              args, bar_idx, predictor)
         else:

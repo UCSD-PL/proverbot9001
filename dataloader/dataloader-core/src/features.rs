@@ -35,7 +35,7 @@ use gestalt_ratio::gestalt_ratio;
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
 pub fn context_features(
-    args: &DataloaderArgs,
+    _args: &DataloaderArgs,
     tmap: &TokenMap,
     data: &Vec<ScrapedTactic>,
 ) -> (LongTensor2D, FloatTensor2D) {
@@ -88,7 +88,7 @@ pub fn context_features(
 }
 
 pub fn sample_context_features_rs(
-    args: &DataloaderArgs,
+    _args: &DataloaderArgs,
     tmap: &TokenMap,
     _relevant_lemmas: &Vec<String>,
     prev_tactics: &Vec<String>,

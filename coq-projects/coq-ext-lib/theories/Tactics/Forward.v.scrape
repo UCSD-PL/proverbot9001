@@ -1,2 +1,0 @@
-Ltac forward_reason :=\n  repeat match goal with\n           | H : exists x, _ |- _ =>\n             destruct H\n           | H : _ /\ _ |- _ => destruct H\n           | H' : ?X , H : ?X -> ?Y |- _ =>\n             match type of X with\n               | Prop => specialize (H H')\n             end\n           | H : ?X -> ?Y |- _ =>\n             match type of X with\n               | Prop =>\n                 let H' := fresh in\n                 assert (H' : X) by eauto ;\n               specialize (H H') ;\n               clear H'\n             end\n         end.
------

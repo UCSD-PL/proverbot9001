@@ -20,25 +20,20 @@
 #
 ##########################################################################
 
-import fcntl
-import time
 import argparse
 import json
 import sys
 import multiprocessing
-import re
 from os import environ
-from typing import List, Optional
+from typing import List
 
 from pathlib import Path
 import torch
 
 from search_file import (add_args_to_parser, get_predictor, Worker, project_dicts_from_args)
-import coq_serapy
-from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 import util
-from util import eprint, unwrap, FileLock
+from util import eprint, FileLock
 
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
@@ -94,6 +89,8 @@ def run_worker(args: argparse.Namespace, workerid: int) -> None:
     if any(["switch" in item for item in project_dicts]):
         switch_dict = {item["project_name"]: item["switch"]
                         for item in project_dicts}
+    else:
+        switch_dict = None
 
     with Worker(args, workerid, predictor, switch_dict) as worker:
         while True:

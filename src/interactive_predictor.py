@@ -21,7 +21,8 @@
 ##########################################################################
 
 import argparse
-from pathlib_revised import Path2
+import sys
+from pathlib import Path
 from typing import List
 
 from predict_tactic import loadPredictorByFile
@@ -49,7 +50,7 @@ def input_list() -> List[str]:
 def predict(args: List[str]) -> None:
     parser = argparse.ArgumentParser(
         description="Proverbot9001 interactive prediction model")
-    parser.add_argument("weightsfile", default=None, type=Path2)
+    parser.add_argument("weightsfile", default=None, type=Path)
     parser.add_argument("-k", "--num-predictions", default=5)
     parser.add_argument("--print-certainties", action='store_true')
     arg_values = parser.parse_args(args[:1])
@@ -92,3 +93,6 @@ def predict(args: List[str]) -> None:
                 print(prediction.prediction)
 
     pass
+
+if __name__ == "__main__":
+    predict(sys.argv[1:])

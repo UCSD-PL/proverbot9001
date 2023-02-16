@@ -47,7 +47,7 @@ pub fn filter_data_by_key<A: Send>(
         .collect()
 }
 
-pub fn filter_data(
+pub fn _filter_data(
     max_term_length: usize,
     filter_spec: &str,
     data: Vec<ScrapedTactic>,

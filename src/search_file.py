@@ -76,7 +76,7 @@ def main(arg_list: List[str]) -> None:
         parser.print_help()
         sys.exit(1)
 
-    
+
     search_file_multithreaded(args)
 
 
@@ -110,7 +110,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-width", type=int, default=5)
     parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument("--search-depth", type=int, default=6)
-    parser.add_argument("--astar-steps", type=int, default=1024)
+    parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--beam-width", type=int, default=16)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=100)
@@ -148,7 +148,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs', 'astar', 'best-first'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty"], default="certainty")
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
@@ -161,8 +161,12 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--add-env-lemmas", type=Path, default=None)
     parser.add_argument("--add-axioms", type=Path, default=None)
     parser.add_argument("--max-search-time-per-lemma", default=None, type=float)
+    parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
+    parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
+    parser.add_argument("--features-json", action='store_true')
+    parser.add_argument("--search-prefix", type=str, default=None)
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -206,7 +210,7 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
-    
+
     predictor = get_predictor(args)
 
     # util.use_cuda = False
@@ -255,7 +259,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                         except json.decoder.JSONDecodeError:
                             print(f"On line {idx} in file {proofs_file}")
                             raise
-                        assert job_file == filename, f"Job found in file {filename} " \
+                        assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
                             f"doesn't match it's filename {filename}. {job_file}"
                         loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
                         if loaded_job in [job for job, sol in file_jobs]:
@@ -395,20 +399,28 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
             for worker in workers:
                 worker.join()
-        write_time(args)
+    write_time(args)
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:
+        with open(args.output_dir / "args.json", 'w') as f:
+            json.dump({k: f"\"{v}\"" if isinstance(v, (Path, str))
+                       else str(v) for k, v in vars(args).items()}, f)
         predictor = get_predictor(args)
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
 
+def format_arg_value(v: Any) -> str:
+    if isinstance(v, (Path, str)):
+        return f"\"{v}\""
+    if isinstance(v, list):
+        return "[" + ",".join([format_arg_value(item) for item in v]) + "]"
+    return str(v)
 def write_time(args: argparse.Namespace) -> None:
     global start_time
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
-
 def exit_early(args: argparse.Namespace, *rest) -> None:
     write_time(args)
     sys.exit()

@@ -618,10 +618,12 @@ def main() -> None:
         for k, v in args_dict.items():
             if k in ["output_dir", "prelude"]:
                 setattr(args, k, Path(eval(v)))
+            elif k == "filenames":
+                setattr(args, k, [Path(f) for f in eval(v)])
             else:
                 setattr(args, k, eval(v))
 
-    predictor = get_predictor(arg_parser, args)
+    predictor = get_predictor(args)
     project_dicts = project_dicts_from_args(args)
     with open(top_args.report_dir / "time_so_far.txt", 'r') as f:
         time_taken = util.read_time_taken(f.read())
