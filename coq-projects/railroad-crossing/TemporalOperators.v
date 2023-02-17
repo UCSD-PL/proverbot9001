@@ -21,6 +21,8 @@ Unset Strict Implicit.
 
 Require Import Streams.
 Require Import time_clocks. (* Temporal notions for discrete time *)
+Require Import Coq.Logic.Classical_Prop.
+Require Import Coq.Logic.Classical_Pred_Type.
 
 (****************************************************************************)
 (* Hypothesis: type Label with label Tick                                   *)
