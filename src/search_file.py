@@ -239,7 +239,7 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with Worker(args, worker_idx, predictor) as worker:
+    with Worker(args, worker_idx, predictor, switch_dict) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
