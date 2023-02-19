@@ -179,6 +179,7 @@ class SearchGraph:
             node_handle.attr["style"] = "filled"
 
     def draw(self, filename: str) -> None:
+        Path(filename).parent.mkdir(parents=True, exist_ok=True)
         with nostderr():
             self.__graph.draw(filename, prog="dot")
 
