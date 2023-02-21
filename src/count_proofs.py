@@ -24,7 +24,7 @@ import multiprocessing
 import functools
 import itertools
 
-import coq_serapy as serapi_instance
+import coq_serapy
 from coq_serapy.contexts import (ScrapedCommand, ScrapedTactic,
                                  strip_scraped_output, TacticContext)
 from context_filter import get_context_filter
@@ -51,11 +51,11 @@ def main() -> None:
                             args.filenames)
         for (matches, num_proofs), filename in zip(results, args.filenames):
             if args.print_stmt:
-                for match in matches:
-                    print(match)
+                for (prefix, stmt) in matches:
+                    print(stmt)
             elif args.print_name:
-                for match in matches:
-                    print(serapi_instance.lemma_name_from_statement(match))
+                for (prefix, stmt) in matches:
+                    print(prefix + coq_serapy.lemma_name_from_statement(stmt))
             else:
                 print(f"{filename}: "
                       f"{len(matches)}/{num_proofs} "
@@ -99,11 +99,12 @@ def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
 
 
 def count_proofs(args: argparse.Namespace, filename: str) \
-  -> Tuple[List[str], int]:
+  -> Tuple[List[Tuple[str, str]], int]:
     eprint(f"Counting {filename}", guard=args.debug)
     scrapefile = args.prelude + "/" + filename + ".scrape"
     interactions = list(read_all_text_data_singlethreaded(Path(scrapefile)))
     filter_func = get_context_filter(args.context_filter)
+    sm_stack = coq_serapy.initial_sm_stack(filename)
 
     matches = []
     total_count = 0
@@ -118,6 +119,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
         else:
             context_before = TacticContext([], [], [], "")
             command = inter
+            sm_stack = coq_serapy.update_sm_stack(sm_stack, command)
 
         if next_inter and isinstance(next_inter, ScrapedTactic):
             context_after = strip_scraped_output(next_inter)
@@ -142,7 +144,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
                     cur_proof_counts = True
             else:
                 if args.all and cur_proof_counts:
-                    cur_lemma_name = serapi_instance.lemma_name_from_statement(
+                    cur_lemma_name = coq_serapy.lemma_name_from_statement(
                         cur_lemma_stmt)
                     if cur_proof_counts:
                         eprint(f"Eliminating proof {cur_lemma_name} "
@@ -152,7 +154,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
                         cur_proof_counts = False
 
         if exiting_proof:
-            cur_lemma_name = serapi_instance.lemma_name_from_statement(
+            cur_lemma_name = coq_serapy.lemma_name_from_statement(
                 cur_lemma_stmt)
             if not cur_lemma_name:
                 cur_lemma_stmt = ""
@@ -160,7 +162,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
             if cur_proof_counts:
                 eprint(f"Proof of {cur_lemma_name} counts",
                        guard=args.debug)
-                matches.append(cur_lemma_stmt)
+                matches.append((coq_serapy.sm_prefix_from_stack(sm_stack), cur_lemma_stmt))
             total_count += 1
             cur_lemma_stmt = ""
 
