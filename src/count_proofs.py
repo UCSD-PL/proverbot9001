@@ -31,7 +31,7 @@ from context_filter import get_context_filter
 from util import eprint, stringified_percent
 from data import (read_all_text_data, read_all_text_data_worker__,
                   MixedDataset, file_chunks)
-from pathlib_revised import Path2
+from pathlib import Path
 
 from typing import List, Optional, Tuple, cast
 
@@ -102,7 +102,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
   -> Tuple[List[str], int]:
     eprint(f"Counting {filename}", guard=args.debug)
     scrapefile = args.prelude + "/" + filename + ".scrape"
-    interactions = list(read_all_text_data_singlethreaded(Path2(scrapefile)))
+    interactions = list(read_all_text_data_singlethreaded(Path(scrapefile)))
     filter_func = get_context_filter(args.context_filter)
 
     matches = []
@@ -167,7 +167,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
     return matches, total_count
 
 
-def read_all_text_data_singlethreaded(data_path: Path2,
+def read_all_text_data_singlethreaded(data_path: Path,
                                       num_threads: Optional[int] = None) \
                                     -> MixedDataset:
     line_chunks = file_chunks(data_path, 32768)
