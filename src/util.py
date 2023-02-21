@@ -197,16 +197,20 @@ class DummyFile:
 
 @contextlib.contextmanager
 def nostdout():
-    save_stdout = sys.stdout
-    sys.stdout = DummyFile()
-    yield
-    sys.stdout = save_stdout
+    try:
+        save_stdout = sys.stdout
+        sys.stdout = DummyFile()
+        yield
+    finally:
+        sys.stdout = save_stdout
 @contextlib.contextmanager
 def nostderr():
-    save_stderr = sys.stderr
-    sys.stderr = DummyFile()
-    yield
-    sys.stderr = save_stderr
+    try:
+        save_stderr = sys.stderr
+        sys.stderr = DummyFile()
+        yield
+    finally:
+        sys.stderr = save_stderr
 
 @contextlib.contextmanager
 def silent():
