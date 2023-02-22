@@ -66,11 +66,14 @@ def main():
     parser.add_argument("--linearizer-timeout", type=int,
                         default=(60 * 60))
     parser.add_argument("-s", "--switch", default=None, type=str)
+    parser.add_argument("--sertop-flags", default=None, type=str)
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
     # Set up the command which runs sertop.
     coqargs = ["sertop", "--implicit"]
+    if args.sertop_flags:
+        coqargs += args.sertop_flags.split()
     tasks = [(idx % args.threads, filename) for (idx, filename)
              in enumerate(args.inputs)]
     with multiprocessing.Pool(args.threads) as pool:
