@@ -28,6 +28,7 @@ import contextlib
 import shutil
 import json
 import re
+import os.path
 
 import linearize_semicolons
 import coq_serapy as serapi_instance
@@ -97,6 +98,16 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
     sys.setrecursionlimit(4500)
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
+
+    components = filename.split("/")
+    prelude = args.prelude
+    for component_idx in reversed(range(len(components) - 1)):
+        possible_project_path = os.path.join(*([args.prelude] +
+                                               components[:component_idx+1]))
+        if os.path.exists(os.path.join(possible_project_path, "_CoqProject")):
+             prelude = possible_project_path
+             break
+
     result_file = full_filename + ".scrape"
     temp_file = full_filename + ".scrape.partial"
     if args.cont:
@@ -116,7 +127,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
         with serapi_instance.SerapiContext(
                 coqargs,
                 serapi_instance.get_module_from_filename(filename),
-                args.prelude, args.relevant_lemmas == "hammer") as coq:
+                prelude, args.relevant_lemmas == "hammer") as coq:
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:
