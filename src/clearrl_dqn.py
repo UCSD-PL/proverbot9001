@@ -18,6 +18,7 @@ from search_file import loadPredictorByFile
 from pathlib_revised import Path2
 import coq2vec
 from coq_serapy.contexts import truncate_tactic_context, FullContext, ProofContext, Obligation
+from gym import spaces
 
 def parse_args():
     # fmt: off
@@ -175,7 +176,7 @@ if __name__ == "__main__":
 
     rb = ReplayBuffer(
         args.buffer_size,
-        envs.single_observation_space,
+        spaces.space(1565, dtype=np.float32), #envs.single_observation_space,
         envs.single_action_space,
         device,
         handle_timeout_termination=True,
