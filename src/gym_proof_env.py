@@ -15,7 +15,7 @@ import coq_serapy as serapi_instance
 from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic, contextSurjective, summarizeContext
 from coq_serapy import ending_proof, possibly_starting_proof
 from coq_serapy.contexts import truncate_tactic_context, FullContext
-from search_file import loadPredictorByFile
+from search_file import loadPredictorByFile,loadPredictorByName
 from search_strategies import completed_proof
 from train_encoder import EncoderRNN, DecoderRNN, Lang, indexesFromSentence, tensorFromSentence, EOS_token
 from tokenizer import get_symbols, get_words,tokenizers
@@ -31,14 +31,14 @@ import itertools
 import io
 import coq2vec
 import gymnasium as gym
-
+from gymnasium.spaces import Box
 # 1. Currently do not support 'vectorization' of environments 
 # 3. Observations need to be encoded to push into memory and train networks
 # 4. 
 class ProofEnv(gym.Env):
 	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True, 
-				state_type = "index", info_on_check = False,
-				weightsfile=None):
+				state_type = "index", info_on_check = True,
+				max_attempts=1):
 		self.action_space = None
 		self.observation_space = None
 		self.prelude= prelude
@@ -53,7 +53,6 @@ class ProofEnv(gym.Env):
 		# self.state_type = state_type #text, index, vector
 		self.write_solved_proofs = write_solved_proofs
 		self.info_on_check = info_on_check
-		self.weightsfile = weightsfile
 		self.max_attempts = max_attempts
 		
 		# TODO: see if we can put predictor in the envionment?
@@ -61,9 +60,10 @@ class ProofEnv(gym.Env):
 		# TODO: REMOVE this 
 		# if state_type == "vector" :
 		# 	self.load_state_model()
-		self.load_language_model()
+		# self.load_language_model()
 		self.max_proof_len = max_proof_len
-		self.test_file =  "output/output_test_file.txt"
+		self.action_space = Box(low=0,high=1,dtype=np.int8)
+		self.test_file =  "output/output_test_file.txt" #TODO change this back
 		with open(self.test_file,"w") as f :
 			f.write("")
 		self.proof_lines_file = "output/output_proof_lines.txt"
@@ -72,6 +72,7 @@ class ProofEnv(gym.Env):
 		self.context_file =  "output/output_context_file.txt"
 		with open(self.context_file,"w") as f :
 			f.write("")
+
 		
 		# if "vector" in state_type :		
 		# 	self.termvectorizer = coq2vec.CoqTermRNNVectorizer()
@@ -83,7 +84,6 @@ class ProofEnv(gym.Env):
 		self.num_proofs = 0
 		# self.restrictions = defaultdict(lambda: [])
 		self.load_list_tactic_classes()
-
 	def test_file_write(self, write_str) :
 		if self.write_solved_proofs :
 			with open(self.test_file,"a") as f :
@@ -239,9 +239,9 @@ class ProofEnv(gym.Env):
 		# self.state_model =  torch.load("data/encoder_symbols.model", map_location=torch.device(self.device))
 
 
-	def load_language_model(self) :
-		with open("data/encoder_language_symbols.pkl","rb") as f:
-			self.language_model = pickle.load(f)
+	# def load_language_model(self) :
+	# 	with open("../data/encoder_language_symbols.pkl","rb") as f:
+	# 		self.language_model = pickle.load(f)
 
 	# def get_state_vector(self,proof_state) :
 	# 	state_text = proof_state.fg_goals[0].goal.strip()
@@ -288,38 +288,39 @@ class ProofEnv(gym.Env):
 		self.in_file_proof_mode = True
 		self.goto_next_proof()
 		done = True
-		next_state = self.get_state_vector( self.coq.proof_context)
+		next_state = self.coq.proof_context
 		r = 0#-1
 		self.in_agent_proof_mode= True
 		self.in_file_proof_mode = False
 		info = {}
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+		info["next_state"] = next_state
 		return next_state, r, done, info
 
 
 
-	def get_available_actions_with_next_state_vectors(self) :
-		# print(len( env.coq.proof_context.fg_goals),  env.coq.proof_context.fg_goals)
-		# print(completed_proof(env.coq))
-		relevant_lemmas = self.coq.local_lemmas[:-1]
-		print(self.coq.proof_context)
-		full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
-		predictions = self.predictor.predictKTactics(
-			truncate_tactic_context(full_context_before.as_tcontext(),
-									self.max_term_length), self.max_attempts)
-		next_states = []
-		list_of_pred = []
-		next_state_texts = []
-		print("Available actions", [_.prediction for _ in predictions])
-		for prediction_idx, prediction in enumerate(predictions):
-			curr_pred = prediction.prediction.strip()
-			state_vec = self.check_next_state(curr_pred)
-			if len(state_vec) == 0 :
-				continue
-			else :
-				list_of_pred.append( prediction )
-				next_states.append(preprocess_state(state_vec))
-	return next_states, list_of_pred, next_state_texts
+	# def get_available_actions_with_next_state_vectors(self) :
+	# 	# print(len( env.coq.proof_context.fg_goals),  env.coq.proof_context.fg_goals)
+	# 	# print(completed_proof(env.coq))
+	# 	relevant_lemmas = self.coq.local_lemmas[:-1]
+	# 	print(self.coq.proof_context)
+	# 	full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
+	# 	predictions = self.predictor.predictKTactics(
+	# 		truncate_tactic_context(full_context_before.as_tcontext(),
+	# 								self.max_term_length), self.max_attempts)
+	# 	next_states = []
+	# 	list_of_pred = []
+	# 	next_state_texts = []
+	# 	print("Available actions", [_.prediction for _ in predictions])
+	# 	for prediction_idx, prediction in enumerate(predictions):
+	# 		curr_pred = prediction.prediction.strip()
+	# 		state_vec = self.check_next_state(curr_pred)
+	# 		if len(state_vec) == 0 :
+	# 			continue
+	# 		else :
+	# 			list_of_pred.append( prediction )
+	# 			next_states.append(preprocess_state(state_vec))
+	# 	return next_states, list_of_pred, next_state_texts
 	
 	def is_context_fresh(self, curr_proof_context) :
 		# print(len(self.proof_contexts_in_path))
@@ -363,11 +364,11 @@ class ProofEnv(gym.Env):
 			print("One of known errors", e)
 		except serapi_instance.CoqAnomaly:
 			print("Coq Anomaly")
-			self.kill()
+			# self.kill()
 			quit()
 		except :
 			print("Some error")
-			self.kill()
+			# self.kill()
 			quit()
 		else :
 			b = time.time()
@@ -407,7 +408,7 @@ class ProofEnv(gym.Env):
 
 			if self.is_context_fresh(self.coq.proof_context) :
 				next_state_name =  self.coq.proof_context.fg_goals[0].goal
-				next_state = self.get_state_vector(self.coq.proof_context)
+				next_state =self.coq.proof_context
 				info["state_text"] = next_state_name.strip()
 				print("Context is fresh for this actions")
 			else :
@@ -447,165 +448,164 @@ class ProofEnv(gym.Env):
 
 
 	def step(self, action=None):
-    """
-    Run one timestep of the environment's dynamics using the agent actions.
-        When the end of an episode is reached (``terminated or truncated``), it is necessary to call :meth:`reset` to
-        reset this environment's state for the next episode.
-        .. versionchanged:: 0.26
-            The Step API was changed removing ``done`` in favor of ``terminated`` and ``truncated`` to make it clearer
-            to users when the environment had terminated or truncated which is critical for reinforcement learning
-            bootstrapping algorithms.
-        Args:
-            action (ActType): an action provided by the agent to update the environment state.
-        Returns:
-            observation (ObsType): An element of the environment's :attr:`observation_space` as the next observation due to the agent actions.
-                An example is a numpy array containing the positions and velocities of the pole in CartPole.
-            reward (SupportsFloat): The reward as a result of taking the action.
-            terminated (bool): Whether the agent reaches the terminal state (as defined under the MDP of the task)
-                which can be positive or negative. An example is reaching the goal state or moving into the lava from
-                the Sutton and Barton, Gridworld. If true, the user needs to call :meth:`reset`.
-            truncated (bool): Whether the truncation condition outside the scope of the MDP is satisfied.
-                Typically, this is a timelimit, but could also be used to indicate an agent physically going out of bounds.
-                Can be used to end the episode prematurely before a terminal state is reached.
-                If true, the user needs to call :meth:`reset`.
-            info (dict): Contains auxiliary diagnostic information (helpful for debugging, learning, and logging).
-                This might, for instance, contain: metrics that describe the agent's performance state, variables that are
-                hidden from observations, or individual reward terms that are combined to produce the total reward.
-                In OpenAI Gym <v26, it contains "TimeLimit.truncated" to distinguish truncation and termination,
-                however this is deprecated in favour of returning terminated and truncated variables.
-            done (bool): (Deprecated) A boolean value for if the episode has ended, in which case further :meth:`step` calls will
-                return undefined results. This was removed in OpenAI Gym v26 in favor of terminated and truncated attributes.
-                A done signal may be emitted for different reasons: Maybe the task underlying the environment was solved successfully,
-                a certain timelimit was exceeded, or the physics simulation has entered an invalid state.
-    """
-	done = False
-	# prediction = self.get_pred(action)
-	prediction = action
-	info = {}
-	eprint("Taking step -", action)
-	a= time.time()
-	try:
-		self.coq.run_stmt(prediction, timeout= self.time_per_command)
-	except (serapi_instance.TimeoutError, serapi_instance.ParseError,
-			serapi_instance.CoqExn, serapi_instance.OverflowError,
-			serapi_instance.ParseError,
-			RecursionError,
-			serapi_instance.UnrecognizedError) as e:
-		print("One of known errors", e)
-		r = 0
-		s_next,episode_r, done, info = self.admit_and_skip_proof()
-		return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
-	except serapi_instance.CoqAnomaly:
-		print("Coq Anomaly")
-		self.kill()
-		quit()
-	except :
-		print("Some error")
-		self.kill()
-		quit()
-	else :
-		b = time.time()
-		self.debug_time.append(b-a)
-		print("Time for running the above command", b-a)
-		r = 0 #No rewards for progress
-		self.curr_proof_tactics.append(prediction)
-		a = time.time()
-		while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
-			if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
-				print("Running Unshelve.")
-				self.coq.run_stmt("Unshelve.", timeout= self.time_per_command)
-				continue
-			print("Running }")
-			self.coq.run_stmt("}", timeout= self.time_per_command)
-			self.curr_proof_tactics.append("}")
-		b = time.time()
-		self.debug_time.append(b-a)
-		print("Time for the first while loop", b-a)
-
-		a = time.time()
-		if len(self.coq.proof_context.fg_goals) > 1 :
-			print(self.coq.proof_context.fg_goals,self.coq.proof_context.bg_goals)
-			print("Running {")
-			self.coq.run_stmt( "{", timeout= self.time_per_command)
-			self.curr_proof_tactics.append("{")
-		b = time.time()
-		self.debug_time.append(b-a)
-		print("Time taken for opening brackets", b-a)
-
+		"""
+		Run one timestep of the environment's dynamics using the agent actions.
+			When the end of an episode is reached (``terminated or truncated``), it is necessary to call :meth:`reset` to
+			reset this environment's state for the next episode.
+			.. versionchanged:: 0.26
+				The Step API was changed removing ``done`` in favor of ``terminated`` and ``truncated`` to make it clearer
+				to users when the environment had terminated or truncated which is critical for reinforcement learning
+				bootstrapping algorithms.
+			Args:
+				action (ActType): an action provided by the agent to update the environment state.
+			Returns:
+				observation (ObsType): An element of the environment's :attr:`observation_space` as the next observation due to the agent actions.
+					An example is a numpy array containing the positions and velocities of the pole in CartPole.
+				reward (SupportsFloat): The reward as a result of taking the action.
+				terminated (bool): Whether the agent reaches the terminal state (as defined under the MDP of the task)
+					which can be positive or negative. An example is reaching the goal state or moving into the lava from
+					the Sutton and Barton, Gridworld. If true, the user needs to call :meth:`reset`.
+				truncated (bool): Whether the truncation condition outside the scope of the MDP is satisfied.
+					Typically, this is a timelimit, but could also be used to indicate an agent physically going out of bounds.
+					Can be used to end the episode prematurely before a terminal state is reached.
+					If true, the user needs to call :meth:`reset`.
+				info (dict): Contains auxiliary diagnostic information (helpful for debugging, learning, and logging).
+					This might, for instance, contain: metrics that describe the agent's performance state, variables that are
+					hidden from observations, or individual reward terms that are combined to produce the total reward.
+					In OpenAI Gym <v26, it contains "TimeLimit.truncated" to distinguish truncation and termination,
+					however this is deprecated in favour of returning terminated and truncated variables.
+				done (bool): (Deprecated) A boolean value for if the episode has ended, in which case further :meth:`step` calls will
+					return undefined results. This was removed in OpenAI Gym v26 in favor of terminated and truncated attributes.
+					A done signal may be emitted for different reasons: Maybe the task underlying the environment was solved successfully,
+					a certain timelimit was exceeded, or the physics simulation has entered an invalid state.
+		"""
+		done = False
+		# prediction = self.get_pred(action)
+		prediction = action
+		info = {}
+		eprint("Taking step -", action)
 		a= time.time()
-		if completed_proof(self.coq) :
-			if self.wandb_log :
-				wandb.log({"Num command Attempts" : self.num_commands  })
+		try:
+			self.coq.run_stmt(prediction, timeout= self.time_per_command)
+		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
+				serapi_instance.CoqExn, serapi_instance.OverflowError,
+				serapi_instance.ParseError,
+				RecursionError,
+				serapi_instance.UnrecognizedError) as e:
+			print("One of known errors", e)
+			r = 0
+			s_next,episode_r, done, info = self.admit_and_skip_proof()
+			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
+		except serapi_instance.CoqAnomaly:
+			print("Coq Anomaly")
+			# self.kill()
+			quit()
+		except :
+			print("Some error")
+			# self.kill()
+			quit()
+		else :
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time for running the above command", b-a)
+			r = 0 #No rewards for progress
+			self.curr_proof_tactics.append(prediction)
+			a = time.time()
+			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
+				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
+					print("Running Unshelve.")
+					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command)
+					continue
+				print("Running }")
+				self.coq.run_stmt("}", timeout= self.time_per_command)
+				self.curr_proof_tactics.append("}")
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time for the first while loop", b-a)
+
+			a = time.time()
+			if len(self.coq.proof_context.fg_goals) > 1 :
+				print(self.coq.proof_context.fg_goals,self.coq.proof_context.bg_goals)
+				print("Running {")
+				self.coq.run_stmt( "{", timeout= self.time_per_command)
+				self.curr_proof_tactics.append("{")
+			b = time.time()
+			self.debug_time.append(b-a)
+			print("Time taken for opening brackets", b-a)
+
+			a= time.time()
+			if completed_proof(self.coq) :
+				if self.wandb_log :
+					wandb.log({"Num command Attempts" : self.num_commands  })
+				b = time.time()
+				self.debug_time.append(b-a)
+				print("Time taken to check completed proof", b - a)
+				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
+				self.curr_proof_tactics.append("Qed.")
+				r = 1
+				print("Current proof fin with Good rewards")
+				self.test_file_write("\n".join(self.curr_proof_tactics) )
+				self.prooflines_file_write("\n".join(self.curr_proof_tactics))
+				self.num_proofs_solved += 1
+				self.in_agent_proof_mode= False
+				self.in_file_proof_mode = False
+				a = time.time()
+				self.navigate_file_end_of_current_proof()
+				b = time.time()
+				self.debug_time.append(b-a)
+				print("Time taken to naviagate file to the end of current proof", b -a)
+				self.in_agent_proof_mode= False
+				self.in_file_proof_mode = True
+				a = time.time()
+				self.goto_next_proof()
+				b = time.time()
+				self.debug_time.append(b-a)
+				print("Time taken to run goto_next_proof function", b-a)
+				done = True
+				next_state = self.coq.proof_context
+				info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+				return next_state, r, done, info
 			b = time.time()
 			self.debug_time.append(b-a)
 			print("Time taken to check completed proof", b - a)
-			self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
-			self.curr_proof_tactics.append("Qed.")
-			r = 1
-			print("Current proof fin with Good rewards")
-			self.test_file_write("\n".join(self.curr_proof_tactics) )
-			self.prooflines_file_write("\n".join(self.curr_proof_tactics))
-			self.num_proofs_solved += 1
-			self.in_agent_proof_mode= False
-			self.in_file_proof_mode = False
+
+			if self.coq.proof_context == None :
+				print("No context")
+				quit()
+			
+			self.num_commands += 1
 			a = time.time()
-			self.navigate_file_end_of_current_proof()
+			assert self.is_context_fresh(self.coq.proof_context)
 			b = time.time()
 			self.debug_time.append(b-a)
-			print("Time taken to naviagate file to the end of current proof", b -a)
-			self.in_agent_proof_mode= False
-			self.in_file_proof_mode = True
+			print("Time taken to check if context fresh", b - a)
+			self.proof_contexts_in_path.append(self.coq.proof_context)
+
+
+		if self.num_commands > self.max_proof_len :
 			a = time.time()
-			self.goto_next_proof()
+			result = self.admit_and_skip_proof()
 			b = time.time()
 			self.debug_time.append(b-a)
-			print("Time taken to run goto_next_proof function", b-a)
-			done = True
-			next_state = self.get_state_vector( self.coq.proof_context )
-			info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
-			return next_state, r, done, info
-		b = time.time()
-		self.debug_time.append(b-a)
-		print("Time taken to check completed proof", b - a)
+			print("Time taken to run admit and skip proof", b-a)
+			return result
+		next_state = self.coq.proof_context
+		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+		return next_state, r, done, info  #next_obs, rewards, dones, infos
 
-		if self.coq.proof_context == None :
-			print("No context")
-			quit()
-		
-		self.num_commands += 1
-		a = time.time()
-		assert self.is_context_fresh(self.coq.proof_context)
-		b = time.time()
-		self.debug_time.append(b-a)
-		print("Time taken to check if context fresh", b - a)
-		self.proof_contexts_in_path.append(self.coq.proof_context)
-
-
-	if self.num_commands > self.max_proof_len :
-		a = time.time()
-		result = self.admit_and_skip_proof()
-		b = time.time()
-		self.debug_time.append(b-a)
-		print("Time taken to run admit and skip proof", b-a)
-		return result
-	next_state = self.coq.proof_context
-	info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
-	return next_state, r, done, info  #next_obs, rewards, dones, infos
-
-
-def reset(self):
-	self.reset_to_start_of_file()
-	self.start_proof_time = 0
-	self.debug_time = []
-	self.goto_next_proof()
-	print("Proof context after reset and next file start: ", self.coq.proof_context)
-	# state = self.get_state_vector( self.coq.proof_context )
-	state = self.coq.proof_context
-
-	info = {}
-	info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
-	print("Reset done")
-	return (state,info)
+	def reset(self):
+		self.reset_to_start_of_file()
+		self.start_proof_time = 0
+		self.debug_time = []
+		self.goto_next_proof()
+		print("Proof context after reset and next file start: ", self.coq.proof_context)
+		# state = self.get_state_vector( self.coq.proof_context )
+		state = self.coq.proof_context
+		info = {}
+		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+		info["next_states"] = state
+		print("Reset done")
+		return (state,info)
 
 def child_process(pid, critical, pipe) :
 	import sys
@@ -649,8 +649,9 @@ def child_process(pid, critical, pipe) :
 
 class FastProofEnv(gym.Env):
 	def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector", 
-					max_proof_len = 30, num_check_engines = 5, info_on_check = False):
+					max_proof_len = 30, num_check_engines = 5, info_on_check = True,weightsfile=None,max_term_length=256):
 		self.proof_file = proof_file
+		print(proof_file)
 		self.prelude = prelude
 		self.wandb = wandb
 		self.time_per_command = time_per_command
@@ -658,10 +659,13 @@ class FastProofEnv(gym.Env):
 		self.num_check_engines = num_check_engines
 		self.info_on_check = info_on_check
 		self.max_proof_len = max_proof_len
-		self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type, info_on_check = False)
-		self.language_model = self.main_engine.language_model
-		self.predictor = self.main_engine.predictor
+		self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type, info_on_check=info_on_check,)
+		# self.language_model = self.main_engine.language_model
+		print("weightsfile: ",weightsfile)
+		self.predictor = loadPredictorByFile(weightsfile)
 		self.create_pipes_and_children()
+		self.action_space =  self.main_engine.action_space
+		self.max_term_length = max_term_length
 
 	@property
 	def coq(self):
@@ -700,7 +704,10 @@ class FastProofEnv(gym.Env):
 		print("Exploratory Environments successfully running")		
 		return
 		
-
+	def set_action_space(self,action_space):
+		self.action_space = action_space
+	def set_observation_space(self,observation_space):
+		self.observation_space = observation_space
 	def admit_and_skip_proof(self):
 		print("Admitting and Skipping the current proof on all Test engines")
 		for pipe in self.server_end_pipes :
@@ -711,19 +718,24 @@ class FastProofEnv(gym.Env):
 		return self.main_engine.admit_and_skip_proof()
 
 	def reset(self) :
-		results = self.main_engine.reset()
+		state,info = self.main_engine.reset()
 		print("Reseting all Test Engines")
 		for pipe in self.server_end_pipes :
 			pipe.send(["reset",None])
 		for pipe in self.server_end_pipes :
 			print(pipe.recv())
 		print("All Test Engines Reset")
+		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
 		# quit()
-		return results
+		info['reachable_states'] = next_states
+		info['list_of_pred'] = list_of_pred
+		info['reachable_states_text'] = next_state_texts
+		return state,info
 
 	def step(self, action) :
 		print("Stepping on all Test Engines")
 		for pipe in self.server_end_pipes :
+			print(action)
 			pipe.send(["step",action])
 		for pipe in self.server_end_pipes :
 			pipe.recv()
@@ -773,6 +785,35 @@ class FastProofEnv(gym.Env):
 		print("Keepalive")
 		# quit()
 		return ""
+	def get_available_actions_with_next_state_vectors(self) :
+		relevant_lemmas = self.coq.local_lemmas[:-1]
+		print(self.coq.proof_context)
+		full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
+		predictions = self.predictor.predictKTactics(
+			truncate_tactic_context(full_context_before.as_tcontext(),
+									self.max_term_length), self.num_check_engines)
+		next_states = []
+		list_of_pred = []
+		next_state_texts = []
+		print("Available actions", [_.prediction for _ in predictions])
+		all_available_pred =  [_.prediction.lstrip().rstrip() for _ in predictions]
+		result = self.check_next_states(all_available_pred)
+		# print(result)
+		# quit()
+		all_next_states, all_next_infos = result
+		print(all_next_states)
+		print(all_next_infos)
+		for next_state_ind in range(len(all_next_states)) :
+			curr_next_state = all_next_states[next_state_ind]
+			if len(curr_next_state) == 0 or repeating_actions(predictions[next_state_ind], self.coq.prev_tactics):
+				continue
+			else :
+				curr_next_state_text = all_next_infos[next_state_ind]["state_text"] 
+				next_states.append(curr_next_state)
+				list_of_pred.append(predictions[next_state_ind] )
+				next_state_texts.append(curr_next_state_text)
+		return next_states, list_of_pred, next_state_texts
+
 
 def is_same_context(context1, context2) :
 	return contextSurjective(context1, context2) and contextSurjective(context2, context1)
@@ -787,32 +828,9 @@ def is_context_fresh_utils( context_history, curr_proof_context) :
 			print("True")
 	return True
 
-def get_available_actions_with_next_state_vectors(self) :
-	relevant_lemmas = self.coq.local_lemmas[:-1]
-	print(self.coq.proof_context)
-	full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
-	predictions = self.predictor.predictKTactics(
-		truncate_tactic_context(full_context_before.as_tcontext(),
-								self.max_term_length), self.num_check_engines)
-	next_states = []
-	list_of_pred = []
-	next_state_texts = []
-	print("Available actions", [_.prediction for _ in predictions])
-	all_available_pred =  [_.prediction.lstrip().rstrip() for _ in predictions]
-	result = self.check_next_states(all_available_pred)
-	# print(result)
-	# quit()
-	all_next_states, all_next_infos = result
-	print(all_next_states)
-	print(all_next_infos)
-	for next_state_ind in range(len(all_next_states)) :
-		curr_next_state = all_next_states[next_state_ind]
-		if len(curr_next_state) == 0 or repeating_actions(predictions[next_state_ind], tactics_used):
-			continue
-		else :
-			curr_next_state_text = all_next_infos[next_state_ind]["state_text"] 
-			next_states.append(preprocess_state(curr_next_state))
-			list_of_pred.append(predictions[next_state_ind] )
-			next_state_texts.append(curr_next_state_text)
-	return next_states, list_of_pred, next_state_texts
-
+def repeating_actions(action, tactics_used, cutoff = 6) :
+	if len(tactics_used) < cutoff :
+		return False
+	if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
+		return True
+	return False
