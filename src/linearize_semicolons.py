@@ -656,9 +656,9 @@ def main():
                 arg_values, 0, original_commands,
                 coqargs, arg_values.prelude,
                 local_filename, filename, False)
-            serapi_instance.save_lin(fresh_commands, local_filename)
+            save_lin(fresh_commands, local_filename)
         except CoqAnomaly:
-            serapi_instance.save_lin(original_commands, local_filename)
+            save_lin(original_commands, local_filename)
 
 
 if __name__ == "__main__":
