@@ -337,10 +337,6 @@ def context_lemmas_from_args(args: argparse.Namespace,
         env_lemmas = []
     if args.relevant_lemmas == "local":
         relevant_lemmas = coq.local_lemmas[:-1]
-    elif args.relevant_lemmas == "hammer":
-        relevant_lemmas = coq.get_hammer_premises()
-    elif args.relevant_lemmas == "searchabout":
-        relevant_lemmas = coq.get_lemmas_about_head()
     else:
         assert False, f"Unrecognized relevant lemmas option {args.relevant_lemmas}"
     return env_lemmas + relevant_lemmas
