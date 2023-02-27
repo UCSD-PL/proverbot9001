@@ -87,7 +87,9 @@ git clone git@github.com:DistributedComponents/InfSeqExt.git deps/InfSeqExt
 # Cheerios has its own issues
 git clone git@github.com:uwplse/cheerios.git deps/cheerios
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
-(cd coq-projects/verdi && opam install -y --ignore-constraints-on=coq . )
+git clone git@github.com:uwplse/verdi.git deps/verdi
+git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
+(cd deps/verdi && opam install -y --ignore-constraints-on=coq . )
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
 
 # Finally, sync the opam state back to global. If you're not running on the swarm cluster at UMass Amherst, you can remove this line.
