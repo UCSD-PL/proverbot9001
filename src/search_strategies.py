@@ -625,10 +625,12 @@ class BFSNode:
                    self.path())
 
     def path(self) -> List['BFSNode']:
-        if self.previous is None:
-            return [self]
-        else:
-            return self.previous.path() + [self]
+        curNode = self
+        curPath = [self]
+        while curNode.previous is not None:
+            curNode = curNode.previous
+            curPath.append(curNode)
+        return list(reversed(curPath))
 
     def traverse_to(self, coq: coq_serapy.SerapiInstance, initial_history_len: int) -> None:
         # Get both the current and target histories
