@@ -93,6 +93,8 @@ git clone git@github.com:DistributedComponents/InfSeqExt.git deps/InfSeqExt
 (cd deps/InfSeqExt && opam install -y . )
 # Cheerios has its own issues
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
+git clone git@github.com:uwplse/verdi.git deps/verdi
+git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
 (cd deps/verdi && opam install -y --ignore-constraints-on=coq . )
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
 
