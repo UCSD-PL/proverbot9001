@@ -18,7 +18,6 @@ export PATH=$HOME/.local/bin:$PATH
 
 TARGETS=${@:-$(jq -r '.[].project_name' coqgym_projs_splits.json)}
 
-git submodule init && git submodule update
 for project in $TARGETS; do
     SWITCH=$(jq -r ".[] | select(.project_name == \"$project\") | .switch" coqgym_projs_splits.json)
     if $(jq -e ".[] | select(.project_name == \"$project\") | has(\"prelude\")" \
