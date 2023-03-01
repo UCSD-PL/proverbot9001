@@ -649,7 +649,7 @@ def child_process(pid, critical, pipe) :
 
 class FastProofEnv(gym.Env):
 	def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector", 
-					max_proof_len = 30, num_check_engines = 5, info_on_check = True,weightsfile=None,max_term_length=256):
+					max_proof_len = 30, num_check_engines = 5, info_on_check = True, weightsfile="data/polyarg-weights.dat",max_term_length=256):
 		self.proof_file = proof_file
 		print(proof_file)
 		self.prelude = prelude
@@ -662,7 +662,7 @@ class FastProofEnv(gym.Env):
 		self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type, info_on_check=info_on_check,)
 		# self.language_model = self.main_engine.language_model
 		print("weightsfile: ",weightsfile)
-		self.predictor = loadPredictorByFile(weightsfile)
+		self.predictor = loadPredictorByFile(Path2(weightsfile))
 		self.create_pipes_and_children()
 		self.action_space =  self.main_engine.action_space
 		self.max_term_length = max_term_length
