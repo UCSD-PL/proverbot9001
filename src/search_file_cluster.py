@@ -134,6 +134,8 @@ def main(arg_list: List[str]) -> None:
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
                             "-p", project_dict['project_name']]
+            print("command")
+            print(command)
             subprocess.run(command)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):

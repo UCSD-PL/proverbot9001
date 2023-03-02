@@ -28,7 +28,7 @@ use crate::scraped_data::*;
 
 use crate::context_filter_ast::ContextFilterAST;
 
-use crate::tokenizer::{get_words, remove_paths_from_goal};
+use crate::tokenizer::get_words;
 use lalrpop_util::lalrpop_mod;
 
 lalrpop_mod!(context_filter_parser);
@@ -81,7 +81,7 @@ pub fn apply_filter(
         ContextFilterAST::None => false,
         ContextFilterAST::All => true,
         ContextFilterAST::GoalArgs => {
-            let updated_goal = &remove_paths_from_goal(scraped.context.focused_goal());
+            let updated_goal = &scraped.context.focused_goal();
             let goal_symbols: Vec<&str> = get_words(updated_goal)
                 .into_iter()
                 .take(max_term_length)

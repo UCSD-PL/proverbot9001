@@ -358,13 +358,12 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                           coq.prev_tactics,
                                           unwrap(coq.proof_context))
 
-
         truncated_tactic_context = truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length)
 
         PATH_SEP = "|-path-|"
         worddict = {}
         keywords = ["_", "Axiom", "CoFixpoint", "Definition", "Fixpoint", "Hypothesis", "Parameter", "Prop", "SProp", "Set", "Theorem", "Type", "Variable", "as", "at", "cofix", "else", "end", "fix", "for", "forall", "fun", "if", "in", "let", "match", "return", "then", "where", "with", "by", "exists", "exists2", "using",]
-
+        original_goal = " ".join(tokenizer.get_symbols(truncated_tactic_context.goal)) 
         new_goal = ""
         for word in tokenizer.get_symbols(truncated_tactic_context.goal):
             if word not in keywords and word[0].isalpha():
@@ -401,7 +400,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
             else: # was a keyword or a symbol
                 new_goal = (new_goal + word + PATH_SEP + " ")
             """
-        new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, new_goal)
+        new_goal = new_goal.strip()
+        new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, original_goal, new_goal)
         #new_tactic_context = TacticContext(truncated_tactic_context.relevant_lemmas, truncated_tactic_context.prev_tactics, truncated_tactic_context.hypotheses, truncated_tactic_context.goal)
 
         predictions = predictor.predictKTactics(new_tactic_context, args.max_attempts)

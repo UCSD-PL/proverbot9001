@@ -59,6 +59,8 @@ class Tokenizer:
     use_unknowns: bool
     num_reserved_tokens: int
     unknown_token: int
+    paths_unknown_one: int
+    paths_unknown_two: int
     token_dict: Dict[str, int]
     paths_dict: Dict[str, int]
 

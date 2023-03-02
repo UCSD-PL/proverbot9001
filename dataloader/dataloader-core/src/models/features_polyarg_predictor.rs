@@ -17,7 +17,7 @@ use crate::features::*;
 use crate::paren_util::split_to_next_matching_paren_or_space;
 use crate::scraped_data::*;
 use crate::tokenizer::{
-    get_words, remove_paths_from_goal, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
+    get_words, normalize_sentence_length, OpenIndexer, PickleableIndexer, PickleableTokenizer,
     Token, Tokenizer,
 };
 use gestalt_ratio::gestalt_ratio;
@@ -214,14 +214,14 @@ pub fn features_polyarg_tensors_rs(
         .map(|(scraped, selected)| {
             score_hyps(
                 &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
-                &remove_paths_from_goal(&scraped.context.focused_goal()),
+                &scraped.context.focused_goal(),
             )
             .iter()
             .zip(selected)
             .map(|(score, hyp)| {
                 vec![
                     *score,
-                    equality_hyp_feature(hyp, &remove_paths_from_goal(&scraped.context.focused_goal())),
+                    equality_hyp_feature(hyp, &scraped.context.focused_goal()),
                 ]
             })
             .collect()
@@ -234,7 +234,7 @@ pub fn features_polyarg_tensors_rs(
         .par_iter()
         .map(|tac| {
             normalize_sentence_length(
-                tokenizer.tokenize(&remove_paths_from_goal(tac.context.focused_goal())),
+                tokenizer.tokenize(&tac.context.focused_goal()),
                 args.max_length,
                 0,
             )
@@ -246,7 +246,7 @@ pub fn features_polyarg_tensors_rs(
         .par_iter()
         .map(|tac| {
             normalize_sentence_length(
-                tokenizer.pathstokenize(&tac.context.focused_goal()).1,
+                tokenizer.pathstokenize(&tac.context.focused_goal_with_paths()),
                 args.max_length,
                 0,
             )
@@ -256,7 +256,7 @@ pub fn features_polyarg_tensors_rs(
         .collect();
     let goal_symbols_mask = raw_data
         .par_iter()
-        .map(|scraped| get_goal_mask(&remove_paths_from_goal(scraped.context.focused_goal()), args.max_length))
+        .map(|scraped| get_goal_mask(&scraped.context.focused_goal(), args.max_length))
         .progress_with(ProgressBar::new(length).with_message("Getting goal masks")
                                                .with_style(my_bar_style)
                                                .with_finish(ProgressFinish::AndLeave))
@@ -296,7 +296,7 @@ fn get_goal_mask(goal: &str, max_length: usize) -> Vec<bool> {
         static ref STARTS_WITH_LETTER: Regex =
             Regex::new(r"^\w.*").expect("Couldn't compile regex");
     }
-    let updated_goal = &remove_paths_from_goal(goal);
+    let updated_goal = goal;
     let words = get_words(updated_goal);
     let mut mask_vec: Vec<_> = words
         .into_iter()
@@ -326,8 +326,8 @@ pub fn get_premise_features_rs(
     _metadata: PickleableFPAMetadata,
     goal: String,
     premise: String) -> FloatTensor1D {
-    let score = gestalt_ratio(&remove_paths_from_goal(&goal), get_hyp_type(&premise));
-    let eq_feat = equality_hyp_feature(&premise, &remove_paths_from_goal(&goal));
+    let score = gestalt_ratio(&goal, get_hyp_type(&premise));
+    let eq_feat = equality_hyp_feature(&premise, &goal);
     vec![score, eq_feat]
 }
 pub fn get_premise_features_size_rs(
@@ -360,7 +360,7 @@ pub fn sample_fpa_batch_rs(
                 &ctxt.relevant_lemmas,
                 &ctxt.prev_tactics,
                 &ctxt.obligation.hypotheses,
-                &remove_paths_from_goal(&ctxt.obligation.goal), 
+                &ctxt.obligation.goal, 
             )
         })
         .unzip();
@@ -380,7 +380,7 @@ pub fn sample_fpa_batch_rs(
     let premise_scores_batch: Vec<Vec<f64>> = premises_batch
         .par_iter()
         .zip(context_batch.par_iter())
-        .map(|(premises, context)| score_hyps(premises, &remove_paths_from_goal(&context.obligation.goal)))
+        .map(|(premises, context)| score_hyps(premises, &context.obligation.goal))
         .collect();
 
     let premise_features_batch = premises_batch
@@ -392,17 +392,16 @@ pub fn sample_fpa_batch_rs(
                 .iter()
                 .zip(scores.iter())
                 .map(|(premise, score)| {
-                    vec![*score, equality_hyp_feature(premise, &remove_paths_from_goal(&ctxt.obligation.goal))]
+                    vec![*score, equality_hyp_feature(premise, &ctxt.obligation.goal)]
                 })
                 .collect()
         })
         .collect();
-
     let tgoals_batch = context_batch
         .par_iter()
         .map(|ctxt| {
             normalize_sentence_length(
-                tokenizer.tokenize(&remove_paths_from_goal(&ctxt.obligation.goal)),
+                tokenizer.tokenize(&ctxt.obligation.goal),
                 args.max_length,
                 0,
             )
@@ -412,7 +411,7 @@ pub fn sample_fpa_batch_rs(
         .par_iter()
         .map(|ctxt| {
             normalize_sentence_length(
-                tokenizer.pathstokenize(&ctxt.obligation.goal).1,
+                tokenizer.pathstokenize(&ctxt.obligation.goal_with_paths),
                 args.max_length,
                 0,
             )
@@ -420,7 +419,7 @@ pub fn sample_fpa_batch_rs(
         .collect();
     let goal_symbols_mask = context_batch
         .par_iter()
-        .map(|ctxt| get_goal_mask(&remove_paths_from_goal(&ctxt.obligation.goal), args.max_length))
+        .map(|ctxt| get_goal_mask(&ctxt.obligation.goal, args.max_length))
         .collect();
     let tprems_batch: Vec<Vec<Vec<i64>>> = premises_batch
         .into_iter()
@@ -462,6 +461,7 @@ pub fn sample_fpa_rs(
     prev_tactics: Vec<String>,
     hypotheses: Vec<String>,
     goal: String,
+    goal_with_paths: String,
 ) -> (
     LongUnpaddedTensor3D,
     FloatUnpaddedTensor3D,
@@ -479,23 +479,23 @@ pub fn sample_fpa_rs(
         &relevant_lemmas,
         &prev_tactics,
         &hypotheses,
-        &remove_paths_from_goal(&goal),
+        &goal,
     );
     let all_premises: Vec<String> = hypotheses
         .into_iter()
         .chain(relevant_lemmas.into_iter())
         .collect();
-    let premise_scores = score_hyps(&all_premises, &remove_paths_from_goal(&goal));
+    let premise_scores = score_hyps(&all_premises, &goal);
     let premise_features = all_premises
         .iter()
         .zip(premise_scores.iter())
-        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &remove_paths_from_goal(&goal))])
+        .map(|(premise, score)| vec![*score, equality_hyp_feature(premise, &goal)])
         .collect();
-    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&remove_paths_from_goal(&goal)), args.max_length, 0);
-    let pretokenized_path = tokenizer.pathstokenize(&goal).1;
-    let tokenized_path = normalize_sentence_length(pretokenized_path, args.max_length, 0);
+    let tokenized_goal = normalize_sentence_length(tokenizer.tokenize(&goal), args.max_length, 0);
+    let pre_normalized_path = tokenizer.pathstokenize(&goal_with_paths);
+    let tokenized_path = normalize_sentence_length(pre_normalized_path, args.max_length, 0);
 
-    let goal_symbols_mask = get_goal_mask(&remove_paths_from_goal(&goal), args.max_length);
+    let goal_symbols_mask = get_goal_mask(&goal, args.max_length);
 
     let tokenized_premises: Vec<Vec<i64>> = all_premises
         .into_iter()
@@ -529,7 +529,7 @@ pub fn decode_fpa_result_rs(
     arg_idx: i64,
 ) -> String {
     let stem = decode_fpa_stem_rs(&args, metadata, tac_idx);
-    let arg = decode_fpa_arg_rs(&args, premises, &remove_paths_from_goal(goal), arg_idx);
+    let arg = decode_fpa_arg_rs(&args, premises, &goal, arg_idx);
     if arg == "" {
         format!("{}.", stem)
     } else {
@@ -573,7 +573,7 @@ pub fn decode_fpa_arg_rs(
         TacticArgument::Unrecognized => "".to_string(),
         TacticArgument::GoalToken(tidx) => {
             // assert!(tidx < get_words(goal).len(), format!("{}, {:?}, {}", goal, get_words(goal), tidx));
-            let updated_goal = &remove_paths_from_goal(goal);
+            let updated_goal = &goal;
             if tidx >= get_words(updated_goal).len() {
                 "<INVALID>".to_string()
             } else {
@@ -601,7 +601,7 @@ fn equality_hyp_feature(hyp: &str, goal: &str) -> f64 {
         static ref EQ: Regex = Regex::new(r"^\s*eq\s+(.*)").expect("Can't build eq regex");
     }
     let normalized_hyp_type = get_hyp_type(hyp).replace("\n", " ");
-    let normalized_goal = &remove_paths_from_goal(goal).replace("n", " ");
+    let normalized_goal = &goal.replace("n", " ");
     let equals_match = EQ.captures(&normalized_hyp_type);
     if let Some(captures) = equals_match {
         let normalized_string = captures
@@ -641,7 +641,7 @@ pub fn encode_fpa_arg_unbounded(
         Err(format!("A multi argument tactic made it past the context filter! arg is {}",
                     arg))
     } else {
-        let updated_goal = &remove_paths_from_goal(goal);
+        let updated_goal = &goal;
         let goal_symbols = get_words(updated_goal);
         let arg_token = argstr_tokens[0];
         match goal_symbols
@@ -717,7 +717,7 @@ fn get_argument<'a>(
         );
         (TacticArgument::Unrecognized, rand_bounded_hyps!())
     } else {
-        let updated_goal = &remove_paths_from_goal(scraped.context.focused_goal());
+        let updated_goal = &scraped.context.focused_goal();
         let goal_symbols = get_words(updated_goal);
         let arg_token = argstr_tokens[0];
         match goal_symbols

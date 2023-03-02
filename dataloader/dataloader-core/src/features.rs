@@ -32,7 +32,6 @@ use rayon::prelude::*;
 
 use gestalt_ratio::gestalt_ratio;
 
-use crate::tokenizer::remove_paths_from_goal;
 
 pub const VEC_FEATURES_SIZE: i64 = 1;
 
@@ -48,7 +47,7 @@ pub fn context_features(
         .map(|scraped| {
             best_scored_hyp(
                 &scraped.context.focused_hyps(),
-                &remove_paths_from_goal(&scraped.context.focused_goal())
+                &&scraped.context.focused_goal()
             )
         })
         .progress_with(ProgressBar::new(length).with_message("Finding best scoring hypotheses and their scores")
@@ -62,7 +61,7 @@ pub fn context_features(
         .map(|(scraped, best_hyp): (&ScrapedTactic, &str)| {
             vec![
                 prev_tactic_feature(tmap, &scraped.prev_tactics),
-                goal_head_feature(tmap, &remove_paths_from_goal(scraped.context.focused_goal())),
+                goal_head_feature(tmap, &scraped.context.focused_goal()),
                 hyp_head_feature(tmap, best_hyp),
             ]
         })
@@ -99,11 +98,11 @@ pub fn sample_context_features_rs(
 ) -> (LongTensor1D, FloatTensor1D) {
     let (best_hyp, best_score) = best_scored_hyp(
         &hypotheses,
-        &remove_paths_from_goal(goal),
+        &goal,
     );
     let word_features = vec![
         prev_tactic_feature(tmap, &prev_tactics),
-        goal_head_feature(tmap, &remove_paths_from_goal(goal)),
+        goal_head_feature(tmap, &goal),
         hyp_head_feature(tmap, best_hyp),
     ];
     let vec_features = vec![
@@ -197,7 +196,7 @@ impl TokenMap {
                 .into_iter()
                 .flat_map(
                     |scraped| 
-                    remove_paths_from_goal(scraped.context.focused_goal()).split_whitespace().next().map(|v| v.to_owned())
+                    scraped.context.focused_goal().split_whitespace().next().map(|v| v.to_owned())
                 )
                 .map(|s| s.to_string()),
             count,
@@ -349,8 +348,8 @@ pub fn score_hyps<'a>(
     hyps: &Vec<String>,
     goal: &String,
 ) -> Vec<f64> {
-    let truncated_goal: String = remove_paths_from_goal(goal).chars().take(128).collect();
-    let updated_goal = &remove_paths_from_goal(goal);
+    let truncated_goal: String = goal.chars().take(128).collect();
+    let updated_goal = &goal;
     hyps.into_iter()
         .map(|hyp| {
             gestalt_ratio(updated_goal, &get_hyp_type(hyp).chars().take(128).collect::<String>())
@@ -365,7 +364,7 @@ fn best_scored_hyp<'a>(
     let mut best_hyp = "";
     let mut best_score = 1.0;
     for hyp in hyps.iter() {
-        let score = gestalt_ratio(&remove_paths_from_goal(goal), get_hyp_type(hyp));
+        let score = gestalt_ratio(&goal, get_hyp_type(hyp));
         if score < best_score {
             best_score = score;
             best_hyp = &hyp;

@@ -151,6 +151,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         prev_tactics: Vec<String>,
         hypotheses: Vec<String>,
         goal: String,
+        goal_with_paths: String, 
     ) -> (
         LongUnpaddedTensor3D,
         FloatUnpaddedTensor3D,
@@ -168,6 +169,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
             prev_tactics,
             hypotheses,
             goal,
+            goal_with_paths,
         )
     }
     #[pyfn(m)]

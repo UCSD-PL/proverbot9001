@@ -171,31 +171,15 @@ impl Tokenizer {
             })
             .collect()
     }
-    pub fn pathstokenize(&self, sentence: &str) -> (Vec<Token>, Vec<Path>) {
-        let pathswordsplit = sentence.split_terminator(' ');
+    pub fn pathstokenize(&self, sentence_with_paths: &str) -> Vec<Path> {
+        let pathswordsplit = sentence_with_paths.split_terminator(' ');
         let paths_words = pathswordsplit.collect::<Vec<&str>>();
-        let goalswordstogether = remove_paths_from_goal(sentence);
-        let goalswordsplit = goalswordstogether.split_terminator(' ');
-        let goals_words = goalswordsplit.collect::<Vec<&str>>();
         
-        let mut rang = rand::thread_rng();
-        let rng: u8 = rang.gen();
-        //println!("new thing {}", rng);
-        //io::stdout().flush().unwrap();
-
-        let goalstokens: Vec<Token> = goals_words
-            .into_iter()
-            .flat_map(|word| match self.token_dict.get(word) {
-                None => {
-                    if self.use_unknowns {
-                        Some(self.unknown_token)
-                    } else {
-                        None
-                    }
-                }
-                Some(tok) => Some(*tok),
-            })
-            .collect();
+        //let mut rang = rand::thread_rng();
+        //let rng: u8 = rang.gen();
+        //println!("new the goals {}, {:?}", rng, sentence);
+        //println!("new the paths {}, {:?}", rng, sentence_with_paths);
+        io::stdout().flush().unwrap();
 
         let path_lookup_closure = |word: &str| -> Option<Path> {
             let word_split = word.trim().split("|-path-|").collect::<Vec<&str>>();
@@ -220,8 +204,7 @@ impl Tokenizer {
         //println!("tokens {} {:?}", rng, pathstokens);
         //io::stdout().flush().unwrap();
 
-        assert_eq!(goalstokens.len(), pathstokens.len());
-        (goalstokens, pathstokens)
+        pathstokens
      }
 
     pub fn to_pickleable(self) -> PickleableTokenizer {

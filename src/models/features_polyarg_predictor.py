@@ -369,7 +369,8 @@ class FeaturesPolyargPredictor(
                        context.relevant_lemmas,
                        context.prev_tactics,
                        context.hypotheses,
-                       context.goal)
+                       context.goal,
+                       context.goal_with_paths)
 
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features))
@@ -516,7 +517,8 @@ class FeaturesPolyargPredictor(
                        context.relevant_lemmas,
                        context.prev_tactics,
                        context.hypotheses,
-                       context.goal)
+                       context.goal,
+                       context.goal_with_paths)
 
         prediction_stem, prediction_args = \
             serapi_instance.split_tactic(prediction)

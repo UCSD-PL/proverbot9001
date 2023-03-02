@@ -68,6 +68,7 @@ impl ScrapedTactic {
         }
     }
     pub fn with_focused_obl(&self, fg_obl: Obligation) -> Self {
+    let fg_obl_clone = fg_obl.clone();
 	let mut fg_goals = vec![fg_obl];
 	fg_goals.extend(self.context.fg_goals.iter().skip(1).cloned());
 	ScrapedTactic {
@@ -117,13 +118,22 @@ pub struct Obligation {
     pub hypotheses: Vec<String>,
     #[pyo3(get, set)]
     pub goal: String,
+    #[pyo3(get, set)]
+    #[serde(default = "default_goal_with_paths")]
+    pub goal_with_paths: String,
+}
+
+fn default_goal_with_paths() -> String {
+    "".to_string()
 }
 
 #[pymethods]
 impl Obligation {
     #[new]
     fn new(hypotheses: Vec<String>, goal: String) -> Self {
-        Obligation { hypotheses, goal }
+        let goal_with_paths = goal.clone();
+        let goal = remove_paths_from_goal(&goal);
+        Obligation { hypotheses, goal, goal_with_paths}
     }
 }
 
@@ -156,6 +166,15 @@ impl ProofContext {
         }
         match self.fg_goals.first() {
             Some(obl) => &obl.goal,
+            None => &EMPTY_STR,
+        }
+    }
+    pub fn focused_goal_with_paths(&self) -> &String {
+        lazy_static! {
+            static ref EMPTY_STR: String = "".to_string();
+        }
+        match self.fg_goals.first() {
+            Some(obl) => &obl.goal_with_paths,
             None => &EMPTY_STR,
         }
     }
@@ -241,8 +260,18 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
                 command: serde_json::from_str(&actual_line).expect("Couldn't parse string"),
             })
         } else {
-            ScrapedData::Tactic(serde_json::from_str(&actual_line)
-                                .expect(&format!("Couldn't parse line {}", actual_line)))
+            let mut pre_tactic: ScrapedTactic = serde_json::from_str(&actual_line).expect(&format!("Couldn't parse line {}", actual_line)); 
+            let mut temp_fg_goals: Vec<Obligation> = Vec::new();
+            for fg in pre_tactic.context.fg_goals{
+                let mut temp_goal = fg.clone();
+                let int_goal_with_paths = fg.clone().goal;
+                let int_goal = remove_paths_from_goal(&fg.goal);
+                temp_goal.goal = int_goal;
+                temp_goal.goal_with_paths = int_goal_with_paths;
+                temp_fg_goals.push(temp_goal);
+            }
+            pre_tactic.context.fg_goals = temp_fg_goals;
+            ScrapedData::Tactic(pre_tactic)//.expect(&format!("Couldn't parse line {}", actual_line)))
         }
     })
 }
@@ -408,22 +437,28 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
 	    let mut new_scrapeds = Vec::new();
 
 	    let mut hyps_list = datum.context.focused_hyps().clone();
-	    let mut curgoal = remove_paths_from_goal(&datum.context.focused_goal()).clone();
+	    let mut curgoal = remove_paths_from_goal(&datum.context.focused_goal().clone());
+	    let mut temp_curgoal_with_paths = datum.context.focused_goal_with_paths().clone();
+	    let mut curgoal_with_paths = datum.context.focused_goal_with_paths().clone();
 	    let mut induction_target_var = None;
-
+        let mut unused = curgoal.clone();
 	    for _ in 0..arg_num {
 		// Get interactions from introing the named variables first
 	        loop {
 	            match get_named_intro_result(&curgoal) {
-                        Some((new_hyp, new_goal)) => {
+                        Some((new_hyp, new_goal)) => { //here?
+                    temp_curgoal_with_paths = curgoal_with_paths.clone();
 		            let new_hyp_var = new_hyp.split(":").next().unwrap().trim();
                             new_scrapeds.push(datum.with_focused_obl(Obligation{
                                 hypotheses:hyps_list.clone(),
-                                goal: curgoal})
+                                goal: curgoal,
+                                goal_with_paths: curgoal_with_paths})
                                               .with_tactic(
                                                   format!("intro {}.", new_hyp_var)));
                             hyps_list.push(new_hyp);
+                            //(unused, curgoal_with_paths) = get_named_intro_result(&(temp_curgoal.trim())).unwrap();
                             curgoal = new_goal;
+                            curgoal_with_paths = intro_result_with_paths(&temp_curgoal_with_paths);
                         },
                         None => break,
                     }
@@ -448,19 +483,24 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
                 };
                 new_scrapeds.push(datum.with_focused_obl(Obligation{
                     hypotheses: hyps_list.clone(),
-                    goal: curgoal.clone()}).with_tactic(format!("intro {}.", fresh_hyp_name)));
+                    goal: curgoal.clone(), 
+                    goal_with_paths: curgoal_with_paths.clone()}).with_tactic(format!("intro {}.", fresh_hyp_name)));
                 let unnamed_intro_result = get_unnamed_intro_result(
                     &curgoal, fresh_hyp_name);
                 let (new_hyp, new_goal) = unnamed_intro_result.expect(
                     "Couldn't intro unnamed hypothesis");
                 hyps_list.push(new_hyp);
+                //(unused, curgoal_with_paths) = get_unnamed_intro_result(&(curgoal), fresh_hyp_name).unwrap();
                 curgoal = new_goal;
+                temp_curgoal_with_paths = curgoal_with_paths.clone();
+                curgoal_with_paths = intro_result_with_paths(&temp_curgoal_with_paths);
                 induction_target_var = Some(fresh_hyp_name);
             }
 
             new_scrapeds.push(datum.with_focused_obl(Obligation{
                 hypotheses: hyps_list.clone(),
-                goal: curgoal}).with_tactic(
+                goal: curgoal,
+                goal_with_paths: curgoal_with_paths}).with_tactic(
                 format!("induction {}.", induction_target_var.unwrap())));
 
             return new_scrapeds;
@@ -553,6 +593,58 @@ fn get_unnamed_intro_result(goal: &str, fresh_hyp_name: &str) -> Option<(String,
         }
         None => None
     }
+}
+
+fn intro_result_with_paths(goal_with_paths: &str) -> String {
+    let mut paren_depth = 0;
+    let mut got_binder = false;
+    let pathswordsplit = goal_with_paths.split_terminator(' ');
+    let goal_symbols = pathswordsplit.collect::<Vec<&str>>();
+    if goal_symbols[0].split("|-path-|").collect::<Vec<&str>>()[0] != "forall" {
+        return "".to_string();
+    }
+    let mut new_hyp_symbols: Vec<&str> = vec![];
+    let mut new_goal_symbols: Vec<&str> = vec![];
+    for w in goal_symbols[1..].iter() {
+        if got_binder {
+            // This handles the case where there's only one
+            // parenthesized binder left, and we don't want to leave a
+            // "forall ," there, but our logic so far has dictated
+            // that after popping a parenthesized argument we should
+            // leave the rest of it's forall.
+	    if (w.split("|-path-|").collect::<Vec<&str>>()[0] == ",") && (new_goal_symbols.len() == 1) {
+		new_goal_symbols = vec![];
+	    } else {
+		new_goal_symbols.push(w);
+	    }
+	} else if w.split("|-path-|").collect::<Vec<&str>>()[0] == "(" {
+            paren_depth += 1;
+	} else if w.split("|-path-|").collect::<Vec<&str>>()[0] == ")" {
+	    paren_depth -= 1;
+	    if paren_depth == 0 {
+		got_binder = true;
+		new_goal_symbols.push(&goal_symbols[0]);
+                // If we're dealing with multiple variables in a single type binding,
+                // like `forall ( a a' : expr) ...`, then we need to leave one and
+                // take the other.
+                if new_hyp_symbols[1].split("|-path-|").collect::<Vec<&str>>()[0] != ":" {
+                    new_goal_symbols.push("(|-path-|");
+                    new_goal_symbols.extend(new_hyp_symbols.iter().skip(1));
+                    new_goal_symbols.push(")|-path-|");
+                    while new_hyp_symbols[1].split("|-path-|").collect::<Vec<&str>>()[0] != ":" {
+                        new_hyp_symbols.remove(1);
+                    }
+                }
+	    }
+	} else if w.split("|-path-|").collect::<Vec<&str>>()[0].to_string() == "," && paren_depth == 0 {
+	    got_binder = true;
+	} else {
+	    new_hyp_symbols.push(*w);
+	}
+    }
+
+    assert_eq!(new_hyp_symbols[1].split("|-path-|").collect::<Vec<&str>>()[0], ":", "Can't figure out how to parse goal with paths {}", goal_with_paths);
+    return new_goal_symbols.join(" ")
 }
 
 /// A function for doing some quick & dirty parsing of forall binders,

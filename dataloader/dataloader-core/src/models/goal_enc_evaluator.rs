@@ -8,7 +8,7 @@ use std::fs::File;
 use crate::context_filter::filter_data_by_key;
 use crate::models::evaluator_common::*;
 use crate::scraped_data::*;
-use crate::tokenizer::{normalize_sentence_length, Tokenizer, remove_paths_from_goal};
+use crate::tokenizer::{normalize_sentence_length, Tokenizer};
 
 #[pyclass(module = "dataloader")]
 pub struct GoalEncMetadata {
@@ -56,7 +56,7 @@ pub fn goals_to_total_distances_tensors_rs(
     };
     let tokenized_goals: Vec<Vec<i64>> = tactics
         .par_iter()
-        .map(|tac| truncate_to_length(tokenizer.tokenize(&remove_paths_from_goal(tac.context.focused_goal())), args.max_length))  //(tokenizer.pathstokenize(&tac.context.focused_goal()).0, args.max_length))
+        .map(|tac| truncate_to_length(tokenizer.tokenize(&tac.context.focused_goal()), args.max_length))  
         .collect();
     Ok((
         GoalEncMetadata {
@@ -89,7 +89,7 @@ pub fn tokenize_goal(args: DataloaderArgs, metadata: &GoalEncMetadata, goal: Str
             .tokenizer
             .as_ref()
             .expect("No tokenizer")
-            .tokenize(&remove_paths_from_goal(&goal)),
+            .tokenize(&&goal),
         args.max_length,
         1,
     )
