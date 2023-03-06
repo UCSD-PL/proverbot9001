@@ -118,11 +118,12 @@ class Worker:
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
         if job_project != self.cur_project:
-            self.reset_file_state()
+            if self.cur_project is not None:
+                self.reset_file_state()
+                self.restart_coq()
             self.cur_project = job_project
             if self.args.set_switch:
                 self.set_switch_from_proj()
-            self.restart_coq()
             self.enter_file(job_file)
         # If the job is in a different file load the jobs file from scratch.
         if job_file != self.cur_file:
