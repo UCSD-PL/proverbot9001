@@ -108,8 +108,8 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
         for (sol_project, sol_filename, _, _), _ in file_solutions:
             assert sol_project == project_dict["project_name"], \
               (sol_project, project_dict["project_name"])
-            assert sol_filename == filename, \
-              (sol_filename, filename)
+            assert Path(sol_filename) == Path(filename), \
+              (Path(sol_filename), Path(filename))
         blocks = blocks_from_scrape_and_sols(
             source_file,
             [(lemma_stmt, module_name, sol)
