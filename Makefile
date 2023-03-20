@@ -32,7 +32,7 @@ CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
 all: scrape report
 
 setup:
-	./src/setup.sh && $(MAKE) publish-depv
+	./src/setup.sh
 
 data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 	cat $(CC_TRAIN_SCRAPES) > $@
