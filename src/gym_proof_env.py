@@ -32,9 +32,14 @@ import io
 import coq2vec
 import gymnasium as gym
 from gymnasium.spaces import Box
+from gymnasium.spaces import Discrete
+from gymnasium import spaces
 # 1. Currently do not support 'vectorization' of environments 
 # 3. Observations need to be encoded to push into memory and train networks
 # 4. 
+
+#TODO: re-implement a Box class for cleanrl-dqn
+
 class ProofEnv(gym.Env):
 	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True, 
 				state_type = "index", info_on_check = True,
@@ -62,7 +67,7 @@ class ProofEnv(gym.Env):
 		# 	self.load_state_model()
 		# self.load_language_model()
 		self.max_proof_len = max_proof_len
-		self.action_space = Box(low=0,high=1,dtype=np.int8)
+		
 		self.test_file =  "output/output_test_file.txt" #TODO change this back
 		with open(self.test_file,"w") as f :
 			f.write("")
@@ -116,6 +121,7 @@ class ProofEnv(gym.Env):
 				self.curr_proof_tactics = [ "\n", "(" + str(self.num_proofs + 1) + ") ",  self.commands[self.proof_line_num - 1].lstrip().rstrip(), "Proof."]
 				
 				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
+
 				self.proof_line_num += 1
 				self.in_agent_proof_mode= True
 				self.in_file_proof_mode = False
@@ -479,9 +485,14 @@ class ProofEnv(gym.Env):
 					A done signal may be emitted for different reasons: Maybe the task underlying the environment was solved successfully,
 					a certain timelimit was exceeded, or the physics simulation has entered an invalid state.
 		"""
+		
+		if action is None:
+			r = 0
+			s_next,episode_r, done, info = self.admit_and_skip_proof()
+			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
 		done = False
 		# prediction = self.get_pred(action)
-		prediction = action
+		prediction = action.prediction
 		info = {}
 		eprint("Taking step -", action)
 		a= time.time()
@@ -651,7 +662,7 @@ class FastProofEnv(gym.Env):
 	def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector", 
 					max_proof_len = 30, num_check_engines = 5, info_on_check = True, weightsfile="data/polyarg-weights.dat",max_term_length=256):
 		self.proof_file = proof_file
-		print(proof_file)
+		# print(proof_file)
 		self.prelude = prelude
 		self.wandb = wandb
 		self.time_per_command = time_per_command
@@ -662,9 +673,10 @@ class FastProofEnv(gym.Env):
 		self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type, info_on_check=info_on_check,)
 		# self.language_model = self.main_engine.language_model
 		print("weightsfile: ",weightsfile)
-		self.predictor = loadPredictorByFile(Path2(weightsfile))
+		self.predictor = loadPredictorByFile(weightsfile)
 		self.create_pipes_and_children()
-		self.action_space =  self.main_engine.action_space
+		self.action_space = Discrete(1565)
+		# print("$$$$$$$$$$$$$$$$$",isinstance(self.action_space,spaces.Discrete))
 		self.max_term_length = max_term_length
 
 	@property
@@ -692,7 +704,7 @@ class FastProofEnv(gym.Env):
 			s,c = Pipe()
 			self.server_end_pipes.append(s)
 			self.child_end_pipes.append(c)
-		print(self.num_check_engines)
+		# print(self.num_check_engines)
 		process_list = []
 		context = multiprocessing.get_context('fork')
 		for i in range(self.num_check_engines) :
@@ -760,7 +772,7 @@ class FastProofEnv(gym.Env):
 			results.append(recv_obj)
 		b = time.time()
 		print("Checked next States on all Test Enignes")
-		print(results)
+		# print(results)
 		print("Time for check next states", b - a)
 		# quit()
 		if self.info_on_check :
@@ -787,7 +799,7 @@ class FastProofEnv(gym.Env):
 		return ""
 	def get_available_actions_with_next_state_vectors(self) :
 		relevant_lemmas = self.coq.local_lemmas[:-1]
-		print(self.coq.proof_context)
+		# print(self.coq.proof_context)
 		full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
 		predictions = self.predictor.predictKTactics(
 			truncate_tactic_context(full_context_before.as_tcontext(),
@@ -801,8 +813,8 @@ class FastProofEnv(gym.Env):
 		# print(result)
 		# quit()
 		all_next_states, all_next_infos = result
-		print(all_next_states)
-		print(all_next_infos)
+		# print(all_next_states)
+		# print(all_next_infos)
 		for next_state_ind in range(len(all_next_states)) :
 			curr_next_state = all_next_states[next_state_ind]
 			if len(curr_next_state) == 0 or repeating_actions(predictions[next_state_ind], self.coq.prev_tactics):

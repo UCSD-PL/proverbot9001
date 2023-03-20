@@ -17,6 +17,7 @@ from torch.utils.tensorboard import SummaryWriter
 
 from search_file import loadPredictorByFile
 from pathlib_revised import Path2
+from pathlib import Path
 import coq2vec
 from coq_serapy.contexts import truncate_tactic_context, FullContext, ProofContext, Obligation
 from gym import spaces
@@ -26,7 +27,7 @@ from gym_proof_env import FastProofEnv
 def parse_args():
 	# fmt: off
 	parser = argparse.ArgumentParser()
-	parser.add_argument("--exp-name", type=str, default=os.path.basename(__file__).rstrip(".py"),
+	parser.add_argument("--exp-name", type=str, default='dylan_exp_cleanrl',
 		help="the name of this experiment")
 	parser.add_argument("--seed", type=int, default=1,
 		help="seed of the experiment")
@@ -36,9 +37,9 @@ def parse_args():
 		help="if toggled, cuda will be enabled by default")
 	parser.add_argument("--track", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
 		help="if toggled, this experiment will be tracked with Weights and Biases")
-	parser.add_argument("--wandb-project-name", type=str, default="rl_for_proofs",
+	parser.add_argument("--wandb-project-name", type=str, default="Proverbot",
 		help="the wandb's project name")
-	parser.add_argument("--wandb-entity", type=str, default="avarghese_experiments",
+	parser.add_argument("--wandb-entity", type=str, default="dylanzhang",
 		help="the entity (team) of wandb's project")
 	parser.add_argument("--capture-video", type=lambda x: bool(strtobool(x)), default=False, nargs="?", const=True,
 		help="whether to capture videos of the agent performances (check out `videos` folder)")
@@ -50,9 +51,9 @@ def parse_args():
 		help="the user or org name of the model repository from the Hugging Face Hub")
 
 	# Algorithm specific arguments
-	parser.add_argument("--env-id", type=str, default="CartPole-v1",
+	parser.add_argument("--env-id", type=str, default="proverbot",
 		help="the id of the environment")
-	parser.add_argument("--total-timesteps", type=int, default=500000,
+	parser.add_argument("--total-timesteps", type=int, default=1000000,
 		help="total timesteps of the experiments")
 	parser.add_argument("--learning-rate", type=float, default=2.5e-4,
 		help="the learning rate of the optimizer")
@@ -66,13 +67,13 @@ def parse_args():
 		help="the timesteps it takes to update the target network")
 	parser.add_argument("--batch-size", type=int, default=128,
 		help="the batch size of sample from the reply memory")
-	parser.add_argument("--start-e", type=float, default=1,
+	parser.add_argument("--start-e", type=float, default=0.05, #1,
 		help="the starting epsilon for exploration")
 	parser.add_argument("--end-e", type=float, default=0.05,
 		help="the ending epsilon for exploration")
 	parser.add_argument("--exploration-fraction", type=float, default=0.5,
 		help="the fraction of `total-timesteps` it takes from start-e to go end-e")
-	parser.add_argument("--learning-starts", type=int, default=10000,
+	parser.add_argument("--learning-starts", type=int, default=1,
 		help="timestep to start learning")
 	parser.add_argument("--train-frequency", type=int, default=10,
 		help="the frequency of training")
@@ -80,6 +81,10 @@ def parse_args():
 	#Environment specific
 	parser.add_argument("--max_attempts", type=int, default=7)
 	parser.add_argument("--max_proof_len", type=int, default=50)
+	parser.add_argument('--prelude', default="CompCert")
+	parser.add_argument('--weightsfile', default = "data/polyarg-weights.dat", type=str)
+	parser.add_argument('--proof_file', default="CompCert/common/Globalenvs.v",type=str)
+
 
 
 	args = parser.parse_args()
@@ -87,19 +92,19 @@ def parse_args():
 	return args
 
 
-def make_env(env_id, seed, idx, capture_video, run_name):
-	def thunk():
-		env = gym.make(env_id)
-		env = gym.wrappers.RecordEpisodeStatistics(env)
-		if capture_video:
-			if idx == 0:
-				env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
-		env.seed(seed)
-		env.action_space.seed(seed)
-		env.observation_space.seed(seed)
-		return env
+# def make_env(env_id, seed, idx, capture_video, run_name):
+# 	def thunk():
+# 		env = gym.make(env_id)
+# 		env = gym.wrappers.RecordEpisodeStatistics(env)
+# 		if capture_video:
+# 			if idx == 0:
+# 				env = gym.wrappers.RecordVideo(env, f"videos/{run_name}")
+# 		env.seed(seed)
+# 		env.action_space.seed(seed)
+# 		env.observation_space.seed(seed)
+# 		return env
 
-	return thunk
+# 	return thunk
 
 
 # ALGO LOGIC: initialize agent here:
@@ -122,21 +127,32 @@ class Agent(nn.Module):
 		self.softmax = nn.Softmax(dim=0)
 
 	def forward(self, next_states) -> torch.Tensor:
-		encoded_next_states = torch.cat([self.stateEncoder(state) for state in next_states], dim=0)
-		state_scores = self.network(encoded_next_states)
+		# encoded_next_states = torch.cat([self.stateEncoder(state) for state in next_states], dim=0)
+		state_scores = self.network(next_states)
 		return self.softmax(state_scores)
 
 	def get_vvals_from_contexts(self, contexts) :
 		next_state_vecs = []
-		for i in contexts :
-			next_state_vecs.append(self.stateEncoder(i.fg_goals[0].goal))
-		next_state_vecs = torch.tensor(next_state_vecs).to(self.device)
-		with torch.no_grad() :
-			vvals = self.forward(next_state_vecs).detach().cpu().numpy().flatten()
+		finish_idx = []
+		for (idx,con) in enumerate(contexts) :
+			if con == 'fin': 
+				finish_idx.append(idx)
+			else:
+				next_state_vecs.append(self.stateEncoder(con))
+		if len(next_state_vecs)>=1:
+			next_state_vecs = torch.stack(next_state_vecs,dim=0).to(self.device)
+			with torch.no_grad():
+				vvals = self.forward(next_state_vecs).detach().cpu().numpy().flatten()
+		else:
+			vvals = np.array([])
+		for fin_idx in sorted(finish_idx):
+			vvals = np.insert(vvals,fin_idx,1)
+		if len(vvals.shape) == 1:
+			vvals = vvals.reshape(1,-1)
 		return vvals
 
 	def stateEncoder(self, state : ProofContext) :
-		print(state)
+		# print(">> State ",state)
 		return self.CoqContextEncoder.term_to_vector(state.fg_goals[0].goal).flatten()
 
 
@@ -149,9 +165,9 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 if __name__ == "__main__":
 	args = parse_args()
-	run_name = f"{args.env_id}__{args.exp_name}__{args.seed}__{int(time.time())}"
+	run_name = f"cleanrl_proverbot__{args.exp_name}__{args.seed}__{int(time.time())}"
 	if args.track:
-		import wandb
+		import wandbk
 
 		wandb.init(
 			project=args.wandb_project_name,
@@ -181,7 +197,7 @@ if __name__ == "__main__":
 	with open("compcert_projs_splits.json",'r') as f :
 		data = json.load(f)
 	proof_files = data[0]["test_files"]
-	env = FastProofEnv(proof_files, "CompCert", args.track, state_type = "proof_context", max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts, info_on_check = True)
+	env = FastProofEnv(proof_files,args.prelude, args.track, state_type = "proof_context", max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts, info_on_check = True)
 
 	# assert isinstance(env.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
@@ -190,14 +206,16 @@ if __name__ == "__main__":
 	target_network = Agent(env).to(device)
 	target_network.load_state_dict(q_network.state_dict())
 
-	obs = env.reset()
+	obs,infos = env.reset()
+	obs = q_network.stateEncoder(obs)
 
+	# print(type(env.action_space))
 	rb = ReplayBuffer(
 		args.buffer_size,
-		spaces.Box(-1,1, shape = obs.shape, dtype=np.float32), #env.single_observation_space,
-		env.single_action_space,
+		spaces.Box(-1,1, shape =(1,1565), dtype=np.float32), #envs.single_observation_space,		env.single_action_space,
+		spaces.Discrete(1565),
 		device,
-		handle_timeout_termination=True,
+		handle_timeout_termination=False,
 	)
 	start_time = time.time()
 
@@ -207,30 +225,44 @@ if __name__ == "__main__":
 		# ALGO LOGIC: put action logic here
 		epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
 		if random.random() < epsilon:
-			actions = np.array([env.single_action_space.sample() for _ in range(env.num_env)])
+			# print("pred list",infos['list_of_pred'])
+			if len(infos['list_of_pred']) ==0 :
+				actions = -1
+			else:
+				actions = random.randrange(0,len(infos['list_of_pred']))
 		else:
-			q_values = q_network.get_vvals_from_contexts(infos['next_states']) #qvals == vvals for this case
-			actions = torch.argmax(q_values, dim=1).cpu().numpy()
-
+			# print(infos['reachable_states'])
+			if len(infos['list_of_pred']) ==0 :
+				actions = -1
+			else:
+				q_values = q_network.get_vvals_from_contexts(infos['reachable_states']) #qvals == vvals for this case
+				actions = np.argmax(q_values, axis=1)[0]#.cpu().numpy()
+		# print(actions)
 		# TRY NOT TO MODIFY: execute the game and log data.
-		next_obs, rewards, dones, infos = env.step(actions)
+		# print('>> List of predictions {}'.format(infos['list_of_pred']))
+		if actions == -1:
+			a = None
+		else:
+			print(infos['list_of_pred'])
+			a = infos['list_of_pred'][actions]
+		next_obs, rewards, dones, infos = env.step(a)
 		next_obs = q_network.stateEncoder(next_obs)
 
 		# TRY NOT TO MODIFY: record rewards for plotting purposes
-		for info in infos:
-			if "episode" in info.keys():
-				print(f"global_step={global_step}, episodic_return={info['episode']['r']}")
-				writer.add_scalar("charts/episodic_return", info["episode"]["r"], global_step)
-				writer.add_scalar("charts/episodic_length", info["episode"]["l"], global_step)
-				writer.add_scalar("charts/epsilon", epsilon, global_step)
-				break
+		# for info in infos:
+		if "episode" in infos.keys():
+			print(f"global_step={global_step}, episodic_return={infos['episode']['r']}")
+			writer.add_scalar("charts/episodic_return", infos["episode"]["r"], global_step)
+			writer.add_scalar("charts/episodic_length", infos["episode"]["l"], global_step)
+			writer.add_scalar("charts/epsilon", epsilon, global_step)
+			break
 
 		# TRY NOT TO MODIFY: save data to reply buffer; handle `terminal_observation`
-		real_next_obs = next_obs.copy()
-		for idx, d in enumerate(dones):
-			if d:
-				real_next_obs[idx] = infos[idx]["terminal_observation"]
-		rb.add(obs, real_next_obs, actions, rewards, dones, infos)
+		real_next_obs = next_obs.clone()
+		# for idx, d in enumerate(dones):
+		# 	if d:
+		# real_next_obs = infos["terminal_observation"]
+		rb.add(obs, real_next_obs, np.array(actions), rewards, dones, infos)
 
 		# TRY NOT TO MODIFY: CRUCIAL step easy to overlook
 		obs = next_obs
@@ -242,7 +274,9 @@ if __name__ == "__main__":
 				with torch.no_grad():
 					target_max, _ = target_network(data.next_observations).max(dim=1)
 					td_target = data.rewards.flatten() + args.gamma * target_max * (1 - data.dones.flatten())
-				old_val = q_network(data.observations).gather(1, data.actions).squeeze()
+				# print("observation size",data.observations.size())
+				# print("next_observation size",data.next_observations.size())
+				old_val = q_network(data.observations) #.gather(1, data.actions).squeeze()
 				loss = F.mse_loss(td_target, old_val)
 
 				if global_step % 100 == 0:
@@ -282,12 +316,12 @@ if __name__ == "__main__":
 		for idx, episodic_return in enumerate(episodic_returns):
 			writer.add_scalar("eval/episodic_return", episodic_return, idx)
 
-		if args.upload_model:
-			from cleanrl_utils.huggingface import push_to_hub
+		# if args.upload_model:
+		# 	from cleanrl_utils.huggingface import push_to_hub
 
-			repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-			repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-			push_to_hub(args, episodic_returns, repo_id, "DQN", f"runs/{run_name}", f"videos/{run_name}-eval")
+		# 	repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
+		# 	repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
+		# 	push_to_hub(args, episodic_returns, repo_id, "DQN", f"runs/{run_name}", f"videos/{run_name}-eval")
 
 	env.close()
 	writer.close()
