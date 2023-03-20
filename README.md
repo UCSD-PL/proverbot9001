@@ -19,10 +19,6 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
 3. Install Homebrew from their (website)[https://brew.sh/].
 4. Install wget, git, opam, rustup, GNU awk, and graphviz through Homebrew:
    `brew install wget git opam rustup-init gawk graphviz && rustup-init`
-5. On MacOS, you'll need to install pygraphviz differently, so do that
-now: ` pip install --global-option=build_ext
---global-option="-I/usr/local/include/"
---global-option="-L/usr/local/lib/" pygraphviz`
 
 ### Linux
 1. Check your python version with `python --version` in the
@@ -61,6 +57,7 @@ or use Windows Subsystem for Linux
 
 The first thing you'll need to do is clone the repository (download the code).
 
+### Cloning the repository (downloading the project)
 I recommend that you do this over ssh. To clone github projects using
 git@ urls (over ssh), you'll need to follow the instructions on (this
 github
@@ -85,7 +82,34 @@ code inside. Move into this new directory:
 cd proverbot9001
 ```
 
-this command to install the dependencies:
+### Create a python virtual environment
+
+Next, you'll need to create a python virtual environment to work
+in. This is a good idea in general, but is also required for maturin
+to work properly.
+
+```
+python -m venv proverbot-env
+```
+
+Whenever you want to work with Proverbot from a new shell, you'll have
+to first activate this environment:
+
+```
+source proverbot-env/bin/activate
+```
+
+Also do that now.
+
+### Install python and rust dependencies
+
+On MacOS, you'll need to install pygraphviz differently, so do that
+now: ` pip install --global-option=build_ext
+--global-option="-I/usr/local/include/"
+--global-option="-L/usr/local/lib/" pygraphviz`
+
+Then, no matter your platform, run this command to install the
+dependencies:
 
 ```
 make setup
@@ -105,7 +129,7 @@ error: command 'x86_64-linux-gnu-gcc' failed with exit status 1
 then python needs help finding your graphviz installation. Check out this github issue: https://github.com/pygraphviz/pygraphviz/issues/155, and possibly this one: https://github.com/pypa/setuptools/issues/2740
 .
 
-Once that's finished, you're ready to start running the tool!
+### Download the pre-trained weights
 
 Running Proverbot9001 requires training on existing proof
 files. Training takes a while, and usually you need some pretty
@@ -115,6 +139,8 @@ pre-trained weights instead:
 ```
 make download-weights
 ```
+
+### Running the tool
 
 Now you can run Proverbot9001:
 
