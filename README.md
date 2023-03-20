@@ -24,14 +24,14 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
 1. Check your python version with `python --version` in the
    terminal. If your version is older than Python 3.7, or the python
    command isn't found, install python through your package manager.
-   a. On Ubuntu, that's:
+   1. On Ubuntu, that's:
    ```
    sudo apt install python3 python3-dev python3-pip
    ```
 2. Make sure pip, the python package manager, is available, by running
    in your terminal: `python -m ensurepip`.
 3. Install git, opam, rustup, and graphviz using your package manager.
-   a. On Ubuntu, that's:
+   1. On Ubuntu, that's:
    ```
    sudo apt install software-properties-common
    sudo add-apt-repository ppa:avsm/ppa
