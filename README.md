@@ -13,10 +13,10 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
 1. Check your python version with `python --version` in the
    terminal. If your version is older than Python 3.7, or the python
    command isn't found, install python through the python
-   (website)[https://www.python.org/].
+   [website](https://www.python.org/).
 2. Make sure pip, the python package manager, is available, by running
    in your terminal: `python -m ensurepip`.
-3. Install Homebrew from their (website)[https://brew.sh/].
+3. Install Homebrew from their [website](https://brew.sh/).
 4. Install wget, git, opam, rustup, GNU awk, and graphviz through Homebrew:
    `brew install wget git opam rustup-init gawk graphviz && rustup-init`
 
@@ -59,9 +59,9 @@ The first thing you'll need to do is clone the repository (download the code).
 
 ### Cloning the repository (downloading the project)
 I recommend that you do this over ssh. To clone github projects using
-git@ urls (over ssh), you'll need to follow the instructions on (this
+git@ urls (over ssh), you'll need to follow the instructions on [this
 github
-page)[https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent]. Then,
+page](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent). Then,
 open a terminal (windows users can use "Bash on Ubuntu on Windows"),
 move to the directory you want to work in, and run:
 
