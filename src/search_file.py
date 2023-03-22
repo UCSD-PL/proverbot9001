@@ -399,7 +399,6 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
             for worker in workers:
                 worker.join()
-    write_time(args)
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:
