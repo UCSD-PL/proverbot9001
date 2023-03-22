@@ -22,6 +22,7 @@
 use crate::tokenizer::{get_symbols, get_words};
 use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
 use pyo3::prelude::*;
+use pyo3::ToPyObject;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
@@ -205,6 +206,15 @@ pub struct VernacCommand {
 pub enum ScrapedData {
     Vernac(VernacCommand),
     Tactic(ScrapedTactic),
+}
+
+impl ToPyObject for ScrapedData {
+    fn to_object(&self, py: Python<'_>) -> PyObject {
+        match self {
+            ScrapedData::Vernac(cmd) => cmd.command.to_object(py),
+            ScrapedData::Tactic(tac) => PyCell::new(py, tac.clone()).unwrap().to_object(py),
+        }
+    }
 }
 
 pub struct AdjacentPairs<I, T>
