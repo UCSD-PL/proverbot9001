@@ -42,6 +42,7 @@ from typing import (List, Tuple, Sequence, Dict, Callable,
 
 from models.tactic_predictor import TacticPredictor
 import data
+from dataloader import scraped_from_file
 
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
@@ -130,8 +131,11 @@ def blocks_from_scrape_and_sols(
         lemma_statements_done: List[Tuple[str, str, SearchResult]]
         ) -> List[DocumentBlock]:
 
-    interactions = data.read_all_text_data(
-        src_filename.with_suffix(".v.scrape"))
+    interactions = scraped_from_file(
+        str(src_filename.with_suffix(".v.scrape")))
+
+    # interactions = data.read_all_text_data(
+    #     src_filename.with_suffix(".v.scrape"))
 
     def lookup(module: str, lemma_stmt: str) -> Optional[SearchResult]:
         for lstmt, lmod, lresult in lemma_statements_done:
