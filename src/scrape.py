@@ -141,7 +141,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                                         dynamic_ncols=True,
                                         bar_format=mybarfmt):
                         process_statement(args, coq, command, f)
-                    print(json.dumps("(* End of File *)"), file=f)
+                    print(json.dumps("\"(* End of File *)\""), file=f)
                 shutil.move(temp_file, result_file)
                 return result_file
             except serapi_instance.CoqTimeoutError:
