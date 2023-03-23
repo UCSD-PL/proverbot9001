@@ -60,7 +60,8 @@ class Worker:
     def __enter__(self) -> 'Worker':
         self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
                                     None, str(self.args.prelude),
-                                    use_hammer=self.args.use_hammer)
+                                    use_hammer=self.args.use_hammer,
+                                    set_env=self.args.set_switch)
         self.coq.quiet = True
         self.coq.verbose = self.args.verbose
         return self
@@ -119,7 +120,8 @@ class Worker:
         if job_project != self.cur_project:
             self.reset_file_state()
             self.cur_project = job_project
-            self.set_switch_from_proj()
+            if self.args.set_switch:
+                self.set_switch_from_proj()
             self.restart_coq()
             self.enter_file(job_file)
         # If the job is in a different file load the jobs file from scratch.
