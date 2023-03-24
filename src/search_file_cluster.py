@@ -134,7 +134,7 @@ def main(arg_list: List[str]) -> None:
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
                             "-p", project_dict['project_name']]
-            subprocess.run(command)
+            subprocess.run(command, stdout=subprocess.DEVNULL)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
             show_report_progress(args.output_dir, project_dicts)
@@ -144,7 +144,7 @@ def main(arg_list: List[str]) -> None:
                         "-J", "proverbot9001-report-worker",
                         f"{cur_dir}/search_report.sh",
                         str(args.output_dir),
-                        "-i"])
+                        "-i"], stdout=subprocess.DEVNULL)
         print("Generating report index...")
         while True:
             indexes_generated = int(subprocess.check_output(
