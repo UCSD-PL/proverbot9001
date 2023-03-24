@@ -29,9 +29,11 @@ import subprocess
 import signal
 import shutil
 import functools
+import re
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, NamedTuple, Dict, Any
+from threading import Thread
 
 from tqdm import tqdm
 
@@ -119,6 +121,7 @@ def main(arg_list: List[str]) -> None:
             json.dump({k: format_arg_value(v) for k, v in vars(args).items()}, f)
         cur_dir = os.path.realpath(os.path.dirname(__file__))
 
+        output_files = []
         for project_dict in project_dicts:
             if len(project_dict["test_files"]) == 0:
                 continue
@@ -126,9 +129,10 @@ def main(arg_list: List[str]) -> None:
                 report_output_name = "report.out"
             else:
                 report_output_name = f"{project_dict['project_name']}-report.out"
+            full_output_filename = str(args.output_dir / args.workers_output_dir / report_output_name)
+            output_files.append(full_output_filename)
             command = [f"{cur_dir}/sbatch-retry.sh",
-                            "-o", str(args.output_dir / args.workers_output_dir
-                                      / report_output_name),
+                            "-o", full_output_filename,
                             "-t", str(args.worker_timeout),
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
@@ -137,7 +141,7 @@ def main(arg_list: List[str]) -> None:
             subprocess.run(command)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
-            show_report_progress(args.output_dir, project_dicts)
+            show_report_progress(args.output_dir, project_dicts, output_files)
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                         "-o", str(args.output_dir / args.workers_output_dir
                                   / "index-report.out"),
@@ -185,11 +189,18 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     elif args.proofs_file:
         worker_args.append(f"--proofs-file={str(args.proofs_file)}")
     cur_dir = os.path.realpath(os.path.dirname(__file__))
+    num_job_workers = min(len(projfiles), args.num_workers-1)
     subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                     "-o", str(args.output_dir / args.workers_output_dir /
                               "file-scanner-%a.out"),
-                    f"--array=0-{args.num_workers-1}",
+                    f"--array=0-{num_job_workers}",
                     f"{cur_dir}/job_getting_worker.sh"] + worker_args)
+    threads = [Thread(target=follow_and_print, args=
+        (str(args.output_dir / args.workers_output_dir / f"file-scanner-{idx}.out"),))
+        for idx in range(num_job_workers)]
+    for t in threads:
+        t.daemon = True
+        t.start()
 
     with tqdm(desc="Getting jobs", total=len(projfiles), dynamic_ncols=True) as bar:
         num_files_scanned = 0
@@ -199,6 +210,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
             bar.update(new_files_scanned - num_files_scanned)
             num_files_scanned = new_files_scanned
             time.sleep(0.2)
+    close_follows = True
 
     os.rename(args.output_dir / "all_jobs.txt.partial",
               args.output_dir / "all_jobs.txt")
@@ -298,10 +310,59 @@ def show_progress(args: argparse.Namespace) -> None:
             wbar.update(new_workers_scheduled - num_workers_scheduled)
             num_workers_scheduled = new_workers_scheduled
 
-def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) -> None:
+def follow_and_print(filename: str) -> None:
+    global close_follows
+    close_follows = False
+    with open(filename, 'r') as f:
+        while True:
+            line = f.readline()
+            if "UserWarning: TorchScript" in line or "warnings.warn" in line:
+                continue
+            if line.strip() != "":
+                bar.write(line)
+            if close_follows:
+                break
+            time.sleep(0.01)
+
+def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report Files") -> None:
+    global close_follows
+    close_follows = False
+    progress = 0
+    set_total = False
+    with open(filename, 'r') as f:
+        while True:
+            line = f.readline()
+            if "UserWarning: TorchScript" in line or "warnings.warn" in line:
+                continue
+            if bar_prompt + ":" in line:
+                new_progress = int(re.match(".*(\d+)/\d+", line).group(1))
+                if not set_total:
+                    total = int(re.match(".*\d+/(\d+)", line).group(1))
+                    bar.total = total
+                    bar.refresh()
+                    set_total = True
+                if new_progress > progress:
+                    bar.update(new_progress - progress)
+                    progress = new_progress
+                continue
+            if line.strip() != "":
+                bar.write(line)
+            if close_follows:
+                break
+            time.sleep(0.01)
+
+def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]], output_files: List[str]) -> None:
     test_projects_total = len([d for d in project_dicts if len(d["test_files"]) > 0])
     num_projects_done = 0
     with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
+        bars = [tqdm(desc=(project_dict["project_name"]
+                     if len(project_dicts) > 1 else "Report") + " files")
+                for idx, (project_dict, _)
+                in enumerate(zip(project_dicts, output_files))]
+        threads = [Thread(target=follow_with_progress, args=(filename,bar)) for filename, bar in zip(output_files, bars)]
+        for t in threads:
+            t.daemon = True
+            t.start()
         while num_projects_done < test_projects_total:
             new_projects_done = int(subprocess.check_output(
                 f"find {report_dir} -wholename '*/index.html' | wc -l",
@@ -309,6 +370,9 @@ def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) 
             bar.update(new_projects_done - num_projects_done)
             num_projects_done = new_projects_done
             time.sleep(0.2)
+        for bar in bars:
+            bar.close()
+        close_follows = True
 
 if __name__ == "__main__":
     main(sys.argv[1:])
