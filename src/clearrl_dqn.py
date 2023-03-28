@@ -113,9 +113,6 @@ class Agent(nn.Module):
 		super(Agent, self).__init__()
 		self.coqenv = coqenv
 		self.device = 'cuda'
-		termvectorizer = coq2vec.CoqTermRNNVectorizer()
-		termvectorizer.load_weights("data/term2vec-weights-59.dat")
-		self.CoqContextEncoder = termvectorizer
 		self.stateVecSize = 1565
 
 		self.network = nn.Sequential(
@@ -130,30 +127,33 @@ class Agent(nn.Module):
 		# encoded_next_states = torch.cat([self.stateEncoder(state) for state in next_states], dim=0)
 		state_scores = self.network(next_states)
 		return self.softmax(state_scores)
-
-	def get_vvals_from_contexts(self, contexts) :
-		next_state_vecs = []
-		finish_idx = []
-		for (idx,con) in enumerate(contexts) :
-			if con == 'fin': 
-				finish_idx.append(idx)
-			else:
-				next_state_vecs.append(self.stateEncoder(con))
-		if len(next_state_vecs)>=1:
-			next_state_vecs = torch.stack(next_state_vecs,dim=0).to(self.device)
-			with torch.no_grad():
-				vvals = self.forward(next_state_vecs).detach().cpu().numpy().flatten()
-		else:
-			vvals = np.array([])
-		for fin_idx in sorted(finish_idx):
-			vvals = np.insert(vvals,fin_idx,1)
+	def get_vvals_from_contexts(self, next_state_vecs) :
+		with torch.no_grad():
+			vvals = self.forward(next_state_vecs.to(self.device)).detach().cpu().numpy().flatten()
 		if len(vvals.shape) == 1:
 			vvals = vvals.reshape(1,-1)
 		return vvals
+	# def get_vvals_from_contexts(self, contexts) :
+	# 	next_state_vecs = []
+	# 	finish_idx = []
+	# 	for (idx,con) in enumerate(contexts) :
+	# 		if con == 'fin': 
+	# 			finish_idx.append(idx)
+	# 		else:
+	# 			next_state_vecs.append(self.stateEncoder(con))
+	# 	if len(next_state_vecs)>=1:
+	# 		next_state_vecs = torch.stack(next_state_vecs,dim=0).to(self.device)
+	# 		with torch.no_grad():
+	# 			vvals = self.forward(next_state_vecs).detach().cpu().numpy().flatten()
+	# 	else:
+	# 		vvals = np.array([])
+	# 	for fin_idx in sorted(finish_idx):
+	# 		vvals = np.insert(vvals,fin_idx,1)
+	# 	if len(vvals.shape) == 1:
+	# 		vvals = vvals.reshape(1,-1)
+	# 	return vvals
 
-	def stateEncoder(self, state : ProofContext) :
-		# print(">> State ",state)
-		return self.CoqContextEncoder.term_to_vector(state.fg_goals[0].goal).flatten()
+
 
 
 
@@ -167,7 +167,7 @@ if __name__ == "__main__":
 	args = parse_args()
 	run_name = f"cleanrl_proverbot__{args.exp_name}__{args.seed}__{int(time.time())}"
 	if args.track:
-		import wandbk
+		import wandb
 
 		wandb.init(
 			project=args.wandb_project_name,
@@ -207,7 +207,7 @@ if __name__ == "__main__":
 	target_network.load_state_dict(q_network.state_dict())
 
 	obs,infos = env.reset()
-	obs = q_network.stateEncoder(obs)
+	# obs = q_network.stateEncoder(obs)
 
 	# print(type(env.action_space))
 	rb = ReplayBuffer(
@@ -226,10 +226,10 @@ if __name__ == "__main__":
 		epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
 		if random.random() < epsilon:
 			# print("pred list",infos['list_of_pred'])
-			if len(infos['list_of_pred']) ==0 :
-				actions = -1
-			else:
-				actions = random.randrange(0,len(infos['list_of_pred']))
+			# if len(infos['list_of_pred']) ==0 :
+			# 	actions = -1
+			# else:
+			actions = env.action_space.sample()  #random.randrange(0,len(infos['list_of_pred']))
 		else:
 			# print(infos['reachable_states'])
 			if len(infos['list_of_pred']) ==0 :
@@ -246,7 +246,7 @@ if __name__ == "__main__":
 			print(infos['list_of_pred'])
 			a = infos['list_of_pred'][actions]
 		next_obs, rewards, dones, infos = env.step(a)
-		next_obs = q_network.stateEncoder(next_obs)
+		# next_obs = q_network.stateEncoder(next_obs)
 
 		# TRY NOT TO MODIFY: record rewards for plotting purposes
 		# for info in infos:

@@ -39,7 +39,14 @@ from gymnasium import spaces
 # 4. 
 
 #TODO: re-implement a Box class for cleanrl-dqn
-
+class ActionSpace:
+	def __init__(self,length):
+		self.length = length
+	def sample(self):
+		if self.length == 0:
+			return -1
+		else:
+			return random.randrange(0,self.length)
 class ProofEnv(gym.Env):
 	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True, 
 				state_type = "index", info_on_check = True,
@@ -401,12 +408,13 @@ class ProofEnv(gym.Env):
 				for _ in range(num_brackets_run) :
 					self.coq.cancel_last()
 				self.coq.cancel_last()
-				print("QED on this action. Cancelled - ",prediction)
+				next_state =self.coq.proof_context
+				# print("QED on this action. Cancelled - ",prediction)
 				if self.info_on_check :
 					info["state_text"] = "fin"
-					return "fin",info
+					return next_state,info
 				else :
-					return "fin"
+					return next_state
 
 			if self.coq.proof_context == None :
 				print("Something is wrong. Lost context")
@@ -678,7 +686,26 @@ class FastProofEnv(gym.Env):
 		self.action_space = Discrete(1565)
 		# print("$$$$$$$$$$$$$$$$$",isinstance(self.action_space,spaces.Discrete))
 		self.max_term_length = max_term_length
-
+		self.state_encoder = self._get_state_encoder()
+	# def stateEncoder(self, state : ProofContext):
+	# 	# print(">> State ",state)
+	# 	return self.CoqContextEncoder.term_to_vector(state.fg_goals[0].goal).flatten()
+	
+	def _get_state_encoder(self):
+		termvectorizer = coq2vec.CoqTermRNNVectorizer()
+		termvectorizer.load_weights("data/term2vec-weights-59.dat")
+		return termvectorizer
+	
+	def encode_state(self,state):
+		with torch.no_grad():
+			s_enc = self.state_encoder.term_to_vector(state.fg_goals[0].goal).flatten()
+		return s_enc
+	def encode_next_states(self,ls_states):
+		if len(ls_states)>0:
+			encoded_next_states = torch.stack([self.encode_state(state) for state in ls_states], dim=0)
+		else:
+			encoded_next_states = torch.tensor([])
+		return encoded_next_states
 	@property
 	def coq(self):
 		return self.main_engine.coq
@@ -737,12 +764,14 @@ class FastProofEnv(gym.Env):
 		for pipe in self.server_end_pipes :
 			print(pipe.recv())
 		print("All Test Engines Reset")
+		state_encoded = self.encode_state(state)
 		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
 		# quit()
-		info['reachable_states'] = next_states
+		next_states_encoded = self.encode_next_states(next_states)
+		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
-		return state,info
+		return state_encoded,info
 
 	def step(self, action) :
 		print("Stepping on all Test Engines")
@@ -753,13 +782,16 @@ class FastProofEnv(gym.Env):
 			pipe.recv()
 		print("Stepped on all Test Engines")
 		s_next,episode_r, done, info = self.main_engine.step(action)
+		s_next_encoded = self.encode_state(s_next)
 		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
+		next_states_encoded = self.encode_next_states(next_states)
 		# self.num_proofs = self.main_engine.num_proofs
 		# self.num_proofs_solved = self.main_engine.num_proofs_solved
-		info['reachable_states'] = next_states
+		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
-		return s_next,episode_r, done, info
+		self.set_action_space(ActionSpace(len(list_of_pred)))
+		return s_next_encoded, episode_r, done, info
 	
 	def check_next_states(self,predictions):
 		print("Checking next States on all Test Engines")
