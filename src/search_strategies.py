@@ -579,7 +579,7 @@ class BFSNode:
         def add_subgraph(root: "BFSNode") -> int:
             nonlocal graph
             nonlocal next_node_id
-            label=f"{root.prediction.prediction}\n{root.score:.2e}"
+            label=f"{root.prediction.prediction}\nS:{root.score:.2e};C:{root.prediction.certainty:.2e}"
             if root.color:
                 fillcolor = root.color
                 style="filled"
