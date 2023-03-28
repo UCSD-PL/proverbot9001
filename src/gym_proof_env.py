@@ -40,13 +40,20 @@ from gymnasium import spaces
 
 #TODO: re-implement a Box class for cleanrl-dqn
 class ActionSpace:
-	def __init__(self,length):
-		self.length = length
+	def __init__(self,ls_actions):
+		self.ls_actions = ls_actions
+		self.length = len(ls_actions)
 	def sample(self):
 		if self.length == 0:
 			return -1
 		else:
 			return random.randrange(0,self.length)
+	def get_action_by_index(self,idx):
+		if idx<0:
+			return None
+		else:
+			return self.ls_actions[idx]
+
 class ProofEnv(gym.Env):
 	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True, 
 				state_type = "index", info_on_check = True,
@@ -366,7 +373,6 @@ class ProofEnv(gym.Env):
 		context_before = self.coq.proof_context
 		a= time.time()
 		try:
-			
 			self.coq.run_stmt(prediction, timeout= self.time_per_command)
 			
 		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
@@ -749,6 +755,9 @@ class FastProofEnv(gym.Env):
 		self.action_space = action_space
 	def set_observation_space(self,observation_space):
 		self.observation_space = observation_space
+	def set_reachable_states(self,reachable_states):
+		self.reachable_states = reachable_states
+	
 	def admit_and_skip_proof(self):
 		print("Admitting and Skipping the current proof on all Test engines")
 		for pipe in self.server_end_pipes :
@@ -773,6 +782,8 @@ class FastProofEnv(gym.Env):
 		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
+		self.set_action_space(ActionSpace(list_of_pred))
+		self.set_reachable_states(next_states_encoded)
 		return state_encoded,info
 
 	def step(self, action) :
@@ -792,7 +803,8 @@ class FastProofEnv(gym.Env):
 		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
-		self.set_action_space(ActionSpace(len(list_of_pred)))
+		self.set_action_space(ActionSpace(list_of_pred))
+		self.set_reachable_states(next_states_encoded)
 		return s_next_encoded, episode_r, done, info
 	
 	def check_next_states(self,predictions):
