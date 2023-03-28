@@ -112,7 +112,7 @@ class Agent(nn.Module):
 	def __init__(self,  coqenv) -> None:
 		super(Agent, self).__init__()
 		self.coqenv = coqenv
-		self.device = 'cuda'
+		self.device = 'cuda' if torch.cuda.is_available() else "cpu"
 		self.stateVecSize = 1565
 
 		self.network = nn.Sequential(
