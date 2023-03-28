@@ -257,6 +257,15 @@ def print_time(msg : str, guard=True):
     finally:
         eprint("{:.2f}s".format(time.time() - start), guard=guard)
 
+@contextlib.contextmanager
+def print_time_precise(msg : str, guard=True):
+    start = time.time()
+    eprint(msg + "...", end="", guard=guard)
+    try:
+        yield
+    finally:
+        eprint("{:.5f}s".format(time.time() - start), guard=guard)
+
 mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
 
 
