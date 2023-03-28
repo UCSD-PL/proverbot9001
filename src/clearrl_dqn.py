@@ -112,7 +112,7 @@ class Agent(nn.Module):
 	def __init__(self,  coqenv) -> None:
 		super(Agent, self).__init__()
 		self.coqenv = coqenv
-		self.device = 'cuda'
+		self.device = 'cuda' if torch.cuda.is_available() else 'cpu'
 		termvectorizer = coq2vec.CoqTermRNNVectorizer()
 		termvectorizer.load_weights("data/term2vec-weights-59.dat")
 		self.CoqContextEncoder = termvectorizer
