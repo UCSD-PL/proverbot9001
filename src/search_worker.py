@@ -57,13 +57,38 @@ class Worker:
         self.switch_dict = switch_dict
         self.axioms_already_added = False
 
+    def enter_instance(self) -> None:
+        if self.args.backend == 'auto':
+            coq_serapy.setup_opam_env()
+            version_string = subprocess.run(["sertop", "--version"],
+                                            stdout=subprocess.PIPE,
+                                            text=True, check=True).stdout
+            version_match = re.fullmatch(r"\d+\.(\d+).*", version_string,
+                                         flags=re.DOTALL)
+            assert version_match, f"Can't match version string \"{version_string}\""
+            minor_version = int(version_match.group(1))
+            assert minor_version >= 10, \
+                    "Versions of Coq before 8.10 are not supported! "\
+                    f"Currently installed coq is {version_string}"
+            if minor_version >= 16:
+                backend = 'lsp'
+            else:
+                backend = 'serapi'
+        else:
+            backend = self.args.backend
+
+        if backend == 'lsp':
+            backend = coq_serapy.CoqLSPyInstance(
+                "coq-lsp", root_dir=str(self.args.prelude),
+                verbosity=self.args.verbose)
+        if backend == 'serapi':
+            backend = coq_serapy.CoqSeraPyInstance(
+                ["sertop"], root_dir=str(self.args.prelude))
+        self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
+                                       verbosity=self.args.verbose)
+
     def __enter__(self) -> 'Worker':
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
-                                    None, str(self.args.prelude),
-                                    use_hammer=self.args.use_hammer,
-                                    set_env=self.args.set_switch)
-        self.coq.quiet = True
-        self.coq.verbose = self.args.verbose
+        self.enter_instance()
         return self
     def __exit__(self, type, value, traceback) -> None:
         assert self.coq
@@ -86,11 +111,7 @@ class Worker:
     def restart_coq(self) -> None:
         assert self.coq
         self.coq.kill()
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
-                                    None, str(self.args.prelude / self.cur_project),
-                                    use_hammer=self.args.use_hammer)
-        self.coq.quiet = True
-        self.coq.verbose = self.args.verbose
+        self.enter_instance()
 
     def reset_file_state(self) -> None:
         self.last_program_statement = None
