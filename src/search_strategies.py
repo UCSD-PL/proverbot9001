@@ -877,8 +877,8 @@ def best_first_proof_search(lemma_name: str,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
-    if args.scoring_function == "pickled":
+    assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
@@ -974,7 +974,7 @@ def best_first_proof_search(lemma_name: str,
             elif args.scoring_function == "norm-certainty":
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
             else:
-                assert args.scoring_function == "pickled"
+                assert args.scoring_function in ["pickled", "pickled-normcert"]
                 assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
                 for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
@@ -983,6 +983,15 @@ def best_first_proof_search(lemma_name: str,
                     except UnhandledExpr:
                         print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
+                if args.scoring_function == "pickled-normcert":
+                    normcert_score = prediction.certainty
+                    path_length = 1
+                    for node in next_node.node.path():
+                        normcert_score *= node.prediction.certainty
+                        path_length += 1
+                    normcert_score = max(normcert_score ** (1 / path_length), 0.001)
+                    assert normcert_score <= 1 and normcert_score > 0, normcert_score
+                    h_score /= normcert_score
             if args.search_type == "astar":
                 # Calculate the A* f_score
                 g_score = len(prediction_node.path())
