@@ -74,7 +74,7 @@ class ProofEnv(gym.Env):
 		# 	self.load_state_model()
 		# self.load_language_model()
 		self.max_proof_len = max_proof_len
-		
+		os.makedirs("output", exist_ok=True)
 		self.test_file =  "output/output_test_file.txt" #TODO change this back
 		with open(self.test_file,"w") as f :
 			f.write("")
@@ -629,6 +629,8 @@ class ProofEnv(gym.Env):
 def child_process(pid, critical, pipe) :
 	import sys
 	# import io
+	os.makedirs("output/results", exist_ok=True)
+	os.makedirs("output/errors", exist_ok=True)
 	open("output/results/subprocess_pid%d_out.txt"%pid, 'w').close()
 	open("output/errors/subprocess_pid%d_error.txt"%pid, 'w').close()
 	sys.stdout = open("output/results/subprocess_pid%d_out.txt"%pid, 'a')#io.BytesIO()
