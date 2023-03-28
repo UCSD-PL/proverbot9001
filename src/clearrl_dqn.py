@@ -77,7 +77,7 @@ def parse_args():
 		help="timestep to start learning")
 	parser.add_argument("--train-frequency", type=int, default=10,
 		help="the frequency of training")
-	
+
 	#Environment specific
 	parser.add_argument("--max_attempts", type=int, default=7)
 	parser.add_argument("--max_proof_len", type=int, default=50)
@@ -135,7 +135,7 @@ class Agent(nn.Module):
 		next_state_vecs = []
 		finish_idx = []
 		for (idx,con) in enumerate(contexts) :
-			if con == 'fin': 
+			if con == 'fin':
 				finish_idx.append(idx)
 			else:
 				next_state_vecs.append(self.stateEncoder(con))
@@ -220,7 +220,7 @@ if __name__ == "__main__":
 	start_time = time.time()
 
 	# TRY NOT TO MODIFY: start the game
-	
+
 	for global_step in range(args.total_timesteps):
 		# ALGO LOGIC: put action logic here
 		epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
