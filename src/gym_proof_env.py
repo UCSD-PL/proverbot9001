@@ -37,8 +37,7 @@ class ActionSpace:
 
 class ProofEnv(gym.Env):
 	def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True,
-				state_type = "index", info_on_check = True,
-				max_attempts=1):
+				state_type = "index"):
 		self.action_space = None
 		self.observation_space = None
 		self.prelude= prelude
@@ -50,8 +49,6 @@ class ProofEnv(gym.Env):
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		# self.state_type = state_type #text, index, vector
 		self.write_solved_proofs = write_solved_proofs
-		self.info_on_check = info_on_check
-		self.max_attempts = max_attempts
 
 		# TODO: see if we can put predictor in the envionment?
 		self.time_per_command= time_per_command
@@ -180,10 +177,7 @@ class ProofEnv(gym.Env):
 		eprint("Checking next state for action -", prediction)
 		tactic_class,tactic_args = split_tactic(prediction.strip().rstrip("."))
 		if tactic_class.lower().strip() == "exploit" :
-			if self.info_on_check :
-				return [],info
-			else :
-				return []
+			return [],info
 		next_state = []
 		context_before = self.coq.proof_context
 		a= time.time()
@@ -231,11 +225,8 @@ class ProofEnv(gym.Env):
 					self.coq.cancel_last()
 				self.coq.cancel_last()
 				# print("QED on this action. Cancelled - ",prediction)
-				if self.info_on_check :
-					info["state_text"] = "fin"
-					return next_state,info
-				else :
-					return next_state
+				info["state_text"] = "fin"
+				return next_state,info
 
 			if self.coq.proof_context == None :
 				print("Something is wrong. Lost context")
@@ -275,10 +266,7 @@ class ProofEnv(gym.Env):
 		# 	for obligation in context_before.all_goals :
 		# 		print(obligation.goal)
 
-		if self.info_on_check :
-			return next_state,info
-		else :
-			return next_state
+		return next_state,info
 
 
 	def step(self, action=None):
@@ -442,8 +430,8 @@ def child_process(pid, critical, pipe) :
 	open("output/errors/subprocess_pid%d_error.txt"%pid, 'w').close()
 	sys.stdout = open("output/results/subprocess_pid%d_out.txt"%pid, 'a')#io.BytesIO()
 	sys.stderr = open("output/errors/subprocess_pid%d_error.txt"%pid, 'a')#io.BytesIO()
-	proof_file, prelude, time_per_command, state_type, info_on_check, max_proof_len = critical
-	test_env = ProofEnv(proof_file, prelude, wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len, state_type = state_type, info_on_check = info_on_check)
+	proof_file, prelude, time_per_command, state_type, max_proof_len = critical
+	test_env = ProofEnv(proof_file, prelude, wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len, state_type = state_type)
 	print("child process created", pid)
 	while True :
 		if pipe.poll(1800) :
@@ -477,7 +465,7 @@ def child_process(pid, critical, pipe) :
 
 class FastProofEnv(gym.Env):
 	def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector",
-					max_proof_len = 30, num_check_engines = 5, info_on_check = True, weightsfile="data/polyarg-weights.dat",max_term_length=256):
+					max_proof_len = 30, num_check_engines = 5, weightsfile="data/polyarg-weights.dat",max_term_length=256):
 		self.proof_file = proof_file
 		# print(proof_file)
 		self.prelude = prelude
@@ -485,9 +473,8 @@ class FastProofEnv(gym.Env):
 		self.time_per_command = time_per_command
 		self.state_type = state_type
 		self.num_check_engines = num_check_engines
-		self.info_on_check = info_on_check
 		self.max_proof_len = max_proof_len
-		self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type, info_on_check=info_on_check,)
+		self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type)
 		# self.language_model = self.main_engine.language_model
 		print("weightsfile: ",weightsfile)
 		self.predictor = loadPredictorByFile(weightsfile)
@@ -548,7 +535,7 @@ class FastProofEnv(gym.Env):
 		context = multiprocessing.get_context('fork')
 		for i in range(self.num_check_engines) :
 			p = context.Process(target=child_process, args=(i,(self.proof_file, self.prelude,
-				self.time_per_command, self.state_type, self.info_on_check,  self.max_proof_len),self.child_end_pipes[i] ) )
+				self.time_per_command, self.state_type, self.max_proof_len),self.child_end_pipes[i] ) )
 			p.start()
 			process_list.append(p)
 
@@ -614,10 +601,7 @@ class FastProofEnv(gym.Env):
 		# print(results)
 		print("Time for check next states", b - a)
 		# quit()
-		if self.info_on_check :
-			return list(zip(*results))
-		else :
-			return results
+		return list(zip(*results))
 
 	def run_to_proof(self, proof_contains) :
 		print("Running to proof on all Test states")
