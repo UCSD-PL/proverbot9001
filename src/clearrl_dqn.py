@@ -301,20 +301,20 @@ if __name__ == "__main__":
 		model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
 		torch.save(q_network.state_dict(), model_path)
 		print(f"model saved to {model_path}")
-		from cleanrl_utils.evals.dqn_eval import evaluate
+		# from cleanrl_utils.evals.dqn_eval import evaluate
 
-		episodic_returns = evaluate(
-			model_path,
-			make_env,
-			args.env_id,
-			eval_episodes=10,
-			run_name=f"{run_name}-eval",
-			Model=CustomQNetwork,
-			device=device,
-			epsilon=0.05,
-		)
-		for idx, episodic_return in enumerate(episodic_returns):
-			writer.add_scalar("eval/episodic_return", episodic_return, idx)
+		# episodic_returns = evaluate(
+		# 	model_path,
+		# 	make_env,
+		# 	args.env_id,
+		# 	eval_episodes=10,
+		# 	run_name=f"{run_name}-eval",
+		# 	Model=Agent,
+		# 	device=device,
+		# 	epsilon=0.05,
+		# )
+		# for idx, episodic_return in enumerate(episodic_returns):
+		# 	writer.add_scalar("eval/episodic_return", episodic_return, idx)
 
 		# if args.upload_model:
 		# 	from cleanrl_utils.huggingface import push_to_hub
