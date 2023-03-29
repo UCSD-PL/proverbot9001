@@ -1,45 +1,25 @@
 # Gym interface for coqproofenv
 
-from collections import deque
 import multiprocessing
-from sklearn.ensemble import RandomForestRegressor
 import torch
-import torch.nn as nn
-import torch.optim as optim
-import numpy as np
 import wandb
-import time, argparse, random
-from pathlib_revised import Path2
-import dataloader
-import coq_serapy as serapi_instance
-from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic, contextSurjective, summarizeContext
-from coq_serapy import ending_proof, possibly_starting_proof
+import time, random
+import coq_serapy
+from coq_serapy import (load_commands, kill_comments, split_tactic,
+                        contextSurjective, ending_proof, admit_proof)
 from coq_serapy.contexts import (truncate_tactic_context, FullContext,
                                  assert_proof_context_matches)
-from search_file import loadPredictorByFile,loadPredictorByName
+from search_file import loadPredictorByFile
 from search_strategies import completed_proof
-from train_encoder import EncoderRNN, DecoderRNN, Lang, indexesFromSentence, tensorFromSentence, EOS_token
-from tokenizer import get_symbols, get_words,tokenizers
-import pickle
 import gym
-import fasttext
 import os, sys
 from util import nostderr, unwrap, eprint, mybarfmt
-from collections import defaultdict
-from mpire import WorkerPool
-from multiprocessing import Pool, Pipe, Process
-import itertools
+from multiprocessing import Pipe, Process
 import io
 import coq2vec
 import gymnasium as gym
-from gymnasium.spaces import Box
 from gymnasium.spaces import Discrete
-from gymnasium import spaces
-# 1. Currently do not support 'vectorization' of environments 
-# 3. Observations need to be encoded to push into memory and train networks
-# 4. 
 
-#TODO: re-implement a Box class for cleanrl-dqn
 class ActionSpace:
 	def __init__(self,ls_actions):
 		self.ls_actions = ls_actions
@@ -223,7 +203,7 @@ class ProofEnv(gym.Env):
 	def reset_to_start_of_file(self) :
 		if self.coq_running :
 			self.coq.kill()
-		self.coq = serapi_instance.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
+		self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
 		self.coq.verbose = 3
 		self.coq.quiet = True
 		self.proof_line_num = 0
@@ -292,14 +272,14 @@ class ProofEnv(gym.Env):
 		a= time.time()
 		try:
 			self.coq.run_stmt(prediction, timeout= self.time_per_command)
-			
-		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
-				serapi_instance.CoqExn, serapi_instance.OverflowError,
-				serapi_instance.ParseError,
+
+		except (coq_serapy.TimeoutError, coq_serapy.ParseError,
+				coq_serapy.CoqExn, coq_serapy.OverflowError,
+				coq_serapy.ParseError,
 				RecursionError,
-				serapi_instance.UnrecognizedError) as e:
+				coq_serapy.UnrecognizedError) as e:
 			eprint("One of known errors", e)
-		except serapi_instance.CoqAnomaly:
+		except coq_serapy.CoqAnomaly:
 			eprint("Coq Anomaly")
 			# self.kill()
 			quit()
@@ -428,17 +408,17 @@ class ProofEnv(gym.Env):
 		eprint("Taking step -", action)
 		a= time.time()
 		try:
-			self.coq.run_stmt(prediction, timeout= self.time_per_command)
-		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
-				serapi_instance.CoqExn, serapi_instance.OverflowError,
-				serapi_instance.ParseError,
+			self.coq.run_stmt(prediction, timeout= self.time_per_command, force_update_nonfg_goals=True)
+		except (coq_serapy.TimeoutError, coq_serapy.ParseError,
+				coq_serapy.CoqExn, coq_serapy.OverflowError,
+				coq_serapy.ParseError,
 				RecursionError,
-				serapi_instance.UnrecognizedError) as e:
+				coq_serapy.UnrecognizedError) as e:
 			eprint("One of known errors", e)
 			r = 0
 			s_next,episode_r, done, info = self.admit_and_skip_proof()
 			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
-		except serapi_instance.CoqAnomaly:
+		except coq_serapy.CoqAnomaly:
 			eprint("Coq Anomaly")
 			# self.kill()
 			quit()
