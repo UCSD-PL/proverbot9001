@@ -181,7 +181,7 @@ class ProofEnv(gym.Env):
 		admitting_cmds = admit_proof(self.coq, self.coq.prev_tactics[0], "")
 		if self.wandb_log :
 			wandb.log({"Num command Attempts" : self.num_commands  })
-		self.prooflines_file_write("\n".join(self.coq.tacticHistory.getFullHistory()))
+		self.prooflines_file_write("\n".join(self.coq.tactic_history.getFullHistory()))
 		# self.solve_curr_from_file()
 		self.navigate_file_end_of_current_proof()
 		self.goto_next_proof()
