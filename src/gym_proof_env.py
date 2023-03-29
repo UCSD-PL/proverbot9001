@@ -57,9 +57,6 @@ class ProofEnv(gym.Env):
 		self.time_per_command= time_per_command
 		self.max_proof_len = max_proof_len
 		os.makedirs("output", exist_ok=True)
-		self.test_file =  "output/output_test_file.txt" #TODO change this back
-		with open(self.test_file,"w") as f :
-			f.write("")
 		self.proof_lines_file = "output/output_proof_lines.txt"
 		with open(self.proof_lines_file,"w") as f :
 			f.write("")
@@ -67,12 +64,6 @@ class ProofEnv(gym.Env):
 		self.max_num_proofs = 15
 		self.num_proofs = 0
 		self.load_list_tactic_classes()
-	def test_file_write(self, write_str) :
-		if self.write_solved_proofs :
-			with open(self.test_file,"a") as f :
-				f.write(write_str)
-				f.flush()
-
 	def prooflines_file_write(self, write_str) :
 		if self.write_solved_proofs :
 			with open(self.proof_lines_file,"a") as f :
@@ -125,8 +116,6 @@ class ProofEnv(gym.Env):
 				self.proof_line_num += 1
 		if self.proof_line_num >= len(self.commands) : #or self.num_proofs >= self.max_num_proofs :
 			print("File Finished")
-			# if self.use_test :
-			self.test_file_write("\n ----------------------------------------------------- \n")
 			self.reset_to_start_of_file()
 
 			return self.goto_next_proof()
@@ -406,7 +395,6 @@ class ProofEnv(gym.Env):
 				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
 				r = 1
 				print("Current proof fin with Good rewards")
-				self.test_file_write("\n".join(tactics))
 				self.prooflines_file_write("\n".join(tactics))
 				self.num_proofs_solved += 1
 				a = time.time()
