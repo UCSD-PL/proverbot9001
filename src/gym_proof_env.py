@@ -555,13 +555,6 @@ class FastProofEnv(gym.Env):
 		print("Exploratory Environments successfully running")
 		return
 
-	def set_action_space(self,action_space):
-		self.action_space = action_space
-	def set_observation_space(self,observation_space):
-		self.observation_space = observation_space
-	def set_reachable_states(self,reachable_states):
-		self.reachable_states = reachable_states
-
 	def _admit_and_skip_proof(self):
 		print("Admitting and Skipping the current proof on all Test engines")
 		for pipe in self.server_end_pipes :
@@ -585,8 +578,8 @@ class FastProofEnv(gym.Env):
 		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
-		self.set_action_space(ActionSpace(list_of_pred))
-		self.set_reachable_states(next_states_encoded)
+		self.action_space = ActionSpace(list_of_pred)
+		self.reachable_states = next_states_encoded
 		return state_encoded,info
 
 	def step(self, action) :
@@ -604,8 +597,8 @@ class FastProofEnv(gym.Env):
 		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
-		self.set_action_space(ActionSpace(list_of_pred))
-		self.set_reachable_states(next_states_encoded)
+		self.action_space = ActionSpace(list_of_pred)
+		self.reachable_states = next_states_encoded
 		return s_next_encoded, episode_r, done, info
 
 	def _check_next_states(self,predictions):
