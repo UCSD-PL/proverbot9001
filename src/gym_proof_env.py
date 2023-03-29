@@ -226,8 +226,8 @@ class ProofEnv(gym.Env):
 		self.in_agent_proof_mode= False
 		self.in_file_proof_mode = False
 		print("Admitting current proof without solving")
-		self.coq.run_stmt("Admitted.", timeout= self.time_per_command)
-		self.curr_proof_tactics.append("Admitted.")
+		admitting_cmds = admit_proof(self.coq, self.coq.prev_tactics[0], "")
+		self.curr_proof_tactics += admitting_cmds
 		if self.wandb_log :
 			wandb.log({"Num command Attempts" : self.num_commands  })
 		self.prooflines_file_write("\n".join(self.curr_proof_tactics))
