@@ -618,7 +618,10 @@ class FastProofEnv(gym.Env):
 	
 	def encode_state(self,state):
 		with torch.no_grad():
-			s_enc = self.state_encoder.term_to_vector(state.fg_goals[0].goal).flatten()
+			if len(state.fg_goals) > 0:
+				s_enc = self.state_encoder.term_to_vector(state.fg_goals[0].goal).flatten()
+			else:
+				s_enc = self.state_encoder.term_to_vector("").flatten()
 		return s_enc
 	def encode_next_states(self,ls_states):
 		if len(ls_states)>0:
