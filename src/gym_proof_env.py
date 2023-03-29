@@ -407,10 +407,10 @@ class ProofEnv(gym.Env):
 				num_brackets_run += 1
 
 			if completed_proof(self.coq) :
+				next_state = self.coq.proof_context
 				for _ in range(num_brackets_run) :
 					self.coq.cancel_last()
 				self.coq.cancel_last()
-				next_state =self.coq.proof_context
 				# print("QED on this action. Cancelled - ",prediction)
 				if self.info_on_check :
 					info["state_text"] = "fin"
