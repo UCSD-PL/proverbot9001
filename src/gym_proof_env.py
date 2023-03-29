@@ -48,8 +48,6 @@ class ProofEnv(gym.Env):
 		self.wandb_log = wandb
 		self.coq_running = False
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-		self.in_agent_proof_mode= False
-		self.in_file_proof_mode= True  #Likely wont be using but just for sake of testing
 		# self.state_type = state_type #text, index, vector
 		self.write_solved_proofs = write_solved_proofs
 		self.info_on_check = info_on_check
@@ -65,11 +63,7 @@ class ProofEnv(gym.Env):
 		self.proof_lines_file = "output/output_proof_lines.txt"
 		with open(self.proof_lines_file,"w") as f :
 			f.write("")
-		self.context_file =  "output/output_context_file.txt"
-		with open(self.context_file,"w") as f :
-			f.write("")
 
-		self.curr_proof_tactics = []
 		self.max_num_proofs = 15
 		self.num_proofs = 0
 		self.load_list_tactic_classes()
@@ -79,11 +73,6 @@ class ProofEnv(gym.Env):
 				f.write(write_str)
 				f.flush()
 
-	def context_file_write(self, write_str) :
-		if self.write_solved_proofs :
-			with open(self.context_file,"a") as f :
-				f.write(write_str)
-				f.flush()
 	def prooflines_file_write(self, write_str) :
 		if self.write_solved_proofs :
 			with open(self.proof_lines_file,"a") as f :
@@ -102,13 +91,10 @@ class ProofEnv(gym.Env):
 		while self.proof_line_num < len(self.commands) :# and  self.num_proofs <= self.max_num_proofs :
 			if proof_contains in self.commands[self.proof_line_num] :
 				print("Found Proof : ", kill_comments(self.commands[self.proof_line_num].lstrip().rstrip()))
-				self.curr_proof_tactics = [ "\n", "(" + str(self.num_proofs + 1) + ") ",  self.commands[self.proof_line_num - 1].lstrip().rstrip(), "Proof."]
 
 				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
 
 				self.proof_line_num += 1
-				self.in_agent_proof_mode= True
-				self.in_file_proof_mode = False
 				self.num_proofs  += 1
 				self.proof_contexts_in_path.append(self.coq.proof_context)
 				break
@@ -120,8 +106,7 @@ class ProofEnv(gym.Env):
 				self.proof_line_num += 1
 
 	def goto_next_proof(self):
-		assert self.in_agent_proof_mode == False
-		assert self.in_file_proof_mode == True
+		assert self.coq.proof_context is None
 		self.end_proof_time = time.time()
 		self.num_commands = 0
 		self.proof_contexts_in_path = []
@@ -129,12 +114,9 @@ class ProofEnv(gym.Env):
 			not_function = kill_comments(self.commands[self.proof_line_num - 1]).lstrip().rstrip().split()[0].lower() != "function"
 			if self.commands[self.proof_line_num].lstrip().rstrip() == "Proof." and not_function:
 				print(self.commands[self.proof_line_num - 1].lstrip().rstrip().split()[0].lower())
-				self.curr_proof_tactics = [ "\n", "(" + str(self.num_proofs + 1) + ") ",  self.commands[self.proof_line_num - 1].lstrip().rstrip(), "Proof."]
 
 				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
 				self.proof_line_num += 1
-				self.in_agent_proof_mode= True
-				self.in_file_proof_mode = False
 				self.num_proofs  += 1
 				self.proof_contexts_in_path.append(self.coq.proof_context)
 				break
@@ -159,8 +141,7 @@ class ProofEnv(gym.Env):
 	def navigate_file_end_of_current_proof(self) :
 		# This is wrong - Not all proofs end with QED. Also make this section cleaner.
 		print("Navigating file to the end of current proof without running")
-		assert self.in_agent_proof_mode == False
-		assert self.in_file_proof_mode == False
+		assert self.coq.proof_context is None
 		while self.proof_line_num < len(self.commands)  and not ending_proof(self.commands[self.proof_line_num]) :
 			print("Navigating ", self.commands[self.proof_line_num])
 			self.proof_line_num += 1
@@ -174,31 +155,6 @@ class ProofEnv(gym.Env):
 
 	def solve_curr_from_file(self) :
 		raise Exception("Solving from File called. Don't solve from File.")
-		print("Starting to solve from current file")
-		print("Proof Line Num : ", self.proof_line_num )
-		self.clear_coq_proof_context()
-		print( "Currently on :", self.commands[self.proof_line_num].lstrip().rstrip() )
-		print("Finding the Previous Proof. statement")
-		while self.commands[self.proof_line_num].lstrip().rstrip() != "Proof.":
-			self.proof_line_num -= 1
-			print( self.commands[self.proof_line_num].lstrip().rstrip() )
-		print("Context After finding Proof. statement : ",self.coq.proof_context, " << should be None")
-		print(self.proof_line_num)
-		self.proof_line_num -= 1
-		print("Found the proof section for - ",self.commands[self.proof_line_num].lstrip().rstrip())
-		self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
-		print("Context After running the proof statement for the above: ",self.coq.proof_context)
-		self.proof_line_num += 1
-		while self.coq.proof_context != None :
-			self.context_file_write("Running - "+ self.commands[self.proof_line_num].lstrip().rstrip() + "\n")
-			self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
-			self.context_file_write( str(self.coq.proof_context) + '\n')
-			self.proof_line_num += 1
-
-		assert ending_proof(self.commands[self.proof_line_num - 1])
-
-		print("Done solving from File", self.proof_line_num)
-
 
 	def reset_to_start_of_file(self) :
 		if self.coq_running :
@@ -210,8 +166,6 @@ class ProofEnv(gym.Env):
 		self.coq_running = True
 		self.num_proofs = 0
 		self.num_proofs_solved = 0
-		self.in_agent_proof_mode= False
-		self.in_file_proof_mode= True
 		self.commands = load_commands(self.proof_files[self.proof_file_index], progress_bar=True)
 		print("Starting File :", self.proof_files[self.proof_file_index])
 
@@ -223,24 +177,17 @@ class ProofEnv(gym.Env):
 		self.state_model = torch.load(buffer,map_location=torch.device(self.device))
 
 	def admit_and_skip_proof(self) :
-		self.in_agent_proof_mode= False
-		self.in_file_proof_mode = False
 		print("Admitting current proof without solving")
 		admitting_cmds = admit_proof(self.coq, self.coq.prev_tactics[0], "")
-		self.curr_proof_tactics += admitting_cmds
 		if self.wandb_log :
 			wandb.log({"Num command Attempts" : self.num_commands  })
-		self.prooflines_file_write("\n".join(self.curr_proof_tactics))
+		self.prooflines_file_write("\n".join(self.coq.tacticHistory.getFullHistory()))
 		# self.solve_curr_from_file()
 		self.navigate_file_end_of_current_proof()
-		self.in_agent_proof_mode= False
-		self.in_file_proof_mode = True
 		self.goto_next_proof()
 		done = True
 		next_state = self.coq.proof_context
 		r = 0#-1
-		self.in_agent_proof_mode= True
-		self.in_file_proof_mode = False
 		info = {}
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		info["next_state"] = next_state
@@ -431,7 +378,6 @@ class ProofEnv(gym.Env):
 			self.debug_time.append(b-a)
 			print("Time for running the above command", b-a)
 			r = 0 #No rewards for progress
-			self.curr_proof_tactics.append(prediction)
 			a = time.time()
 			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
 				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
@@ -440,7 +386,6 @@ class ProofEnv(gym.Env):
 					continue
 				print("Running }")
 				self.coq.run_stmt("}", timeout= self.time_per_command)
-				self.curr_proof_tactics.append("}")
 			b = time.time()
 			self.debug_time.append(b-a)
 
@@ -449,7 +394,6 @@ class ProofEnv(gym.Env):
 				print(self.coq.proof_context.fg_goals,self.coq.proof_context.bg_goals)
 				print("Running {")
 				self.coq.run_stmt( "{", timeout= self.time_per_command)
-				self.curr_proof_tactics.append("{")
 			b = time.time()
 			self.debug_time.append(b-a)
 
@@ -459,22 +403,18 @@ class ProofEnv(gym.Env):
 					wandb.log({"Num command Attempts" : self.num_commands  })
 				b = time.time()
 				self.debug_time.append(b-a)
+				tactics = self.coq.tactic_history.getFullHistory() + ["Qed."]
 				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
-				self.curr_proof_tactics.append("Qed.")
 				r = 1
 				print("Current proof fin with Good rewards")
-				self.test_file_write("\n".join(self.curr_proof_tactics) )
-				self.prooflines_file_write("\n".join(self.curr_proof_tactics))
+				self.test_file_write("\n".join(tactics))
+				self.prooflines_file_write("\n".join(tactics))
 				self.num_proofs_solved += 1
-				self.in_agent_proof_mode= False
-				self.in_file_proof_mode = False
 				a = time.time()
 				self.navigate_file_end_of_current_proof()
 				b = time.time()
 				self.debug_time.append(b-a)
 				print("Time taken to naviagate file to the end of current proof", b -a)
-				self.in_agent_proof_mode= False
-				self.in_file_proof_mode = True
 				a = time.time()
 				self.goto_next_proof()
 				b = time.time()
@@ -626,7 +566,7 @@ class FastProofEnv(gym.Env):
 		return self.main_engine.proof_time_calculated
 	@property
 	def curr_proof_tactics(self):
-		return self.main_engine.curr_proof_tactics
+                return self.coq.tactic_history.getFullHistory()
 	def create_pipes_and_children(self) :
 		self.server_end_pipes = []
 		self.child_end_pipes = []
