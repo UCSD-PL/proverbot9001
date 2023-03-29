@@ -46,7 +46,7 @@ class ProofEnv(gym.Env):
 		self.proof_file_index = 0
 		self.proof_line_num = 0
 		self.wandb_log = wandb
-		self.coq_running = False
+		self.coq: Optional[SerapiInstance] = None
 		self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 		# self.state_type = state_type #text, index, vector
 		self.write_solved_proofs = write_solved_proofs
@@ -157,13 +157,12 @@ class ProofEnv(gym.Env):
 		raise Exception("Solving from File called. Don't solve from File.")
 
 	def reset_to_start_of_file(self) :
-		if self.coq_running :
+		if self.coq is not None:
 			self.coq.kill()
 		self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
 		self.coq.verbose = 3
 		self.coq.quiet = True
 		self.proof_line_num = 0
-		self.coq_running = True
 		self.num_proofs = 0
 		self.num_proofs_solved = 0
 		self.commands = load_commands(self.proof_files[self.proof_file_index], progress_bar=True)
