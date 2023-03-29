@@ -357,7 +357,7 @@ class ProofEnv(gym.Env):
 		return False
 	def check_next_state(self,prediction):
 		info = {}
-		print("Checking next state for action -", prediction)
+		eprint("Checking next state for action -", prediction)
 		tactic_class,tactic_args = split_tactic(prediction.strip().rstrip("."))
 		if tactic_class.lower().strip() == "exploit" :
 			if self.info_on_check :
@@ -375,7 +375,7 @@ class ProofEnv(gym.Env):
 				serapi_instance.ParseError,
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
-			print("One of known errors", e)
+			eprint("One of known errors", e)
 		except serapi_instance.CoqAnomaly:
 			print("Coq Anomaly")
 			# self.kill()
@@ -386,7 +386,7 @@ class ProofEnv(gym.Env):
 			quit()
 		else :
 			b = time.time()
-			print("Time for running the above command", b-a)
+			eprint("Time for running the above command", b-a)
 			num_brackets_run = 0
 			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
 				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
@@ -402,7 +402,7 @@ class ProofEnv(gym.Env):
 				print("Context before running open brace :",self.coq.proof_context)
 				print("Running {")
 				self.coq.run_stmt( "{", timeout= self.time_per_command)
-				print("Context after running open brace :",self.coq.proof_context)
+				eprint("Context after running open brace :",self.coq.proof_context)
 				num_brackets_run += 1
 
 			if completed_proof(self.coq) :
@@ -425,23 +425,23 @@ class ProofEnv(gym.Env):
 				next_state_name =  self.coq.proof_context.fg_goals[0].goal
 				next_state =self.coq.proof_context
 				info["state_text"] = next_state_name.strip()
-				print("Context is fresh for this actions")
+				eprint("Context is fresh for this actions")
 			else :
-				print("Context is not fresh for this action")
+				eprint("Context is not fresh for this action")
 				next_state = []
-			
+
 			if num_brackets_run > 0 :
-				print("Cancelling", num_brackets_run, "Brackets")
+				eprint("Cancelling", num_brackets_run, "Brackets")
 				for _ in range(num_brackets_run) :
-					self.coq.cancel_last()
+					self.coq.cancel_last(force_update_nonfg_goals=True)
 
 			context_mid = self.coq.proof_context
-			self.coq.cancel_last()
-			print("Cancelled - ",prediction)
-		
+			self.coq.cancel_last(force_update_nonfg_goals=True)
+			eprint("Cancelled - ",prediction)
+
 		context_after = self.coq.proof_context
-		
-		assert self.is_same_context(context_before,context_after)
+
+		assert self.is_same_context(context_before,context_after), (context_before, context_after)
 		# except :
 		# 	print("History is -> {, eauto, cancel")
 		# 	for obligation in context_after.all_goals :
