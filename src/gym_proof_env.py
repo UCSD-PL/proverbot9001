@@ -63,14 +63,14 @@ class ProofEnv(gym.Env):
 
 		self.max_num_proofs = 15
 		self.num_proofs = 0
-		self.load_list_tactic_classes()
-	def prooflines_file_write(self, write_str) :
+		self._load_list_tactic_classes()
+	def _prooflines_file_write(self, write_str) :
 		if self.write_solved_proofs :
 			with open(self.proof_lines_file,"a") as f :
 				f.write(write_str)
 				f.flush()
 
-	def load_list_tactic_classes(self) :
+	def _load_list_tactic_classes(self) :
 		with open("tactics.txt", "r") as f :
 			whole_file = f.read()
 			self.list_of_tactic_classes = whole_file.split("\n")
@@ -96,7 +96,7 @@ class ProofEnv(gym.Env):
 				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
 				self.proof_line_num += 1
 
-	def goto_next_proof(self):
+	def _goto_next_proof(self):
 		assert self.coq.proof_context is None
 		self.end_proof_time = time.time()
 		self.num_commands = 0
@@ -116,9 +116,9 @@ class ProofEnv(gym.Env):
 				self.proof_line_num += 1
 		if self.proof_line_num >= len(self.commands) : #or self.num_proofs >= self.max_num_proofs :
 			print("File Finished")
-			self.reset_to_start_of_file()
+			self._reset_to_start_of_file()
 
-			return self.goto_next_proof()
+			return self._goto_next_proof()
 
 		self.proof_time = self.end_proof_time - self.start_proof_time
 		self.start_proof_time = time.time()
@@ -127,7 +127,7 @@ class ProofEnv(gym.Env):
 		return None #self.get_state_vector( self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip())
 
 
-	def navigate_file_end_of_current_proof(self) :
+	def _navigate_file_end_of_current_proof(self) :
 		# This is wrong - Not all proofs end with QED. Also make this section cleaner.
 		print("Navigating file to the end of current proof without running")
 		assert self.coq.proof_context is None
@@ -145,7 +145,7 @@ class ProofEnv(gym.Env):
 	def solve_curr_from_file(self) :
 		raise Exception("Solving from File called. Don't solve from File.")
 
-	def reset_to_start_of_file(self) :
+	def _reset_to_start_of_file(self) :
 		if self.coq is not None:
 			self.coq.kill()
 		self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
@@ -164,15 +164,15 @@ class ProofEnv(gym.Env):
 			buffer = io.BytesIO(f.read())
 		self.state_model = torch.load(buffer,map_location=torch.device(self.device))
 
-	def admit_and_skip_proof(self) :
+	def _admit_and_skip_proof(self) :
 		print("Admitting current proof without solving")
 		admitting_cmds = admit_proof(self.coq, self.coq.prev_tactics[0], "")
 		if self.wandb_log :
 			wandb.log({"Num command Attempts" : self.num_commands  })
-		self.prooflines_file_write("\n".join(self.coq.tactic_history.getFullHistory()))
 		# self.solve_curr_from_file()
-		self.navigate_file_end_of_current_proof()
-		self.goto_next_proof()
+		self._prooflines_file_write("\n".join(self.coq.tactic_history.getFullHistory()))
+		self._navigate_file_end_of_current_proof()
+		self._goto_next_proof()
 		done = True
 		next_state = self.coq.proof_context
 		r = 0#-1
@@ -181,7 +181,7 @@ class ProofEnv(gym.Env):
 		info["next_state"] = next_state
 		return next_state, r, done, info
 
-	def is_context_fresh(self, curr_proof_context) :
+	def _is_context_fresh(self, curr_proof_context) :
 		# print(len(self.proof_contexts_in_path))
 		for context in self.proof_contexts_in_path :
 			if contextSurjective(curr_proof_context, context) :
@@ -193,7 +193,7 @@ class ProofEnv(gym.Env):
 		if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
 			return True
 		return False
-	def check_next_state(self,prediction):
+	def _check_next_state(self,prediction):
 		info = {}
 		eprint("Checking next state for action -", prediction)
 		tactic_class,tactic_args = split_tactic(prediction.strip().rstrip("."))
@@ -259,7 +259,7 @@ class ProofEnv(gym.Env):
 				print("Something is wrong. Lost context")
 				quit()
 
-			if self.is_context_fresh(self.coq.proof_context) :
+			if self._is_context_fresh(self.coq.proof_context) :
 				next_state_name =  self.coq.proof_context.fg_goals[0].goal
 				next_state =self.coq.proof_context
 				info["state_text"] = next_state_name.strip()
@@ -334,7 +334,7 @@ class ProofEnv(gym.Env):
 
 		if action is None:
 			r = 0
-			s_next,episode_r, done, info = self.admit_and_skip_proof()
+			s_next,episode_r, done, info = self._admit_and_skip_proof()
 			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
 		done = False
 		# prediction = self.get_pred(action)
@@ -351,7 +351,7 @@ class ProofEnv(gym.Env):
 				coq_serapy.UnrecognizedError) as e:
 			eprint("One of known errors", e)
 			r = 0
-			s_next,episode_r, done, info = self.admit_and_skip_proof()
+			s_next,episode_r, done, info = self._admit_and_skip_proof()
 			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
 		except coq_serapy.CoqAnomaly:
 			eprint("Coq Anomaly")
@@ -395,15 +395,15 @@ class ProofEnv(gym.Env):
 				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
 				r = 1
 				print("Current proof fin with Good rewards")
-				self.prooflines_file_write("\n".join(tactics))
+				self._prooflines_file_write("\n".join(tactics))
 				self.num_proofs_solved += 1
 				a = time.time()
-				self.navigate_file_end_of_current_proof()
+				self._navigate_file_end_of_current_proof()
 				b = time.time()
 				self.debug_time.append(b-a)
 				print("Time taken to naviagate file to the end of current proof", b -a)
 				a = time.time()
-				self.goto_next_proof()
+				self._goto_next_proof()
 				b = time.time()
 				self.debug_time.append(b-a)
 				print("Time taken to run goto_next_proof function", b-a)
@@ -421,7 +421,7 @@ class ProofEnv(gym.Env):
 
 			self.num_commands += 1
 			a = time.time()
-			assert self.is_context_fresh(self.coq.proof_context)
+			assert self._is_context_fresh(self.coq.proof_context)
 			b = time.time()
 			self.debug_time.append(b-a)
 			print("Time taken to check if context fresh", b - a)
@@ -430,7 +430,7 @@ class ProofEnv(gym.Env):
 
 		if self.num_commands > self.max_proof_len :
 			a = time.time()
-			result = self.admit_and_skip_proof()
+			result = self._admit_and_skip_proof()
 			b = time.time()
 			self.debug_time.append(b-a)
 			print("Time taken to run admit and skip proof", b-a)
@@ -440,10 +440,10 @@ class ProofEnv(gym.Env):
 		return next_state, r, done, info  #next_obs, rewards, dones, infos
 
 	def reset(self):
-		self.reset_to_start_of_file()
+		self._reset_to_start_of_file()
 		self.start_proof_time = 0
 		self.debug_time = []
-		self.goto_next_proof()
+		self._goto_next_proof()
 		# state = self.get_state_vector( self.coq.proof_context )
 		state = self.coq.proof_context
 		info = {}
@@ -475,10 +475,10 @@ def child_process(pid, critical, pipe) :
 		elif func == 'step' :
 			result = test_env.step(args)
 		elif func == 'check_next_state' :
-			result = test_env.check_next_state(args)
+			result = test_env._check_next_state(args)
 			print("Results of Check next state inside a child - ",result)
 		elif func == 'admit_and_skip_proof' :
-			result = test_env.admit_and_skip_proof()
+			result = test_env._admit_and_skip_proof()
 		elif func == 'run_to_proof' :
 			result = test_env.run_to_proof(args)
 		elif func == 'terminate' :
@@ -509,7 +509,7 @@ class FastProofEnv(gym.Env):
 		# self.language_model = self.main_engine.language_model
 		print("weightsfile: ",weightsfile)
 		self.predictor = loadPredictorByFile(weightsfile)
-		self.create_pipes_and_children()
+		self._create_pipes_and_children()
 		self.action_space = Discrete(1565)
 		# print("$$$$$$$$$$$$$$$$$",isinstance(self.action_space,spaces.Discrete))
 		self.max_term_length = max_term_length
@@ -523,16 +523,16 @@ class FastProofEnv(gym.Env):
 		termvectorizer.load_weights("data/term2vec-weights-59.dat")
 		return termvectorizer
 
-	def encode_state(self,state):
+	def _encode_state(self,state):
 		with torch.no_grad():
 			if len(state.fg_goals) > 0:
 				s_enc = self.state_encoder.term_to_vector(state.fg_goals[0].goal).flatten()
 			else:
 				s_enc = self.state_encoder.term_to_vector("").flatten()
 		return s_enc
-	def encode_next_states(self,ls_states):
+	def _encode_next_states(self,ls_states):
 		if len(ls_states)>0:
-			encoded_next_states = torch.stack([self.encode_state(state) for state in ls_states], dim=0)
+			encoded_next_states = torch.stack([self._encode_state(state) for state in ls_states], dim=0)
 		else:
 			encoded_next_states = torch.tensor([])
 		return encoded_next_states
@@ -554,7 +554,7 @@ class FastProofEnv(gym.Env):
 	@property
 	def curr_proof_tactics(self):
                 return self.coq.tactic_history.getFullHistory()
-	def create_pipes_and_children(self) :
+	def _create_pipes_and_children(self) :
 		self.server_end_pipes = []
 		self.child_end_pipes = []
 		for i in range(self.num_check_engines) :
@@ -580,14 +580,14 @@ class FastProofEnv(gym.Env):
 	def set_reachable_states(self,reachable_states):
 		self.reachable_states = reachable_states
 
-	def admit_and_skip_proof(self):
+	def _admit_and_skip_proof(self):
 		print("Admitting and Skipping the current proof on all Test engines")
 		for pipe in self.server_end_pipes :
 			pipe.send( ["admit_and_skip_proof",None])
 		for pipe in self.server_end_pipes :
 			pipe.recv()
 		print("Test engines sucessfully skipped proof")
-		return self.main_engine.admit_and_skip_proof()
+		return self.main_engine._admit_and_skip_proof()
 
 	def reset(self) :
 		state,info = self.main_engine.reset()
@@ -596,10 +596,10 @@ class FastProofEnv(gym.Env):
 		for pipe in self.server_end_pipes :
 			pipe.recv()
 		print("All Test Engines Reset")
-		state_encoded = self.encode_state(state)
-		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
+		state_encoded = self._encode_state(state)
+		next_states, list_of_pred, next_state_texts = self._get_available_actions_with_next_state_vectors()
 		# quit()
-		next_states_encoded = self.encode_next_states(next_states)
+		next_states_encoded = self._encode_next_states(next_states)
 		info['reachable_states'] = next_states_encoded
 		info['list_of_pred'] = list_of_pred
 		info['reachable_states_text'] = next_state_texts
@@ -614,9 +614,9 @@ class FastProofEnv(gym.Env):
 		for pipe in self.server_end_pipes :
 			pipe.recv()
 		s_next,episode_r, done, info = self.main_engine.step(action)
-		s_next_encoded = self.encode_state(s_next)
-		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
-		next_states_encoded = self.encode_next_states(next_states)
+		s_next_encoded = self._encode_state(s_next)
+		next_states, list_of_pred, next_state_texts = self._get_available_actions_with_next_state_vectors()
+		next_states_encoded = self._encode_next_states(next_states)
 		# self.num_proofs = self.main_engine.num_proofs
 		# self.num_proofs_solved = self.main_engine.num_proofs_solved
 		info['reachable_states'] = next_states_encoded
@@ -626,7 +626,7 @@ class FastProofEnv(gym.Env):
 		self.set_reachable_states(next_states_encoded)
 		return s_next_encoded, episode_r, done, info
 
-	def check_next_states(self,predictions):
+	def _check_next_states(self,predictions):
 		print("Checking next States on all Test Engines")
 		a = time.time()
 		for i in range(len(predictions)) :
@@ -660,7 +660,7 @@ class FastProofEnv(gym.Env):
 		print("Keepalive")
 		# quit()
 		return ""
-	def get_available_actions_with_next_state_vectors(self) :
+	def _get_available_actions_with_next_state_vectors(self) :
 		relevant_lemmas = self.coq.local_lemmas[:-1]
 		# print(self.coq.proof_context)
 		full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
@@ -672,7 +672,7 @@ class FastProofEnv(gym.Env):
 		next_state_texts = []
 		print("Available actions", [_.prediction for _ in predictions])
 		all_available_pred =  [_.prediction.lstrip().rstrip() for _ in predictions]
-		result = self.check_next_states(all_available_pred)
+		result = self._check_next_states(all_available_pred)
 		# print(result)
 		# quit()
 		all_next_states, all_next_infos = result
