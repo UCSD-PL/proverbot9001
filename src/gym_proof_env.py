@@ -14,7 +14,8 @@ import dataloader
 import coq_serapy as serapi_instance
 from coq_serapy import load_commands, kill_comments, get_hyp_type, get_indexed_vars_dict, get_stem, split_tactic, contextSurjective, summarizeContext
 from coq_serapy import ending_proof, possibly_starting_proof
-from coq_serapy.contexts import truncate_tactic_context, FullContext
+from coq_serapy.contexts import (truncate_tactic_context, FullContext,
+                                 assert_proof_context_matches)
 from search_file import loadPredictorByFile,loadPredictorByName
 from search_strategies import completed_proof
 from train_encoder import EncoderRNN, DecoderRNN, Lang, indexesFromSentence, tensorFromSentence, EOS_token
@@ -441,7 +442,7 @@ class ProofEnv(gym.Env):
 
 		context_after = self.coq.proof_context
 
-		assert self.is_same_context(context_before,context_after), (context_before, context_after)
+		assert_proof_context_matches(context_before, context_after)
 		# except :
 		# 	print("History is -> {, eauto, cancel")
 		# 	for obligation in context_after.all_goals :
