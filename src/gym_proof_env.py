@@ -77,10 +77,6 @@ class ProofEnv(gym.Env):
 		
 		# TODO: see if we can put predictor in the envionment?
 		self.time_per_command= time_per_command
-		# TODO: REMOVE this 
-		# if state_type == "vector" :
-		# 	self.load_state_model()
-		# self.load_language_model()
 		self.max_proof_len = max_proof_len
 		os.makedirs("output", exist_ok=True)
 		self.test_file =  "output/output_test_file.txt" #TODO change this back
@@ -93,16 +89,9 @@ class ProofEnv(gym.Env):
 		with open(self.context_file,"w") as f :
 			f.write("")
 
-		
-		# if "vector" in state_type :		
-		# 	self.termvectorizer = coq2vec.CoqTermRNNVectorizer()
-		# 	self.termvectorizer.load_weights("data/term2vec-weights-59.dat")
-		# 	num_hyps_encoded = 4
-		# 	self.obligationvectorizer = coq2vec.CoqContextVectorizer(self.termvectorizer, num_hyps_encoded)
 		self.curr_proof_tactics = []
 		self.max_num_proofs = 15
 		self.num_proofs = 0
-		# self.restrictions = defaultdict(lambda: [])
 		self.load_list_tactic_classes()
 	def test_file_write(self, write_str) :
 		if self.write_solved_proofs :
@@ -252,42 +241,6 @@ class ProofEnv(gym.Env):
 		with open('data/encoder_symbols.model', 'rb') as f:
 			buffer = io.BytesIO(f.read())
 		self.state_model = torch.load(buffer,map_location=torch.device(self.device))
-		# self.state_model =  torch.load("data/encoder_symbols.model", map_location=torch.device(self.device))
-
-
-	# def load_language_model(self) :
-	# 	with open("../data/encoder_language_symbols.pkl","rb") as f:
-	# 		self.language_model = pickle.load(f)
-
-	# def get_state_vector(self,proof_state) :
-	# 	state_text = proof_state.fg_goals[0].goal.strip()
-	# 	print("State Text : ",state_text)
-	# 	if self.state_type == "goal_index" :
-	# 		state_sentence = get_symbols(state_text)
-	# 		indexes = indexesFromSentence(self.language_model, state_sentence, ignore_missing = True)
-	# 		# indexes.append(EOS_token)
-	# 		return  indexes
-	# 	elif self.state_type == "goal_text" :
-	# 		return state_text
-	# 	elif self.state_type == "goal_vector" :
-	# 		return self.termvectorizer.term_to_vector(state_text)
-	# 	elif self.state_type == "obligation" :
-	# 		return proof_state.fg_goals[0]
-	# 	elif self.state_type == "obligation_index" :
-	# 		goal_state_sentence = get_symbols( proof_state.fg_goals[0].goal.strip())
-	# 		goal_indexes = indexesFromSentence(self.language_model, goal_state_sentence, ignore_missing = True)
-	# 		all_hyp_indexes = []
-	# 		for hyp in proof_state.fg_goals[0].hypotheses :
-	# 			hyp_sentence =  get_symbols( hyp.strip())
-	# 			hyp_indexes = indexesFromSentence(self.language_model, hyp_sentence, ignore_missing = True)
-	# 			all_hyp_indexes.append(hyp_indexes)
-
-	# 		all_hyp_indexes.append(indexesFromSentence(self.language_model, ":", ignore_missing = True))
-	# 		return [goal_indexes, all_hyp_indexes]
-	# 	elif self.state_type == "obligation_vector" :
-	# 		return self.obligationvectorizer.obligation_to_vector(proof_state.fg_goals[0])
-	# 	else :
-	# 		raise ValueError("Invalid State type", self.state_type)
 
 	def admit_and_skip_proof(self) :
 		self.in_agent_proof_mode= False
@@ -313,31 +266,6 @@ class ProofEnv(gym.Env):
 		info["next_state"] = next_state
 		return next_state, r, done, info
 
-
-
-	# def get_available_actions_with_next_state_vectors(self) :
-	# 	# print(len( env.coq.proof_context.fg_goals),  env.coq.proof_context.fg_goals)
-	# 	# print(completed_proof(env.coq))
-	# 	relevant_lemmas = self.coq.local_lemmas[:-1]
-	# 	print(self.coq.proof_context)
-	# 	full_context_before = FullContext(relevant_lemmas, self.coq.prev_tactics,  self.coq.proof_context)
-	# 	predictions = self.predictor.predictKTactics(
-	# 		truncate_tactic_context(full_context_before.as_tcontext(),
-	# 								self.max_term_length), self.max_attempts)
-	# 	next_states = []
-	# 	list_of_pred = []
-	# 	next_state_texts = []
-	# 	print("Available actions", [_.prediction for _ in predictions])
-	# 	for prediction_idx, prediction in enumerate(predictions):
-	# 		curr_pred = prediction.prediction.strip()
-	# 		state_vec = self.check_next_state(curr_pred)
-	# 		if len(state_vec) == 0 :
-	# 			continue
-	# 		else :
-	# 			list_of_pred.append( prediction )
-	# 			next_states.append(preprocess_state(state_vec))
-	# 	return next_states, list_of_pred, next_state_texts
-	
 	def is_context_fresh(self, curr_proof_context) :
 		# print(len(self.proof_contexts_in_path))
 		for context in self.proof_contexts_in_path :
@@ -345,12 +273,6 @@ class ProofEnv(gym.Env):
 				return False
 		return True
 
-	def is_same_context(self,context1, context2) :
-		# print("Context Surjectives")
-		# print(contextSurjective(context1, context2))
-		# print(contextSurjective(context2, context1))
-		return contextSurjective(context1, context2) and contextSurjective(context2, context1)
-	
 	def is_tactics_repeating(self,context, cutoff = 4) :
 		tactics_used = context.prev_tactics
 		if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
@@ -455,7 +377,6 @@ class ProofEnv(gym.Env):
 		# 	print("History is -> { ")
 		# 	for obligation in context_before.all_goals :
 		# 		print(obligation.goal)
-		# 	assert self.is_same_context(context_before,context_after)
 
 		if self.info_on_check :
 			return next_state,info
@@ -858,19 +779,6 @@ class FastProofEnv(gym.Env):
 				next_state_texts.append(curr_next_state_text)
 		return next_states, list_of_pred, next_state_texts
 
-
-def is_same_context(context1, context2) :
-	return contextSurjective(context1, context2) and contextSurjective(context2, context1)
-
-def is_context_fresh_utils( context_history, curr_proof_context) :
-	print(len(context_history))
-	for context in context_history :
-		if contextSurjective(curr_proof_context, context) :
-			print("False")
-			return False
-		else:
-			print("True")
-	return True
 
 def repeating_actions(action, tactics_used, cutoff = 6) :
 	if len(tactics_used) < cutoff :
