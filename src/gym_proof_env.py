@@ -150,18 +150,15 @@ class ProofEnv(gym.Env):
 				self.proof_line_num += 1
 
 	def goto_next_proof(self):
-		print("Going to next Proof")
 		assert self.in_agent_proof_mode == False
 		assert self.in_file_proof_mode == True
 		self.end_proof_time = time.time()
 		self.num_commands = 0
 		self.proof_contexts_in_path = []
-		print("Before : ",self.coq.proof_context)
 		while self.proof_line_num < len(self.commands) :# and  self.num_proofs <= self.max_num_proofs :
 			not_function = kill_comments(self.commands[self.proof_line_num - 1]).lstrip().rstrip().split()[0].lower() != "function"
 			if self.commands[self.proof_line_num].lstrip().rstrip() == "Proof." and not_function:
 				print(self.commands[self.proof_line_num - 1].lstrip().rstrip().split()[0].lower())
-				print("Found Proof : ", kill_comments(self.commands[self.proof_line_num - 1].lstrip().rstrip()))
 				self.curr_proof_tactics = [ "\n", "(" + str(self.num_proofs + 1) + ") ",  self.commands[self.proof_line_num - 1].lstrip().rstrip(), "Proof."]
 				
 				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
@@ -182,7 +179,6 @@ class ProofEnv(gym.Env):
 			
 			return self.goto_next_proof()
 
-		print("Context After finding proof : ",self.coq.proof_context)
 		self.proof_time = self.end_proof_time - self.start_proof_time
 		self.start_proof_time = time.time()
 		self.proof_time_calculated = sum(self.debug_time)
@@ -235,7 +231,6 @@ class ProofEnv(gym.Env):
 
 
 	def reset_to_start_of_file(self) :
-		print("Reseting to Start of next file")
 		if self.coq_running :
 			self.coq.kill()
 		self.coq = serapi_instance.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
@@ -546,7 +541,6 @@ class ProofEnv(gym.Env):
 				self.curr_proof_tactics.append("}")
 			b = time.time()
 			self.debug_time.append(b-a)
-			print("Time for the first while loop", b-a)
 
 			a = time.time()
 			if len(self.coq.proof_context.fg_goals) > 1 :
@@ -556,7 +550,6 @@ class ProofEnv(gym.Env):
 				self.curr_proof_tactics.append("{")
 			b = time.time()
 			self.debug_time.append(b-a)
-			print("Time taken for opening brackets", b-a)
 
 			a= time.time()
 			if completed_proof(self.coq) :
@@ -564,7 +557,6 @@ class ProofEnv(gym.Env):
 					wandb.log({"Num command Attempts" : self.num_commands  })
 				b = time.time()
 				self.debug_time.append(b-a)
-				print("Time taken to check completed proof", b - a)
 				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
 				self.curr_proof_tactics.append("Qed.")
 				r = 1
@@ -623,13 +615,11 @@ class ProofEnv(gym.Env):
 		self.start_proof_time = 0
 		self.debug_time = []
 		self.goto_next_proof()
-		print("Proof context after reset and next file start: ", self.coq.proof_context)
 		# state = self.get_state_vector( self.coq.proof_context )
 		state = self.coq.proof_context
 		info = {}
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		info["next_states"] = state
-		print("Reset done")
 		return (state,info)
 
 def child_process(pid, critical, pipe) :
@@ -769,11 +759,10 @@ class FastProofEnv(gym.Env):
 
 	def reset(self) :
 		state,info = self.main_engine.reset()
-		print("Reseting all Test Engines")
 		for pipe in self.server_end_pipes :
 			pipe.send(["reset",None])
 		for pipe in self.server_end_pipes :
-			print(pipe.recv())
+			pipe.recv()
 		print("All Test Engines Reset")
 		state_encoded = self.encode_state(state)
 		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
@@ -789,11 +778,9 @@ class FastProofEnv(gym.Env):
 	def step(self, action) :
 		print("Stepping on all Test Engines")
 		for pipe in self.server_end_pipes :
-			print(action)
 			pipe.send(["step",action])
 		for pipe in self.server_end_pipes :
 			pipe.recv()
-		print("Stepped on all Test Engines")
 		s_next,episode_r, done, info = self.main_engine.step(action)
 		s_next_encoded = self.encode_state(s_next)
 		next_states, list_of_pred, next_state_texts = self.get_available_actions_with_next_state_vectors()
@@ -817,7 +804,6 @@ class FastProofEnv(gym.Env):
 			recv_obj = pipe.recv()
 			results.append(recv_obj)
 		b = time.time()
-		print("Checked next States on all Test Enignes")
 		# print(results)
 		print("Time for check next states", b - a)
 		# quit()
@@ -832,7 +818,6 @@ class FastProofEnv(gym.Env):
 			pipe.send(["run_to_proof",proof_contains])
 		for pipe in self.server_end_pipes :
 			pipe.recv()
-		print("Stepped on all Test Engines")
 		return self.main_engine.run_to_proof(proof_contains)
 	
 	def keepalive(self) :
