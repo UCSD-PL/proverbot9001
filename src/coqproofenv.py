@@ -49,7 +49,9 @@ class ProofEnv() :
 		self.state_type = state_type #text, index, vector
 		self.write_solved_proofs = write_solved_proofs
 		self.info_on_check = info_on_check
-
+		self.max_numobl = 20
+		self.max_size_largestobl = 500
+		self.excluded_proofs = ['Instance TransfSelectionLink : TransfLink match_prog.', 'Theorem div_error_FLX', 'Theorem sqrt_error_FLX_N']
 
 		self.time_per_command= time_per_command
 		if state_type == "vector" :
@@ -101,25 +103,27 @@ class ProofEnv() :
 			for i in range(len(self.list_of_tactic_classes)) :
 				self.list_of_tactic_classes[i] = self.list_of_tactic_classes[i].strip().rstrip(".")
 
-	def run_to_proof(self, proof_contains) :
+	def run_to_proof(self, proof_contains, reset_proof_tactic_history = True) :
 		print("Running to proof",proof_contains)
 		while self.proof_line_num < len(self.commands) :# and  self.num_proofs <= self.max_num_proofs :
 			if proof_contains in self.commands[self.proof_line_num] :
 				print("Found Proof : ", kill_comments(self.commands[self.proof_line_num].lstrip().rstrip()))
 				self.curr_proof_tactics = [ "\n", "(" + str(self.num_proofs + 1) + ") ",  self.commands[self.proof_line_num - 1].lstrip().rstrip(), "Proof."]
 				
-				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
+				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command, force_update_nonfg_goals = True)
 				self.proof_line_num += 1
 				self.in_agent_proof_mode= True
 				self.in_file_proof_mode = False
 				self.num_proofs  += 1
 				self.proof_contexts_in_path.append(self.coq.proof_context)
+				if reset_proof_tactic_history :
+					self.curr_proof_tactic_history = []
 				break
 			else :	
 				not_function = kill_comments(self.commands[self.proof_line_num - 1]).lstrip().rstrip().split()[0].lower() != "function"
 				if self.commands[self.proof_line_num].lstrip().rstrip() == "Proof." and not_function:
 					self.num_proofs  += 1
-				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
+				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command, force_update_nonfg_goals = True)
 				self.proof_line_num += 1
 
 
@@ -133,21 +137,25 @@ class ProofEnv() :
 		self.proof_contexts_in_path = []
 		print("Before : ",self.coq.proof_context)
 		while self.proof_line_num < len(self.commands) :# and  self.num_proofs <= self.max_num_proofs :
-			not_function = kill_comments(self.commands[self.proof_line_num - 1]).lstrip().rstrip().split()[0].lower() != "function"
-			if self.commands[self.proof_line_num].lstrip().rstrip() == "Proof." and not_function:
+			not_function = not kill_comments(self.commands[self.proof_line_num - 1]).lstrip().rstrip().split()[0].lower() in ["function", "derive"]
+			not_excluded = all( [ (not i in self.commands[self.proof_line_num - 1] ) for i in self.excluded_proofs ] )
+			if self.commands[self.proof_line_num].lstrip().rstrip() == "Proof." and not_function and not_excluded:
 				print(self.commands[self.proof_line_num - 1].lstrip().rstrip().split()[0].lower())
 				print("Found Proof : ", kill_comments(self.commands[self.proof_line_num - 1].lstrip().rstrip()))
+				self.curr_proof = self.commands[self.proof_line_num - 1]
+
 				self.curr_proof_tactics = [ "\n", "(" + str(self.num_proofs + 1) + ") ",  self.commands[self.proof_line_num - 1].lstrip().rstrip(), "Proof."]
 				
-				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
+				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command,force_update_nonfg_goals = True)
 				self.proof_line_num += 1
 				self.in_agent_proof_mode= True
 				self.in_file_proof_mode = False
 				self.num_proofs  += 1
 				self.proof_contexts_in_path.append(self.coq.proof_context)
+				self.curr_proof_tactic_history = []
 				break
 			else :	
-				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
+				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command, force_update_nonfg_goals = True)
 				self.proof_line_num += 1
 		
 		
@@ -181,25 +189,34 @@ class ProofEnv() :
 	
 	def clear_coq_proof_context(self) :
 		while self.coq.proof_context != None :
-			self.coq.cancel_last()
+			self.coq.cancel_last(force_update_nonfg_goals = True)
+
+	def reset_proof_progress(self) :
+		print("Resetting proof progress")
+		while self.coq.tactic_history.getFullHistory()[-1] != "Proof." :
+			self.coq.cancel_last(force_update_nonfg_goals= True)
 
 	def solve_curr_from_file(self) :
-		raise Exception("Solving from File called. Don't solve from File.")
+		# raise Exception("Solving from File called. Don't call this function. Its bad for your health")
 		print("Starting to solve from current file")
 		print("Proof Line Num : ", self.proof_line_num )
-		self.clear_coq_proof_context()
-		print( "Currently on :", self.commands[self.proof_line_num].lstrip().rstrip() )
+		# self.clear_coq_proof_context()
+		print( "Currently on command :", self.commands[self.proof_line_num].lstrip().rstrip() )
 		print("Finding the Previous Proof. statement")
-		while self.commands[self.proof_line_num].lstrip().rstrip() != "Proof.":
-			self.proof_line_num -= 1
-			print( self.commands[self.proof_line_num].lstrip().rstrip() )
-		print("Context After finding Proof. statement : ",self.coq.proof_context, " << should be None")
-		print(self.proof_line_num)
-		self.proof_line_num -= 1
-		print("Found the proof section for - ",self.commands[self.proof_line_num].lstrip().rstrip())
-		self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
-		print("Context After running the proof statement for the above: ",self.coq.proof_context)
-		self.proof_line_num += 1
+		# while self.commands[self.proof_line_num].lstrip().rstrip() != "Proof.":
+			
+		# 	raise ValueError("This should never run (I think)")
+		# 	self.proof_line_num -= 1
+		# 	print( self.commands[self.proof_line_num].lstrip().rstrip() )
+		
+		assert self.commands[self.proof_line_num - 1].strip() == "Proof.", str(self.commands[ self.proof_line_num - 5: self.proof_line_num]) + " is not Proof."
+		# print("Context After finding Proof. statement : ",self.coq.proof_context, " << should be None")
+		# print(self.proof_line_num)
+		# self.proof_line_num -= 1
+		print("Found the proof section in file for - ",self.commands[self.proof_line_num - 2].lstrip().rstrip())
+		# self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
+		# print("Context After running the proof statement for the above: ",self.coq.proof_context)
+		# self.proof_line_num += 1
 		while self.coq.proof_context != None :
 			self.context_file_write("Running - "+ self.commands[self.proof_line_num].lstrip().rstrip() + "\n") 
 			self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command)
@@ -212,10 +229,7 @@ class ProofEnv() :
 		print("Done solving from File", self.proof_line_num)
 
 		
-
-
-	def reset_to_start_of_file(self) :
-		print("Reseting to Start of next file")
+	def start_serapi_instance(self) :
 		if self.coq_running :
 			self.coq.kill()
 		self.coq = serapi_instance.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
@@ -227,9 +241,12 @@ class ProofEnv() :
 		self.num_proofs_solved = 0
 		self.in_agent_proof_mode= False
 		self.in_file_proof_mode= True 
+
+	def reset_to_start_of_file(self) :
+		print("Reseting to Start of next file")
+		self.start_serapi_instance()
 		self.commands = load_commands(self.proof_files[self.proof_file_index], progress_bar=True)
 		print("Starting File :", self.proof_files[self.proof_file_index])
-		
 		self.proof_file_index = (self.proof_file_index + 1) % len(self.proof_files)
 
 
@@ -249,7 +266,7 @@ class ProofEnv() :
 
 	def get_state_vector(self,proof_state) :
 		state_text = proof_state.fg_goals[0].goal.strip()
-		print("State Text : ",state_text)
+		print("State Goal : ",state_text)
 		if self.state_type == "goal_index" :
 			state_sentence = get_symbols(state_text)
 			indexes = indexesFromSentence(self.language_model, state_sentence, ignore_missing = True)
@@ -282,11 +299,26 @@ class ProofEnv() :
 	def get_index_from_sentence(self, sentence) :
 		return indexesFromSentence(self.language_model, sentence, ignore_missing = True)
 
+	def skip_proof(self, r = -1) :
+		self.in_agent_proof_mode= False
+		self.in_file_proof_mode = False
+		self.reset_proof_progress()
+		self.in_agent_proof_mode= False
+		self.in_file_proof_mode = True
+		self.solve_curr_from_file()
+		self.goto_next_proof()
+		next_state = self.get_state_vector( self.coq.proof_context)
+		done = True
+		info = {}
+		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
+		return next_state, r, done, info
+
 	def admit_and_skip_proof(self) :
+		raise ValueError("Dont admit and skip, too bad for your health")
 		self.in_agent_proof_mode= False
 		self.in_file_proof_mode = False
 		print("Admitting current proof without solving")
-		self.coq.run_stmt("Admitted.", timeout= self.time_per_command)
+		self.coq.run_stmt("Admitted.", timeout= self.time_per_command, force_update_nonfg_goals = True)
 		self.curr_proof_tactics.append("Admitted.")
 		if self.wandb_log :
 			wandb.log({"Num command Attempts" : self.num_commands  })
@@ -305,8 +337,10 @@ class ProofEnv() :
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		return next_state, r, done, info
 
-	
-
+	def execute_tactics(self,tactic_list) :
+		for tactic in tactic_list :
+			self.coq.run_stmt(tactic, timeout= self.time_per_command, force_update_nonfg_goals=True)
+			self.proof_contexts_in_path.append(self.coq.proof_context)
 
 	def is_context_fresh(self, curr_proof_context) :
 		# print(len(self.proof_contexts_in_path))
@@ -321,18 +355,66 @@ class ProofEnv() :
 		# print(contextSurjective(context2, context1))
 		return contextSurjective(context1, context2) and contextSurjective(context2, context1)
 	
-	def is_tactics_repeating(self,tactics_used, cutoff = 4) :
-		if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
-			return True
+	def is_tactics_repeating(self,tactics_used, cutoff = 4) : #Check for Repeating tactics
+		if len(tactics_used) <= cutoff :
+			return False
+		
+		tactics_used = list(reversed(tactics_used))
+		groups = { i:[] for i in range(1,(len(tactics_used) + 1)//cutoff) }
+		for i in range(len(tactics_used)) :
+			curr_tactic = tactics_used[i]
+			# print(groups,i)
+			for group_len in groups :
+				# print(group_len, groups)
+				if (i) % group_len == 0 : #Explain why i and not i+1 or anything else
+					groups[group_len].append(curr_tactic)
+				else :
+					groups[group_len][-1] = groups[group_len][-1] + curr_tactic 
+
+		
+		for group_len in groups :
+			curr_list = groups[group_len]
+			if curr_list[-cutoff:].count(curr_list[-1]) == cutoff :
+				return True
+				
 		return False
-	
+
+	def num_obligations(self,proof_context) :
+		return len(proof_context.fg_goals) + len(proof_context.bg_goals) + len(proof_context.shelved_goals) + len(proof_context.given_up_goals)
+
+	def size_largestobl(self,proof_context) :
+		max_size = 0
+		for obl  in proof_context.fg_goals :
+			curr_name = obl.goal.strip() + " ".join(sorted(obl.hypotheses))
+			max_size = max(max_size, len(curr_name))
+
+		for obl  in proof_context.bg_goals :
+			curr_name = obl.goal.strip() + " ".join(sorted(obl.hypotheses))
+			max_size = max(max_size, len(curr_name))
+
+		for obl  in proof_context.shelved_goals :
+			curr_name = obl.goal.strip() + " ".join(sorted(obl.hypotheses))
+			max_size = max(max_size, len(curr_name))		
+
+		for obl  in proof_context.given_up_goals :
+			curr_name = obl.goal.strip() + " ".join(sorted(obl.hypotheses))
+			max_size = max(max_size, len(curr_name))
+
+		return max_size
+
+
 	def check_next_state(self,prediction) :
 		k = time.time()
 		info = {}
 		next_state = None
 		print("Checking next state for action -", prediction)
-		tactic_class,tactic_args = split_tactic(prediction.strip().rstrip("."))
-		if tactic_class.lower().strip() == "exploit" :
+		# tactic_class,tactic_args = split_tactic(prediction.strip().rstrip("."))
+		# if tactic_class.lower().strip() == "exploit" :
+		# 	if self.info_on_check :
+		# 		return next_state,info
+		# 	else :
+		# 		return next_state
+		if prediction == "compute." :
 			if self.info_on_check :
 				return next_state,info
 			else :
@@ -342,18 +424,21 @@ class ProofEnv() :
 		a= time.time()
 		try:
 			
-			self.coq.run_stmt(prediction, timeout= self.time_per_command)
+			self.coq.run_stmt(prediction, timeout= self.time_per_command, force_update_nonfg_goals=True)
 			
-		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
-				serapi_instance.CoqExn, serapi_instance.OverflowError,
+		except (serapi_instance.CoqTimeoutError, serapi_instance.ParseError,
+				serapi_instance.CoqExn, serapi_instance.CoqOverflowError,
 				serapi_instance.ParseError,
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
 			print("One of known errors", e)
-		except serapi_instance.CoqAnomaly:
-			print("Coq Anomaly")
-			self.kill()
-			quit()
+		except serapi_instance.CoqAnomaly as e:
+			print("Coq Anomaly, No Traceback ", e)
+			self.start_serapi_instance()
+			self.run_to_proof(self.curr_proof,reset_proof_tactic_history = False)
+			print("Executing Tactics", self.curr_proof_tactic_history )
+			self.execute_tactics(self.curr_proof_tactic_history)
+			next_state = None
 		except :
 			print("Some error")
 			self.kill()
@@ -365,25 +450,25 @@ class ProofEnv() :
 			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
 				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
 					print("Running Unshelve.")
-					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command)
+					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command, force_update_nonfg_goals = True)
 					num_brackets_run += 1
 					continue
 				print("Running }")
-				self.coq.run_stmt("}", timeout= self.time_per_command)
+				self.coq.run_stmt("}", timeout= self.time_per_command , force_update_nonfg_goals = True)
 				num_brackets_run += 1
 
 			if len(self.coq.proof_context.fg_goals) > 1 :
 				print("Context before running open brace :",self.coq.proof_context)
 				print("Running {")
-				self.coq.run_stmt( "{", timeout= self.time_per_command)
+				self.coq.run_stmt( "{", timeout= self.time_per_command, force_update_nonfg_goals = True)
 				print("Context after running open brace :",self.coq.proof_context)
 				num_brackets_run += 1
 
 			
 			if completed_proof(self.coq) :
 				for _ in range(num_brackets_run) :
-					self.coq.cancel_last()
-				self.coq.cancel_last()
+					self.coq.cancel_last(force_update_nonfg_goals = True)
+				self.coq.cancel_last(force_update_nonfg_goals = True)
 				print("QED on this action. Cancelled - ",prediction)
 				if self.info_on_check :
 					info["state_text"] = "fin"
@@ -395,31 +480,37 @@ class ProofEnv() :
 				print("Something is wrong. Lost context")
 				quit()
 
-			if self.is_context_fresh(self.coq.proof_context) :
+			if not self.is_context_fresh(self.coq.proof_context) :
+				print("Context is not fresh for this action")
+				next_state = None #[]
+			elif self.is_tactics_repeating(self.coq.prev_tactics) :
+				print("Repeating Tactics")
+				next_state = None
+			elif self.num_obligations(self.coq.proof_context)  > self.max_numobl:
+				print("Number of open obligations crossed the threshold")
+				next_state = None
+			elif self.size_largestobl(self.coq.proof_context)  > self.max_size_largestobl:
+				print("Size of largest obl crossed the threshold")
+				next_state = None
+			else :
 				next_state_name =  self.coq.proof_context.fg_goals[0].goal
 				next_state = self.get_state_vector(self.coq.proof_context)
 				info["state_text"] = next_state_name.strip()
-				print("Context is fresh for this actions")
-			else :
-				print("Context is not fresh for this action")
-				next_state = None #[]
-			
-			if self.is_tactics_repeating(self.coq.proof_context.tactics_used) :
-				print("Repeating Tactics")
-				next_state = None
+				print("Context is fresh for this actions , and no other checks are failing")
 
+			
 			if num_brackets_run > 0 :
 				print("Cancelling", num_brackets_run, "Brackets")
 				for _ in range(num_brackets_run) :
-					self.coq.cancel_last()
+					self.coq.cancel_last(force_update_nonfg_goals = True)
 
 			context_mid = self.coq.proof_context
-			self.coq.cancel_last()
+			self.coq.cancel_last(force_update_nonfg_goals = True)
 			print("Cancelled - ",prediction)
 		
 		context_after = self.coq.proof_context
 		
-		assert self.is_same_context(context_before,context_after)
+		assert self.is_same_context(context_before,context_after), "Before Context : \n" + str(context_before) + "\n After Context : \n" + str(context_after)
 		# except :
 		# 	print("History is -> {, eauto, cancel")
 		# 	for obligation in context_after.all_goals :
@@ -450,9 +541,9 @@ class ProofEnv() :
 		eprint("Taking step -", action)
 		a= time.time()
 		try:
-			self.coq.run_stmt(prediction, timeout= self.time_per_command)
-		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
-				serapi_instance.CoqExn, serapi_instance.OverflowError,
+			self.coq.run_stmt(prediction, timeout= self.time_per_command, force_update_nonfg_goals = True)
+		except ( serapi_instance.ParseError, serapi_instance.CoqTimeoutError,
+				serapi_instance.CoqExn, serapi_instance.CoqOverflowError,
 				serapi_instance.ParseError,
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
@@ -481,10 +572,10 @@ class ProofEnv() :
 			while len(unwrap(self.coq.proof_context).fg_goals) == 0 and not completed_proof(self.coq):
 				if len(unwrap(self.coq.proof_context).shelved_goals) > 0:
 					print("Running Unshelve.")
-					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command)
+					self.coq.run_stmt("Unshelve.", timeout= self.time_per_command, force_update_nonfg_goals = True)
 					continue
 				print("Running }")
-				self.coq.run_stmt("}", timeout= self.time_per_command)
+				self.coq.run_stmt("}", timeout= self.time_per_command, force_update_nonfg_goals = True)
 				self.curr_proof_tactics.append("}")
 			b = time.time()
 			self.debug_time.append(b-a)
@@ -494,12 +585,17 @@ class ProofEnv() :
 			if len(self.coq.proof_context.fg_goals) > 1 :
 				print(self.coq.proof_context.fg_goals,self.coq.proof_context.bg_goals)
 				print("Running {")
-				self.coq.run_stmt( "{", timeout= self.time_per_command)
+				self.coq.run_stmt( "{", timeout= self.time_per_command , force_update_nonfg_goals = True)
 				self.curr_proof_tactics.append("{")
 			b = time.time()
 			self.debug_time.append(b-a)
 			print("Time taken for opening brackets", b-a)
 
+			if self.wandb_log :
+				wandb.log({"Max Obligation Len" :  self.size_largestobl(self.coq.proof_context)  })
+				wandb.log({"Num of Obligation" : self.num_obligations(self.coq.proof_context)})
+
+				
 			a= time.time()
 			if completed_proof(self.coq) :
 				if self.wandb_log :
@@ -507,22 +603,30 @@ class ProofEnv() :
 				b = time.time()
 				self.debug_time.append(b-a)
 				print("Time taken to check completed proof", b - a)
-				self.coq.run_stmt( "Qed.", timeout= self.time_per_command)
+				# self.coq.run_stmt( "Qed.", timeout= self.time_per_command, force_update_nonfg_goals = True)
 				self.curr_proof_tactics.append("Qed.")
+				# --- New way of doing things -----vv
+				self.in_agent_proof_mode= False
+				self.in_file_proof_mode = False
+				self.reset_proof_progress()
+				self.in_agent_proof_mode= False
+				self.in_file_proof_mode = True
+				self.solve_curr_from_file()
+				# ---- Thats it ------^^
 				r = 1
 				print("Current proof fin with Good rewards")
 				self.test_file_write("\n".join(self.curr_proof_tactics) )
 				self.prooflines_file_write("\n".join(self.curr_proof_tactics))
 				self.num_proofs_solved += 1
-				self.in_agent_proof_mode= False
-				self.in_file_proof_mode = False
-				a = time.time()
-				self.navigate_file_end_of_current_proof()
-				b = time.time()
-				self.debug_time.append(b-a)
-				print("Time taken to naviagate file to the end of current proof", b -a)
-				self.in_agent_proof_mode= False
-				self.in_file_proof_mode = True
+				# self.in_agent_proof_mode= False
+				# self.in_file_proof_mode = False
+				# a = time.time()
+				# self.navigate_file_end_of_current_proof()
+				# b = time.time()
+				# self.debug_time.append(b-a)
+				# print("Time taken to naviagate file to the end of current proof", b -a)
+				# self.in_agent_proof_mode= False
+				# self.in_file_proof_mode = True
 				a = time.time()
 				self.goto_next_proof()
 				b = time.time()
@@ -540,6 +644,10 @@ class ProofEnv() :
 				print("No context")
 				quit()
 			
+			if self.is_tactics_repeating(self.coq.prev_tactics) :
+				print("Repeating Tactics", self.coq.prev_tactics)
+			
+			
 			self.num_commands += 1
 			a = time.time()
 			assert self.is_context_fresh(self.coq.proof_context)
@@ -553,8 +661,8 @@ class ProofEnv() :
 			# r = -1 # -5
 			# self.in_agent_proof_mode= False
 			# self.in_file_proof_mode = True
-			# print("Too many attempts, admitting and skipping current proof")
-			# self.coq.run_stmt("Admitted.", timeout= self.time_per_command)
+			print("Too many attempts, admitting and skipping current proof")
+			# self.coq.run_stmt("Admitted.", timeout= self.time_per_command, force_update_nonfg_goals = True)
 			# if self.wandb_log :
 			# 	wandb.log({"Num command Attempts" : self.num_commands  })
 			
@@ -565,12 +673,14 @@ class ProofEnv() :
 			# self.in_file_proof_mode = False
 			# done = True 
 			a = time.time()
-			result = self.admit_and_skip_proof()
+			# result = self.admit_and_skip_proof()
+			result = self.skip_proof(r = 0)
 			b = time.time()
 			self.debug_time.append(b-a)
 			print("Time taken to run admit and skip proof", b-a)
 			return result
 		
+		self.curr_proof_tactic_history.append(action)
 		next_state = self.get_state_vector( self.coq.proof_context )
 		info["state_text"] = self.coq.proof_context.fg_goals[0].goal.lstrip().rstrip()
 		return next_state, r, done, info
@@ -616,6 +726,8 @@ def child_process(pid, critical, pipe) :
 			print("Results of Check next state inside a child - ",result)
 		elif func == 'admit_and_skip_proof' :
 			result = test_env.admit_and_skip_proof()
+		elif func == 'skip_proof' :
+			result = test_env.skip_proof()
 		elif func == 'run_to_proof' :
 			result = test_env.run_to_proof(args)
 		elif func == 'terminate' :
@@ -693,6 +805,15 @@ class FastProofEnv() :
 		print("Exploratory Environments successfully running")		
 		return
 		
+	def skip_proof(self) :
+		print("Skipping the current proof on all Test engines")
+		for pipe in self.server_end_pipes :
+			pipe.send( ["skip_proof",None])
+		for pipe in self.server_end_pipes :
+			pipe.recv()
+		print("Test engines sucessfully skipped proof")
+		return self.main_engine.skip_proof()
+	
 
 	def admit_and_skip_proof(self):
 		print("Admitting and Skipping the current proof on all Test engines")
@@ -700,7 +821,7 @@ class FastProofEnv() :
 			pipe.send( ["admit_and_skip_proof",None])
 		for pipe in self.server_end_pipes :
 			pipe.recv()
-		print("Test engines sucessfully skipped proof")
+		print("Test engines sucessfully admitted and skipped proof")
 		return self.main_engine.admit_and_skip_proof()
 	
 	def reset(self) :
