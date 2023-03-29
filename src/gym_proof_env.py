@@ -138,13 +138,6 @@ class ProofEnv(gym.Env):
 		self.proof_line_num += 1
 		# print("Navigated to :", self.commands[self.proof_line_num] )
 
-	def clear_coq_proof_context(self) :
-		while self.coq.proof_context != None :
-			self.coq.cancel_last()
-
-	def solve_curr_from_file(self) :
-		raise Exception("Solving from File called. Don't solve from File.")
-
 	def _reset_to_start_of_file(self) :
 		if self.coq is not None:
 			self.coq.kill()
@@ -159,17 +152,11 @@ class ProofEnv(gym.Env):
 
 		self.proof_file_index = (self.proof_file_index + 1) % len(self.proof_files)
 
-	def load_state_model(self) :
-		with open('data/encoder_symbols.model', 'rb') as f:
-			buffer = io.BytesIO(f.read())
-		self.state_model = torch.load(buffer,map_location=torch.device(self.device))
-
 	def _admit_and_skip_proof(self) :
 		print("Admitting current proof without solving")
 		admitting_cmds = admit_proof(self.coq, self.coq.prev_tactics[0], "")
 		if self.wandb_log :
 			wandb.log({"Num command Attempts" : self.num_commands  })
-		# self.solve_curr_from_file()
 		self._prooflines_file_write("\n".join(self.coq.tactic_history.getFullHistory()))
 		self._navigate_file_end_of_current_proof()
 		self._goto_next_proof()
@@ -188,11 +175,6 @@ class ProofEnv(gym.Env):
 				return False
 		return True
 
-	def is_tactics_repeating(self,context, cutoff = 4) :
-		tactics_used = context.prev_tactics
-		if tactics_used[-cutoff:].count(tactics_used[-1]) == cutoff :
-			return True
-		return False
 	def _check_next_state(self,prediction):
 		info = {}
 		eprint("Checking next state for action -", prediction)
@@ -652,14 +634,6 @@ class FastProofEnv(gym.Env):
 			pipe.recv()
 		return self.main_engine.run_to_proof(proof_contains)
 
-	def keepalive(self) :
-		for pipe in self.server_end_pipes :
-			pipe.send(["reset",None])
-		for pipe in self.server_end_pipes :
-			print(pipe.recv())
-		print("Keepalive")
-		# quit()
-		return ""
 	def _get_available_actions_with_next_state_vectors(self) :
 		relevant_lemmas = self.coq.local_lemmas[:-1]
 		# print(self.coq.proof_context)
