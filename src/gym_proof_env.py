@@ -300,11 +300,11 @@ class ProofEnv(gym.Env):
 				serapi_instance.UnrecognizedError) as e:
 			eprint("One of known errors", e)
 		except serapi_instance.CoqAnomaly:
-			print("Coq Anomaly")
+			eprint("Coq Anomaly")
 			# self.kill()
 			quit()
-		except :
-			print("Some error")
+		except Exception as e:
+			eprint(f"Some error {e}")
 			# self.kill()
 			quit()
 		else :
@@ -434,16 +434,16 @@ class ProofEnv(gym.Env):
 				serapi_instance.ParseError,
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
-			print("One of known errors", e)
+			eprint("One of known errors", e)
 			r = 0
 			s_next,episode_r, done, info = self.admit_and_skip_proof()
 			return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
 		except serapi_instance.CoqAnomaly:
-			print("Coq Anomaly")
+			eprint("Coq Anomaly")
 			# self.kill()
 			quit()
-		except :
-			print("Some error")
+		except Exception as e:
+			eprint(f"Some error {e}")
 			# self.kill()
 			quit()
 		else :
