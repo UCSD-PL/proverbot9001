@@ -67,6 +67,7 @@ def main():
                         default=(60 * 60))
     parser.add_argument("-s", "--switch", default=None, type=str)
     parser.add_argument("--sertop-flags", default=None, type=str)
+    parser.add_argument("--text-encoding", default='utf-8', type=str)
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
