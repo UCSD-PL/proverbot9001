@@ -4,6 +4,7 @@ import multiprocessing
 import torch
 import wandb
 import time, random
+import re
 import coq_serapy
 from coq_serapy import (load_commands, kill_comments, split_tactic,
                         contextSurjective, ending_proof, admit_proof)
@@ -150,12 +151,46 @@ class ProofEnv(gym.Env):
         self.proof_file_index = (self.proof_file_index + 1) % len(self.proof_files)
 
     def _admit_and_skip_proof(self) :
-        print("Admitting current proof without solving")
-        admitting_cmds = admit_proof(self.coq, self.coq.prev_tactics[0], "")
+        self._prooflines_file_write("\n".join(self.coq.tactic_history.getFullHistory()))
+        ending_command = None
+        for cmd in self.commands[self.proof_line_num:]:
+            if ending_proof(cmd):
+                ending_command = cmd
+                break
+        assert ending_command
+        lemma_statement = self.coq.prev_tactics[0]
+
+        proof_relevant = ending_command.strip() == "Defined." or \
+            bool(re.match(
+                r"\s*Derive",
+                kill_comments(lemma_statement))) or \
+            bool(re.match(
+                r"\s*Let",
+                kill_comments(lemma_statement))) or \
+            bool(re.match(
+                r"\s*Equations",
+                kill_comments(lemma_statement)))
+        if proof_relevant:
+            while len(self.coq.prev_tactics) > 1:
+                self.coq.cancel_last()
+            _, run_cmds = unwrap(self.coq.finish_proof(
+                self.commands[self.proof_line_num:]))
+            self.proof_line_num += len(run_cmds)
+            self._prooflines_file_write("\n".join(run_cmds))
+        else:
+            try:
+                admitting_cmds = admit_proof(self.coq, lemma_statement, ending_command)
+                self._prooflines_file_write("\n".join(admitting_cmds))
+            except coq_serapy.SerapiException:
+                lemma_name = \
+                  coq_serapy.lemma_name_from_statement(lemma_statement)
+                eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
+                raise
+            while not coq_serapy.ending_proof(self.commands[self.proof_line_num]):
+                self.proof_line_num += 1
+            self.proof_line_num += 1
         if self.wandb_log :
             wandb.log({"Num command Attempts" : self.num_commands  })
-        self._prooflines_file_write("\n".join(self.coq.tactic_history.getFullHistory()))
-        self._navigate_file_end_of_current_proof()
         self._goto_next_proof()
         done = True
         next_state = self.coq.proof_context
