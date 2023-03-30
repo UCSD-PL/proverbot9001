@@ -29,7 +29,7 @@ import queue
 import re
 import datetime
 import csv
-from pathlib_revised import Path2
+from pathlib import Path
 
 from typing import List, Any, Tuple, Dict, Union, cast, NewType, Callable
 
@@ -58,7 +58,7 @@ from models.tactic_predictor import TacticPredictor
 
 finished_queue = queue.Queue() # type: queue.Queue[int]
 rows = queue.Queue() # type: queue.Queue[FileResult]
-base = Path2(os.path.dirname(os.path.abspath(__file__)) + "/..")
+base = Path(os.path.dirname(os.path.abspath(__file__)) + "/..")
 
 details_css = ["details.css"]
 details_javascript = ["details.js"]
@@ -541,14 +541,14 @@ def main(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "try to match the file by predicting a tactic")
     parser.add_argument('-j', '--threads', default=16, type=int)
-    parser.add_argument('--prelude', default=".", type=Path2)
+    parser.add_argument('--prelude', default=".", type=Path)
     parser.add_argument('--debug', default=False, const=True, action='store_const')
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action='store_const', const=True, default=False)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
     parser.add_argument('-o', '--output', help="output data folder name",
-                        default="report", type=Path2)
+                        default="report", type=Path)
     parser.add_argument('-m', '--message', default=None)
     parser.add_argument('--baseline',
                         help="run in baseline mode, predicting {} every time"
@@ -561,7 +561,7 @@ def main(arg_list : List[str]) -> None:
                         default=None)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
-    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path)
     args = parser.parse_args(arg_list)
 
     coqargs = ["sertop", "--implicit"]

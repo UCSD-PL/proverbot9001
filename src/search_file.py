@@ -21,6 +21,7 @@
 ##########################################################################
 import argparse
 import os
+import shutil
 import sys
 import re
 import datetime
@@ -56,7 +57,7 @@ from dataclasses import dataclass
 
 from tqdm import tqdm
 from yattag import Doc
-from pathlib_revised import Path2
+from pathlib import Path
 from enum import Enum
 import pygraphviz as pgv
 import torch
@@ -149,7 +150,7 @@ def main(arg_list: List[str]) -> None:
         util.cuda_device = f"cuda:{args.gpu}"
 
     predictor = get_predictor(parser, args)
-    base = Path2(os.path.dirname(os.path.abspath(__file__)))
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
         args.output_dir.makedirs()
@@ -158,7 +159,7 @@ def main(arg_list: List[str]) -> None:
         destpath = args.output_dir / filename
         if not destpath.exists():
             srcpath = base.parent / 'reports' / filename
-            srcpath.copyfile(destpath)
+            shutil.copyfile(srcpath, destpath)
 
     search_file_multithreaded(args, predictor)
 
@@ -168,11 +169,11 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     parser = argparse.ArgumentParser(
         description="Produce an html report from attempting "
         "to complete proofs using Proverbot9001.")
-    parser.add_argument("--prelude", default=".", type=Path2)
+    parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_dir",
                         help="output data folder name",
                         default="search-report",
-                        type=Path2)
+                        type=Path)
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
@@ -185,7 +186,7 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         action='store_true')
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
-    parser.add_argument('--weightsfile', default=None, type=Path2)
+    parser.add_argument('--weightsfile', default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -210,9 +211,9 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                         type=float, default=300)
     parser.add_argument("--max-tactic-time", type=float, default=2)
     parser.add_argument("--linearize", action='store_true')
-    parser.add_argument("--proof-times", default=None, type=Path2)
+    parser.add_argument("--proof-times", default=None, type=Path)
     parser.add_argument('filenames', help="proof file name (*.v)",
-                        nargs='+', type=Path2)
+                        nargs='+', type=Path)
     parser.add_argument("--use-hammer",
                         help="Use Hammer tactic after every predicted tactic",
                         action='store_const', const=True, default=False)
@@ -232,12 +233,12 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-    parser.add_argument("--log-anomalies", type=Path2, default=None)
-    parser.add_argument("--log-hard-anomalies", type=Path2, default=None)
+    parser.add_argument("--log-anomalies", type=Path, default=None)
+    parser.add_argument("--log-hard-anomalies", type=Path, default=None)
     parser.add_argument("-j", "--num-threads", type=int, default=5)
     parser.add_argument("--max-term-length", type=int, default=256)
-    parser.add_argument("--add-env-lemmas", type=Path2, default=None)
-    parser.add_argument("--add-axioms", type=Path2, default=None)
+    parser.add_argument("--add-env-lemmas", type=Path, default=None)
+    parser.add_argument("--add-axioms", type=Path, default=None)
     if __name__ == "__main__":
         known_args = parser.parse_args(args_list)
     else:
@@ -651,7 +652,7 @@ def search_file_multithreaded(args: argparse.Namespace,
             for _ in range(len(all_jobs)):
                 (done_file, done_module, done_lemma), sol = done.get()
                 proofs_file = (args.output_dir /
-                               (util.safe_abbrev(Path2(done_file),
+                               (util.safe_abbrev(Path(done_file),
                                                  args.filenames)
                                 + "-proofs.txt"))
                 with proofs_file.open('a') as f:
@@ -686,7 +687,7 @@ def search_file_multithreaded(args: argparse.Namespace,
 
 
 def blocks_from_scrape_and_sols(
-        src_filename: Path2,
+        src_filename: Path,
         lemma_statements_done: List[Tuple[str, str, SearchResult]]
         ) -> List[DocumentBlock]:
 
@@ -780,7 +781,7 @@ def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
     return TacticInteraction(s.tactic, s.context)
 
 
-def write_solution_vfile(args: argparse.Namespace, filename: Path2,
+def write_solution_vfile(args: argparse.Namespace, filename: Path,
                          model_name: str,
                          doc_blocks: List[DocumentBlock]):
     with (args.output_dir / (util.safe_abbrev(filename, args.filenames)
@@ -838,7 +839,7 @@ def write_csv(args: argparse.Namespace, filename: str,
 
 
 def write_html(args: argparse.Namespace,
-               output_dir: str, filename: Path2,
+               output_dir: str, filename: Path,
                doc_blocks: List[DocumentBlock]) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
@@ -1169,7 +1170,7 @@ class SearchGraph:
             f.write("\n")
             for child in node.children:
                 write_node(child, f)
-        with Path2(filename).open('w') as f:
+        with Path(filename).open('w') as f:
             json.dump({"state_features_max_values":
                        self.feature_extractor.state_features_bounds(),
                        "action_features_max_values":

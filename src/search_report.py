@@ -23,9 +23,10 @@
 import argparse
 import os
 import sys
+import shutil
 import re
 import datetime
-from pathlib_revised import Path2
+from pathlib import Path
 
 from enum import Enum, auto
 from yattag import Doc
@@ -70,7 +71,7 @@ def html_header(tag : Tag, doc : Doc, text : Text, css : List[str],
         with tag('title'):
             text(title)
 
-def write_summary_html(filename : Path2,
+def write_summary_html(filename : Path,
                        options : Sequence[Tuple[str, str]],
                        unparsed_args : List[str],
                        cur_commit : str, cur_date : datetime.datetime,
@@ -181,9 +182,9 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                        individual_stats, combined_stats)
     write_summary_csv("{}/report.csv".format(args.output_dir), combined_stats, options)
     write_proof_summary_csv(args.output_dir, [s.filename for s in individual_stats])
-    base = Path2(os.path.abspath(__file__)).parent.parent / "reports"
+    base = Path(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
-        (base / filename).copyfile(args.output_dir / filename)
+        shutil.copyfile(base / filename, args.output_dir / filename)
 def write_proof_summary_csv(output_dir : str, filenames : List[str]):
     with open('{}/proofs.csv'.format(output_dir), 'w') as fout:
         fout.write("lemma,status,prooflength\n")
