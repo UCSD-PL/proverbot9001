@@ -619,9 +619,9 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
             return None
 
 
-def save_lin(commands: List[str], filename: str) -> None:
+def save_lin(commands: List[str], filename: str, text_encoding: str) -> None:
     output_file = filename + '.lin'
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding=text_encoding) as f:
         print(hash_file(filename), file=f)
         for command in commands:
             print(command, file=f)
@@ -656,9 +656,9 @@ def main():
                 arg_values, 0, original_commands,
                 coqargs, arg_values.prelude,
                 local_filename, filename, False)
-            save_lin(fresh_commands, local_filename)
+            save_lin(fresh_commands, local_filename, arg_values.text_encoding)
         except CoqAnomaly:
-            save_lin(original_commands, local_filename)
+            save_lin(original_commands, local_filename, arg_values.text_encoding)
 
 
 if __name__ == "__main__":
