@@ -581,6 +581,14 @@ def search_file_multithreaded(args: argparse.Namespace,
                                 lemma_statements_todo.remove((module_prefix,
                                                               done_lemma_stmt))
                             except ValueError:
+                                possible_matches = [(prefix, stmt) for prefix, stmt in lemma_statements_todo if stmt == done_lemma_stmt]
+                                if len(possible_matches) == 1:
+                                    print(f"Couldn't find job [{filename}, {module_prefix}, {done_lemma_stmt}] from file, "
+                                          f"but found [{filename}, {possible_matches[0][0]}, {done_lemma_stmt}]. Use it instead?")
+                                    answer = input("(yes/no)")
+                                    if answer.lower() in ["yes", "y"]:
+                                        lemma_statements_todo.remove(possible_matches[0])
+                                        continue
                                 eprint(f"filename: {filename}, "
                                        f"module_prefix: {module_prefix}, "
                                        f"done_lemma_stmt: {done_lemma_stmt}")
