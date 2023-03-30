@@ -219,8 +219,8 @@ class ProofEnv(gym.Env):
         try:
             self.coq.run_stmt(prediction, timeout= self.time_per_command)
 
-        except (coq_serapy.TimeoutError, coq_serapy.ParseError,
-                coq_serapy.CoqExn, coq_serapy.OverflowError,
+        except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+                coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
                 coq_serapy.ParseError,
                 RecursionError,
                 coq_serapy.UnrecognizedError) as e:
@@ -336,8 +336,8 @@ class ProofEnv(gym.Env):
         a= time.time()
         try:
             self.coq.run_stmt(prediction, timeout= self.time_per_command, force_update_nonfg_goals=True)
-        except (coq_serapy.TimeoutError, coq_serapy.ParseError,
-                coq_serapy.CoqExn, coq_serapy.OverflowError,
+        except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+                coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
                 coq_serapy.ParseError,
                 RecursionError,
                 coq_serapy.UnrecognizedError) as e:
