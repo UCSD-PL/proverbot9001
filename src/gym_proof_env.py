@@ -436,7 +436,6 @@ class ProofEnv(gym.Env):
         return (state,info)
 
 def child_process(pid, critical, pipe) :
-    import sys
     os.makedirs("output/results", exist_ok=True)
     os.makedirs("output/errors", exist_ok=True)
     open("output/results/subprocess_pid%d_out.txt"%pid, 'w').close()
