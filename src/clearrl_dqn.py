@@ -195,7 +195,8 @@ if __name__ == "__main__":
         with open("compcert_projs_splits.json",'r') as f :
                 data = json.load(f)
         proof_files = data[0]["test_files"]
-        env = FastProofEnv(proof_files,args.prelude, args.track, state_type = "proof_context", max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts)
+        env = FastProofEnv(proof_files,args.prelude, args.track,
+                           max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts)
 
         # assert isinstance(env.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
