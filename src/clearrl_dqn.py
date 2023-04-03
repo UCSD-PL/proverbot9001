@@ -83,6 +83,7 @@ def parse_args():
         parser.add_argument("--max_proof_len", type=int, default=50)
         parser.add_argument('--prelude', default="CompCert")
         parser.add_argument('--weightsfile', default = "data/polyarg-weights.dat", type=str)
+        parser.add_argument('--proof_file', default="CompCert/common/Globalenvs.v",type=str)
 
         args = parser.parse_args()
         # fmt: on
