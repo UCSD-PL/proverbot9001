@@ -37,16 +37,17 @@ class ActionSpace:
             return self.ls_actions[idx]
 
 class ProofEnv(gym.Env):
-    def __init__(self, proof_files, prelude, wandb = False, time_per_command=100, max_proof_len = 50, write_solved_proofs = True,
-                                state_type = "index"):
         self.action_space = None
         self.observation_space = None
+    def __init__(self, proof_files: List[Path], prelude: Path,
+                 time_per_command: int = 100, max_proof_len: int = 50,
+                 use_wandb: bool = False, write_solved_proofs: bool = True):
         self.prelude= prelude
         self.proof_files = proof_files
         self.proof_file_index = 0
         self.proof_line_num = 0
-        self.wandb_log = wandb
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.wandb_log = use_wandb
         self.coq: Optional[CoqAgent] = None
         self.write_solved_proofs = write_solved_proofs
 
@@ -440,10 +441,10 @@ def child_process(pid, critical, pipe) :
     os.makedirs("output/errors", exist_ok=True)
     open("output/results/subprocess_pid%d_out.txt"%pid, 'w').close()
     open("output/errors/subprocess_pid%d_error.txt"%pid, 'w').close()
-    proof_file, prelude, time_per_command, state_type, max_proof_len = critical
-    test_env = ProofEnv(proof_file, prelude, wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len, state_type = state_type)
     sys.stdout = open("output/results/subprocess_pid%d_out.txt"%pid, 'a')
     sys.stderr = open("output/errors/subprocess_pid%d_error.txt"%pid, 'a')
+    proof_file, prelude, time_per_command, max_proof_len = critical
+    test_env = ProofEnv(proof_file, prelude, use_wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len)
     print("child process created", pid)
     while True :
         if pipe.poll(1800) :
@@ -476,17 +477,27 @@ def child_process(pid, critical, pipe) :
 
 
 class FastProofEnv(gym.Env):
-    def __init__(self, proof_file, prelude, wandb = False, time_per_command=100, write_solved_proofs = True, state_type = "vector",
-                    max_proof_len = 30, num_check_engines = 5, weightsfile="data/polyarg-weights.dat",max_term_length=256):
-        self.proof_file = proof_file
+    def __init__(self, proof_files: List[str], prelude: str,
+                 skip_proofs: List[ReportJob] = [],
+                 time_per_command: int = 100, max_proof_len: int = 30,
+                 num_check_engines: int = 5,
+                 weightsfile: str = "data/polyarg-weights.dat",
+                 max_term_length: int = 256,
+                 use_wandb: bool = False,
+                 write_solved_proofs: bool = True):
+        self.skip_proofs = skip_proofs
+        self.proof_files = proof_files
         self.action_space = None
         self.prelude = prelude
-        self.wandb = wandb
         self.time_per_command = time_per_command
-        self.state_type = state_type
         self.num_check_engines = num_check_engines
         self.max_proof_len = max_proof_len
-        self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type)
+        self.main_engine = ProofEnv([Path(proof_file) for proof_file in proof_files],
+                                    Path(prelude),
+                                    time_per_command = time_per_command,
+                                    max_proof_len = max_proof_len,
+                                    use_wandb = use_wandb,
+                                    write_solved_proofs = write_solved_proofs)
         print("weightsfile: ",weightsfile)
         self.predictor = loadPredictorByFile(weightsfile)
         self._create_pipes_and_children()
@@ -541,7 +552,7 @@ class FastProofEnv(gym.Env):
         context = multiprocessing.get_context('fork')
         for i in range(self.num_check_engines) :
             p = context.Process(target=child_process, args=(i,(self.proof_file, self.prelude,
-                self.time_per_command, self.state_type, self.max_proof_len),self.child_end_pipes[i] ) )
+                self.time_per_command, self.max_proof_len),self.child_end_pipes[i] ) )
             p.start()
             process_list.append(p)
 
