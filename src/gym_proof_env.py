@@ -7,7 +7,7 @@ import time, random
 import re
 import coq_serapy
 from coq_serapy import (load_commands, kill_comments, split_tactic,
-                        contextSurjective, ending_proof, admit_proof)
+                        contextSurjective, ending_proof, admit_proof, CoqAgent)
 from coq_serapy.contexts import (truncate_tactic_context, FullContext,
                                  assert_proof_context_matches)
 from search_file import loadPredictorByFile
@@ -46,8 +46,8 @@ class ProofEnv(gym.Env):
         self.proof_file_index = 0
         self.proof_line_num = 0
         self.wandb_log = wandb
-        self.coq: Optional[SerapiInstance] = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.coq: Optional[CoqAgent] = None
         self.write_solved_proofs = write_solved_proofs
 
         # TODO: see if we can put predictor in the envionment?
