@@ -1,24 +1,29 @@
 # Gym interface for coqproofenv
 
 import multiprocessing
+import time
+import random
+import re
+import os
+import sys
+from pathlib import Path
+from typing import Optional, List
+from multiprocessing import Pipe
+
 import torch
 import wandb
-import time, random
-import re
+import gymnasium as gym
 import coq_serapy
+import coq2vec
 from coq_serapy import (load_commands, kill_comments, split_tactic,
                         contextSurjective, ending_proof, admit_proof, CoqAgent)
 from coq_serapy.contexts import (truncate_tactic_context, FullContext,
                                  assert_proof_context_matches)
+
 from search_file import loadPredictorByFile
 from search_strategies import completed_proof
-import gym
-import os, sys
-from util import nostderr, unwrap, eprint, mybarfmt
-from multiprocessing import Pipe, Process
-import io
-import coq2vec
-import gymnasium as gym
+from search_worker import ReportJob
+from util import unwrap, eprint
 from gymnasium.spaces import Discrete
 
 class ActionSpace:
