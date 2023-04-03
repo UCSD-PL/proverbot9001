@@ -229,10 +229,6 @@ class ProofEnv(gym.Env):
             eprint("Coq Anomaly")
             # self.kill()
             quit()
-        except Exception as e:
-            eprint(f"Some error {e}")
-            # self.kill()
-            quit()
         else :
             b = time.time()
             eprint("Time for running the above command", b-a)
@@ -347,10 +343,6 @@ class ProofEnv(gym.Env):
             return s_next,episode_r, done, info # If done, we no longer include next-states etc. in info
         except coq_serapy.CoqAnomaly:
             eprint("Coq Anomaly")
-            # self.kill()
-            quit()
-        except Exception as e:
-            eprint(f"Some error {e}")
             # self.kill()
             quit()
         else :
