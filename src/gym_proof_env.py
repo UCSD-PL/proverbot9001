@@ -580,7 +580,6 @@ class FastProofEnv(gym.Env):
         info['list_of_pred'] = list_of_pred
         info['reachable_states_text'] = next_state_texts
         self.action_space = ActionSpace(list_of_pred)
-        self.reachable_states = next_states_encoded
         return state_encoded,info
 
     def step(self, action) :
@@ -599,7 +598,6 @@ class FastProofEnv(gym.Env):
         info['list_of_pred'] = list_of_pred
         info['reachable_states_text'] = next_state_texts
         self.action_space = ActionSpace(list_of_pred)
-        self.reachable_states = next_states_encoded
         return s_next_encoded, episode_r, done, info
 
     def _check_next_states(self,predictions):
