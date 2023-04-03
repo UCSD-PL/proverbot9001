@@ -37,8 +37,6 @@ class ActionSpace:
             return self.ls_actions[idx]
 
 class ProofEnv(gym.Env):
-        self.action_space = None
-        self.observation_space = None
     def __init__(self, proof_files: List[Path], prelude: Path,
                  time_per_command: int = 100, max_proof_len: int = 50,
                  use_wandb: bool = False, write_solved_proofs: bool = True):
@@ -46,7 +44,6 @@ class ProofEnv(gym.Env):
         self.proof_files = proof_files
         self.proof_file_index = 0
         self.proof_line_num = 0
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.wandb_log = use_wandb
         self.coq: Optional[CoqAgent] = None
         self.write_solved_proofs = write_solved_proofs
