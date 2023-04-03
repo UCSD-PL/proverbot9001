@@ -48,7 +48,6 @@ class ProofEnv(gym.Env):
         self.wandb_log = wandb
         self.coq: Optional[SerapiInstance] = None
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        # self.state_type = state_type #text, index, vector
         self.write_solved_proofs = write_solved_proofs
 
         # TODO: see if we can put predictor in the envionment?
@@ -437,15 +436,14 @@ class ProofEnv(gym.Env):
 
 def child_process(pid, critical, pipe) :
     import sys
-    # import io
     os.makedirs("output/results", exist_ok=True)
     os.makedirs("output/errors", exist_ok=True)
     open("output/results/subprocess_pid%d_out.txt"%pid, 'w').close()
     open("output/errors/subprocess_pid%d_error.txt"%pid, 'w').close()
-    sys.stdout = open("output/results/subprocess_pid%d_out.txt"%pid, 'a')#io.BytesIO()
-    sys.stderr = open("output/errors/subprocess_pid%d_error.txt"%pid, 'a')#io.BytesIO()
     proof_file, prelude, time_per_command, state_type, max_proof_len = critical
     test_env = ProofEnv(proof_file, prelude, wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len, state_type = state_type)
+    sys.stdout = open("output/results/subprocess_pid%d_out.txt"%pid, 'a')
+    sys.stderr = open("output/errors/subprocess_pid%d_error.txt"%pid, 'a')
     print("child process created", pid)
     while True :
         if pipe.poll(1800) :
@@ -482,7 +480,6 @@ class FastProofEnv(gym.Env):
                     max_proof_len = 30, num_check_engines = 5, weightsfile="data/polyarg-weights.dat",max_term_length=256):
         self.proof_file = proof_file
         self.action_space = None
-        # print(proof_file)
         self.prelude = prelude
         self.wandb = wandb
         self.time_per_command = time_per_command
@@ -490,16 +487,11 @@ class FastProofEnv(gym.Env):
         self.num_check_engines = num_check_engines
         self.max_proof_len = max_proof_len
         self.main_engine = ProofEnv(proof_file, prelude, wandb, time_per_command, write_solved_proofs = write_solved_proofs, max_proof_len=max_proof_len, state_type = state_type)
-        # self.language_model = self.main_engine.language_model
         print("weightsfile: ",weightsfile)
         self.predictor = loadPredictorByFile(weightsfile)
         self._create_pipes_and_children()
-        # print("$$$$$$$$$$$$$$$$$",isinstance(self.action_space,spaces.Discrete))
         self.max_term_length = max_term_length
         self.state_encoder = self._get_state_encoder()
-    # def stateEncoder(self, state : ProofContext):
-    #     # print(">> State ",state)
-    #     return self.CoqContextEncoder.term_to_vector(state.fg_goals[0].goal).flatten()
 
     def _get_state_encoder(self):
         termvectorizer = coq2vec.CoqTermRNNVectorizer()
