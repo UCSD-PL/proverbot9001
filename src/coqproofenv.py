@@ -112,6 +112,8 @@ class ProofEnv() :
 				
 				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command, force_update_nonfg_goals = True)
 				self.proof_line_num += 1
+				self.coq.run_stmt(self.commands[self.proof_line_num].lstrip().rstrip(), timeout= self.time_per_command, force_update_nonfg_goals = True)
+				self.proof_line_num += 1
 				self.in_agent_proof_mode= True
 				self.in_file_proof_mode = False
 				self.num_proofs  += 1
@@ -426,8 +428,8 @@ class ProofEnv() :
 			
 			self.coq.run_stmt(prediction, timeout= self.time_per_command, force_update_nonfg_goals=True)
 			
-		except (serapi_instance.CoqTimeoutError, serapi_instance.ParseError,
-				serapi_instance.CoqExn, serapi_instance.CoqOverflowError,
+		except (serapi_instance.TimeoutError, serapi_instance.ParseError,
+				serapi_instance.CoqExn, serapi_instance.OverflowError,
 				serapi_instance.ParseError,
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
@@ -542,8 +544,8 @@ class ProofEnv() :
 		a= time.time()
 		try:
 			self.coq.run_stmt(prediction, timeout= self.time_per_command, force_update_nonfg_goals = True)
-		except ( serapi_instance.ParseError, serapi_instance.CoqTimeoutError,
-				serapi_instance.CoqExn, serapi_instance.CoqOverflowError,
+		except ( serapi_instance.ParseError, serapi_instance.TimeoutError,
+				serapi_instance.CoqExn, serapi_instance.OverflowError,
 				serapi_instance.ParseError,
 				RecursionError,
 				serapi_instance.UnrecognizedError) as e:
