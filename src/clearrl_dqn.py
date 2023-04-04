@@ -262,6 +262,8 @@ def main():
                         # print(infos['list_of_pred'])
                 a = env.action_space.get_action_by_index(actions)
                 next_obs, rewards, dones, infos = env.step(a)
+                if dones:
+                    save_model(q_network, args, rb, env)
                 # next_obs = q_network.stateEncoder(next_obs)
 
                 # TRY NOT TO MODIFY: record rewards for plotting purposes
@@ -279,9 +281,6 @@ def main():
                 #       if d:
                 # real_next_obs = infos["terminal_observation"]
                 rb.add(obs, real_next_obs, np.array(actions), rewards, dones, infos)
-                assert isinstance(dones, bool)
-                if dones:
-                    save_model(q_network, args, rb, env)
 
                 # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
                 obs = next_obs
