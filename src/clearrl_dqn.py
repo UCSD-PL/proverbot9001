@@ -300,27 +300,6 @@ if __name__ == "__main__":
                 model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
                 torch.save(q_network.state_dict(), model_path)
                 print(f"model saved to {model_path}")
-                # from cleanrl_utils.evals.dqn_eval import evaluate
-
-                # episodic_returns = evaluate(
-                #       model_path,
-                #       make_env,
-                #       args.env_id,
-                #       eval_episodes=10,
-                #       run_name=f"{run_name}-eval",
-                #       Model=Agent,
-                #       device=device,
-                #       epsilon=0.05,
-                # )
-                # for idx, episodic_return in enumerate(episodic_returns):
-                #       writer.add_scalar("eval/episodic_return", episodic_return, idx)
-
-                # if args.upload_model:
-                #       from cleanrl_utils.huggingface import push_to_hub
-
-                #       repo_name = f"{args.env_id}-{args.exp_name}-seed{args.seed}"
-                #       repo_id = f"{args.hf_entity}/{repo_name}" if args.hf_entity else repo_name
-                #       push_to_hub(args, episodic_returns, repo_id, "DQN", f"runs/{run_name}", f"videos/{run_name}-eval")
 
         env.close()
         writer.close()
