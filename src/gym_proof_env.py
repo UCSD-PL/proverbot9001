@@ -552,8 +552,10 @@ class FastProofEnv(gym.Env):
         process_list = []
         context = multiprocessing.get_context('fork')
         for i in range(self.num_check_engines) :
-            p = context.Process(target=child_process, args=(i,(self.proof_file, self.prelude,
-                self.time_per_command, self.max_proof_len),self.child_end_pipes[i] ) )
+            p = context.Process(target=child_process,
+                                args=(i,(self.proof_files, self.prelude,
+                                         self.skip_proofs, self.time_per_command,
+                                         self.max_proof_len),self.child_end_pipes[i] ) )
             p.start()
             process_list.append(p)
 
