@@ -16,10 +16,12 @@ from torch.utils.tensorboard import SummaryWriter
 
 
 from search_file import loadPredictorByFile
+from search_worker import ReportJob
 from pathlib_revised import Path2
 from pathlib import Path
 import coq2vec
 from coq_serapy.contexts import truncate_tactic_context, FullContext, ProofContext, Obligation
+from util import eprint
 from gym import spaces
 
 from gym_proof_env import FastProofEnv
@@ -84,6 +86,7 @@ def parse_args():
         parser.add_argument('--prelude', default="CompCert")
         parser.add_argument('--weightsfile', default = "data/polyarg-weights.dat", type=str)
         parser.add_argument('--proof_file', default="CompCert/common/Globalenvs.v",type=str)
+        parser.add_argument("--no-resume", dest="resume", action='store_false')
 
         args = parser.parse_args()
         # fmt: on
@@ -196,27 +199,40 @@ def main():
         with open("compcert_projs_splits.json",'r') as f :
                 data = json.load(f)
         proof_files = data[0]["test_files"]
-        env = FastProofEnv(proof_files,args.prelude, args.track,
-                           max_proof_len = args.max_proof_len, num_check_engines = args.max_attempts)
 
         # assert isinstance(env.single_action_space, gym.spaces.Discrete), "only discrete action space is supported"
 
+
+        resumefile_path = Path(f"runs/{args.exp_name}-resumefile.dat")
+        if args.resume and resumefile_path.exists():
+            proofs_done, rb, network_weights = torch.load(str(resumefile_path))
+        else:
+            proofs_done = []
+            rb = ReplayBuffer(
+                    args.buffer_size,
+                    spaces.Box(-1,1, shape =(1,1565), dtype=np.float32), #envs.single_observation_space,            env.single_action_space,
+                    spaces.Discrete(1565),
+                    device,
+                    handle_timeout_termination=False,
+            )
+        env = FastProofEnv(proof_files, args.prelude,
+                           skip_proofs = proofs_done,
+                           use_wandb = args.track,
+                           max_proof_len = args.max_proof_len,
+                           num_check_engines = args.max_attempts)
         q_network = Agent(env).to(device)
         optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
         target_network = Agent(env).to(device)
-        target_network.load_state_dict(q_network.state_dict())
+        if args.resume and resumefile_path.exists():
+            q_network.load_state_dict(network_weights)
+            target_network.load_state_dict(network_weights)
+        else:
+            target_network.load_state_dict(q_network.state_dict())
 
         obs,infos = env.reset()
         # obs = q_network.stateEncoder(obs)
 
         # print(type(env.action_space))
-        rb = ReplayBuffer(
-                args.buffer_size,
-                spaces.Box(-1,1, shape =(1,1565), dtype=np.float32), #envs.single_observation_space,            env.single_action_space,
-                spaces.Discrete(1565),
-                device,
-                handle_timeout_termination=False,
-        )
         start_time = time.time()
 
         # TRY NOT TO MODIFY: start the game
@@ -263,6 +279,9 @@ def main():
                 #       if d:
                 # real_next_obs = infos["terminal_observation"]
                 rb.add(obs, real_next_obs, np.array(actions), rewards, dones, infos)
+                assert isinstance(dones, bool)
+                if dones:
+                    save_model(q_network, args, rb, env)
 
                 # TRY NOT TO MODIFY: CRUCIAL step easy to overlook
                 obs = next_obs
@@ -297,13 +316,18 @@ def main():
                                                 args.tau * q_network_param.data + (1.0 - args.tau) * target_network_param.data
                                         )
 
-        if args.save_model:
-                model_path = f"runs/{run_name}/{args.exp_name}.cleanrl_model"
-                torch.save(q_network.state_dict(), model_path)
-                print(f"model saved to {model_path}")
+        save_model(q_network, args, rb, env)
 
         env.close()
         writer.close()
+
+def save_model(q_network, args, rb, env):
+    model_path = f"runs/{args.exp_name}.cleanrl_model"
+    model_weights = q_network.state_dict()
+    torch.save(model_weights, model_path)
+    resumefile_path = Path(f"runs/{args.exp_name}-resumefile.dat")
+    torch.save((env.proofs_done, rb, model_weights), str(resumefile_path))
+    print(f"model saved to {model_path}")
 
 if __name__ == "__main__":
     main()

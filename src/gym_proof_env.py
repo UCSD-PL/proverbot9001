@@ -43,6 +43,7 @@ class ActionSpace:
 
 class ProofEnv(gym.Env):
     def __init__(self, proof_files: List[Path], prelude: Path,
+                 skip_proofs: List[ReportJob],
                  time_per_command: int = 100, max_proof_len: int = 50,
                  use_wandb: bool = False, write_solved_proofs: bool = True):
         self.prelude= prelude
@@ -62,6 +63,8 @@ class ProofEnv(gym.Env):
             f.write("")
 
         self.max_num_proofs = 15
+        self.proofs_done: List[ReportJob] = []
+        self.skip_proofs: List[ReportJob] = skip_proofs
         self.num_proofs = 0
         self._load_list_tactic_classes()
     def _prooflines_file_write(self, write_str) :
@@ -141,7 +144,7 @@ class ProofEnv(gym.Env):
     def _reset_to_start_of_file(self) :
         if self.coq is not None:
             self.coq.kill()
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],None, prelude = self.prelude)
+        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],None, prelude = str(self.prelude))
         self.coq.verbose = 3
         self.coq.quiet = True
         self.proof_line_num = 0
@@ -390,6 +393,14 @@ class ProofEnv(gym.Env):
                 print("Time taken to naviagate file to the end of current proof", b -a)
                 a = time.time()
                 self._goto_next_proof()
+                cur_job = ReportJob(".", str(self.proof_files[self.proof_file_index]),
+                                    self.coq.sm_prefix, self.coq.prev_tactics[0])
+                while cur_job in self.skip_proofs:
+                    eprint(f"Skipping proof {cur_job}")
+                    self._admit_and_skip_proof()
+                    cur_job = ReportJob(".", str(self.proof_files[self.proof_file_index]),
+                                        self.coq.sm_prefix, self.coq.prev_tactics[0])
+
                 b = time.time()
                 self.debug_time.append(b-a)
                 print("Time taken to run goto_next_proof function", b-a)
@@ -430,6 +441,13 @@ class ProofEnv(gym.Env):
         self.start_proof_time = 0
         self.debug_time = []
         self._goto_next_proof()
+        cur_job = ReportJob(".", str(self.proof_files[self.proof_file_index]),
+                            self.coq.sm_prefix, self.coq.prev_tactics[0])
+        while cur_job in self.skip_proofs:
+            eprint(f"Skipping proof {cur_job}")
+            self._admit_and_skip_proof()
+            cur_job = ReportJob(".", str(self.proof_files[self.proof_file_index]),
+                                self.coq.sm_prefix, self.coq.prev_tactics[0])
         # state = self.get_state_vector( self.coq.proof_context )
         state = self.coq.proof_context
         info = {}
@@ -444,8 +462,8 @@ def child_process(pid, critical, pipe) :
     open("output/errors/subprocess_pid%d_error.txt"%pid, 'w').close()
     sys.stdout = open("output/results/subprocess_pid%d_out.txt"%pid, 'a')
     sys.stderr = open("output/errors/subprocess_pid%d_error.txt"%pid, 'a')
-    proof_file, prelude, time_per_command, max_proof_len = critical
-    test_env = ProofEnv(proof_file, prelude, use_wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len)
+    proof_file, prelude, skip_proofs, time_per_command, max_proof_len = critical
+    test_env = ProofEnv(proof_file, prelude, skip_proofs, use_wandb = False, time_per_command = time_per_command, write_solved_proofs=False, max_proof_len=max_proof_len)
     print("child process created", pid)
     while True :
         if pipe.poll(1800) :
@@ -486,15 +504,16 @@ class FastProofEnv(gym.Env):
                  max_term_length: int = 256,
                  use_wandb: bool = False,
                  write_solved_proofs: bool = True):
-        self.skip_proofs = skip_proofs
         self.proof_files = proof_files
         self.action_space = None
         self.prelude = prelude
+        self.skip_proofs = skip_proofs
         self.time_per_command = time_per_command
         self.num_check_engines = num_check_engines
         self.max_proof_len = max_proof_len
         self.main_engine = ProofEnv([Path(proof_file) for proof_file in proof_files],
                                     Path(prelude),
+                                    skip_proofs,
                                     time_per_command = time_per_command,
                                     max_proof_len = max_proof_len,
                                     use_wandb = use_wandb,
@@ -504,6 +523,7 @@ class FastProofEnv(gym.Env):
         self._create_pipes_and_children()
         self.max_term_length = max_term_length
         self.state_encoder = self._get_state_encoder()
+        self.proofs_done: List[ReportJob] = []
 
     def _get_state_encoder(self):
         termvectorizer = coq2vec.CoqTermRNNVectorizer()
@@ -595,7 +615,12 @@ class FastProofEnv(gym.Env):
             pipe.send(["step",action])
         for pipe in self.server_end_pipes :
             pipe.recv()
+        cur_lemma = self.main_engine.coq.prev_tactics[0]
+        cur_file = self.main_engine.proof_files[self.main_engine.proof_file_index]
+        cur_module = self.main_engine.coq.sm_prefix
         s_next,episode_r, done, info = self.main_engine.step(action)
+        if done:
+            self.proofs_done.append(ReportJob(".", str(cur_file), cur_module, cur_lemma))
         s_next_encoded = self._encode_state(s_next)
         next_states, list_of_pred, next_state_texts = self._get_available_actions_with_next_state_vectors()
         next_states_encoded = self._encode_next_states(next_states)
