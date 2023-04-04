@@ -161,7 +161,7 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 
 
-if __name__ == "__main__":
+def main():
         args = parse_args()
         run_name = f"cleanrl_proverbot__{args.exp_name}__{args.seed}__{int(time.time())}"
         if args.track:
@@ -303,3 +303,6 @@ if __name__ == "__main__":
 
         env.close()
         writer.close()
+
+if __name__ == "__main__":
+    main()
