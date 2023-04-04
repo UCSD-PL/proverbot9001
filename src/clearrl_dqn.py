@@ -27,7 +27,7 @@ from gym_proof_env import FastProofEnv
 def parse_args():
         # fmt: off
         parser = argparse.ArgumentParser()
-        parser.add_argument("--exp-name", type=str, default='dylan_exp_cleanrl',
+        parser.add_argument("--exp-name", type=str, default=None,
                 help="the name of this experiment")
         parser.add_argument("--seed", type=int, default=1,
                 help="seed of the experiment")
@@ -163,7 +163,8 @@ def linear_schedule(start_e: float, end_e: float, duration: int, t: int):
 
 def main():
         args = parse_args()
-        run_name = f"cleanrl_proverbot__{args.exp_name}__{args.seed}__{int(time.time())}"
+        if args.exp_name is None:
+            args.exp_name = f"cleanrl_{args.seed}_{int(time.time())}"
         if args.track:
                 import wandb
 
@@ -172,11 +173,11 @@ def main():
                         entity=args.wandb_entity,
                         sync_tensorboard=True,
                         config=vars(args),
-                        name=run_name,
+                        name=args.exp_name,
                         monitor_gym=True,
                         save_code=True,
                 )
-        writer = SummaryWriter(f"runs/{run_name}")
+        writer = SummaryWriter(f"runs/{args.exp_name}")
         writer.add_text(
                 "hyperparameters",
                 "|param|value|\n|-|-|\n%s" % ("\n".join([f"|{key}|{value}|" for key, value in vars(args).items()])),
