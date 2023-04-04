@@ -479,6 +479,9 @@ def child_process(pid, critical, pipe) :
         elif func == 'check_next_state' :
             result = test_env._check_next_state(args)
             print("Results of Check next state inside a child - ",result)
+        elif func == 'set_file':
+            test_env.proof_file_index = args
+            result = ""
         elif func == 'admit_and_skip_proof' :
             result = test_env._admit_and_skip_proof()
         elif func == 'run_to_proof' :
@@ -561,6 +564,16 @@ class FastProofEnv(gym.Env):
     @property
     def curr_proof_tactics(self):
         return self.coq.tactic_history.getFullHistory()
+    @property
+    def proof_file_index(self):
+        return self.main_engine.proof_file_index
+    @proof_file_index.setter
+    def proof_file_index(self, value):
+        self.main_engine.proof_file_index = value
+        for pipe in self.server_end_pipes :
+            pipe.send( ["set_file",value])
+        for pipe in self.server_end_pipes :
+            pipe.recv()
     def _create_pipes_and_children(self) :
         self.server_end_pipes = []
         self.child_end_pipes = []

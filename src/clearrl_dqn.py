@@ -205,7 +205,7 @@ def main():
 
         resumefile_path = Path(f"runs/{args.exp_name}-resumefile.dat")
         if args.resume and resumefile_path.exists():
-            proofs_done, rb, network_weights = torch.load(str(resumefile_path))
+            proofs_done, proof_file_index, rb, network_weights = torch.load(str(resumefile_path))
         else:
             proofs_done = []
             rb = ReplayBuffer(
@@ -226,6 +226,7 @@ def main():
         if args.resume and resumefile_path.exists():
             q_network.load_state_dict(network_weights)
             target_network.load_state_dict(network_weights)
+            env.proof_file_index = proof_file_index
         else:
             target_network.load_state_dict(q_network.state_dict())
 
@@ -325,7 +326,7 @@ def save_model(q_network, args, rb, env):
     model_weights = q_network.state_dict()
     torch.save(model_weights, model_path)
     resumefile_path = Path(f"runs/{args.exp_name}-resumefile.dat")
-    torch.save((env.proofs_done, rb, model_weights), str(resumefile_path))
+    torch.save((env.proofs_done, env.proof_file_index, rb, model_weights), str(resumefile_path))
     print(f"model saved to {model_path}")
 
 if __name__ == "__main__":
