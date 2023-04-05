@@ -153,7 +153,7 @@ def main(arg_list: List[str]) -> None:
     base = Path(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
-        args.output_dir.makedirs()
+        os.makedirs(args.output_dir)
 
     for filename in [details_css, details_javascript]:
         destpath = args.output_dir / filename
