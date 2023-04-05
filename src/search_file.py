@@ -475,7 +475,10 @@ def search_file_worker(args: argparse.Namespace,
                     except Exception:
                         eprint(f"FAILED in file {next_file}, lemma {next_lemma}")
                         raise
-                    serapi_instance.admit_proof(coq, lemma_statement)
+                    while not serapi_instance.ending_proof(rest_commands[0]):
+                        rest_commands = rest_commands[1:]
+                    serapi_instance.admit_proof(coq, lemma_statement,
+                                                rest_commands[0])
                     if not tactic_solution:
                         solution = [
                             TacticInteraction("Proof.", initial_context),
@@ -485,8 +488,6 @@ def search_file_worker(args: argparse.Namespace,
                             [TacticInteraction("Proof.", initial_context)]
                             + tactic_solution +
                             [TacticInteraction("Qed.", empty_context)])
-                    while not serapi_instance.ending_proof(rest_commands[0]):
-                        rest_commands = rest_commands[1:]
                     rest_commands = rest_commands[1:]
                     done.put(((next_file, next_module, next_lemma),
                               SearchResult(search_status, solution)))
@@ -506,11 +507,14 @@ def search_file_worker(args: argparse.Namespace,
                         break
                 else:
                     proof_relevant = False
+                    ending_cmd = None
                     for cmd in rest_commands:
                         if serapi_instance.ending_proof(cmd):
                             if cmd.strip() == "Defined.":
                                 proof_relevant = True
+                            ending_cmd = cmd
                             break
+                    assert ending_cmd is not None
                     proof_relevant = proof_relevant or \
                         bool(re.match(
                             r"\s*Derive",
@@ -527,7 +531,7 @@ def search_file_worker(args: argparse.Namespace,
                             rest_commands)
                     else:
                         try:
-                            serapi_instance.admit_proof(coq, lemma_statement)
+                            serapi_instance.admit_proof(coq, lemma_statement, ending_cmd)
                         except serapi_instance.SerapiException:
                             next_lemma_name = \
                                 serapi_instance.lemma_name_from_statement(next_lemma)
