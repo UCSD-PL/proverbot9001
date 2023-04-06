@@ -313,6 +313,8 @@ def show_progress(args: argparse.Namespace) -> None:
 def follow_and_print(filename: str) -> None:
     global close_follows
     close_follows = False
+    while not Path(filename).exists():
+        time.sleep(0.1)
     with open(filename, 'r') as f:
         while True:
             line = f.readline()
