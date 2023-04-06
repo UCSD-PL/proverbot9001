@@ -294,7 +294,7 @@ def show_progress(args: argparse.Namespace) -> None:
                 new_workers_scheduled = len([line for line in f])
             if new_workers_alive < num_workers_alive:
                 num_workers_alive = new_workers_alive
-                if num_workers_alive < (num_jobs_total - num_jobs_done):
+                if num_workers_alive * args.num_threads < (num_jobs_total - num_jobs_done):
                     util.eprint(f"One of the workers crashed! "
                                 f"We have only {num_workers_alive} workers left alive, "
                                 f"but still {num_jobs_total - num_jobs_done} jobs left")
