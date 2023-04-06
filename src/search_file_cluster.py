@@ -331,6 +331,8 @@ def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report File
     close_follows = False
     progress = 0
     set_total = False
+    while not Path(filename).exists():
+        time.sleep(0.1)
     with open(filename, 'r') as f:
         while True:
             line = f.readline()
