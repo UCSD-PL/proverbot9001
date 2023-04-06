@@ -326,6 +326,8 @@ def follow_and_print(filename: str) -> None:
                 break
             time.sleep(0.01)
 
+close_follows: bool
+
 def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report Files") -> None:
     global close_follows
     close_follows = False
