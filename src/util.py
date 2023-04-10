@@ -392,16 +392,15 @@ def safe_abbrev(filename: Path, all_files: List[Path]) -> str:
         return filename.stem
 
 class FileLock:
-    def __init__(self, file_handle):
+    def __init__(self, file_handle, exclusive=True):
         self.file_handle = file_handle
+        if exclusive:
+            self.lock_style = fcntl.LOCK_EX
+        else:
+            self.lock_style = fcntl.LOCK_SH
 
     def __enter__(self):
-        while True:
-            try:
-                fcntl.flock(self.file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError:
-               time.sleep(0.01)
+        fcntl.flock(self.file_handle, self.lock_style)
         return self
 
     def __exit__(self, type, value, traceback):

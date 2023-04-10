@@ -267,48 +267,59 @@ def interrupt_report_early(args: argparse.Namespace, *rest_args) -> None:
     sys.exit()
 
 def show_progress(args: argparse.Namespace) -> None:
-    num_jobs_done = len(get_already_done_jobs(args))
     with (args.output_dir / "all_jobs.txt").open('r') as f:
-        num_jobs_total = len([line for line in f])
+        all_jobs = [ReportJob(*json.loads(l)) for l in f]
     with (args.output_dir / "num_workers_dispatched.txt").open('r') as f:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
-        num_workers_scheduled = len([line for line in f])
-    num_workers_alive = int(subprocess.check_output(
-        f"squeue -u $USER -h -n proverbot9001-worker | wc -l", text=True, shell=True))
+        workers_scheduled = list(f)
+    jobs_done = get_already_done_jobs(args)
+    num_workers_alive = 0
+    crashed_workers: List[int] = []
 
-    with tqdm(desc="Jobs finished", total=num_jobs_total,
-              initial=num_jobs_done, dynamic_ncols=True) as bar, \
-         tqdm(desc="Workers scheduled", total=num_workers_total,
-              initial=num_workers_scheduled, dynamic_ncols=True) as wbar:
-        while num_jobs_done < num_jobs_total:
-            new_workers_alive = int(subprocess.check_output(
-                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
-                text=True, shell=True))
+    with tqdm(desc="Jobs finished", total=len(all_jobs), initial=len(jobs_done), dynamic_ncols=True) as bar, \
+         tqdm(desc="Workers scheduled", total=num_workers_total, initial=len(workers_scheduled), dynamic_ncols=True) as wbar:
+        while len(jobs_done) < len(all_jobs):
+            new_workers_alive = [int(wid) for wid in
+                                 subprocess.check_output(
+                                   "squeue -r -u$USER -h -n proverbot9001-worker -o%K",
+                                   shell=True, text=True).strip().split("\n")]
             time.sleep(0.2)
-            new_jobs_done = len(get_already_done_jobs(args))
-            bar.update(new_jobs_done - num_jobs_done)
-            num_jobs_done = new_jobs_done
+            new_jobs_done = get_already_done_jobs(args)
+            bar.update(len(new_jobs_done) - len(jobs_done))
+            jobs_done = new_jobs_done
 
-            with (args.output_dir / "workers_scheduled.txt").open('r') as f:
-                new_workers_scheduled = len([line for line in f])
-            if new_workers_alive < num_workers_alive:
-                num_workers_alive = new_workers_alive
-                if num_workers_alive * args.num_threads < (num_jobs_total - num_jobs_done):
-                    util.eprint(f"One of the workers crashed! "
-                                f"We have only {num_workers_alive} workers left alive, "
-                                f"but still {num_jobs_total - num_jobs_done} jobs left")
-            elif new_workers_alive > num_workers_alive:
-                num_workers_alive = new_workers_alive
-            if num_workers_alive == 0:
+            # Check for newly crashed workers
+            for worker_id in range(num_workers_total):
+                # Skip any living worker
+                if worker_id in new_workers_alive:
+                    continue
+                # Skip any worker for which we've already reported a crash
+                if worker_id in crashed_workers:
+                    continue
+                # Skip any worker that hasn't started yet, and get the jobs taken by workers that did.
+                try:
+                    with (args.output_dir / f"worker-{worker_id}-taken.txt").open('r') as f:
+                        taken_by_worker = [ReportJob(*json.loads(l)) for l in f]
+                except FileNotFoundError:
+                    continue
+                jobs_left_behind = 0
+                for job in all_jobs:
+                    if job not in jobs_done and job in taken_by_worker:
+                        jobs_left_behind += 1
+                if jobs_left_behind > 0:
+                    util.eprint(f"Worker {worker_id} crashed! Left behind {jobs_left_behind} unfinished jobs")
+                    crashed_workers.append(worker_id)
+            if len(new_workers_alive) == 0:
                 time.sleep(1)
-                num_jobs_done = len(get_already_done_jobs(args))
-                if num_jobs_done < num_jobs_total:
+                if len(jobs_done) < len(all_jobs):
                     util.eprint("All workers exited, but jobs aren't done!")
                     write_time(args)
                     sys.exit(1)
-            wbar.update(new_workers_scheduled - num_workers_scheduled)
-            num_workers_scheduled = new_workers_scheduled
+            with (args.output_dir / "workers_scheduled.txt").open('r') as f:
+                new_workers_scheduled = list(f)
+            wbar.update(len(new_workers_scheduled) - len(workers_scheduled))
+            workers_scheduled = new_workers_scheduled
 
 def follow_and_print(filename: str) -> None:
     global close_follows

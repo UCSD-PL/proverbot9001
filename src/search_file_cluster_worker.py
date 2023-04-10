@@ -71,7 +71,7 @@ def main(arg_list: List[str]) -> None:
 
 
     workers = [multiprocessing.Process(target=run_worker,
-                                       args=(args, widx))
+                                       args=(args, widx, workerid))
                for widx in range(args.num_threads)]
     for worker in workers:
         worker.start()
@@ -79,7 +79,7 @@ def main(arg_list: List[str]) -> None:
         worker.join()
     eprint(f"Finished worker {workerid}")
 
-def run_worker(args: argparse.Namespace, workerid: int) -> None:
+def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
     
@@ -91,8 +91,11 @@ def run_worker(args: argparse.Namespace, workerid: int) -> None:
                         for item in project_dicts}
     else:
         switch_dict = None
+    worker_taken_file = args.output_dir / f"worker-{workerid}-taken.txt"
+    with worker_taken_file.open("w"):
+        pass
 
-    with Worker(args, workerid, predictor, switch_dict) as worker:
+    with Worker(args, threadid, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
@@ -103,9 +106,11 @@ def run_worker(args: argparse.Namespace, workerid: int) -> None:
                         break
                 if current_job:
                     print(json.dumps(current_job), file=f, flush=True)
+                    with worker_taken_file.open("a") as f:
+                        print(json.dumps(current_job), file=f, flush=True)
                     eprint(f"Starting job {current_job}")
                 else:
-                    eprint(f"Finished thread {workerid}")
+                    eprint(f"Finished thread {threadid}")
                     break
             solution = worker.run_job(current_job)
             job_project, job_file, _, _ = current_job
