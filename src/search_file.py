@@ -45,7 +45,7 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
 from models.tactic_predictor import TacticPredictor
 import coq_serapy as serapi_instance
 
-from util import eprint
+from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
@@ -254,7 +254,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
-                with proofs_file.open('r') as f:
+                with proofs_file.open('r') as f, FileLock(f, exclusive=False):
                     for idx, line in enumerate(f):
                         try:
                             (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
@@ -276,7 +276,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                             file_jobs.append((loaded_job, sol))
                 already_done_jobs.extend([job for job, sol in file_jobs])
                 if fixing_duplicates:
-                    with proofs_file.open('w') as f:
+                    with proofs_file.open('w') as f, FileLock(f):
                         for job, sol in file_jobs:
                             print(json.dumps((job, sol)), file=f)
             except FileNotFoundError:
