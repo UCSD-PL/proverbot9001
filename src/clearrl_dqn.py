@@ -204,6 +204,18 @@ def main():
 
 
         resumefile_path = Path(f"runs/{args.exp_name}-resumefile.dat")
+
+        q_network = Agent(env).to(device)
+        optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
+        target_network = Agent(env).to(device)
+        if args.resume and resumefile_path.exists():
+            q_network.load_state_dict(network_weights)
+            target_network.load_state_dict(network_weights)
+            env.proof_file_index = proof_file_index
+        else:
+            target_network.load_state_dict(q_network.state_dict())
+
+
         if args.resume and resumefile_path.exists():
             proofs_done, proof_file_index, rb, network_weights = torch.load(str(resumefile_path))
         else:
@@ -220,24 +232,17 @@ def main():
                            use_wandb = args.track,
                            max_proof_len = args.max_proof_len,
                            num_check_engines = args.max_attempts)
-        q_network = Agent(env).to(device)
-        optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
-        target_network = Agent(env).to(device)
-        if args.resume and resumefile_path.exists():
-            q_network.load_state_dict(network_weights)
-            target_network.load_state_dict(network_weights)
-            env.proof_file_index = proof_file_index
-        else:
-            target_network.load_state_dict(q_network.state_dict())
+        
 
-        obs,infos = env.reset()
+        
+        # obs,infos = env.reset()
         # obs = q_network.stateEncoder(obs)
 
         # print(type(env.action_space))
         start_time = time.time()
 
         # TRY NOT TO MODIFY: start the game
-
+        obs = env.reset()
         for global_step in range(args.total_timesteps):
                 # ALGO LOGIC: put action logic here
                 epsilon = linear_schedule(args.start_e, args.end_e, args.exploration_fraction * args.total_timesteps, global_step)
@@ -253,7 +258,7 @@ def main():
                                 actions = -1
                         else:
                                 q_values = q_network.get_vvals_from_contexts(env.reachable_states) #qvals == vvals for this case
-                                actions = np.argmax(q_values, axis=1)[0]#.cpu().numpy()
+                                a = np.argmax(q_values, axis=1)[0]#.cpu().numpy()
                 # print(actions)
                 # TRY NOT TO MODIFY: execute the game and log data.
                 # print('>> List of predictions {}'.format(infos['list_of_pred']))
@@ -261,7 +266,7 @@ def main():
                 #       a = None
                 # else:
                         # print(infos['list_of_pred'])
-                a = env.action_space.get_action_by_index(actions)
+                # a = env.action_space.get_action_by_index(actions)
                 next_obs, rewards, dones, infos = env.step(a)
                 if dones:
                     save_model(q_network, args, rb, env)

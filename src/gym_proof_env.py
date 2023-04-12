@@ -35,7 +35,7 @@ class ActionSpace:
             return -1
         else:
             return random.randrange(0,self.length)
-    def get_action_by_index(self,idx):
+    def __getitem__(self,idx):
         if idx<0:
             return None
         else:
@@ -620,10 +620,15 @@ class FastProofEnv(gym.Env):
         info['reachable_states_text'] = next_state_texts
         self.action_space = ActionSpace(list_of_pred)
         self.reachable_states = next_states_encoded
-        return state_encoded,info
 
-    def step(self, action) :
+        CoqAgent.locate_ident()
+        return state_encoded #,info]
+    
+        
+    
+    def step(self, action_indx) :
         print("Stepping on all Test Engines")
+        action = self.action_space[action_indx]
         for pipe in self.server_end_pipes :
             pipe.send(["step",action])
         for pipe in self.server_end_pipes :
