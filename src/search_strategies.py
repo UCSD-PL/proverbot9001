@@ -361,7 +361,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-                    args.max_attempts)
+                    args.max_attempts,
+            blacklist=args.blacklisted_tactics)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
@@ -740,7 +741,8 @@ def bfs_beam_proof_search(lemma_name: str,
                 predictions = predictor.predictKTactics(
                     truncate_tactic_context(full_context_before.as_tcontext(),
                                             args.max_term_length),
-                            args.max_attempts)
+                            args.max_attempts,
+                    blacklist=args.blacklisted_tactics)
                 for prediction in predictions:
                     if num_successful_predictions >= args.search_width:
                         break
@@ -916,7 +918,8 @@ def best_first_proof_search(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-            args.max_attempts)
+            args.max_attempts,
+            blacklist=args.blacklisted_tactics)
 
         for prediction in predictions:
             if num_successful_predictions >= args.search_width:
