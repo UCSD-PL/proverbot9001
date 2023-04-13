@@ -11,7 +11,8 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
-    git submodule init
+    git submodule init coq_serapy
+    git submodule init dataloader/gestalt-ratio
     git submodule update
     opam init -a --compiler=4.07.1 -y
     eval `opam config env`
@@ -22,7 +23,7 @@ else
     # For SerAPI:
     opam install -y coq-serapi coq menhir
     # Python dependencies
-    pip3 install --no-input --user -r requirements.txt
+    pip3 install --no-input -r requirements.txt
     pip3 install --no-input -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
