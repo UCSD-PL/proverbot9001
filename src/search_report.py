@@ -118,7 +118,7 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
         write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
                              model_name, blocks)
         write_html(args, output_file_prefix.with_suffix(".html"),
-                   filename, blocks)
+                   Path(filename), blocks)
         write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
         stats.append(stats_from_blocks(blocks, str(filename)))
     produce_index(args, predictor,
