@@ -205,15 +205,9 @@ def main():
 
         resumefile_path = Path(f"runs/{args.exp_name}-resumefile.dat")
 
-        q_network = Agent(env).to(device)
-        optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
-        target_network = Agent(env).to(device)
-        if args.resume and resumefile_path.exists():
-            q_network.load_state_dict(network_weights)
-            target_network.load_state_dict(network_weights)
-            env.proof_file_index = proof_file_index
-        else:
-            target_network.load_state_dict(q_network.state_dict())
+
+        
+        
 
 
         if args.resume and resumefile_path.exists():
@@ -234,7 +228,16 @@ def main():
                            num_check_engines = args.max_attempts)
         
 
-        
+        q_network = Agent(env).to(device)
+        optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
+        target_network = Agent(env).to(device)
+        if args.resume and resumefile_path.exists():
+            q_network.load_state_dict(network_weights)
+            target_network.load_state_dict(network_weights)
+            env.proof_file_index = proof_file_index
+        else:
+            target_network.load_state_dict(q_network.state_dict())
+            
         # obs,infos = env.reset()
         # obs = q_network.stateEncoder(obs)
 
