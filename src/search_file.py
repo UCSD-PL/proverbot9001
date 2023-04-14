@@ -57,8 +57,6 @@ from pathlib import Path
 import torch
 
 start_time = datetime.now()
-
-start_time = datetime.now()
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
     sys.setrecursionlimit(100000)
