@@ -134,9 +134,6 @@ def blocks_from_scrape_and_sols(
     interactions = scraped_from_file(
         str(src_filename.with_suffix(".v.scrape")))
 
-    # interactions = data.read_all_text_data(
-    #     src_filename.with_suffix(".v.scrape"))
-
     def lookup(module: str, lemma_stmt: str) -> Optional[SearchResult]:
         for lstmt, lmod, lresult in lemma_statements_done:
             if (lmod == module and
