@@ -213,7 +213,7 @@ def blocks_from_scrape_and_sols(
         if in_proof:
             yield yield_proof()
         else:
-            yield VernacBlock(vernac_cmds_batch[:-1])
+            yield VernacBlock(vernac_cmds_batch)
     blocks = list(generate())
     return blocks
 
