@@ -34,21 +34,20 @@ from shutil import copyfile
 from yattag import Doc
 from tqdm import tqdm
 
-from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
-import util
-
 from typing import (List, Tuple, Sequence, Dict, Callable,
                     Any, Iterable, Optional)
 
-from models.tactic_predictor import TacticPredictor
-import data
 from dataloader import scraped_from_file
 
+from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
 from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
 import coq_serapy
 from coq_serapy.contexts import ScrapedTactic, Obligation
+from models.tactic_predictor import TacticPredictor
+
 import multi_project_report
 
 index_css = ["report.css"]
