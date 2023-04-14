@@ -37,15 +37,16 @@ from tqdm import tqdm
 from typing import (List, Tuple, Sequence, Dict, Callable,
                     Any, Iterable, Optional)
 
-from dataloader import scraped_from_file
+from dataloader import scraped_from_file, ScrapedTactic, Obligation, ProofContext
+
+import coq_serapy
+import coq_serapy.contexts
 
 from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
 import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
 from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
-import coq_serapy
-from coq_serapy.contexts import ScrapedTactic, Obligation
 from models.tactic_predictor import TacticPredictor
 
 import multi_project_report
@@ -219,9 +220,19 @@ def blocks_from_scrape_and_sols(
     blocks = list(generate())
     return blocks
 
+def dObligation_to_native(obl: Obligation) -> coq_serapy.contexts.Obligation:
+    return coq_serapy.contexts.Obligation(obl.hypotheses, obl.goal)
+
+def dContext_to_native(context: ProofContext) -> coq_serapy.contexts.ProofContext:
+    return coq_serapy.contexts.ProofContext(
+        [dObligation_to_native(g) for g in context.fg_goals],
+        [dObligation_to_native(g) for g in context.bg_goals],
+        [dObligation_to_native(g) for g in context.shelved_goals],
+        [dObligation_to_native(g) for g in context.given_up_goals])
+
 
 def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
-    return TacticInteraction(s.tactic, s.context)
+    return TacticInteraction(s.tactic, dContext_to_native(s.context))
 
 
 def write_solution_vfile(args: argparse.Namespace, output_filename: Path,
@@ -333,7 +344,8 @@ def escape_quotes(term: str):
     return re.sub("\"", "\\\"", term)
 
 
-def subgoal_to_string(args: argparse.Namespace, sg: Obligation) -> str:
+def subgoal_to_string(args: argparse.Namespace,
+                      sg: coq_serapy.contexts.Obligation) -> str:
     return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
         "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"
