@@ -361,7 +361,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-                    args.max_attempts,
+            args.max_attempts,
             blacklist=args.blacklisted_tactics)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
