@@ -135,7 +135,6 @@ class Worker:
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
-        assert job not in self.lemmas_encountered, "Jobs are out of order!"
         job_project, job_file, job_module, job_lemma = job
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
@@ -148,7 +147,7 @@ class Worker:
                 self.set_switch_from_proj()
             self.enter_file(job_file)
         # If the job is in a different file load the jobs file from scratch.
-        if job_file != self.cur_file:
+        if job_file != self.cur_file or job in self.lemmas_encountered:
             if self.cur_file:
                 self.exit_cur_file()
             self.enter_file(job_file)
