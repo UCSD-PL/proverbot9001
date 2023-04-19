@@ -28,7 +28,7 @@ class TacticPredictor(metaclass=ABCMeta):
 
     @abstractmethod
     def predictKTactics(self, in_data : TacticContext, k : int,
-                        tactic_blacklist: Optional[List[str]] = None) \
+                        blacklist: Optional[List[str]] = None) \
         -> List[Prediction]: pass
     @abstractmethod
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
