@@ -157,12 +157,15 @@ class Worker:
         # or get to the end of the file and raise an assert.
         while True:
             try:
-                if not self.coq.proof_context:
-                    rest_commands, run_commands = \
-                      unwrap(cast(Optional[Tuple[List[str], List[str]]],
-                                  self.coq.run_into_next_proof(
-                                      self.remaining_commands)))
-                    assert rest_commands, f"Couldn't find lemma {job_lemma}"
+                assert not self.coq.proof_context, \
+                    "Not currently in a proof! Back up to before the current proof, "\
+                    "or use coq.finish_proof(cmds) or " \
+                    "admit_proof(coq, lemma_statement, ending_stmt)"
+                rest_commands, run_commands = \
+                    unwrap(cast(Optional[Tuple[List[str], List[str]]],
+                                self.coq.run_into_next_proof(
+                                    self.remaining_commands)))
+                assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except coq_serapy.CoqAnomaly:
                 if restart_anomaly:
                     self.restart_coq()
