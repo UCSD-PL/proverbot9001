@@ -258,8 +258,13 @@ def train_v_network(args: argparse.Namespace,
         else:
             break
         with print_time("Computing outputs"):
-            outputs = [args.gamma * math.prod(v_network(obls))
-                       for state, action, obls in samples]
+            resulting_obls_lens = [len(obls) for state, action, obls in samples]
+            all_obl_scores = v_network([obl for state, action, obls in samples for obl in obls])
+            outputs = []
+            cur_row = 0
+            for num_obls in resulting_obls_lens:
+                outputs.append(args.gamma * math.prod(all_obl_scores[cur_row:cur_row+num_obls]))
+                cur_row += num_obls
         v_network.train([start_obl for start_obl, action, resulting_obls in samples],
                         outputs, verbosity=args.verbose)
 
