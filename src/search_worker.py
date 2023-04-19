@@ -6,7 +6,7 @@ import re
 import os
 import traceback
 import json
-from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator, Any
+from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator, Any, TypeVar
 from pathlib import Path
 
 import coq_serapy
@@ -27,6 +27,7 @@ class ReportJob(NamedTuple):
     module_prefix: str
     lemma_statement: str
 
+T = TypeVar('T', bound='Worker')
 class Worker:
     args: argparse.Namespace
     widx: int
@@ -87,7 +88,7 @@ class Worker:
         self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
                                        verbosity=self.args.verbose)
 
-    def __enter__(self) -> 'Worker':
+    def __enter__(self: T) -> T:
         self.enter_instance()
         return self
     def __exit__(self, type, value, traceback) -> None:
@@ -457,7 +458,7 @@ def get_files_jobs(args: argparse.Namespace,
         yield from get_file_jobs(args, project, filename)
 
 def get_predictor(args: argparse.Namespace) -> TacticPredictor:
-    predictor: TacticPredictor
+    predictor: TacticPredicor
     if args.weightsfile:
         predictor = loadPredictorByFile(args.weightsfile)
     elif args.predictor:
