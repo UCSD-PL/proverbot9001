@@ -207,6 +207,10 @@ class Worker:
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
+            self.lemmas_encountered.append(ReportJob(self.cur_project,
+                                                     unwrap(self.cur_file),
+                                                     self.coq.sm_prefix,
+                                                     unique_lemma_statement))
             if unique_lemma_statement == job_lemma and \
               self.coq.sm_prefix == job_module:
                 return
@@ -225,10 +229,6 @@ class Worker:
                     eprint(f"Failed getting to before: {job_lemma}")
                     eprint(f"In file {job_file}")
                     raise
-                self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                         unwrap(self.cur_file),
-                                                         self.coq.sm_prefix,
-                                                         unique_lemma_statement))
 
     def skip_proof(self, lemma_statement: str, careful: bool) -> None:
         assert self.coq
