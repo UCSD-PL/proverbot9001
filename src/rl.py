@@ -147,12 +147,13 @@ class VNetwork:
             if len(obls) == 0:
                 return torch.tensor([])
 
-        encodeds = [self.obligation_encoder.obligation_to_vector(
-            coq2vec.Obligation(obl.hypotheses, obl.goal)).view(1, -1) for obl in obls]
-        for encoded in encodeds:
-            encoded.detach()
-        catted = torch.cat(encodeds, dim=0)
-        scores = self.network(catted).view(len(obls))
+        encoded_obl_size = (self.obligation_encoder.term_encoder.hidden_size *
+                            (self.obligation_encoder.max_num_hypotheses + 1))
+
+        encoded = self.obligation_encoder.obligations_to_vectors(
+            [coq2vec.Obligation(obl.hypotheses, obl.goal) for obl in obls])\
+                                         .view(len(obls), encoded_obl_size)
+        scores = self.network(encoded).view(len(obls))
         return scores
     def train(self, inputs: List[Obligation], target_outputs: List[float], verbosity: int = 0) -> None:
         with print_time("Training"):
