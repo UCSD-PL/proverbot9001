@@ -139,6 +139,7 @@ class VNetwork:
         )
 
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+
     def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
         if isinstance(obls, Obligation):
             obls = [obls]
@@ -155,7 +156,10 @@ class VNetwork:
                                          .view(len(obls), encoded_obl_size)
         scores = self.network(encoded).view(len(obls))
         return scores
-    def train(self, inputs: List[Obligation], target_outputs: List[float], verbosity: int = 0) -> None:
+
+    def train(self, inputs: List[Obligation],
+              target_outputs: List[float],
+              verbosity: int = 0) -> None:
         with print_time("Training"):
             actual = self(inputs)
             target = torch.FloatTensor(target_outputs)
