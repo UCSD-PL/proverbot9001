@@ -5,7 +5,7 @@ import json
 import random
 import math
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple
+from typing import List, Optional, Dict, Tuple, Union
 
 import torch
 from torch import nn
@@ -139,15 +139,24 @@ class VNetwork:
         )
 
         self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
-    def __call__(self, obl: Obligation):
-        encoded = self.obligation_encoder.obligation_to_vector(
-            coq2vec.Obligation(obl.hypotheses, obl.goal))
-        encoded.detach()
-        score = self.network(encoded.view(-1))
-        return score
+    def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
+        if isinstance(obls, Obligation):
+            obls = [obls]
+        else:
+            assert isinstance(obls, list)
+            if len(obls) == 0:
+                return torch.tensor([])
+
+        encodeds = [self.obligation_encoder.obligation_to_vector(
+            coq2vec.Obligation(obl.hypotheses, obl.goal)).view(1, -1) for obl in obls]
+        for encoded in encodeds:
+            encoded.detach()
+        catted = torch.cat(encodeds, dim=0)
+        scores = self.network(catted).view(len(obls))
+        return scores
     def train(self, inputs: List[Obligation], target_outputs: List[float], verbosity: int = 0) -> None:
         with print_time("Training"):
-            actual = torch.cat([self(obl) for obl in inputs], dim=0)
+            actual = self(inputs)
             target = torch.FloatTensor(target_outputs)
             loss = F.mse_loss(actual, target)
             self.optimizer.zero_grad()
@@ -244,7 +253,7 @@ def train_v_network(args: argparse.Namespace,
         else:
             break
         with print_time("Computing outputs"):
-            outputs = [args.gamma * math.prod([v_network(obl) for obl in obls])
+            outputs = [args.gamma * math.prod(v_network(obls))
                        for state, action, obls in samples]
         v_network.train([start_obl for start_obl, action, resulting_obls in samples],
                         outputs, verbosity=args.verbose)
