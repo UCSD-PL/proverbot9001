@@ -58,6 +58,7 @@ def main():
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
     parser.add_argument("--batches-per-proof", default=1, type=int)
+    parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
@@ -225,7 +226,7 @@ class VNetwork:
 
     def train(self, inputs: List[Obligation],
               target_outputs: List[float],
-              verbosity: int = 0) -> None:
+              verbosity: int = 0) -> float:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         with print_time("Training", guard=verbosity >= 1):
@@ -237,6 +238,7 @@ class VNetwork:
             self.optimizer.step()
         eprint(f"Actual: {actual}; Target: {target}", guard=verbosity >= 2)
         eprint(f"Loss: {loss}", guard=verbosity >= 1)
+        return loss
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
@@ -329,8 +331,10 @@ def train_v_network(args: argparse.Namespace,
             for num_obls in resulting_obls_lens:
                 outputs.append(args.gamma * math.prod(all_obl_scores[cur_row:cur_row+num_obls]))
                 cur_row += num_obls
-        v_network.train([start_obl for start_obl, action, resulting_obls in samples],
-                        outputs, verbosity=args.verbose)
+        loss = v_network.train([start_obl for start_obl, action, resulting_obls in samples],
+                               outputs, verbosity=args.verbose)
+        if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
+            print(f"Loss: {loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class DummyPredictor(TacticPredictor):
     def __init__(self) -> None:
