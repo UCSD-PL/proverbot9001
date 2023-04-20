@@ -11,6 +11,7 @@ import torch
 from torch import nn
 import torch.nn.functional as F
 from torch import optim
+import torch.optim.lr_scheduler as scheduler
 
 from tqdm import tqdm, trange
 
@@ -57,6 +58,8 @@ def main():
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
+    parser.add_argument("--batch-step", default=25, type=int)
+    parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
@@ -146,6 +149,9 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
 
     with ReinforcementWorker(args, predictor, v_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
+        for step in range(episodes_already_done * len(jobs) * args.batches_per_proof):
+            worker.v_network.adjuster.step()
+
         step = 0
         if args.interleave:
             for episode in trange(episodes_already_done, args.num_episodes,
@@ -170,6 +176,8 @@ Transition = Tuple[Obligation, str, List[Obligation]]
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
     network: nn.Module
+    steps_trained: int
+    optimizer: optim.Optimizer
     def get_state(self) -> Any:
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state())
@@ -189,6 +197,8 @@ class VNetwork:
             nn.Linear(84, 1),
         )
         self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
+                                         self.lr_step)
 
 
     def load_state(self, state: Any) -> None:
@@ -197,11 +207,17 @@ class VNetwork:
         self.network.load_state_dict(network_state)
 
 
-    def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float) -> None:
+    def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
+                 batch_step: int, lr_step: float) -> None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.batch_step = batch_step
+        self.lr_step = lr_step
         self.learning_rate = learning_rate
         self.obligation_encoder = None
         self.network = None
+        # Steps trained only counts from the last resume! Don't use
+        # for anything more essential than printing.
+        self.steps_trained = 0
         if coq2vec_weights is not None:
             self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
 
@@ -236,8 +252,10 @@ class VNetwork:
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
+            self.adjuster.step()
         eprint(f"Actual: {actual}; Target: {target}", guard=verbosity >= 2)
         eprint(f"Loss: {loss}", guard=verbosity >= 1)
+        self.steps_trained += 1
         return loss
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
