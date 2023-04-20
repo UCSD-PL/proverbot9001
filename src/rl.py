@@ -143,7 +143,7 @@ class VNetwork:
         self.obligation_encoder = coq2vec.CoqContextVectorizer(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
         self.network = nn.Sequential(
-            nn.Linear(term_encoder.hidden_size * (num_hyps + 1), 120),
+            nn.Linear(insize, 120),
             nn.ReLU(),
             nn.Linear(120, 84),
             nn.ReLU(),
