@@ -125,28 +125,27 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
     predictor = DummyPredictor()
     episodes_already_done = 0
     replay_buffer = None
-    if args.output_file.exists() and args.resume != "no":
-        if args.resume == "yes":
-            print("Resuming from existing weights")
-            replay_buffer, episodes_already_done, network_state = \
-                torch.load(str(args.output_file))
-            v_network = VNetwork(None, args.learning_rate)
-            v_network.load_state(network_state)
+    if args.resume == "ask" and args.output_file.exists():
+        print(f"Found existing weights at {args.output_file}. Resume?")
+        response = input("[Y/n] ")
+        if response.lower() not in ["no", "n"]:
+            args.resume = "yes"
         else:
-            assert args.resume == "ask"
-            print(f"Found existing weights at {args.output_file}. Resume?")
-            response = input("[Y/n]")
-            if response.lower() not in ["no", "n"]:
-                print("Resuming from existing weights")
-                replay_buffer, episodes_already_done, network_state = \
-                    torch.load(str(args.output_file))
-                v_network = VNetwork(None, args.learning_rate)
-                v_network.load_state(network_state)
-            else:
-                v_network = VNetwork(args.coq2vec_weights, args.learning_rate)
-    else:
-        v_network = VNetwork(args.coq2vec_weights, args.learning_rate)
+            args.resume = "no"
+    elif not args.output_file.exists():
+        args.resume = "no"
 
+    if args.resume == "yes":
+        print("Resuming from existing weights")
+        replay_buffer, episodes_already_done, network_state = \
+            torch.load(str(args.output_file))
+        v_network = VNetwork(None, args.learning_rate,
+                             args.batch_step, args.lr_step)
+        v_network.load_state(network_state)
+    else:
+        assert args.resume == "no"
+        v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+                             args.batch_step, args.lr_step)
     with ReinforcementWorker(args, predictor, v_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
         for step in range(episodes_already_done * len(jobs) * args.batches_per_proof):
