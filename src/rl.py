@@ -233,9 +233,7 @@ def evaluate_action(args: argparse.Namespace, coq: coq_serapy.CoqAgent,
 
     product = math.prod(v_network(goal) for goal in
                         unwrap(context_after).fg_goals)
-    score = torch.tensor(args.gamma) * product
-
-    return args.gamma * score
+    return product
 
 def execute_action(coq: coq_serapy.CoqAgent,
                    action: str) -> List[Obligation]:
