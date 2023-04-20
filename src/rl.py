@@ -30,9 +30,9 @@ def main():
         description="Train a state estimator using reinforcement learning"
         "to complete proofs using Proverbot9001.")
     parser.add_argument("--prelude", default=".", type=Path)
-    parser.add_argument("--output", "-o", dest="output_dir",
+    parser.add_argument("--output", "-o", dest="output_file",
                         help="output data folder name",
-                        default="search-report",
+                        default="data/rl_weights.dat",
                         type=Path)
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0)
