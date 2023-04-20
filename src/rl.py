@@ -5,12 +5,14 @@ import json
 import random
 import math
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple, Union
+from typing import List, Optional, Dict, Tuple, Union, Any
 
 import torch
 from torch import nn
 import torch.nn.functional as F
 from torch import optim
+
+from tqdm import tqdm, trange
 
 import coq_serapy
 from coq_serapy.contexts import (FullContext, truncate_tactic_context,
@@ -58,6 +60,9 @@ def main():
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
+    parser.add_argument("--save-every", type=int, default=20)
+    parser.add_argument("--evaluate", action="store_true")
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -77,10 +82,14 @@ class ReinforcementWorker(Worker):
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
-                 switch_dict: Optional[Dict[str, str]] = None) -> None:
+                 switch_dict: Optional[Dict[str, str]] = None,
+                 initial_replay_buffer: List['Transition'] = None) -> None:
         super().__init__(args, 0, predictor, switch_dict)
         self.v_network = v_network
-        self.replay_buffer = []
+        if not initial_replay_buffer:
+            self.replay_buffer = []
+        else:
+            self.replay_buffer = initial_replay_buffer
         self.verbosity = args.verbose
     def run_job_reinforce(self, job: ReportJob, restart: bool = True) -> None:
         assert self.coq
@@ -110,8 +119,32 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
         switch_dict = None
     # predictor = get_predictor(args)
     predictor = DummyPredictor()
-    v_network = VNetwork(args.coq2vec_weights, args.learning_rate)
-    with ReinforcementWorker(args, predictor, v_network, switch_dict) as worker:
+    episodes_already_done = 0
+    replay_buffer = None
+    if args.output_file.exists() and args.resume != "no":
+        if args.resume == "yes":
+            print("Resuming from existing weights")
+            replay_buffer, episodes_already_done, network_state = \
+                torch.load(str(args.output_file))
+            v_network = VNetwork(None, args.learning_rate)
+            v_network.load_state(network_state)
+        else:
+            assert args.resume == "ask"
+            print(f"Found existing weights at {args.output_file}. Resume?")
+            response = input("[Y/n]")
+            if response.lower() not in ["no", "n"]:
+                print("Resuming from existing weights")
+                replay_buffer, episodes_already_done, network_state = \
+                    torch.load(str(args.output_file))
+                v_network = VNetwork(None, args.learning_rate)
+                v_network.load_state(network_state)
+            else:
+                v_network = VNetwork(args.coq2vec_weights, args.learning_rate)
+    else:
+        v_network = VNetwork(args.coq2vec_weights, args.learning_rate)
+
+    with ReinforcementWorker(args, predictor, v_network, switch_dict,
+                             initial_replay_buffer = replay_buffer) as worker:
         step = 0
         if args.interleave:
             for episode in trange(episodes_already_done, args.num_episodes,
@@ -134,12 +167,17 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
 Transition = Tuple[Obligation, str, List[Obligation]]
 
 class VNetwork:
-    obligation_encoder: coq2vec.CoqContextVectorizer
+    obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
     network: nn.Module
-    def __init__(self, coq2vec_weights: Path, learning_rate: float) -> None:
+    def get_state(self) -> Any:
+        return (self.network.state_dict(),
+                self.obligation_encoder.term_encoder.get_state())
+
+    def _load_encoder_state(self, encoder_state: Any) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
-        term_encoder.load_weights(coq2vec_weights)
+        term_encoder.load_state(encoder_state)
         num_hyps = 5
+        assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = coq2vec.CoqContextVectorizer(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
         self.network = nn.Sequential(
@@ -149,10 +187,26 @@ class VNetwork:
             nn.ReLU(),
             nn.Linear(84, 1),
         )
+        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
 
-        self.optimizer = optim.Adam(self.network.parameters(), lr=learning_rate)
+
+    def load_state(self, state: Any) -> None:
+        network_state, encoder_state = state
+        self._load_encoder_state(encoder_state)
+        self.network.load_state_dict(network_state)
+
+
+    def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float) -> None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.learning_rate = learning_rate
+        self.obligation_encoder = None
+        self.network = None
+        if coq2vec_weights is not None:
+            self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
+        assert self.obligation_encoder, \
+            "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         if isinstance(obls, Obligation):
             obls = [obls]
         else:
@@ -172,6 +226,8 @@ class VNetwork:
     def train(self, inputs: List[Obligation],
               target_outputs: List[float],
               verbosity: int = 0) -> None:
+        assert self.obligation_encoder, \
+            "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         with print_time("Training", guard=verbosity >= 1):
             actual = self(inputs)
             target = torch.FloatTensor(target_outputs)
