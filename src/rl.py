@@ -73,6 +73,7 @@ def main():
 class ReinforcementWorker(Worker):
     v_network: 'VNetwork'
     replay_buffer: List['Transition']
+    verbosity: int
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
@@ -80,10 +81,11 @@ class ReinforcementWorker(Worker):
         super().__init__(args, 0, predictor, switch_dict)
         self.v_network = v_network
         self.replay_buffer = []
+        self.verbosity = args.verbose
     def run_job_reinforce(self, job: ReportJob, restart: bool = True) -> None:
         assert self.coq
         self.run_into_job(job, restart, False)
-        with print_time("Experiencing proof"):
+        with print_time("Experiencing proof", guard=self.verbosity >= 1):
             experience_proof(self.args, self.coq, self.predictor, self.v_network,
                              self.replay_buffer)
         train_v_network(self.args, self.v_network, self.replay_buffer)
@@ -170,17 +172,15 @@ class VNetwork:
     def train(self, inputs: List[Obligation],
               target_outputs: List[float],
               verbosity: int = 0) -> None:
-        with print_time("Training"):
+        with print_time("Training", guard=verbosity >= 1):
             actual = self(inputs)
             target = torch.FloatTensor(target_outputs)
             loss = F.mse_loss(actual, target)
             self.optimizer.zero_grad()
             loss.backward()
             self.optimizer.step()
-        if verbosity >= 1:
-            eprint(f"Actual: {actual}; Target: {target}")
-            eprint(f"Loss: {loss}")
-
+        eprint(f"Actual: {actual}; Target: {target}", guard=verbosity >= 2)
+        eprint(f"Loss: {loss}", guard=verbosity >= 1)
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
@@ -267,7 +267,7 @@ def train_v_network(args: argparse.Namespace,
             samples = replay_buffer
         else:
             break
-        with print_time("Computing outputs"):
+        with print_time("Computing outputs", guard=args.verbose >= 1):
             resulting_obls_lens = [len(obls) for state, action, obls in samples]
             all_obl_scores = v_network([obl for state, action, obls in samples for obl in obls])
             outputs = []
