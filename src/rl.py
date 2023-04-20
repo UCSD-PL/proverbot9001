@@ -110,14 +110,24 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
     predictor = DummyPredictor()
     v_network = VNetwork(args.coq2vec_weights, args.learning_rate)
     with ReinforcementWorker(args, predictor, v_network, switch_dict) as worker:
+        step = 0
         if args.interleave:
-            for _episode in range(args.num_episodes):
+            for episode in trange(episodes_already_done, args.num_episodes,
+                                  disable=args.verbose >= 1):
                 for job in jobs:
                     worker.run_job_reinforce(job)
+                    if (step + 1) % args.save_every == 0:
+                        save_state(args, worker, episode + 1)
+                    step += 1
         else:
-            for job in jobs:
-                for _episode in range(args.num_episodes):
+            for job in tqdm(jobs, disable=args.verbosity >= 1):
+                for episode in range(episodes_already_done, args.num_episodes):
                     worker.run_job_reinforce(job)
+                    if step % args.save_every == 0:
+                        save_state(args, worker, episode)
+                    step += 1
+        if args.evaluate:
+            evaluate_results(args, worker, jobs)
 
 Transition = Tuple[Obligation, str, List[Obligation]]
 
@@ -290,6 +300,52 @@ class DummyPredictor(TacticPredictor):
                                       k : int, correct : List[str]) -> \
                                       Tuple[List[List[Prediction]], float]:
         raise NotImplementedError()
+
+def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
+               episode: int) -> None:
+    with args.output_file.open('wb') as f:
+        torch.save((worker.replay_buffer, episode,
+                    worker.v_network.get_state()), f)
+
+def evaluate_results(args: argparse.Namespace,
+                     worker: ReinforcementWorker,
+                     jobs: List[ReportJob]) -> None:
+    proofs_completed = 0
+    for job in jobs:
+        worker.run_into_job(job, True, False)
+        path: List[ProofContext] = [worker.coq.proof_context]
+        for _step in range(args.steps_per_episode):
+            actions = worker.predictor.predictKTactics(
+                truncate_tactic_context(FullContext(
+                    worker.coq.local_lemmas,
+                    worker.coq.prev_tactics,
+                    unwrap(worker.coq.proof_context)).as_tcontext(),
+                                        30),
+                5,
+                blacklist=args.blacklisted_tactics)
+            if args.verbose >= 1:
+                coq_serapy.summarizeContext(worker.coq.proof_context)
+            eprint(f"Trying predictions {[action.prediction for action in actions]}",
+                   guard=args.verbose >= 2)
+            action_scores = [evaluate_action(args, worker.coq, worker.v_network,
+                                             path, action.prediction)
+                             for action in actions]
+            best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
+            eprint(f"Taking action {best_action} with estimated value {best_score}",
+                   guard=args.verbose >= 1)
+            execute_action(worker.coq, best_action.prediction)
+            path.append(worker.coq.proof_context)
+            if completed_proof(worker.coq):
+                proofs_completed += 1
+                break
+    print(f"{proofs_completed} out of {len(jobs)} "
+          f"theorems/lemmas successfully proven "
+          f"({stringified_percent(proofs_completed, len(jobs))}%)")
+
+def stringified_percent(total : float, outof : float) -> str:
+    if outof == 0:
+        return "NaN"
+    return f"{(total * 100 / outof):10.2f}"
 
 if __name__ == "__main__":
     main()
