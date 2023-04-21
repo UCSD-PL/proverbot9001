@@ -58,6 +58,7 @@ def main():
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
+    parser.add_argument("-w", "--window-size", default=256)
     parser.add_argument("--batch-step", default=25, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
@@ -81,19 +82,20 @@ def main():
 
 class ReinforcementWorker(Worker):
     v_network: 'VNetwork'
-    replay_buffer: List['Transition']
+    replay_buffer: 'ReplayBuffer'
     verbosity: int
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
                  switch_dict: Optional[Dict[str, str]] = None,
-                 initial_replay_buffer: List['Transition'] = None) -> None:
+                 initial_replay_buffer: Optional['ReplayBuffer'] = None) -> None:
         super().__init__(args, 0, predictor, switch_dict)
         self.v_network = v_network
-        if not initial_replay_buffer:
-            self.replay_buffer = []
-        else:
+        if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
+        else:
+            self.replay_buffer = ReplayBuffer(args.window_size,
+                                              args.allow_partial_batches)
         self.verbosity = args.verbose
     def run_job_reinforce(self, job: ReportJob, restart: bool = True) -> None:
         assert self.coq
@@ -260,7 +262,7 @@ def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
                      v_network: VNetwork,
-                     replay_buffer: List[Transition]) -> None:
+                     replay_buffer: 'ReplayBuffer') -> None:
     path: List[ProofContext] = [coq.proof_context]
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
@@ -283,7 +285,7 @@ def experience_proof(args: argparse.Namespace,
         resulting_obls = execute_action(coq, best_action.prediction)
         eprint(f"New context is {coq.proof_context}",
                guard=args.verbose >= 3)
-        replay_buffer.append((before_obl, best_action.prediction, resulting_obls))
+        replay_buffer.add_transition((before_obl, best_action.prediction, resulting_obls))
         path.append(coq.proof_context)
         if completed_proof(coq):
             break
@@ -332,14 +334,11 @@ def execute_action(coq: coq_serapy.CoqAgent,
 
 def train_v_network(args: argparse.Namespace,
                     v_network: VNetwork,
-                    replay_buffer: List[Transition]):
+                    replay_buffer: 'ReplayBuffer'):
     for _batch_idx in range(args.batches_per_proof):
-        if len(replay_buffer) >= args.batch_size:
-            samples = random.sample(replay_buffer, args.batch_size)
-        elif args.allow_partial_batches:
-            samples = replay_buffer
-        else:
-            break
+        samples = replay_buffer.sample(args.batch_size)
+        if samples is None:
+            return
         with print_time("Computing outputs", guard=args.verbose >= 1):
             resulting_obls_lens = [len(obls) for state, action, obls in samples]
             all_obl_scores = v_network([obl for state, action, obls in samples for obl in obls])
@@ -421,6 +420,33 @@ def stringified_percent(total : float, outof : float) -> str:
     if outof == 0:
         return "NaN"
     return f"{(total * 100 / outof):10.2f}"
+
+class ReplayBuffer:
+    _contents: List[Transition]
+    window_size: int
+    allow_partial_batches: int
+    def __init__(self, window_size: int,
+                 allow_partial_batches: bool,
+                 initial_contents: List[Transition] = None) -> None:
+        self.window_size = window_size
+        self.allow_partial_batches = allow_partial_batches
+        if initial_contents:
+            self._contents = initial_contents[
+                max(0, len(initial_contents) - window_size):]
+        else:
+            self._contents = []
+
+    def sample(self, batch_size) -> Optional[List[Transition]]:
+        if len(self._contents) >= batch_size:
+            return random.sample(self._contents, batch_size)
+        if self.allow_partial_batches:
+            return self._contents
+        return None
+
+    def add_transition(self, transition: Transition) -> None:
+        self._contents.append(transition)
+        if len(self._contents) > self.window_size:
+            self._contents.pop(0)
 
 if __name__ == "__main__":
     main()
