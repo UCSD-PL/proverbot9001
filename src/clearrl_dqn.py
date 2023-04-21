@@ -261,7 +261,7 @@ def main():
                                 actions = -1
                         else:
                                 q_values = q_network.get_vvals_from_contexts(env.reachable_states) #qvals == vvals for this case
-                                a = np.argmax(q_values, axis=1)[0]#.cpu().numpy()
+                                actions = np.argmax(q_values, axis=1)[0]#.cpu().numpy()
                 # print(actions)
                 # TRY NOT TO MODIFY: execute the game and log data.
                 # print('>> List of predictions {}'.format(infos['list_of_pred']))
@@ -270,7 +270,7 @@ def main():
                 # else:
                         # print(infos['list_of_pred'])
                 # a = env.action_space.get_action_by_index(actions)
-                next_obs, rewards, dones, infos = env.step(a)
+                next_obs, rewards, dones, infos = env.step(actions)
                 if dones:
                     save_model(q_network, args, rb, env)
                 # next_obs = q_network.stateEncoder(next_obs)

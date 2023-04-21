@@ -621,7 +621,7 @@ class FastProofEnv(gym.Env):
         self.action_space = ActionSpace(list_of_pred)
         self.reachable_states = next_states_encoded
 
-        CoqAgent.locate_ident()
+        #CoqAgent.locate_ident()
         return state_encoded #,info]
     
         
