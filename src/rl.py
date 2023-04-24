@@ -151,23 +151,24 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
                              args.batch_step, args.lr_step)
     with ReinforcementWorker(args, predictor, v_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
-        for step in range(episodes_already_done * len(jobs) * args.batches_per_proof):
+        done_steps = episodes_already_done * len(jobs) * args.batches_per_proof
+        for step in range(done_steps):
             worker.v_network.adjuster.step()
 
-        step = 0
+        step = done_steps
         if args.interleave:
             for episode in trange(episodes_already_done, args.num_episodes,
                                   disable=args.verbose >= 1):
                 for job in jobs:
                     worker.run_job_reinforce(job)
-                    if (step + 1) % args.save_every == 0:
-                        save_state(args, worker, episode + 1)
-                    step += 1
+                if (step + 1) % args.save_every == 0:
+                    save_state(args, worker, episode + 1)
+                step += 1
         else:
             for job in tqdm(jobs, disable=args.verbosity >= 1):
                 for episode in range(episodes_already_done, args.num_episodes):
                     worker.run_job_reinforce(job)
-                    if step % args.save_every == 0:
+                    if (step + 1) % args.save_every == 0:
                         save_state(args, worker, episode)
                     step += 1
         if episodes_already_done < args.num_episodes:
