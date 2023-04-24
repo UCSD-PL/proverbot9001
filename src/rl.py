@@ -170,6 +170,8 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
                     if step % args.save_every == 0:
                         save_state(args, worker, episode)
                     step += 1
+        if episodes_already_done < args.num_episodes:
+            save_state(args, worker, episode)
         if args.evaluate:
             evaluate_results(args, worker, jobs)
 
