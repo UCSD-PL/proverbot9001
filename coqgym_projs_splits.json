@@ -4370,7 +4370,7 @@
             "theories/Shared/Libs/PSL/Tactics/Tactics.v"
         ],
         "switch": "coq-8.12",
-        "build_partition": "longq"
+        "build_partition": "cpu-long"
     },
     {
         "project_name": "tree-automata",

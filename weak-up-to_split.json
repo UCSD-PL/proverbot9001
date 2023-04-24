@@ -1,0 +1,19 @@
+[
+    {
+        "project_name": "weak-up-to",
+        "train_files": [],
+        "test_files": [
+            "Monotonic.v",
+            "Settings.v",
+            "Reductions.v",
+            "Functions.v",
+            "Diagrams.v",
+            "WeakMonotonic.v",
+            "Theory.v",
+            "Relations.v",
+            "Controlled.v",
+            "Applications.v"
+        ],
+        "switch": "coq-8.10"
+    }
+]

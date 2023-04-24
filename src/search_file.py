@@ -148,7 +148,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'transformer-search'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty"], default="certainty")
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
@@ -310,6 +310,13 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
 def search_file_multithreaded(args: argparse.Namespace) -> None:
     global start_time
     os.makedirs(str(args.output_dir), exist_ok=True)
+    with args.splits_file.open('r') as splits_f:
+        project_dicts = json.loads(splits_f.read())
+    for project_dict in project_dicts:
+        project_output_dir = args.output_dir / project_dict["project_name"] 
+        if len(project_dict["test_files"]) == 0:
+            continue
+        os.makedirs(str(project_output_dir), exist_ok=True)
     start_time = datetime.now()
     all_jobs = get_all_jobs(args)
     assert len(all_jobs) > 0, "No jobs found! Maybe you passed a bad proof parameter?"
@@ -379,8 +386,8 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
                 for _ in range(len(todo_jobs)):
                     (done_project, done_file, done_module, done_lemma), sol = done.get()
                     if args.splits_file:
-                        with args.splits_file.open('r') as splits_f:
-                            project_dicts = json.loads(splits_f.read())
+                        #with args.splits_file.open('r') as splits_f:
+                        #    project_dicts = json.loads(splits_f.read())
                         for project_dict in project_dicts:
                             if project_dict["project_name"] == done_project:
                                 filenames = [Path(fname) for fname in project_dict["test_files"]]

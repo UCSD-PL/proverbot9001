@@ -13,7 +13,7 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
+from search_strategies import transformer_search, best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 
@@ -393,6 +393,11 @@ def attempt_search(args: argparse.Namespace,
                                              context_lemmas, coq,
                                              output_dir,
                                              args, bar_idx, predictor)
+        elif args.search_type == 'transformer-search':
+            result = transformer_search(lemma_name, lemma_statement, module_prefix,
+                                        context_lemmas,
+                                        coq, output_dir,
+                                        args, bar_idx, predictor)
         else:
             assert False, args.search_type
     except KeyboardInterrupt:

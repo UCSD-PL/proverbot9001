@@ -2,7 +2,7 @@
 
 shopt -s globstar
 
-for project in $(jq -r '.[55:]|.[].project_name' coqgym_projs_splits.json); do
+for project in $(jq -r '.[55:]|.[].project_name' coqgym_test_split.json); do
     ls coq-projects/$project/**/*.scrape > /dev/null
-    grep "[Ee]rr" coq-projects/$project/scrape-output.out
+    grep "[Ee]rr" coq-projects/$project/scrape-test-output.out
 done

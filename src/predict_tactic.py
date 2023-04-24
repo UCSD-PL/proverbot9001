@@ -48,6 +48,7 @@ from models import copyarg_predictor
 from models import numeric_induction
 from models import features_polyarg_predictor
 from models import reinforced_features_polyarg
+from models import transformer_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -71,6 +72,7 @@ loadable_predictors = {
     "copyarg" : copyarg_predictor.CopyArgPredictor,
     "polyarg" : features_polyarg_predictor.FeaturesPolyargPredictor,
     "refpa": reinforced_features_polyarg.ReinforcedFeaturesPolyargPredictor,
+    "transformer": transformer_predictor.TransformerPredictor,
 }
 
 static_predictors = {

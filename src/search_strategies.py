@@ -328,6 +328,72 @@ class TqdmSpy(tqdm):
         super().update(value)
 
 
+def transformer_search(lemma_name: str,
+                                lemma_statement: str,
+                                module_prefix: str,
+                                relevant_lemmas: List[str],
+                                coq: coq_serapy.SerapiInstance,
+                                output_dir: Path,
+                                args: argparse.Namespace,
+                                bar_idx: int,
+                                predictor: TacticPredictor) \
+                                -> SearchResult:
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                    args.features_json)
+    def search(current_path: List[LabeledNode],
+               subgoal_distance_stack: List[int],
+               extra_depth: int, steps_explored: int) -> SubSearchResult:
+        full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          unwrap(coq.proof_context))
+        predictions = predictor.predictKTactics(
+            truncate_tactic_context(full_context_before.as_tcontext(),
+                                    args.max_term_length),
+                    args.max_attempts)
+        solution = None
+        pred_step = 1
+        for i in range(len(predictions)):
+            curr_prediction = predictions[i]
+            command_str = curr_prediction.prediction
+            try:
+                proof_commands = coq_serapy.read_commands(command_str)
+                x = coq.finish_proof(proof_commands)
+                error = None
+            except (coq_serapy.SerapiException, AssertionError) as e:
+                error = e
+                # undo, start again
+                # while coq.proof_context:
+                #    coq.cancel_last()
+                # coq.run_stmt(lemma_statement)
+            if not coq.proof_context or completed_proof(coq):
+                print("did good")
+                solution = [TacticInteraction(command_str,ProofContext([], [], [], []))]
+                break
+            else:
+                while coq.proof_context:
+                    coq.cancel_last()
+                coq.run_stmt(lemma_statement)
+            pred_step += 1
+            print("END OF ATTEMPT")
+        return SubSearchResult(solution, 0, pred_step)
+
+    desc_name = lemma_name
+    if len(desc_name) > 25:
+        desc_name = desc_name[:22] + "..."
+    subgoals_stack_start = []
+    next_node = g.start_node
+    
+    command_list, _, total_steps = search([next_node], subgoals_stack_start, 0, 0)
+    # g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    #if args.features_json:
+    #    g.write_feat_json(f"{output_dir}/{module_prefix}"
+    #f"{lemma_name}.json")
+    print("search returns")
+    if command_list:
+        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps) 
+
+
 def dfs_proof_search_with_graph(lemma_name: str,
                                 module_prefix: str,
                                 relevant_lemmas: List[str],
@@ -429,12 +495,14 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     if not args.count_softfail_predictions:
                         num_successful_predictions -= 1
                     g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
+                    if len(coq.tactic_history.getFullHistory()) > 1:
+                        cleanupSearch(num_stmts,
+                                      "resulting context is in current path")
                 elif contextIsBig(context_after):
                     g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
+                    if len(coq.tactic_history.getFullHistory()) > 1:
+                        cleanupSearch(num_stmts,
+                                      "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth \
                         and len(current_path) < args.hard_depth_limit \
                         and (args.max_steps is None or
@@ -446,7 +514,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                                new_distance_stack,
                                                new_extra_depth, steps_explored + substeps_explored)
                     substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
+                    if len(coq.tactic_history.getFullHistory()) > 1:
+                        cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
                         new_subgoals_closed = \
@@ -459,7 +528,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                         return SubSearchResult(None, subgoals_closed, substeps_explored)
                 else:
                     hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
+                    if len(coq.tactic_history.getFullHistory()) > 1:
+                        cleanupSearch(num_stmts, "we hit the depth limit")
                     if subgoals_closed > 0:
                         # depth = (args.search_depth + new_extra_depth + 1) \
                         #     - len(current_path)

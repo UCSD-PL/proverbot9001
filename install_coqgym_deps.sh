@@ -1,22 +1,23 @@
 #!/usr/bin/env bash
 
-if ! command -v ruby &> /dev/null
-then
+#if ! command -v ruby &> /dev/null
+#then
     # First, install Ruby, as that is for some reason required to build
     # the "system" project
-    git clone https://github.com/rbenv/ruby-build.git ~/ruby-build
-    mkdir -p ~/.local
-    PREFIX=~/.local ~/ruby-build/install.sh
-    ~/.local/ruby-build 3.1.2 ~/.local/
-fi
+#    git clone https://github.com/rbenv/ruby-build.git ~/ruby-build
+#    mkdir -p ~/.local
+#    PREFIX=~/.local ~/ruby-build/install.sh
+#    ~/.local/ruby-build 3.1.2 ~/.local/
+#fi
 
+module load opam
 git submodule init && git submodule update
 
 # Sync opam state to local. If you're not running on the swarm cluster at UMass Amherst, you can remove this line
-rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
+# rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
 
 # Create the 8.10 switch
-opam switch create coq-8.10 4.07.1
+#opam switch create coq-8.10 4.07.1
 eval $(opam env --switch=coq-8.10 --set-switch)
 opam pin add -y coq 8.10.2
 
@@ -91,4 +92,4 @@ git clone git@github.com:uwplse/cheerios.git deps/cheerios
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
 
 # Finally, sync the opam state back to global. If you're not running on the swarm cluster at UMass Amherst, you can remove this line.
-rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null
+# rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null
