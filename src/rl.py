@@ -287,7 +287,10 @@ def experience_proof(args: argparse.Namespace,
             eprint("Using best-scoring action", guard=args.verbose >= 3)
             action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
                              for action in actions]
-            chosen_action = max(zip(actions, action_scores), key=lambda p: p[1])[0]
+            chosen_action, chosen_score = max(zip(actions, action_scores),
+                                              key=lambda p: p[1])
+            if chosen_score == -float("Inf"):
+                break
         else:
             eprint("Using random action", guard=args.verbose >= 3)
             chosen_action = None
