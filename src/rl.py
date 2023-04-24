@@ -59,6 +59,7 @@ def main():
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
     parser.add_argument("-w", "--window-size", default=256)
+    parser.add_argument("-p", "--num-predictions", default=5, type=int)
     parser.add_argument("--batch-step", default=25, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
@@ -271,7 +272,7 @@ def experience_proof(args: argparse.Namespace,
                                                 coq.prev_tactics,
                                                 unwrap(coq.proof_context)).as_tcontext(),
                                     30),
-            5,
+            args.num_predictions,
             blacklist=args.blacklisted_tactics)
         eprint(f"Trying predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 3)
@@ -395,7 +396,7 @@ def evaluate_results(args: argparse.Namespace,
                     worker.coq.prev_tactics,
                     unwrap(worker.coq.proof_context)).as_tcontext(),
                                         30),
-                5,
+                args.num_predictions,
                 blacklist=args.blacklisted_tactics)
             if args.verbose >= 1:
                 coq_serapy.summarizeContext(worker.coq.proof_context)
