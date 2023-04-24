@@ -414,12 +414,19 @@ def evaluate_results(args: argparse.Namespace,
             execute_action(worker.coq, best_action.prediction)
             path.append(worker.coq.proof_context)
             if completed_proof(worker.coq):
-                proofs_completed += 1
                 proof_succeeded = True
                 break
+        proof_name = coq_serapy.lemma_name_from_statement(job.lemma_statement)
+        while not coq_serapy.ending_proof(worker.remaining_commands[0]):
+            worker.remaining_commands.pop(0)
+        ending_command = worker.remaining_commands.pop(0)
         if proof_succeeded:
             eprint(f"Solved proof {proof_name}!")
+            proofs_completed += 1
+            worker.coq.run_stmt(ending_command)
+        else:
             eprint(f"Failed to solve proof {proof_name}")
+            coq_serapy.admit_proof(worker.coq, job.lemma_statement, ending_command)
     print(f"{proofs_completed} out of {len(jobs)} "
           f"theorems/lemmas successfully proven "
           f"({stringified_percent(proofs_completed, len(jobs))}%)")
