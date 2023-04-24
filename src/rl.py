@@ -391,6 +391,7 @@ def evaluate_results(args: argparse.Namespace,
     for job in jobs:
         worker.run_into_job(job, True, False)
         path: List[ProofContext] = [worker.coq.proof_context]
+        proof_succeeded = False
         for _step in range(args.steps_per_episode):
             actions = worker.predictor.predictKTactics(
                 truncate_tactic_context(FullContext(
@@ -414,7 +415,11 @@ def evaluate_results(args: argparse.Namespace,
             path.append(worker.coq.proof_context)
             if completed_proof(worker.coq):
                 proofs_completed += 1
+                proof_succeeded = True
                 break
+        if proof_succeeded:
+            eprint(f"Solved proof {proof_name}!")
+            eprint(f"Failed to solve proof {proof_name}")
     print(f"{proofs_completed} out of {len(jobs)} "
           f"theorems/lemmas successfully proven "
           f"({stringified_percent(proofs_completed, len(jobs))}%)")
