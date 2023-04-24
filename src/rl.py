@@ -168,11 +168,12 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
             with nostderr():
                 worker.v_network.adjuster.step()
 
-        for step, task in enumerate(tqdm(tasks[steps_already_done:]), start=steps_already_done):
+        for step, task in enumerate(tqdm(tasks[steps_already_done:]),
+                                    start=steps_already_done+1):
             cur_epsilon = args.starting_epsilon + ((step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon))
             worker.run_job_reinforce(task, cur_epsilon)
             if (step + 1) % args.save_every == 0:
-                save_state(args, worker, step)
+                save_state(args, worker, step + 1)
         if steps_already_done < len(tasks):
             save_state(args, worker, step)
         if args.evaluate:
