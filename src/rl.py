@@ -138,9 +138,9 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
         args.resume = "no"
 
     if args.resume == "yes":
-        print("Resuming from existing weights")
         replay_buffer, episodes_already_done, network_state = \
             torch.load(str(args.output_file))
+        print(f"Resuming from existing weights of {episodes_already_done} episodes")
         v_network = VNetwork(None, args.learning_rate,
                              args.batch_step, args.lr_step)
         v_network.load_state(network_state)
