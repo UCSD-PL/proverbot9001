@@ -26,7 +26,7 @@ from search_strategies import completed_proof
 
 from models.tactic_predictor import (TacticPredictor, Prediction)
 
-from util import unwrap, eprint, print_time
+from util import unwrap, eprint, print_time, nostderr
 
 def main():
     parser = argparse.ArgumentParser(
@@ -55,6 +55,8 @@ def main():
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
     parser.add_argument("-g", "--gamma", default=0.9, type=float)
+    parser.add_argument("--starting-epsilon", default=0, type=float)
+    parser.add_argument("--ending-epsilon", default=1.0, type=float)
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
@@ -90,7 +92,10 @@ class ReinforcementWorker(Worker):
                  v_network: 'VNetwork',
                  switch_dict: Optional[Dict[str, str]] = None,
                  initial_replay_buffer: Optional['ReplayBuffer'] = None) -> None:
-        super().__init__(args, 0, predictor, switch_dict)
+        self.original_args = args
+        args_copy = argparse.Namespace(**vars(args))
+        args_copy.verbose = args.verbose - 2
+        super().__init__(args_copy, 0, predictor, switch_dict)
         self.v_network = v_network
         if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
@@ -98,13 +103,14 @@ class ReinforcementWorker(Worker):
             self.replay_buffer = ReplayBuffer(args.window_size,
                                               args.allow_partial_batches)
         self.verbosity = args.verbose
-    def run_job_reinforce(self, job: ReportJob, restart: bool = True) -> None:
+    def run_job_reinforce(self, job: ReportJob, epsilon: float, restart: bool = True) -> None:
         assert self.coq
-        self.run_into_job(job, restart, False)
+        with print_time("Entering job", guard=self.verbosity >= 1):
+            self.run_into_job(job, restart, False)
         with print_time("Experiencing proof", guard=self.verbosity >= 1):
-            experience_proof(self.args, self.coq, self.predictor, self.v_network,
-                             self.replay_buffer)
-        train_v_network(self.args, self.v_network, self.replay_buffer)
+            experience_proof(self.original_args, self.coq, self.predictor, self.v_network,
+                             self.replay_buffer, epsilon)
+        train_v_network(self.original_args, self.v_network, self.replay_buffer)
         # Pop the rest of the proof from the remaining commands
         while not coq_serapy.ending_proof(self.remaining_commands[0]):
             self.remaining_commands.pop(0)
@@ -126,8 +132,6 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
         switch_dict = None
     predictor = get_predictor(args)
     # predictor = DummyPredictor()
-    episodes_already_done = 0
-    replay_buffer = None
     if args.resume == "ask" and args.output_file.exists():
         print(f"Found existing weights at {args.output_file}. Resume?")
         response = input("[Y/n] ")
@@ -139,40 +143,38 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
         args.resume = "no"
 
     if args.resume == "yes":
-        replay_buffer, episodes_already_done, network_state = \
+        replay_buffer, steps_already_done, network_state, random_state = \
             torch.load(str(args.output_file))
-        print(f"Resuming from existing weights of {episodes_already_done} episodes")
+        random.setstate(random_state)
+        print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
                              args.batch_step, args.lr_step)
         v_network.load_state(network_state)
+
     else:
         assert args.resume == "no"
+        steps_already_done = 0
+        replay_buffer = None
         v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
     with ReinforcementWorker(args, predictor, v_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
-        done_steps = episodes_already_done * len(jobs) * args.batches_per_proof
-        for step in range(done_steps):
-            worker.v_network.adjuster.step()
-
-        step = done_steps
         if args.interleave:
-            for episode in trange(episodes_already_done, args.num_episodes,
-                                  disable=args.verbose >= 1):
-                for job in jobs:
-                    worker.run_job_reinforce(job)
-                if (step + 1) % args.save_every == 0:
-                    save_state(args, worker, episode + 1)
-                step += 1
+            tasks = jobs * args.num_episodes
         else:
-            for job in tqdm(jobs, disable=args.verbosity >= 1):
-                for episode in range(episodes_already_done, args.num_episodes):
-                    worker.run_job_reinforce(job)
-                    if (step + 1) % args.save_every == 0:
-                        save_state(args, worker, episode)
-                    step += 1
-        if episodes_already_done < args.num_episodes:
-            save_state(args, worker, episode)
+            tasks = [task for job in jobs for task in [job] * args.num_episodes]
+
+        for step in range(steps_already_done):
+            with nostderr():
+                worker.v_network.adjuster.step()
+
+        for step, task in enumerate(tqdm(tasks[steps_already_done:]), start=steps_already_done):
+            cur_epsilon = args.starting_epsilon + ((step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon))
+            worker.run_job_reinforce(task, cur_epsilon)
+            if (step + 1) % args.save_every == 0:
+                save_state(args, worker, step)
+        if steps_already_done < len(tasks):
+            save_state(args, worker, step)
         if args.evaluate:
             evaluate_results(args, worker, jobs)
 
@@ -266,7 +268,8 @@ def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
                      v_network: VNetwork,
-                     replay_buffer: 'ReplayBuffer') -> None:
+                     replay_buffer: 'ReplayBuffer',
+                     epsilon: float) -> None:
     path: List[ProofContext] = [coq.proof_context]
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
@@ -277,19 +280,31 @@ def experience_proof(args: argparse.Namespace,
                                     30),
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
-        eprint(f"Trying predictions {[action.prediction for action in actions]}",
+        eprint(f"Using predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 3)
-        action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
-                         for action in actions]
-        best_action = max(zip(actions, action_scores), key=lambda p: p[1])[0]
+        if random.random() < epsilon:
+            eprint("Using best-scoring action", guard=args.verbose >= 3)
+            action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
+                             for action in actions]
+            chosen_action = max(zip(actions, action_scores), key=lambda p: p[1])[0]
+        else:
+            eprint("Using random action", guard=args.verbose >= 3)
+            chosen_action = None
+            for action in random.sample(actions, k=len(actions)):
+                action_score = evaluate_action(args, coq, v_network, path, action.prediction)
+                if action_score != -float("Inf"):
+                    chosen_action = action
+                    break
+            if chosen_action is None:
+                break
 
-        eprint(f"Taking action {best_action}",
+        eprint(f"Taking action {chosen_action}",
                guard=args.verbose >= 2)
 
-        resulting_obls = execute_action(coq, best_action.prediction)
-        eprint(f"New context is {coq.proof_context}",
-               guard=args.verbose >= 3)
-        replay_buffer.add_transition((before_obl, best_action.prediction, resulting_obls))
+        resulting_obls = execute_action(coq, chosen_action.prediction)
+        if args.verbose >= 3:
+            coq_serapy.summarizeContext(coq.proof_context)
+        replay_buffer.add_transition((before_obl, chosen_action.prediction, resulting_obls))
         path.append(coq.proof_context)
         if completed_proof(coq):
             break
@@ -380,10 +395,11 @@ class DummyPredictor(TacticPredictor):
         raise NotImplementedError()
 
 def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
-               episode: int) -> None:
+               step: int) -> None:
     with args.output_file.open('wb') as f:
-        torch.save((worker.replay_buffer, episode,
-                    worker.v_network.get_state()), f)
+        torch.save((worker.replay_buffer, step,
+                    worker.v_network.get_state(),
+                    random.getstate()), f)
 
 def evaluate_results(args: argparse.Namespace,
                      worker: ReinforcementWorker,
