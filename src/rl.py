@@ -124,8 +124,8 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
             switch_dict = None
     else:
         switch_dict = None
-    # predictor = get_predictor(args)
-    predictor = DummyPredictor()
+    predictor = get_predictor(args)
+    # predictor = DummyPredictor()
     episodes_already_done = 0
     replay_buffer = None
     if args.resume == "ask" and args.output_file.exists():
