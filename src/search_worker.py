@@ -158,7 +158,7 @@ class Worker:
         while True:
             try:
                 assert not self.coq.proof_context, \
-                    "Not currently in a proof! Back up to before the current proof, "\
+                    "Currently in a proof! Back up to before the current proof, "\
                     "or use coq.finish_proof(cmds) or " \
                     "admit_proof(coq, lemma_statement, ending_stmt)"
                 rest_commands, run_commands = \
