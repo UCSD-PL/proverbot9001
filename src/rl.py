@@ -331,8 +331,8 @@ def evaluate_action(args: argparse.Namespace, coq: coq_serapy.CoqAgent,
            for path_context in path):
         return torch.tensor(-float("Inf"))
 
-    product = math.prod(v_network(goal) for goal in
-                        unwrap(context_after).fg_goals)
+
+    product = math.prod(v_network(unwrap(context_after).fg_goals))
     return product
 
 def execute_action(coq: coq_serapy.CoqAgent,
