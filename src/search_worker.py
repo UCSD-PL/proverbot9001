@@ -133,6 +133,50 @@ class Worker:
         assert self.coq
         self.coq.reset()
 
+    def run_backwards_into_job(self, job: ReportJob) -> None:
+        assert self.coq
+        assert not self.coq.proof_context, "Already in a proof!"
+
+        _, job_file, job_module, job_lemma = job
+        all_file_commands = coq_serapy.load_commands_preserve(
+            self.args, 1, self.args.prelude / self.cur_project / job_file)
+        commands_after_lemma_start = all_file_commands
+        sm_stack = coq_serapy.initial_sm_stack(job_file)
+        while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
+               commands_after_lemma_start[0] != job_lemma):
+            next_cmd = commands_after_lemma_start.pop(0)
+            sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
+
+        commands_to_cancel = commands_after_lemma_start[:-len(self.remaining_commands)]
+        while len(commands_to_cancel) > 0:
+            if coq_serapy.ending_proof(commands_to_cancel[-1]):
+                while not coq_serapy.possibly_starting_proof(commands_to_cancel[-1]):
+                    popped = commands_to_cancel.pop(-1)
+                cancelled_lemma_statement = commands_to_cancel.pop(-1)
+                last_lemma_encountered = self.lemmas_encountered.pop()
+                assert cancelled_lemma_statement == last_lemma_encountered.lemma_statement, \
+                    f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
+                    f"but cancelling {cancelled_lemma_statement}"
+
+                assert not self.coq.proof_context
+                self.coq.cancel_last()
+                assert self.coq.proof_context
+                while self.coq.proof_context:
+                    self.coq.cancel_last()
+            else:
+                self.coq.cancel_last()
+                popped = commands_to_cancel.pop(-1)
+                newstack = \
+                    coq_serapy.coq_util.cancel_update_sm_stack(
+                        self.coq._file_state.sm_stack,
+                        popped)
+                if newstack != self.coq._file_state.sm_stack:
+                    self.coq._file_state.sm_stack = newstack
+        self.coq.run_stmt(job_lemma)
+        self.remaining_commands = commands_after_lemma_start
+        self.lemmas_encountered.append(job)
+
+
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
         job_project, job_file, job_module, job_lemma = job
@@ -146,8 +190,12 @@ class Worker:
             if self.args.set_switch:
                 self.set_switch_from_proj()
             self.enter_file(job_file)
+        if job in self.lemmas_encountered:
+            self.run_backwards_into_job(job)
+            return
         # If the job is in a different file load the jobs file from scratch.
-        if job_file != self.cur_file or job in self.lemmas_encountered:
+        if job_file != self.cur_file:
+            self.reset_file_state()
             if self.cur_file:
                 self.exit_cur_file()
             self.enter_file(job_file)
