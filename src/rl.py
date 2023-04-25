@@ -114,7 +114,6 @@ class ReinforcementWorker(Worker):
         self.file_workers = {}
     def run_job_reinforce(self, job: ReportJob, epsilon: float, restart: bool = True) -> None:
         if job.filename not in self.file_workers:
-            eprint(f"Creating a new coq instance for file {job.filename}")
             self.file_workers[job.filename] = FileReinforcementWorker(self.args, 0,
                                                                       None, None)
             self.file_workers[job.filename].enter_instance()
