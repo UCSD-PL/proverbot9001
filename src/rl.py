@@ -83,10 +83,18 @@ def main():
 
     reinforce_jobs(args, jobs)
 
+class FileReinforcementWorker(Worker):
+    def finish_proof(self) -> None:
+        while not coq_serapy.ending_proof(self.remaining_commands[0]):
+            self.remaining_commands.pop(0)
+        ending_cmd = self.remaining_commands.pop(0)
+        coq_serapy.admit_proof(self.coq, self.coq.prev_tactics[0], ending_cmd)
+
 class ReinforcementWorker(Worker):
     v_network: 'VNetwork'
     replay_buffer: 'ReplayBuffer'
     verbosity: int
+    file_workers: Dict[str, FileReinforcementWorker]
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
@@ -103,20 +111,22 @@ class ReinforcementWorker(Worker):
             self.replay_buffer = ReplayBuffer(args.window_size,
                                               args.allow_partial_batches)
         self.verbosity = args.verbose
+        self.file_workers = {}
     def run_job_reinforce(self, job: ReportJob, epsilon: float, restart: bool = True) -> None:
-        assert self.coq
-        with print_time("Entering job", guard=self.verbosity >= 1):
-            self.run_into_job(job, restart, False)
+        if job.filename not in self.file_workers:
+            eprint(f"Creating a new coq instance for file {job.filename}")
+            self.file_workers[job.filename] = FileReinforcementWorker(self.args, 0,
+                                                                      None, None)
+            self.file_workers[job.filename].enter_instance()
+        with print_time(f"Entering job {job}", guard=self.verbosity >= 1):
+            self.file_workers[job.filename].run_into_job(job, restart, False)
         with print_time("Experiencing proof", guard=self.verbosity >= 1):
-            experience_proof(self.original_args, self.coq, self.predictor, self.v_network,
+            experience_proof(self.original_args,
+                             self.file_workers[job.filename].coq,
+                             self.predictor, self.v_network,
                              self.replay_buffer, epsilon)
         train_v_network(self.original_args, self.v_network, self.replay_buffer)
-        # Pop the rest of the proof from the remaining commands
-        while not coq_serapy.ending_proof(self.remaining_commands[0]):
-            self.remaining_commands.pop(0)
-        # Pop the actual Qed/Defined/Save
-        ending_cmd = self.remaining_commands.pop(0)
-        coq_serapy.admit_proof(self.coq, self.coq.prev_tactics[0], ending_cmd)
+        self.file_workers[job.filename].finish_proof()
 
 
 def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
