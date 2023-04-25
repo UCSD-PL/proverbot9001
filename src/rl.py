@@ -118,7 +118,9 @@ class ReinforcementWorker(Worker):
             self.file_workers[job.filename] = FileReinforcementWorker(self.args, 0,
                                                                       None, None)
             self.file_workers[job.filename].enter_instance()
-        with print_time(f"Entering job {job}", guard=self.verbosity >= 1):
+        job_name = job.module_prefix + coq_serapy.lemma_name_from_statement(
+            job.lemma_statement)
+        with print_time(f"Entering job {job_name}", guard=self.verbosity >= 1):
             self.file_workers[job.filename].run_into_job(job, restart, False)
         with print_time("Experiencing proof", guard=self.verbosity >= 1):
             experience_proof(self.original_args,
