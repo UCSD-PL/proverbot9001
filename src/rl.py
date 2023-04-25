@@ -13,7 +13,7 @@ import torch.nn.functional as F
 from torch import optim
 import torch.optim.lr_scheduler as scheduler
 
-from tqdm import tqdm, trange
+from tqdm import tqdm
 
 import coq_serapy
 from coq_serapy.contexts import (FullContext, truncate_tactic_context,
