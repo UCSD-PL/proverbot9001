@@ -432,6 +432,12 @@ def attempt_search(args: argparse.Namespace,
             timer.cancel()
     return result
 
+def in_proofs_list(module: str, stmt: str, proofs_list: List[str]) -> bool:
+    for proof_ident in proofs_list:
+        if (module + coq_serapy.lemma_name_from_statement(stmt)).endswith(proof_ident):
+            return True
+    return False
+
 def get_file_jobs(args: argparse.Namespace,
                   project: str, filename: str) -> List[ReportJob]:
     arg_proofs_names = None
@@ -446,11 +452,9 @@ def get_file_jobs(args: argparse.Namespace,
     if arg_proofs_names:
         return [ReportJob(project, filename, module, stmt)
                 for (module, stmt) in lemmas_in_file
-                if coq_serapy.lemma_name_from_statement(stmt)
-                in arg_proofs_names]
-    else:
-        return [ReportJob(project, filename, module, stmt)
-                for (module, stmt) in lemmas_in_file]
+                if in_proofs_list(module, stmt, arg_proofs_names)]
+    return [ReportJob(project, filename, module, stmt)
+            for (module, stmt) in lemmas_in_file]
 
 
 def get_files_jobs(args: argparse.Namespace,
