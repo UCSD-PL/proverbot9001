@@ -5,7 +5,7 @@ import json
 import random
 import math
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple, Union, Any
+from typing import List, Optional, Dict, Tuple, Union, Any, Set, Sequence
 
 import torch
 from torch import nn
@@ -179,8 +179,6 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
         if args.evaluate:
             evaluate_results(args, worker, jobs)
 
-Transition = Tuple[Obligation, str, List[Obligation]]
-
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
     network: nn.Module
@@ -243,7 +241,7 @@ class VNetwork:
                             (self.obligation_encoder.max_num_hypotheses + 1))
 
         encoded = self.obligation_encoder.obligations_to_vectors(
-            [coq2vec.Obligation(obl.hypotheses, obl.goal) for obl in obls])\
+            [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls])\
                                          .view(len(obls), encoded_obl_size)
         scores = self.network(encoded).view(len(obls))
         return scores
@@ -362,16 +360,27 @@ def train_v_network(args: argparse.Namespace,
         samples = replay_buffer.sample(args.batch_size)
         if samples is None:
             return
+        inputs = [start_obl for start_obl, action_records in samples]
         with print_time("Computing outputs", guard=args.verbose >= 1):
-            resulting_obls_lens = [len(obls) for state, action, obls in samples]
-            all_obl_scores = v_network([obl for state, action, obls in samples for obl in obls])
+            num_resulting_obls = [[len(resulting_obls)
+                                   for action, resulting_obls in action_records]
+                                  for starting_obl, action_records in samples]
+            all_obls = [obl
+                        for starting_obl, action_records in samples
+                        for action, resulting_obls in action_records
+                        for obl in resulting_obls]
+            all_obl_scores = v_network(all_obls)
             outputs = []
             cur_row = 0
-            for num_obls in resulting_obls_lens:
-                outputs.append(args.gamma * math.prod(all_obl_scores[cur_row:cur_row+num_obls]))
-                cur_row += num_obls
-        loss = v_network.train([start_obl for start_obl, action, resulting_obls in samples],
-                               outputs, verbosity=args.verbose)
+            for resulting_obl_lens in num_resulting_obls:
+                action_outputs = []
+                for num_obls in resulting_obl_lens:
+                    selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
+                    action_outputs.append(args.gamma * math.prod(
+                        selected_obl_scores))
+                    cur_row += num_obls
+                outputs.append(max(action_outputs))
+        loss = v_network.train(inputs, outputs, verbosity=args.verbose)
         if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
             print(f"Loss: {loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
@@ -457,32 +466,39 @@ def stringified_percent(total : float, outof : float) -> str:
         return "NaN"
     return f"{(total * 100 / outof):10.2f}"
 
+Transition = Tuple[str, Sequence[Obligation]]
+FullTransition = Tuple[Obligation, str, List[Obligation]]
+
 class ReplayBuffer:
-    _contents: List[Transition]
+    _contents: Dict[Obligation, Tuple[int, Set[Transition]]]
     window_size: int
+    window_end_position: int
     allow_partial_batches: int
     def __init__(self, window_size: int,
-                 allow_partial_batches: bool,
-                 initial_contents: List[Transition] = None) -> None:
+                 allow_partial_batches: bool) -> None:
         self.window_size = window_size
+        self.window_end_position = 0
         self.allow_partial_batches = allow_partial_batches
-        if initial_contents:
-            self._contents = initial_contents[
-                max(0, len(initial_contents) - window_size):]
-        else:
-            self._contents = []
+        self._contents = {}
 
-    def sample(self, batch_size) -> Optional[List[Transition]]:
-        if len(self._contents) >= batch_size:
-            return random.sample(self._contents, batch_size)
+    def sample(self, batch_size) -> Optional[List[Tuple[Obligation, Set[Transition]]]]:
+        sample_pool: List[Tuple[Obligation, List[Transition]]] = []
+        for obl, (last_updated, transitions) in self._contents.copy().items():
+            if last_updated <= self.window_end_position - self.window_size:
+                del self._contents[obl]
+            else:
+                sample_pool.append((obl, transitions))
+        if len(sample_pool) >= batch_size:
+            return random.sample(sample_pool, batch_size)
         if self.allow_partial_batches:
-            return self._contents
+            return sample_pool
         return None
 
-    def add_transition(self, transition: Transition) -> None:
-        self._contents.append(transition)
-        if len(self._contents) > self.window_size:
-            self._contents.pop(0)
+    def add_transition(self, transition: FullTransition) -> None:
+        self._contents[transition[0]] = (self.window_end_position,
+                                         {(transition[1], tuple(transition[2]))} |
+                                         self._contents.get(transition[0], (0, set()))[1])
+        self.window_end_position += 1
 
 if __name__ == "__main__":
     main()
