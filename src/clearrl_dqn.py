@@ -25,6 +25,7 @@ from util import eprint
 from gym import spaces
 
 from gym_proof_env import FastProofEnv
+from gym_test_proof_env import TestProofEnv
 
 def parse_args():
         # fmt: off
@@ -87,6 +88,7 @@ def parse_args():
         parser.add_argument('--weightsfile', default = "data/polyarg-weights.dat", type=str)
         parser.add_argument('--proof_file', default="CompCert/common/Globalenvs.v",type=str)
         parser.add_argument("--no-resume", dest="resume", action='store_false')
+        parser.add_argument("--use_debug_env", dest="use_debug_env", action='store_true')
 
         args = parser.parse_args()
         # fmt: on
@@ -221,12 +223,15 @@ def main():
                     device,
                     handle_timeout_termination=False,
             )
-        env = FastProofEnv(proof_files, args.prelude,
+        
+        if args.use_debug_env :
+            env = TestProofEnv()
+        else :
+            env = FastProofEnv(proof_files, args.prelude,
                            skip_proofs = proofs_done,
                            use_wandb = args.track,
                            max_proof_len = args.max_proof_len,
                            num_check_engines = args.max_attempts)
-        
 
         q_network = Agent(env).to(device)
         optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
