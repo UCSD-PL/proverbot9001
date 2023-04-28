@@ -168,6 +168,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-prefix", type=str, default=None)
     parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--log-explored-states", type=Path, default=None)
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -229,6 +230,10 @@ def search_file_worker(args: argparse.Namespace,
             switch_dict = None
     else:
         switch_dict = None
+
+    if args.log_explored_states is not None:
+        with args.log_explored_states.open('w') as f:
+            pass
 
     with Worker(args, worker_idx, predictor, switch_dict) as worker:
         while True:
