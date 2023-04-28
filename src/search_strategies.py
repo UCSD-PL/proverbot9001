@@ -23,7 +23,7 @@ import tokenizer
 from models.tactic_predictor import Prediction, TacticPredictor
 from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_results import TacticInteraction, SearchResult, SearchStatus
-from util import nostderr, unwrap, eprint, mybarfmt, copyArgs
+from util import nostderr, unwrap, eprint, mybarfmt, copyArgs, FileLock
 
 from value_estimator import Estimator
 import dataloader
@@ -258,6 +258,13 @@ def tryPrediction(args: argparse.Namespace,
     start_time = time.time()
     time_per_command = (coq.hammer_timeout + args.max_tactic_time
                         if coq.use_hammer else args.max_tactic_time)
+    if args.log_explored_states is not None:
+        with args.log_explored_states.open('a') as f, FileLock(f):
+            f.write(json.dumps(
+              {"Module/Section": coq.sm_prefix,
+               "Proof": coq_serapy.lemma_name_from_statement(
+                 coq.prev_tactics[0]),
+               "Tactics": coq.prev_tactics[1:] + [prediction]}) + "\n")
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
