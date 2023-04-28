@@ -333,7 +333,7 @@ def follow_and_print(filename: str) -> None:
             if "UserWarning: TorchScript" in line or "warnings.warn" in line:
                 continue
             if line.strip() != "":
-                print(line)
+                print(line, end="")
             if close_follows:
                 break
             time.sleep(0.01)
@@ -364,7 +364,7 @@ def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report File
                     progress = new_progress
                 continue
             if line.strip() != "":
-                bar.write(line)
+                bar.write(line, end="")
             if close_follows:
                 break
             time.sleep(0.01)
