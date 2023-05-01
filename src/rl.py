@@ -304,10 +304,21 @@ def experience_proof(args: argparse.Namespace,
             eprint("Using random action", guard=args.verbose >= 3)
             chosen_action = None
             for action in random.sample(actions, k=len(actions)):
-                action_score = evaluate_action(args, coq, v_network, path, action.prediction)
-                if action_score != -float("Inf"):
+                try:
+                    coq.run_stmt(action.prediction)
+                    if any(coq_serapy.contextSurjective(coq.proof_context, path_context)
+                           for path_context in path):
+                        coq.cancel_last()
+                        continue
                     chosen_action = action
+                    coq.cancel_last()
                     break
+                except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+                        coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
+                        coq_serapy.ParseError,
+                        RecursionError,
+                        coq_serapy.UnrecognizedError):
+                    pass
             if chosen_action is None:
                 break
 
