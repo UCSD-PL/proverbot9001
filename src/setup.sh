@@ -38,9 +38,9 @@ function check-and-clone {
     (cd $1 && git fetch && git checkout $3) || exit 1
 }
 function setup-compcert {
-    # check-and-clone\
-    #     "CompCert" "https://github.com/AbsInt/CompCert.git"\
-    #     "76a4ff8f5b37429a614a2a97f628d9d862c93f46"
+    check-and-clone\
+        "CompCert" "https://github.com/AbsInt/CompCert.git"\
+        "76a4ff8f5b37429a614a2a97f628d9d862c93f46"
     (
         set -euv
         cd CompCert
