@@ -3,6 +3,8 @@
 import argparse
 import json
 import random
+import time
+import contextlib
 import math
 from pathlib import Path
 from typing import List, Optional, Dict, Tuple, Union, Any, Set, Sequence
@@ -554,6 +556,24 @@ class ReplayBuffer:
                                          {(transition[1], tuple(transition[2]))} |
                                          self._contents.get(transition[0], (0, set()))[1])
         self.window_end_position += 1
+
+# NOT THREAD SAFE
+@contextlib.contextmanager
+def log_time(msg: str) -> None:
+    start = time.time()
+    try:
+        yield
+    finally:
+        time_taken = time.time() - start
+        try:
+            with open("timings.json", 'r') as f:
+                timings = json.load(f)
+        except FileNotFoundError:
+            timings = {}
+        timings[msg] = time_taken + timings.get(msg, 0.0)
+        with open("timings.json", 'w') as f:
+            json.dump(timings, f)
+
 
 if __name__ == "__main__":
     main()
