@@ -461,6 +461,8 @@ def evaluate_results(args: argparse.Namespace,
                                              path, action.prediction)
                              for action in actions]
             best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
+            if best_score == -float("Inf"):
+                break
             eprint(f"Taking action {best_action} with estimated value {best_score}",
                    guard=args.verbose >= 1)
             execute_action(worker.coq, best_action.prediction)
