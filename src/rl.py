@@ -139,7 +139,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             switch_dict = None
     else:
         switch_dict = None
-    predictor = get_predictor(args)
+    # predictor = get_predictor(args)
+    predictor = MemoizingPredictor(get_predictor(args))
     # predictor = DummyPredictor()
     if args.resume == "ask" and args.output_file.exists():
         print(f"Found existing weights at {args.output_file}. Resume?")
@@ -406,6 +407,35 @@ def train_v_network(args: argparse.Namespace,
         loss = v_network.train(inputs, outputs, verbosity=args.verbose)
         if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
             print(f"Loss: {loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
+
+class MemoizingPredictor(TacticPredictor):
+    first_context: Optional[TacticContext]
+    underlying_predictor: TacticPredictor
+    cache: Dict[Tuple[TacticContext, int, Optional[List[str]]], List[Prediction]]
+    def __init__(self, underlying_predictor: TacticPredictor) -> None:
+        self.underlying_predictor = underlying_predictor
+        self.cache = {}
+        self.first_context = None
+    def getOptions(self) -> List[Tuple[str, str]]:
+        raise NotImplementedError()
+    def predictKTactics(self, in_data : TacticContext, k : int,
+                        blacklist: Optional[List[str]] = None) \
+        -> List[Prediction]:
+        if in_data in self.cache:
+            return self.cache[in_data]
+        if len(self.cache) == 0:
+            self.first_context = in_data
+        predictions = self.underlying_predictor.predictKTactics(in_data, k, blacklist)
+        self.cache[in_data] = predictions
+        return predictions
+    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
+        Tuple[List[Prediction], float]:
+        raise NotImplementedError()
+    def predictKTacticsWithLoss_batch(self,
+                                      in_data : List[TacticContext],
+                                      k : int, correct : List[str]) -> \
+                                      Tuple[List[List[Prediction]], float]:
+        raise NotImplementedError()
 
 class DummyPredictor(TacticPredictor):
     def __init__(self) -> None:
