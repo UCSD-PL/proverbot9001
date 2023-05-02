@@ -79,9 +79,7 @@ def main():
     else:
         args.splits_file = None
 
-    jobs = get_all_jobs(args)
-
-    reinforce_jobs(args, jobs)
+    reinforce_jobs(args)
 
 class FileReinforcementWorker(Worker):
     def finish_proof(self) -> None:
@@ -130,7 +128,7 @@ class ReinforcementWorker(Worker):
         self.file_workers[job.filename].finish_proof()
 
 
-def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
+def reinforce_jobs(args: argparse.Namespace) -> None:
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
@@ -168,6 +166,9 @@ def reinforce_jobs(args: argparse.Namespace, jobs: List[ReportJob]) -> None:
         replay_buffer = None
         v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
+
+    jobs = get_all_jobs(args)
+
     with ReinforcementWorker(args, predictor, v_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
         if args.interleave:
