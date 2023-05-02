@@ -214,7 +214,7 @@ class VNetwork:
             nn.ReLU(),
             nn.Linear(84, 1),
         )
-        self.optimizer = optim.Adam(self.network.parameters(), lr=self.learning_rate)
+        self.optimizer = optim.RMSprop(self.network.parameters(), lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
 
