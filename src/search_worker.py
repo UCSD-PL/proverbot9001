@@ -161,7 +161,6 @@ class Worker:
 
                 assert not self.coq.proof_context
                 self.coq.cancel_last()
-                assert self.coq.proof_context
                 while self.coq.proof_context:
                     self.coq.cancel_last()
                 self.coq._file_state.cancel_potential_local_lemmas(
