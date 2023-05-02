@@ -27,7 +27,7 @@ def main():
                 if solution["status"] != "SUCCESS":
                     continue
                 stripped_solution = [cmd for cmd in solution["commands"]
-                                     if cmd not in ["Qed.", "Proof.", "{", "}"]]
+                                     if cmd["tactic"] not in ["Qed.", "Proof.", "{", "}"]]
                 if args.max_length and len(stripped_solution) > args.max_length:
                     continue
                 lemma_name = coq_serapy.lemma_name_from_statement(job[3])
