@@ -258,26 +258,39 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
-                with proofs_file.open('r') as f, FileLock(f, exclusive=False):
-                    for idx, line in enumerate(f):
-                        try:
-                            (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
-                        except json.decoder.JSONDecodeError:
-                            print(f"On line {idx} in file {proofs_file}")
-                            raise
-                        assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
-                            f"doesn't match it's filename {filename}. {job_file}"
-                        loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
-                        if loaded_job in [job for job, sol in file_jobs]:
-                            eprint(f"In project {project_dict['project_name']} "
-                                   f"file {filename} "
-                                   f"found duplicate job {loaded_job}. "
-                                   f"Automatically removing it...")
-                            fixing_duplicates = True
-                        else:
-                            assert loaded_job not in already_done_jobs, \
-                              f"Already found job {loaded_job} in another file!"
-                            file_jobs.append((loaded_job, sol))
+                file_lines = None
+                backoff_amount = 0.001
+                while file_lines is None:
+                    try:
+                        with proofs_file.open('r') as f, FileLock(f, exclusive=False):
+                            file_lines = list(f)
+                    except FileNotFoundError:
+                        raise
+                    except OSError as e:
+                        eprint("Error reading proofs files "
+                               "(OSError, probably a temporary cluster filesystem problem). "
+                               f"Trying again in {backoff_amount} seconds.\n{e}")
+                        time.sleep(backoff_amount)
+                        backoff_amount *= 2
+                for idx, line in enumerate(file_lines):
+                    try:
+                        (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                    except json.decoder.JSONDecodeError:
+                        print(f"On line {idx} in file {proofs_file}")
+                        raise
+                    assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
+                        f"doesn't match it's filename {filename}. {job_file}"
+                    loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
+                    if loaded_job in [job for job, sol in file_jobs]:
+                        eprint(f"In project {project_dict['project_name']} "
+                               f"file {filename} "
+                               f"found duplicate job {loaded_job}. "
+                               f"Automatically removing it...")
+                        fixing_duplicates = True
+                    else:
+                        assert loaded_job not in already_done_jobs, \
+                          f"Already found job {loaded_job} in another file!"
+                        file_jobs.append((loaded_job, sol))
                 already_done_jobs.extend([job for job, sol in file_jobs])
                 if fixing_duplicates:
                     with proofs_file.open('w') as f, FileLock(f):
