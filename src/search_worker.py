@@ -506,7 +506,7 @@ def get_file_jobs(args: argparse.Namespace,
         arg_proofs_names = [args.proof]
     cmds = coq_serapy.load_commands(args.prelude / project / filename)
     lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
-                                                    args.include_proof_relevant)
+                                               args.include_proof_relevant)
     if arg_proofs_names:
         return [ReportJob(project, filename, module, stmt)
                 for (module, stmt) in lemmas_in_file
