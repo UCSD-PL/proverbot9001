@@ -140,7 +140,7 @@ class Worker:
         _, job_file, job_module, job_lemma = job
         all_file_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / job_file)
-        commands_after_lemma_start = all_file_commands
+        commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
         while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
                commands_after_lemma_start[0] != job_lemma):
@@ -148,11 +148,14 @@ class Worker:
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
 
         commands_to_cancel = commands_after_lemma_start[:-len(self.remaining_commands)]
+        commands_before_point = list(all_file_commands[:-len(self.remaining_commands)])
         while len(commands_to_cancel) > 0:
             if coq_serapy.ending_proof(commands_to_cancel[-1]):
                 while not coq_serapy.possibly_starting_proof(commands_to_cancel[-1]):
                     popped = commands_to_cancel.pop(-1)
+                    commands_before_point.pop(-1)
                 cancelled_lemma_statement = commands_to_cancel.pop(-1)
+                commands_before_point.pop(-1)
                 last_lemma_encountered = self.lemmas_encountered.pop()
                 assert cancelled_lemma_statement.strip() in \
                     [last_lemma_encountered.lemma_statement.strip(), "Next Obligation."], \
@@ -160,18 +163,23 @@ class Worker:
                     f"but cancelling {cancelled_lemma_statement}"
 
                 assert not self.coq.proof_context
-                self.coq.cancel_last()
+                # Sometimes a Qed in file corresponds to two commands
+                # in our coqagent history, because of the way we need
+                # to Admit Let's
+                while not self.coq.proof_context:
+                    self.coq.cancel_last()
                 while self.coq.proof_context:
                     self.coq.cancel_last()
                 self.coq._file_state.cancel_potential_local_lemmas(
-                    cancelled_lemma_statement)
+                    cancelled_lemma_statement, commands_before_point)
             else:
                 self.coq.cancel_last()
                 popped = commands_to_cancel.pop(-1)
+                commands_before_point.pop(-1)
                 newstack = \
                     coq_serapy.coq_util.cancel_update_sm_stack(
                         self.coq._file_state.sm_stack,
-                        popped)
+                        popped, commands_before_point)
                 if newstack != self.coq._file_state.sm_stack:
                     self.coq._file_state.sm_stack = newstack
         self.coq.run_stmt(job_lemma)
