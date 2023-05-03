@@ -43,7 +43,7 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Any, Iterator, Iterable)
 
 from models.tactic_predictor import TacticPredictor
-import coq_serapy as serapi_instance
+import coq_serapy
 
 from util import eprint, FileLock
 import search_report
@@ -292,7 +292,20 @@ def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
     proj_filename_tuples = [(project_dict["project_name"], filename)
                             for project_dict in project_dicts
                             for filename in project_dict["test_files"]]
-    return list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
+    jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
+    if args.proofs_file is not None:
+        found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
+                           for project, filename, sm_prefix, stmt in jobs]
+        with open(args.proofs_file, 'r') as f:
+            jobs_lines = list(f)
+        for job_line in jobs_lines:
+            assert job_line.strip() in found_job_lines, \
+                f"Couldn't find job {job_line.strip()}, found jobs {found_job_lines}"
+        assert len(jobs) == len(jobs_lines), \
+            f"There are {len(jobs_lines)} lines in the jobs file but only {len(jobs)} found jobs!"
+    elif args.proof:
+        assert len(jobs) == 1
+    return jobs
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
     project_dicts = project_dicts_from_args(args)
