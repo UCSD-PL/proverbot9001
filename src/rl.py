@@ -7,7 +7,8 @@ import time
 import contextlib
 import math
 from pathlib import Path
-from typing import List, Optional, Dict, Tuple, Union, Any, Set, Sequence
+from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
+                    Sequence, TypeVar, Callable)
 
 import torch
 from torch import nn
@@ -200,6 +201,16 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         if args.evaluate:
             evaluate_results(args, worker, jobs)
 
+class CEObligation(Obligation):
+    cached_encoding: Optional[torch.FloatTensor]
+
+    def __init__(self, hypotheses: Sequence[str], goal: str) -> None:
+        super().__init__(hypotheses, goal)
+        self.cached_encoding = None
+    @classmethod
+    def from_obl(cls, obl: Obligation) -> 'CEObligation':
+        return cls(obl.hypotheses, obl.goal)
+
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
     network: nn.Module
@@ -251,10 +262,10 @@ class VNetwork:
         if coq2vec_weights is not None:
             self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
 
-    def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
+    def __call__(self, obls: Union[CEObligation, List[CEObligation]]) -> torch.FloatTensor:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
-        if isinstance(obls, Obligation):
+        if isinstance(obls, CEObligation):
             obls = [obls]
         else:
             assert isinstance(obls, list)
@@ -264,13 +275,21 @@ class VNetwork:
         encoded_obl_size = (self.obligation_encoder.term_encoder.hidden_size *
                             (self.obligation_encoder.max_num_hypotheses + 1))
 
-        encoded = self.obligation_encoder.obligations_to_vectors(
-            [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls])\
-                                         .view(len(obls), encoded_obl_size)
-        scores = self.network(encoded).view(len(obls))
+        with log_time("Encoding Obls"):
+            encoded = self.obligation_encoder.\
+                obligations_to_vectors_cached(obls)run_network_with_cache(
+                lambda x: self.obligation_encoder.obligations_to_vectors(x)\
+                .view(len(x), encoded_obl_size),
+                [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls],
+                [ceobl.cached_encoding for ceobl in obls]).view(len(obls), encoded_obl_size)
+            for row, ceobl in zip(encoded, obls):
+                # assert ceobl.cached_encoding is None or (ceobl.cached_encoding == row).all()
+                ceobl.cached_encoding = row
+        with log_time("Grading obls"):
+            scores = self.network(encoded).view(len(obls))
         return scores
 
-    def train(self, inputs: List[Obligation],
+    def train(self, inputs: List[CEObligation],
               target_outputs: List[float],
               verbosity: int = 0) -> float:
         assert self.obligation_encoder, \
@@ -372,7 +391,10 @@ def evaluate_action(args: argparse.Namespace, coq: coq_serapy.CoqAgent,
         return torch.tensor(-float("Inf"))
 
 
-    product = math.prod(v_network(unwrap(context_after).fg_goals))
+    with torch.no_grad():
+        # This leaves some possible caching on the table
+        product = math.prod(v_network([CEObligation.from_obl(o) for o in
+                                       unwrap(context_after).fg_goals]))
     return product
 
 def execute_action(coq: coq_serapy.CoqAgent,
@@ -412,7 +434,9 @@ def train_v_network(args: argparse.Namespace,
                         for starting_obl, action_records in samples
                         for action, resulting_obls in action_records
                         for obl in resulting_obls]
-            all_obl_scores = v_network(all_obls)
+            with log_time("Running network for outputs"):
+                with torch.no_grad():
+                    all_obl_scores = v_network(all_obls)
             outputs = []
             cur_row = 0
             for resulting_obl_lens in num_resulting_obls:
@@ -537,11 +561,11 @@ def stringified_percent(total : float, outof : float) -> str:
         return "NaN"
     return f"{(total * 100 / outof):10.2f}"
 
-Transition = Tuple[str, Sequence[Obligation]]
+Transition = Tuple[str, Sequence[CEObligation]]
 FullTransition = Tuple[Obligation, str, List[Obligation]]
 
 class ReplayBuffer:
-    _contents: Dict[Obligation, Tuple[int, Set[Transition]]]
+    _contents: Dict[CEObligation, Tuple[int, Set[Transition]]]
     window_size: int
     window_end_position: int
     allow_partial_batches: int
@@ -552,8 +576,8 @@ class ReplayBuffer:
         self.allow_partial_batches = allow_partial_batches
         self._contents = {}
 
-    def sample(self, batch_size) -> Optional[List[Tuple[Obligation, Set[Transition]]]]:
-        sample_pool: List[Tuple[Obligation, List[Transition]]] = []
+    def sample(self, batch_size) -> Optional[List[Tuple[CEObligation, Set[Transition]]]]:
+        sample_pool: List[Tuple[CEObligation, List[Transition]]] = []
         for obl, (last_updated, transitions) in self._contents.copy().items():
             if last_updated <= self.window_end_position - self.window_size:
                 del self._contents[obl]
@@ -566,9 +590,13 @@ class ReplayBuffer:
         return None
 
     def add_transition(self, transition: FullTransition) -> None:
-        self._contents[transition[0]] = (self.window_end_position,
-                                         {(transition[1], tuple(transition[2]))} |
-                                         self._contents.get(transition[0], (0, set()))[1])
+        from_obl = CEObligation.from_obl(transition[0])
+        action = transition[1]
+        to_obls = tuple((CEObligation.from_obl(t) for t in transition[2]))
+        self._contents[from_obl] = \
+            (self.window_end_position,
+             {(action, to_obls)} |
+             self._contents.get(from_obl, (0, set()))[1])
         self.window_end_position += 1
 
 # NOT THREAD SAFE
@@ -587,6 +615,26 @@ def log_time(msg: str) -> None:
         timings[msg] = time_taken + timings.get(msg, 0.0)
         with open("timings.json", 'w') as f:
             json.dump(timings, f)
+
+T = TypeVar('T')
+def run_network_with_cache(f: Callable[List[T], torch.FloatTensor],
+                           values: List[T],
+                           cached_outputs: List[Optional[torch.FloatTensor]]) \
+                           -> torch.FloatTensor:
+    assert len(values) == len(cached_outputs)
+    output_list: List[Optional[torch.FloatTensor]] = list(cached_outputs)
+    uncached_values: List[T] = []
+    uncached_value_indices: List[int] = []
+    for i, value in enumerate(values):
+        if output_list[i] is None:
+            uncached_values.append(value)
+            uncached_value_indices.append(i)
+    if len(uncached_values) > 0:
+        new_results = f(uncached_values)
+        for idx, result in zip(uncached_value_indices, new_results):
+            output_list[idx] = result
+    return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
+
 
 
 if __name__ == "__main__":
