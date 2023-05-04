@@ -427,22 +427,19 @@ def train_v_network(args: argparse.Namespace,
 class MemoizingPredictor(TacticPredictor):
     first_context: Optional[TacticContext]
     underlying_predictor: TacticPredictor
-    cache: Dict[Tuple[TacticContext, int, Optional[List[str]]], List[Prediction]]
+    cache: Dict[Tuple[TacticContext, int, Optional[Sequence[str]]], List[Prediction]]
     def __init__(self, underlying_predictor: TacticPredictor) -> None:
         self.underlying_predictor = underlying_predictor
         self.cache = {}
-        self.first_context = None
     def getOptions(self) -> List[Tuple[str, str]]:
         raise NotImplementedError()
     def predictKTactics(self, in_data : TacticContext, k : int,
                         blacklist: Optional[List[str]] = None) \
         -> List[Prediction]:
         if in_data in self.cache:
-            return self.cache[in_data]
-        if len(self.cache) == 0:
-            self.first_context = in_data
+            return self.cache[(in_data, k, tuple(blacklist) if blacklist else None)]
         predictions = self.underlying_predictor.predictKTactics(in_data, k, blacklist)
-        self.cache[in_data] = predictions
+        self.cache[(in_data, k, tuple(blacklist) if blacklist else None)] = predictions
         return predictions
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
         Tuple[List[Prediction], float]:
