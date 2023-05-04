@@ -119,9 +119,11 @@ class ReinforcementWorker(Worker):
             self.file_workers[job.filename].enter_instance()
         job_name = job.module_prefix + coq_serapy.lemma_name_from_statement(
             job.lemma_statement)
-        with print_time(f"Entering job {job_name}", guard=self.verbosity >= 1):
+        # with print_time(f"Entering job {job_name}", guard=self.verbosity >= 1):
+        with log_time(f"Entering job"):
             self.file_workers[job.filename].run_into_job(job, restart, False)
-        with print_time("Experiencing proof", guard=self.verbosity >= 1):
+        # with print_time("Experiencing proof", guard=self.verbosity >= 1):
+        with log_time("Experiencing proof"):
             experience_proof(self.original_args,
                              self.file_workers[job.filename].coq,
                              self.predictor, self.v_network,
@@ -266,7 +268,8 @@ class VNetwork:
               verbosity: int = 0) -> float:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
-        with print_time("Training", guard=verbosity >= 1):
+        # with print_time("Training", guard=verbosity >= 1):
+        with log_time("Training"):
             actual = self(inputs)
             target = torch.FloatTensor(target_outputs)
             loss = F.mse_loss(actual, target)
@@ -287,49 +290,55 @@ def experience_proof(args: argparse.Namespace,
     path: List[ProofContext] = [coq.proof_context]
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
-        actions = predictor.predictKTactics(
-            truncate_tactic_context(FullContext(coq.local_lemmas,
-                                                coq.prev_tactics,
-                                                unwrap(coq.proof_context)).as_tcontext(),
-                                    30),
-            args.num_predictions,
-            blacklist=args.blacklisted_tactics)
+        if args.verbose >= 3:
+            coq_serapy.summarizeContext(coq.proof_context)
+        with log_time("Predicting actions"):
+            actions = predictor.predictKTactics(
+                truncate_tactic_context(FullContext(coq.local_lemmas,
+                                                    coq.prev_tactics,
+                                                    unwrap(coq.proof_context)).as_tcontext(),
+                                        30),
+                args.num_predictions,
+                blacklist=args.blacklisted_tactics)
         eprint(f"Using predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 3)
         if random.random() < epsilon:
             eprint("Using best-scoring action", guard=args.verbose >= 3)
-            action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
-                             for action in actions]
-            chosen_action, chosen_score = max(zip(actions, action_scores),
-                                              key=lambda p: p[1])
+            with log_time("Evaluating actions"):
+                action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
+                                 for action in actions]
+                chosen_action, chosen_score = max(zip(actions, action_scores),
+                                                  key=lambda p: p[1])
             if chosen_score == -float("Inf"):
                 break
         else:
             eprint("Using random action", guard=args.verbose >= 3)
             chosen_action = None
-            for action in random.sample(actions, k=len(actions)):
-                try:
-                    coq.run_stmt(action.prediction)
-                    if any(coq_serapy.contextSurjective(coq.proof_context, path_context)
-                           for path_context in path):
+            with log_time("Evaluating actions"):
+                for action in random.sample(actions, k=len(actions)):
+                    try:
+                        coq.run_stmt(action.prediction)
+                        if any(coq_serapy.contextSurjective(coq.proof_context, path_context)
+                               for path_context in path):
+                            coq.cancel_last()
+                            continue
                         coq.cancel_last()
-                        continue
-                    chosen_action = action
-                    coq.cancel_last()
-                    break
-                except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
-                        coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
-                        coq_serapy.ParseError,
-                        RecursionError,
-                        coq_serapy.UnrecognizedError):
-                    pass
+                        chosen_action = action
+                        break
+                    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+                            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
+                            coq_serapy.ParseError,
+                            RecursionError,
+                            coq_serapy.UnrecognizedError):
+                        pass
             if chosen_action is None:
                 break
+        with log_time("Executing actions"):
+            resulting_obls = execute_action(coq, chosen_action.prediction)
 
         eprint(f"Taking action {chosen_action}",
                guard=args.verbose >= 2)
 
-        resulting_obls = execute_action(coq, chosen_action.prediction)
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)
         replay_buffer.add_transition((before_obl, chosen_action.prediction, resulting_obls))
@@ -387,7 +396,8 @@ def train_v_network(args: argparse.Namespace,
         if samples is None:
             return
         inputs = [start_obl for start_obl, action_records in samples]
-        with print_time("Computing outputs", guard=args.verbose >= 1):
+        # with print_time("Computing outputs", guard=args.verbose >= 1):
+        with log_time("Computing outputs"):
             num_resulting_obls = [[len(resulting_obls)
                                    for action, resulting_obls in action_records]
                                   for starting_obl, action_records in samples]
