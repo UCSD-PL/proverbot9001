@@ -124,12 +124,16 @@ class ReinforcementWorker(Worker):
             self.file_workers[job.filename].run_into_job(job, restart, False)
         # with print_time("Experiencing proof", guard=self.verbosity >= 1):
         with log_time("Experiencing proof"):
-            experience_proof(self.original_args,
-                             self.file_workers[job.filename].coq,
-                             self.predictor, self.v_network,
-                             self.replay_buffer, epsilon)
+            try:
+                experience_proof(self.original_args,
+                                 self.file_workers[job.filename].coq,
+                                 self.predictor, self.v_network,
+                                 self.replay_buffer, epsilon)
+                self.file_workers[job.filename].finish_proof()
+            except coq_serapy.CoqAnomaly:
+                self.file_workers[job.filename].restart_coq()
+                self.file_workers[job.filename].enter_file(job.filename)
         train_v_network(self.original_args, self.v_network, self.replay_buffer)
-        self.file_workers[job.filename].finish_proof()
 
 
 def reinforce_jobs(args: argparse.Namespace) -> None:
