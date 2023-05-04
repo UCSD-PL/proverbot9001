@@ -201,16 +201,22 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         if args.evaluate:
             evaluate_results(args, worker, jobs)
 
-class CEObligation(Obligation):
-    cached_encoding: Optional[torch.FloatTensor]
-
-    def __init__(self, hypotheses: Sequence[str], goal: str) -> None:
-        super().__init__(hypotheses, goal)
-        self.cached_encoding = None
-    @classmethod
-    def from_obl(cls, obl: Obligation) -> 'CEObligation':
-        return cls(obl.hypotheses, obl.goal)
-
+class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
+    obl_cache: Dict[Obligation, torch.FloatTensor]
+    def __init__(self, term_encoder: 'CoqTermRNNVectorizer',
+                 max_num_hypotheses: int) -> None:
+        super().__init__(term_encoder, max_num_hypotheses)
+        self.obl_cache = {}
+    def obligations_to_vectors_cached(self, obls: List[Obligation]) -> torch.FloatTensor:
+        encoded_obl_size = self.term_encoder.hidden_size * (self.max_num_hypotheses + 1)
+        encoded = run_network_with_cache(
+            lambda x: self.obligations_to_vectors(x).view(len(x), encoded_obl_size),
+            [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls],
+            [self.obl_cache.get(obl, None) for obl in obls])
+        for row, obl in zip(encoded, obls):
+            assert obl not in self.obl_cache or (self.obl_cache[obl] == row).all()
+            self.obl_cache[obl] = row
+        return encoded
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
     network: nn.Module
@@ -228,7 +234,7 @@ class VNetwork:
         term_encoder.load_state(encoder_state)
         num_hyps = 5
         assert self.obligation_encoder is None, "Can't load weights twice!"
-        self.obligation_encoder = coq2vec.CoqContextVectorizer(term_encoder, num_hyps)
+        self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
         self.network = nn.Sequential(
             nn.Linear(insize, 120),
@@ -262,34 +268,24 @@ class VNetwork:
         if coq2vec_weights is not None:
             self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
 
-    def __call__(self, obls: Union[CEObligation, List[CEObligation]]) -> torch.FloatTensor:
+    def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
-        if isinstance(obls, CEObligation):
+        if isinstance(obls, Obligation):
             obls = [obls]
         else:
             assert isinstance(obls, list)
             if len(obls) == 0:
                 return torch.tensor([])
 
-        encoded_obl_size = (self.obligation_encoder.term_encoder.hidden_size *
-                            (self.obligation_encoder.max_num_hypotheses + 1))
-
         with log_time("Encoding Obls"):
             encoded = self.obligation_encoder.\
-                obligations_to_vectors_cached(obls)run_network_with_cache(
-                lambda x: self.obligation_encoder.obligations_to_vectors(x)\
-                .view(len(x), encoded_obl_size),
-                [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls],
-                [ceobl.cached_encoding for ceobl in obls]).view(len(obls), encoded_obl_size)
-            for row, ceobl in zip(encoded, obls):
-                # assert ceobl.cached_encoding is None or (ceobl.cached_encoding == row).all()
-                ceobl.cached_encoding = row
+                obligations_to_vectors_cached(obls)
         with log_time("Grading obls"):
             scores = self.network(encoded).view(len(obls))
         return scores
 
-    def train(self, inputs: List[CEObligation],
+    def train(self, inputs: List[Obligation],
               target_outputs: List[float],
               verbosity: int = 0) -> float:
         assert self.obligation_encoder, \
@@ -392,9 +388,7 @@ def evaluate_action(args: argparse.Namespace, coq: coq_serapy.CoqAgent,
 
 
     with torch.no_grad():
-        # This leaves some possible caching on the table
-        product = math.prod(v_network([CEObligation.from_obl(o) for o in
-                                       unwrap(context_after).fg_goals]))
+        product = math.prod(v_network(unwrap(context_after).fg_goals))
     return product
 
 def execute_action(coq: coq_serapy.CoqAgent,
@@ -561,11 +555,11 @@ def stringified_percent(total : float, outof : float) -> str:
         return "NaN"
     return f"{(total * 100 / outof):10.2f}"
 
-Transition = Tuple[str, Sequence[CEObligation]]
+Transition = Tuple[str, Sequence[Obligation]]
 FullTransition = Tuple[Obligation, str, List[Obligation]]
 
 class ReplayBuffer:
-    _contents: Dict[CEObligation, Tuple[int, Set[Transition]]]
+    _contents: Dict[Obligation, Tuple[int, Set[Transition]]]
     window_size: int
     window_end_position: int
     allow_partial_batches: int
@@ -576,8 +570,8 @@ class ReplayBuffer:
         self.allow_partial_batches = allow_partial_batches
         self._contents = {}
 
-    def sample(self, batch_size) -> Optional[List[Tuple[CEObligation, Set[Transition]]]]:
-        sample_pool: List[Tuple[CEObligation, List[Transition]]] = []
+    def sample(self, batch_size) -> Optional[List[Tuple[Obligation, Set[Transition]]]]:
+        sample_pool: List[Tuple[Obligation, List[Transition]]] = []
         for obl, (last_updated, transitions) in self._contents.copy().items():
             if last_updated <= self.window_end_position - self.window_size:
                 del self._contents[obl]
@@ -590,9 +584,9 @@ class ReplayBuffer:
         return None
 
     def add_transition(self, transition: FullTransition) -> None:
-        from_obl = CEObligation.from_obl(transition[0])
+        from_obl = transition[0]
         action = transition[1]
-        to_obls = tuple((CEObligation.from_obl(t) for t in transition[2]))
+        to_obls = tuple(transition[2])
         self._contents[from_obl] = \
             (self.window_end_position,
              {(action, to_obls)} |
