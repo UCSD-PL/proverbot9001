@@ -53,7 +53,7 @@ def main():
     proofsGroup.add_argument("--proofs-file", default=None)
 
     parser.add_argument("--no-interleave", dest="interleave", action="store_false")
-    parser.add_argument('--supervised-weights', default=None, type=Path, dest="weightsfile")
+    parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
     parser.add_argument("-g", "--gamma", default=0.9, type=float)
