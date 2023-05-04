@@ -205,6 +205,9 @@ class VNetwork:
     network: nn.Module
     steps_trained: int
     optimizer: optim.Optimizer
+    batch_step: int
+    lr_step: int
+    learning_rate: float
     def get_state(self) -> Any:
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state())
