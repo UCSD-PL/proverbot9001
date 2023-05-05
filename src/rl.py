@@ -597,6 +597,12 @@ def log_time(msg: str) -> None:
         with open("timings.json", 'w') as f:
             json.dump(timings, f)
 
+# This function takes a function which can run on multiple inputs in
+# batch, a list of input values, and a list containing outputs for
+# some of the values. It then calls the function on all the values
+# that don't have an output, and puts combines their outputs with the
+# given output list to create a non-None output value for every input,
+# efficiently.
 T = TypeVar('T')
 def run_network_with_cache(f: Callable[List[T], torch.FloatTensor],
                            values: List[T],
