@@ -323,8 +323,9 @@ def experience_proof(args: argparse.Namespace,
                guard=args.verbose >= 3)
         if random.random() < epsilon:
             eprint("Using best-scoring action", guard=args.verbose >= 3)
-            action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
-                             for action in actions]
+            action_scores = evaluate_actions(
+                coq, v_network, path,
+                [action.prediction for action in actions])
             chosen_action, chosen_score = max(zip(actions, action_scores),
                                               key=lambda p: p[1])
             if chosen_score == -float("Inf"):
@@ -361,6 +362,43 @@ def experience_proof(args: argparse.Namespace,
         path.append(coq.proof_context)
         if completed_proof(coq):
             break
+def evaluate_actions(coq: coq_serapy.CoqAgent,
+                     v_network: VNetwork, path: List[ProofContext],
+                     actions: List[str]) -> List[float]:
+    resulting_contexts: List[Optional[ProofContext]] = \
+        [action_result(coq, path, action) for action in actions]
+    num_output_obls: List[int] = [len(context.fg_goals) if context else 0
+                                   for context in resulting_contexts]
+    all_obls = [obl for context in resulting_contexts
+                for obl in (context.fg_goals if context else [])]
+    all_obl_scores = v_network(all_obls)
+    resulting_action_scores = []
+    cur_obl_idx = 0
+    for num_obls in num_output_obls:
+        if num_obls == 0:
+            resulting_action_scores.append(float("-Inf"))
+        else:
+            resulting_action_scores.append(math.prod(
+                all_obl_scores[cur_obl_idx:cur_obl_idx+num_obls]))
+            cur_obl_idx += num_obls
+    return resulting_action_scores
+
+def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
+                  action: str) -> Optional[ProofContext]:
+    try:
+        coq.run_stmt(action)
+    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
+            coq_serapy.ParseError,
+            RecursionError,
+            coq_serapy.UnrecognizedError):
+        return None
+    context_after = coq.proof_context
+    coq.cancel_last()
+    if any(coq_serapy.contextSurjective(context_after, path_context)
+           for path_context in path):
+        return None
+    return context_after
 
 def evaluate_action(args: argparse.Namespace, coq: coq_serapy.CoqAgent,
                     v_network: VNetwork, path: List[ProofContext], action: str) -> float:
