@@ -121,19 +121,17 @@ class ReinforcementWorker(Worker):
         job_name = job.module_prefix + coq_serapy.lemma_name_from_statement(
             job.lemma_statement)
         # with print_time(f"Entering job {job_name}", guard=self.verbosity >= 1):
-        with log_time(f"Entering job"):
-            self.file_workers[job.filename].run_into_job(job, restart, False)
+        self.file_workers[job.filename].run_into_job(job, restart, False)
         # with print_time("Experiencing proof", guard=self.verbosity >= 1):
-        with log_time("Experiencing proof"):
-            try:
-                experience_proof(self.original_args,
-                                 self.file_workers[job.filename].coq,
-                                 self.predictor, self.v_network,
-                                 self.replay_buffer, epsilon)
-                self.file_workers[job.filename].finish_proof()
-            except coq_serapy.CoqAnomaly:
-                self.file_workers[job.filename].restart_coq()
-                self.file_workers[job.filename].enter_file(job.filename)
+        try:
+            experience_proof(self.original_args,
+                             self.file_workers[job.filename].coq,
+                             self.predictor, self.v_network,
+                             self.replay_buffer, epsilon)
+            self.file_workers[job.filename].finish_proof()
+        except coq_serapy.CoqAnomaly:
+            self.file_workers[job.filename].restart_coq()
+            self.file_workers[job.filename].enter_file(job.filename)
         train_v_network(self.original_args, self.v_network, self.replay_buffer)
 
 
@@ -278,11 +276,9 @@ class VNetwork:
             if len(obls) == 0:
                 return torch.tensor([])
 
-        with log_time("Encoding Obls"):
-            encoded = self.obligation_encoder.\
-                obligations_to_vectors_cached(obls)
-        with log_time("Grading obls"):
-            scores = self.network(encoded).view(len(obls))
+        encoded = self.obligation_encoder.\
+            obligations_to_vectors_cached(obls)
+        scores = self.network(encoded).view(len(obls))
         return scores
 
     def train(self, inputs: List[Obligation],
@@ -291,14 +287,13 @@ class VNetwork:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         # with print_time("Training", guard=verbosity >= 1):
-        with log_time("Training"):
-            actual = self(inputs)
-            target = torch.FloatTensor(target_outputs)
-            loss = F.mse_loss(actual, target)
-            self.optimizer.zero_grad()
-            loss.backward()
-            self.optimizer.step()
-            self.adjuster.step()
+        actual = self(inputs)
+        target = torch.FloatTensor(target_outputs)
+        loss = F.mse_loss(actual, target)
+        self.optimizer.zero_grad()
+        loss.backward()
+        self.optimizer.step()
+        self.adjuster.step()
         eprint(f"Actual: {actual}; Target: {target}", guard=verbosity >= 2)
         eprint(f"Loss: {loss}", guard=verbosity >= 1)
         self.steps_trained += 1
@@ -314,49 +309,45 @@ def experience_proof(args: argparse.Namespace,
         before_obl = unwrap(coq.proof_context).fg_goals[0]
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)
-        with log_time("Predicting actions"):
-            actions = predictor.predictKTactics(
-                truncate_tactic_context(FullContext(coq.local_lemmas,
-                                                    coq.prev_tactics,
-                                                    unwrap(coq.proof_context)).as_tcontext(),
-                                        30),
-                args.num_predictions,
-                blacklist=args.blacklisted_tactics)
+        actions = predictor.predictKTactics(
+            truncate_tactic_context(FullContext(coq.local_lemmas,
+                                                coq.prev_tactics,
+                                                unwrap(coq.proof_context)).as_tcontext(),
+                                    30),
+            args.num_predictions,
+            blacklist=args.blacklisted_tactics)
         eprint(f"Using predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 3)
         if random.random() < epsilon:
             eprint("Using best-scoring action", guard=args.verbose >= 3)
-            with log_time("Evaluating actions"):
-                action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
-                                 for action in actions]
-                chosen_action, chosen_score = max(zip(actions, action_scores),
-                                                  key=lambda p: p[1])
+            action_scores = [evaluate_action(args, coq, v_network, path, action.prediction)
+                             for action in actions]
+            chosen_action, chosen_score = max(zip(actions, action_scores),
+                                              key=lambda p: p[1])
             if chosen_score == -float("Inf"):
                 break
         else:
             eprint("Using random action", guard=args.verbose >= 3)
             chosen_action = None
-            with log_time("Evaluating actions"):
-                for action in random.sample(actions, k=len(actions)):
-                    try:
-                        coq.run_stmt(action.prediction)
-                        if any(coq_serapy.contextSurjective(coq.proof_context, path_context)
-                               for path_context in path):
-                            coq.cancel_last()
-                            continue
+            for action in random.sample(actions, k=len(actions)):
+                try:
+                    coq.run_stmt(action.prediction)
+                    if any(coq_serapy.contextSurjective(coq.proof_context, path_context)
+                           for path_context in path):
                         coq.cancel_last()
-                        chosen_action = action
-                        break
-                    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
-                            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
-                            coq_serapy.ParseError,
-                            RecursionError,
-                            coq_serapy.UnrecognizedError):
-                        pass
+                        continue
+                    coq.cancel_last()
+                    chosen_action = action
+                    break
+                except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+                        coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
+                        coq_serapy.ParseError,
+                        RecursionError,
+                        coq_serapy.UnrecognizedError):
+                    pass
             if chosen_action is None:
                 break
-        with log_time("Executing actions"):
-            resulting_obls = execute_action(coq, chosen_action.prediction)
+        resulting_obls = execute_action(coq, chosen_action.prediction)
 
         eprint(f"Taking action {chosen_action}",
                guard=args.verbose >= 2)
@@ -419,34 +410,30 @@ def train_v_network(args: argparse.Namespace,
         if samples is None:
             return
         inputs = [start_obl for start_obl, action_records in samples]
-        # with print_time("Computing outputs", guard=args.verbose >= 1):
-        with log_time("Computing outputs"):
-            num_resulting_obls = [[len(resulting_obls)
-                                   for action, resulting_obls in action_records]
-                                  for starting_obl, action_records in samples]
-            all_obls = [obl
-                        for starting_obl, action_records in samples
-                        for action, resulting_obls in action_records
-                        for obl in resulting_obls]
-            with log_time("Running network for outputs"):
-                with torch.no_grad():
-                    all_obl_scores = v_network(all_obls)
-            outputs = []
-            cur_row = 0
-            for resulting_obl_lens in num_resulting_obls:
-                action_outputs = []
-                for num_obls in resulting_obl_lens:
-                    selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
-                    action_outputs.append(args.gamma * math.prod(
-                        selected_obl_scores))
-                    cur_row += num_obls
-                outputs.append(max(action_outputs))
+        num_resulting_obls = [[len(resulting_obls)
+                               for action, resulting_obls in action_records]
+                              for starting_obl, action_records in samples]
+        all_obls = [obl
+                    for starting_obl, action_records in samples
+                    for action, resulting_obls in action_records
+                    for obl in resulting_obls]
+        with torch.no_grad():
+            all_obl_scores = v_network(all_obls)
+        outputs = []
+        cur_row = 0
+        for resulting_obl_lens in num_resulting_obls:
+            action_outputs = []
+            for num_obls in resulting_obl_lens:
+                selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
+                action_outputs.append(args.gamma * math.prod(
+                    selected_obl_scores))
+                cur_row += num_obls
+            outputs.append(max(action_outputs))
         loss = v_network.train(inputs, outputs, verbosity=args.verbose)
         if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
             print(f"Loss: {loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class MemoizingPredictor(TacticPredictor):
-    first_context: Optional[TacticContext]
     underlying_predictor: TacticPredictor
     cache: Dict[Tuple[TacticContext, int, Optional[Sequence[str]]], List[Prediction]]
     def __init__(self, underlying_predictor: TacticPredictor) -> None:
