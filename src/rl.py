@@ -211,10 +211,13 @@ class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
             lambda x: self.obligations_to_vectors(x).view(len(x), encoded_obl_size),
             [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls],
             [self.obl_cache.get(obl, None) for obl in obls])
+        # for row, obl in zip(encoded, obls):
+        #     assert obl not in self.obl_cache or (self.obl_cache[obl] == row).all(), \
+        #         (self.obl_cache[obl] == row)
         for row, obl in zip(encoded, obls):
-            assert obl not in self.obl_cache or (self.obl_cache[obl] == row).all()
             self.obl_cache[obl] = row
         return encoded
+
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
     network: nn.Module
