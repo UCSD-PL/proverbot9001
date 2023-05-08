@@ -63,7 +63,7 @@ def main():
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
-    parser.add_argument("-w", "--window-size", default=256)
+    parser.add_argument("-w", "--window-size", default=2560)
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
     parser.add_argument("--batch-step", default=25, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
