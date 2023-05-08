@@ -224,15 +224,15 @@ class Worker:
                     self.restart_coq()
                     self.reset_file_state()
                     self.enter_file(job_file)
-                    eprint(f"Hit a coq anomaly! Restarting...",
+                    eprint("Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, False, careful)
                     return
-                else:
-                    assert False
+                assert False
             except coq_serapy.SerapiException:
                 if not careful:
-                    eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
+                    eprint("Hit a problem, possibly due to admitting proofs! "
+                           "Restarting file with --careful...",
                            guard=self.args.verbose >= 1)
                     self.reset_file_state()
                     self.exit_cur_file()
@@ -267,21 +267,21 @@ class Worker:
             if unique_lemma_statement == job_lemma and \
               self.coq.sm_prefix == job_module:
                 return
-            else:
-                try:
-                    self.skip_proof(lemma_statement, careful)
-                except coq_serapy.SerapiException:
-                    if not careful:
-                        eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
-                               guard=self.args.verbose >= 1)
-                        self.reset_file_state()
-                        self.exit_cur_file()
-                        self.enter_file(job_file)
-                        self.run_into_job(job, restart_anomaly, True)
-                        return
-                    eprint(f"Failed getting to before: {job_lemma}")
-                    eprint(f"In file {job_file}")
-                    raise
+            try:
+                self.skip_proof(lemma_statement, careful)
+            except coq_serapy.SerapiException:
+                if not careful:
+                    eprint("Hit a problem, possibly due to admitting proofs! "
+                           "Restarting file with --careful...",
+                           guard=self.args.verbose >= 1)
+                    self.reset_file_state()
+                    self.exit_cur_file()
+                    self.enter_file(job_file)
+                    self.run_into_job(job, restart_anomaly, True)
+                    return
+                eprint(f"Failed getting to before: {job_lemma}")
+                eprint(f"In file {job_file}")
+                raise
 
     def skip_proof(self, lemma_statement: str, careful: bool) -> None:
         assert self.coq
@@ -304,7 +304,7 @@ class Worker:
             careful
         if proof_relevant:
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
-                self.remaining_commands)) # type: ignore
+               self.remaining_commands)) # type: ignore
         else:
             try:
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
@@ -422,6 +422,7 @@ class SearchWorker(Worker):
 
         self.lemmas_encountered.append(job)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
+
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
