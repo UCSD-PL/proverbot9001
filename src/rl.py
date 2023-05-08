@@ -69,6 +69,9 @@ def main():
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--print-loss-every", default=None, type=int)
+    parser.add_argument("--sync-target-every",
+                        help="Sync target network to v network every <n> episodes",
+                        default=10, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
@@ -93,12 +96,14 @@ class FileReinforcementWorker(Worker):
 
 class ReinforcementWorker(Worker):
     v_network: 'VNetwork'
+    target_v_network: 'VNetwork'
     replay_buffer: 'ReplayBuffer'
     verbosity: int
     file_workers: Dict[str, FileReinforcementWorker]
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
+                 target_network: 'VNetwork',
                  switch_dict: Optional[Dict[str, str]] = None,
                  initial_replay_buffer: Optional['ReplayBuffer'] = None) -> None:
         self.original_args = args
@@ -106,6 +111,7 @@ class ReinforcementWorker(Worker):
         args_copy.verbose = args.verbose - 2
         super().__init__(args_copy, 0, predictor, switch_dict)
         self.v_network = v_network
+        self.target_v_network = target_network
         if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
         else:
@@ -132,7 +138,10 @@ class ReinforcementWorker(Worker):
         except coq_serapy.CoqAnomaly:
             self.file_workers[job.filename].restart_coq()
             self.file_workers[job.filename].enter_file(job.filename)
-        train_v_network(self.original_args, self.v_network, self.replay_buffer)
+        train_v_network(self.original_args, self.v_network, self.target_v_network,
+                        self.replay_buffer)
+    def sync_networks(self) -> None:
+        self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
 
 
 def reinforce_jobs(args: argparse.Namespace) -> None:
@@ -160,13 +169,16 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         args.resume = "no"
 
     if args.resume == "yes":
-        replay_buffer, steps_already_done, network_state, random_state = \
+        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
             torch.load(str(args.output_file))
         random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
                              args.batch_step, args.lr_step)
+        target_network = VNetwork(None, args.learning_rate,
+                                  args.batch_step, args.lr_step)
         v_network.load_state(network_state)
+        v_network.load_state(tnetwork_state)
 
     else:
         assert args.resume == "no"
@@ -174,10 +186,12 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         replay_buffer = None
         v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
+        target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+                             args.batch_step, args.lr_step)
 
     jobs = get_all_jobs(args)
 
-    with ReinforcementWorker(args, predictor, v_network, switch_dict,
+    with ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
         if args.interleave:
             tasks = jobs * args.num_episodes
@@ -194,6 +208,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             worker.run_job_reinforce(task, cur_epsilon)
             if (step + 1) % args.save_every == 0:
                 save_state(args, worker, step + 1)
+            if (step + 1) % args.sync_target_every == 0:
+                worker.sync_networks()
         if steps_already_done < len(tasks):
             save_state(args, worker, step)
         if args.evaluate:
@@ -445,6 +461,7 @@ def execute_action(coq: coq_serapy.CoqAgent,
 
 def train_v_network(args: argparse.Namespace,
                     v_network: VNetwork,
+                    target_network: VNetwork,
                     replay_buffer: 'ReplayBuffer'):
     for _batch_idx in range(args.batches_per_proof):
         samples = replay_buffer.sample(args.batch_size)
@@ -459,7 +476,7 @@ def train_v_network(args: argparse.Namespace,
                     for action, resulting_obls in action_records
                     for obl in resulting_obls]
         with torch.no_grad():
-            all_obl_scores = v_network(all_obls)
+            all_obl_scores = target_network(all_obls)
         outputs = []
         cur_row = 0
         for resulting_obl_lens in num_resulting_obls:
@@ -527,6 +544,7 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
     with args.output_file.open('wb') as f:
         torch.save((worker.replay_buffer, step,
                     worker.v_network.get_state(),
+                    worker.target_v_network.get_state(),
                     random.getstate()), f)
 
 def evaluate_results(args: argparse.Namespace,
