@@ -282,6 +282,7 @@ class VNetwork:
         # Steps trained only counts from the last resume! Don't use
         # for anything more essential than printing.
         self.steps_trained = 0
+        self.total_loss = torch.tensor(0.0)
         if coq2vec_weights is not None:
             self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
 
@@ -313,9 +314,10 @@ class VNetwork:
         loss.backward()
         self.optimizer.step()
         self.adjuster.step()
-        eprint(f"Actual: {actual}; Target: {target}", guard=verbosity >= 2)
-        eprint(f"Loss: {loss}", guard=verbosity >= 1)
+        # eprint(f"Actual: {actual}; Target: {target}", guard=verbosity >= 2)
+        # eprint(f"Loss: {loss}", guard=verbosity >= 1)
         self.steps_trained += 1
+        self.total_loss += loss
         return loss
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
@@ -487,9 +489,11 @@ def train_v_network(args: argparse.Namespace,
                     selected_obl_scores))
                 cur_row += num_obls
             outputs.append(max(action_outputs))
-        loss = v_network.train(inputs, outputs, verbosity=args.verbose)
+        v_network.train(inputs, outputs, verbosity=args.verbose)
         if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
-            print(f"Loss: {loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
+            avg_loss = v_network.total_loss / args.print_loss_every
+            v_network.total_loss = torch.tensor(0.0)
+            print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class MemoizingPredictor(TacticPredictor):
     underlying_predictor: TacticPredictor
