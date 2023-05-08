@@ -178,7 +178,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         target_network = VNetwork(None, args.learning_rate,
                                   args.batch_step, args.lr_step)
         v_network.load_state(network_state)
-        v_network.load_state(tnetwork_state)
+        target_network.load_state(tnetwork_state)
 
     else:
         assert args.resume == "no"
