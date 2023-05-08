@@ -28,10 +28,9 @@ class ReportJob(NamedTuple):
     lemma_statement: str
 
 T = TypeVar('T', bound='Worker')
+
 class Worker:
     args: argparse.Namespace
-    widx: int
-    predictor: TacticPredictor
     coq: Optional[coq_serapy.SerapiInstance]
     switch_dict: Optional[Dict[str, str]]
 
@@ -41,22 +40,19 @@ class Worker:
     last_program_statement: Optional[str]
     lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
-    axioms_already_added: bool
+    obligation_num: int
 
-    def __init__(self, args: argparse.Namespace, worker_idx: int,
-                 predictor: TacticPredictor,
+    def __init__(self, args: argparse.Namespace,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
         self.args = args
-        self.widx = worker_idx
-        self.predictor = predictor
         self.coq = None
         self.cur_file: Optional[str] = None
         self.cur_project: Optional[str] = None
         self.last_program_statement: Optional[str] = None
         self.lemmas_encountered: List[ReportJob] = []
         self.remaining_commands: List[str] = []
+        self.obligation_num = 0
         self.switch_dict = switch_dict
-        self.axioms_already_added = False
 
     def enter_instance(self) -> None:
         if self.args.backend == 'auto':
@@ -118,7 +114,7 @@ class Worker:
         self.last_program_statement = None
         self.lemmas_encountered = []
         self.remaining_commands = []
-        self.axioms_already_added = False
+        self.obligation_num = 0
 
     def enter_file(self, filename: str) -> None:
         assert self.coq
@@ -127,7 +123,6 @@ class Worker:
         self.coq.run_stmt(f"Module {module_name}.")
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
-        self.axioms_already_added = False
 
     def exit_cur_file(self) -> None:
         assert self.coq
@@ -323,6 +318,27 @@ class Worker:
                 self.remaining_commands.pop(0)
             # Pop the actual Qed/Defined/Save
             self.remaining_commands.pop(0)
+
+
+class SearchWorker(Worker):
+    widx: int
+    predictor: TacticPredictor
+    axioms_already_added: bool
+    def __init__(self, args: argparse.Namespace, worker_idx: int,
+                 predictor: TacticPredictor,
+                 switch_dict: Optional[Dict[str, str]] = None) -> None:
+        super().__init__(args, switch_dict)
+        self.widx = worker_idx
+        self.predictor = predictor
+        self.axioms_already_added = False
+
+    def enter_file(self, filename: str) -> None:
+        super().enter_file(filename)
+        self.axioms_already_added = False
+
+    def reset_file_state(self) -> None:
+        super().reset_file_state()
+        self.axioms_already_added = False
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq

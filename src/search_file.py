@@ -49,7 +49,7 @@ from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, Worker, get_files_jobs, get_predictor, project_dicts_from_args
+from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, project_dicts_from_args
 import util
 
 from tqdm import tqdm
@@ -230,7 +230,7 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with Worker(args, worker_idx, predictor, switch_dict) as worker:
+    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
@@ -287,11 +287,11 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
     return already_done_jobs
 
-def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
+def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
     proj_filename_tuples = [(project_dict["project_name"], filename)
                             for project_dict in project_dicts
-                            for filename in project_dict["test_files"]]
+                            for filename in project_dict[partition]]
     jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
     if args.proofs_file is not None:
         found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)

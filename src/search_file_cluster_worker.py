@@ -30,8 +30,8 @@ from typing import List
 from pathlib import Path
 import torch
 
-from search_file import (add_args_to_parser, get_predictor, Worker, project_dicts_from_args)
-from models.tactic_predictor import TacticPredictor
+from search_file import (add_args_to_parser, get_predictor,
+                         SearchWorker, project_dicts_from_args)
 import util
 from util import eprint, FileLock
 
@@ -62,7 +62,7 @@ def main(arg_list: List[str]) -> None:
     if util.use_cuda:
         torch.cuda.set_device("cuda:0")
         util.cuda_device = "cuda:0"
-    
+
     if not args.predictor and not args.weightsfile:
         print("You must specify a weightsfile or a predictor.")
         parser.print_help()
@@ -82,9 +82,9 @@ def main(arg_list: List[str]) -> None:
 def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
-    
+
     predictor = get_predictor(args)
-    
+
     project_dicts = project_dicts_from_args(args)
     if any(["switch" in item for item in project_dicts]):
         switch_dict = {item["project_name"]: item["switch"]
@@ -95,7 +95,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with worker_taken_file.open("w"):
         pass
 
-    with Worker(args, threadid, predictor, switch_dict) as worker:
+    with SearchWorker(args, threadid, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
