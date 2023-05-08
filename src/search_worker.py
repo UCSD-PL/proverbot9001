@@ -303,6 +303,8 @@ class Worker:
                 coq_serapy.kill_comments(lemma_statement))) or \
             careful
         if proof_relevant:
+            while len(self.coq.prev_tactics) > 1:
+                self.coq.cancel_last()
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
                self.remaining_commands)) # type: ignore
         else:
