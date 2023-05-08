@@ -668,7 +668,7 @@ def log_time(msg: str) -> None:
 # given output list to create a non-None output value for every input,
 # efficiently.
 T = TypeVar('T')
-def run_network_with_cache(f: Callable[List[T], torch.FloatTensor],
+def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
                            values: List[T],
                            cached_outputs: List[Optional[torch.FloatTensor]]) \
                            -> torch.FloatTensor:
