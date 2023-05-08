@@ -268,7 +268,7 @@ class Worker:
               self.coq.sm_prefix == job_module:
                 return
             try:
-                self.skip_proof(lemma_statement, careful)
+                self.skip_proof(careful)
             except coq_serapy.SerapiException:
                 if not careful:
                     eprint("Hit a problem, possibly due to admitting proofs! "
@@ -283,8 +283,9 @@ class Worker:
                 eprint(f"In file {job_file}")
                 raise
 
-    def skip_proof(self, lemma_statement: str, careful: bool) -> None:
+    def skip_proof(self, careful: bool) -> None:
         assert self.coq
+        lemma_statement = self.coq.prev_tactics[0]
         ending_command = None
         for cmd in self.remaining_commands:
             if coq_serapy.ending_proof(cmd):
