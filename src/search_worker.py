@@ -264,7 +264,8 @@ class Worker:
                                                      unwrap(self.cur_file),
                                                      self.coq.sm_prefix,
                                                      unique_lemma_statement))
-            if unique_lemma_statement == job_lemma and \
+            if coq_serapy.kill_comments(unique_lemma_statement).strip() == \
+               coq_serapy.kill_comments(job_lemma).strip() and \
               self.coq.sm_prefix == job_module:
                 return
             try:
