@@ -320,6 +320,9 @@ class Worker:
                 self.remaining_commands.pop(0)
             # Pop the actual Qed/Defined/Save
             self.remaining_commands.pop(0)
+        self.lemmas_encountered.append(ReportJob(self.cur_project,
+                                                 self.cur_file, self.coq.module_prefix,
+                                                 lemma_statement))
 
 
 class SearchWorker(Worker):
