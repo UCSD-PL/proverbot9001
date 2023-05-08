@@ -304,6 +304,7 @@ class VNetwork:
     def train(self, inputs: List[Obligation],
               target_outputs: List[float],
               verbosity: int = 0) -> float:
+        del verbosity
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         # with print_time("Training", guard=verbosity >= 1):
