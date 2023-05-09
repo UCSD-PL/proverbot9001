@@ -152,8 +152,8 @@ class Worker:
                 cancelled_lemma_statement = commands_to_cancel.pop(-1)
                 commands_before_point.pop(-1)
                 last_lemma_encountered = self.lemmas_encountered.pop()
-                assert cancelled_lemma_statement.strip() in \
-                    [last_lemma_encountered.lemma_statement.strip(), "Next Obligation."], \
+                assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
+                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(), "Next Obligation."], \
                     f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
                     f"but cancelling {cancelled_lemma_statement}"
 
