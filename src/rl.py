@@ -99,6 +99,7 @@ class ReinforcementWorker(Worker):
     target_v_network: 'VNetwork'
     replay_buffer: 'ReplayBuffer'
     verbosity: int
+    predictor: TacticPredictor
     file_workers: Dict[str, FileReinforcementWorker]
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
@@ -112,6 +113,7 @@ class ReinforcementWorker(Worker):
         super().__init__(args_copy, switch_dict)
         self.v_network = v_network
         self.target_v_network = target_network
+        self.predictor = predictor
         if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
         else:
@@ -121,8 +123,7 @@ class ReinforcementWorker(Worker):
         self.file_workers = {}
     def run_job_reinforce(self, job: ReportJob, epsilon: float, restart: bool = True) -> None:
         if job.filename not in self.file_workers:
-            self.file_workers[job.filename] = FileReinforcementWorker(self.args, 0,
-                                                                      None, None)
+            self.file_workers[job.filename] = FileReinforcementWorker(self.args, None)
             self.file_workers[job.filename].enter_instance()
         job_name = job.module_prefix + coq_serapy.lemma_name_from_statement(
             job.lemma_statement)
