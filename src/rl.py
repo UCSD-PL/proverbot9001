@@ -109,7 +109,7 @@ class ReinforcementWorker(Worker):
         self.original_args = args
         args_copy = argparse.Namespace(**vars(args))
         args_copy.verbose = args.verbose - 2
-        super().__init__(args_copy, 0, predictor, switch_dict)
+        super().__init__(args_copy, switch_dict)
         self.v_network = v_network
         self.target_v_network = target_network
         if initial_replay_buffer:
