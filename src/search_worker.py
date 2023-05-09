@@ -260,13 +260,13 @@ class Worker:
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
-            self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                     unwrap(self.cur_file),
-                                                     self.coq.sm_prefix,
-                                                     unique_lemma_statement))
             if coq_serapy.kill_comments(unique_lemma_statement).strip() == \
                coq_serapy.kill_comments(job_lemma).strip() and \
               self.coq.sm_prefix == job_module:
+                self.lemmas_encountered.append(ReportJob(self.cur_project,
+                                                         unwrap(self.cur_file),
+                                                         self.coq.sm_prefix,
+                                                         unique_lemma_statement))
                 return
             try:
                 self.skip_proof(careful)
@@ -427,7 +427,6 @@ class SearchWorker(Worker):
         ending_command = self.remaining_commands.pop(0)
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
-        self.lemmas_encountered.append(job)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
 
