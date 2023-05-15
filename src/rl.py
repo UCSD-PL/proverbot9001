@@ -594,8 +594,6 @@ def evaluate_results(args: argparse.Namespace,
         ending_command = worker.remaining_commands.pop(0)
         if re.match("\s*Proof .*", ending_command) :
             ending_command = "Qed."
-        else :
-            print(re.match("\s*Proof .*", ending_command))
         if proof_succeeded:
             eprint(f"Solved proof {proof_name}!")
             proofs_completed += 1
