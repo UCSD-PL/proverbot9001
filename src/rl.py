@@ -3,6 +3,7 @@
 import argparse
 import json
 import random
+import re
 import time
 import contextlib
 import math
@@ -591,6 +592,11 @@ def evaluate_results(args: argparse.Namespace,
         while not coq_serapy.ending_proof(worker.remaining_commands[0]):
             worker.remaining_commands.pop(0)
         ending_command = worker.remaining_commands.pop(0)
+        print("Ending Command :", ending_command)
+        if re.match("\s*Proof .*", ending_command) :
+            ending_command = "Qed."
+        else :
+            print(re.match("\s*Proof .*", ending_command))
         if proof_succeeded:
             eprint(f"Solved proof {proof_name}!")
             proofs_completed += 1
