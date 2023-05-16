@@ -388,15 +388,15 @@ def evaluate_actions(coq: coq_serapy.CoqAgent,
                      actions: List[str]) -> List[float]:
     resulting_contexts: List[Optional[ProofContext]] = \
         [action_result(coq, path, action) for action in actions]
-    num_output_obls: List[int] = [len(context.fg_goals) if context else 0
-                                   for context in resulting_contexts]
+    num_output_obls: List[Optional[int]] = [len(context.fg_goals) if context else None
+                                            for context in resulting_contexts]
     all_obls = [obl for context in resulting_contexts
                 for obl in (context.fg_goals if context else [])]
     all_obl_scores = v_network(all_obls)
     resulting_action_scores = []
     cur_obl_idx = 0
     for num_obls in num_output_obls:
-        if num_obls == 0:
+        if num_obls is None:
             resulting_action_scores.append(float("-Inf"))
         else:
             resulting_action_scores.append(math.prod(
