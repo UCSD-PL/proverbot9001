@@ -421,29 +421,6 @@ def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
         return None
     return context_after
 
-def evaluate_action(args: argparse.Namespace, coq: coq_serapy.CoqAgent,
-                    v_network: VNetwork, path: List[ProofContext], action: str) -> float:
-    try:
-        coq.run_stmt(action)
-    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
-            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
-            coq_serapy.ParseError,
-            RecursionError,
-            coq_serapy.UnrecognizedError):
-        return torch.tensor(-float("Inf"))
-
-    context_after = coq.proof_context
-    coq.cancel_last()
-
-    if any(coq_serapy.contextSurjective(context_after, path_context)
-           for path_context in path):
-        return torch.tensor(-float("Inf"))
-
-
-    with torch.no_grad():
-        product = math.prod(v_network(unwrap(context_after).fg_goals))
-    return product
-
 def execute_action(coq: coq_serapy.CoqAgent,
                    action: str) -> List[Obligation]:
 
@@ -575,9 +552,8 @@ def evaluate_results(args: argparse.Namespace,
                 coq_serapy.summarizeContext(worker.coq.proof_context)
             eprint(f"Trying predictions {[action.prediction for action in actions]}",
                    guard=args.verbose >= 2)
-            action_scores = [evaluate_action(args, worker.coq, worker.v_network,
-                                             path, action.prediction)
-                             for action in actions]
+            action_scores = evaluate_actions(worker.coq, worker.v_network, path,
+                                             [action.prediction for action in actions])
             best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
             if best_score == -float("Inf"):
                 break
