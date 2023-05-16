@@ -119,8 +119,7 @@ class Worker:
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
-        module_name = coq_serapy.get_module_from_filename(filename)
-        self.coq.run_stmt(f"Module {module_name}.")
+        self.coq.set_filename(filename)
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
 
