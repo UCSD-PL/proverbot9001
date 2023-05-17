@@ -107,7 +107,7 @@ def main(arg_list: List[str]) -> None:
                     print(job)
             sys.exit(0)
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
-        dispatch_workers(args, arg_list)
+        dispatch_workers(args, min(args.num_workers, len(jobs) - len(solved_jobs)), arg_list)
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
             show_progress(args)
         cancel_workers(args)
@@ -225,13 +225,13 @@ def setup_jobsstate(output_dir: Path, all_jobs: List[ReportJob],
             if job not in solved_jobs:
                 print(json.dumps(job), file=f)
         print("", end="", flush=True, file=f)
-def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
+def dispatch_workers(args: argparse.Namespace, num_workers: int, rest_args: List[str]) -> None:
     with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
-        print(args.num_workers, file=f)
+        print(num_workers, file=f)
     with (args.output_dir / "workers_scheduled.txt").open("w") as f:
         pass
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    num_workers_left = args.num_workers
+    num_workers_left = num_workers
     # For some reason it looks like the maximum job size array is 1001 for
     # slurm, so we're going to use batches of 1000
     while num_workers_left > 0:
