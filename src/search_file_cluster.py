@@ -235,12 +235,13 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
     # For some reason it looks like the maximum job size array is 1001 for
     # slurm, so we're going to use batches of 1000
     while num_workers_left > 0:
+        worker_name = f"proverbot9001-worker-{args.output_dir}"
         num_dispatching_workers = min(num_workers_left, 1000)
         # If you have a different cluster management software, that still allows
         # dispatching jobs through the command line and uses a shared filesystem,
         # modify this line.
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
-                        "-J", "proverbot9001-worker",
+                        "-J", worker_name,
                         "-p", args.partition,
                         "-t", str(args.worker_timeout),
                         "--cpus-per-task", str(args.num_threads),
@@ -261,7 +262,8 @@ def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
     cancel_workers(args)
     sys.exit()
 def cancel_workers(args: argparse.Namespace) -> None:
-    subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
+    worker_name = f"proverbot9001-worker-{args.output_dir}"
+    subprocess.run([f"scancel -u $USER -n {worker_name}"], shell=True)
 def interrupt_report_early(args: argparse.Namespace, *rest_args) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-report-worker"], shell=True)
     sys.exit()
