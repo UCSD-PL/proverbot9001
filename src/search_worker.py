@@ -543,11 +543,11 @@ def get_files_jobs(args: argparse.Namespace,
     for project, filename in proj_filename_tuples:
         yield from get_file_jobs(args, project, filename)
 
-def get_predictor(args: argparse.Namespace) -> TacticPredictor:
-    predictor: TacticPredicor
+def get_predictor(args: argparse.Namespace, allow_static_predictor: bool = True) -> TacticPredictor:
+    predictor: TacticPredictor
     if args.weightsfile:
         predictor = loadPredictorByFile(args.weightsfile)
-    elif args.predictor:
+    elif allow_static_predictor and args.predictor:
         predictor = loadPredictorByName(args.predictor)
     else:
         raise ValueError("Can't load a predictor from given args!")

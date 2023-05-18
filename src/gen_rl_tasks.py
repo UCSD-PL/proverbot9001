@@ -80,7 +80,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     else:
         switch_dict = None
 
-    predictor = get_predictor(args)
+    predictor = get_predictor(args, allow_static_predictor=False)
 
     args.splits_file = args.json_project_file
     all_jobs = get_all_jobs(args) #, partition="train_files")
