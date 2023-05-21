@@ -42,7 +42,12 @@ def main():
     parser.add_argument("-l", "--max-target-length", type=int, default=3)
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
+    parser.add_argument("--obligation_job", action="store_true")
     args = parser.parse_args()
+
+    if args.obligation_job and not args.use_linearized :
+        raise ValueError("Use arguments --use-linearized for Obligation Close task")
+        
 
     gen_rl_tasks(args)
 
@@ -71,6 +76,12 @@ class TaskWorker(Worker):
             self.remaining_commands = coq_serapy.load_commands_preserve(
                 self.args, 1, self.args.prelude / self.cur_project / filename)
 
+class ObligationTaskWorker(TaskWorker) :
+    def __init__(self, *args, **kwargs) :
+        super(ObligationTaskWorker,self).__init__(*args, **kwargs)
+        self.skip_obligation_close = 0
+        self.command_index = 0
+
 def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.json_project_file.open('r') as f:
         project_dicts = json.loads(f.read())
@@ -88,7 +99,8 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.output_file.open('w'):
         pass
 
-    with TaskWorker(args, switch_dict) as worker:
+    Workerclass = ObligationTaskWorker if args.obligation_job else TaskWorker
+    with Workerclass(args, switch_dict) as worker:
         for job in tqdm(all_jobs, desc="Processing jobs"):
             worker.run_into_job(job, False, args.careful)
             tasks = gen_rl_tasks_job(args, predictor, worker, job)
@@ -107,6 +119,36 @@ def get_cur_job_solution(worker: Worker) -> List[str]:
             continue
         job_solution.append(cmd)
     return job_solution
+
+
+
+def get_curr_obligation_job_solution(worker:Worker) -> List[str] :
+    job_solution = []
+    remaining_commands = list(worker.remaining_commands)
+    current_num_obligation_close_skipped = 0
+    while not coq_serapy.ending_proof( remaining_commands[worker.command_index]):
+        cmd =  remaining_commands[worker.command_index]
+        if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) and not re.match(r"\}", coq_serapy.kill_comments(remaining_commands[worker.command_index-1]).strip())  :
+            if current_num_obligation_close_skipped == worker.skip_obligation_close :
+                worker.skip_obligation_close += 1
+                break
+            else :
+                current_num_obligation_close_skipped += 1
+        if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
+            continue
+        if cmd.strip() == "Proof.":
+            continue
+        job_solution.append(cmd)
+        worker.command_index += 1 
+    else :
+        assert coq_serapy.ending_proof( remaining_commands[worker.command_index])
+        while not coq_serapy.ending_proof(remaining_commands[0]) :
+            remaining_commands.pop(0)
+        worker.skip_obligation_close = 0
+    worker.command_index = 0
+
+    return job_solution
+
 
 def sol_cmds_in_predictions(args: argparse.Namespace,
                             worker: Worker, predictor: TacticPredictor,
@@ -131,7 +173,10 @@ def sol_cmds_in_predictions(args: argparse.Namespace,
 def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                      worker: Worker, job: ReportJob) -> List[RLTask]:
     _, filename, module_prefix, lemma_statement = job
-    job_existing_solution = get_cur_job_solution(worker)
+    if args.obligation_job :
+        job_existing_solution = get_curr_obligation_job_solution(worker)
+    else :
+        job_existing_solution = get_cur_job_solution(worker)
     sol_command_in_predictions: List[bool] = \
         sol_cmds_in_predictions(args, worker, predictor, job_existing_solution)
 
