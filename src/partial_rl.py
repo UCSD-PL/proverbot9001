@@ -195,7 +195,6 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
 
     jobs = get_all_jobs(args)
     if args.tasks_file:
-        print("attaching tasks")
         with open(args.tasks_file, 'r') as f:
             partial_tasks = json.load(f)
         f.close()
@@ -341,10 +340,7 @@ def experience_proof(args: argparse.Namespace,
                      epsilon: float,
                      tactic_prefix: [str]) -> None:
     path: List[ProofContext] = [coq.proof_context]
-    print("experiencing proof...")
     for statement in tactic_prefix:
-        print(statement)
-        print("i'm running the statement " + statement)
         coq.run_stmt(statement)
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
