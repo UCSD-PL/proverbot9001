@@ -119,7 +119,7 @@ class Worker:
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
-        self.coq.set_filename(filename)
+        self.coq.enter_file(filename)
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
 
