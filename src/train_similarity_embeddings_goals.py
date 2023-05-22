@@ -143,25 +143,10 @@ class ObligationEmbedding(nn.Module) :
 		goals = self.encoder(goals)
 		# print("Goals encoded shape", goals.shape)
 
-		corrected_hyps = []
-		for sample in hyps :
-			for hyp in sample :
-				corrected_hyps.append(trim_or_pad(hyp, self.max_symbols))
-		hyps = np.array(corrected_hyps)
-		hyps = torch.tensor(hyps, dtype=torch.int).to(self.device)
-		# print("Hyps shape", hyps.shape)
-
-		# print(torch.cuda.memory_summary(device=None, abbreviated=False))
-		hyps = self.encoder(hyps)
-		# print("Hyps encoded shape", hyps.shape)
+		
 
 
-		encoded_sum_hyp = torch.zeros_like(goals).to(self.device)
-		for i in range(len(num_hyp_per_obligation)) :
-			encoded_sum_hyp[i,:] = (torch.sum(hyps[ sum(num_hyp_per_obligation[:i]) : sum(num_hyp_per_obligation[:i]) + num_hyp_per_obligation[i] ], dim=0 ))
-
-		concatenated_tensor= torch.cat( (goals, encoded_sum_hyp) , dim = 1 )
-		embeddings = self.network_pass(concatenated_tensor)
+		embeddings = self.network_pass(goals)
 		# if training :
 		# 	embeddings = self.map_to_classs(embeddings)
 		return embeddings
