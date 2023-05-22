@@ -122,16 +122,20 @@ def get_cur_job_solution(worker: Worker) -> List[str]:
 
 
 
-def get_curr_obligation_job_solution(worker:Worker) -> List[str] :
+def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
+    all_job_solutions = []
     job_solution = []
     remaining_commands = list(worker.remaining_commands)
     current_num_obligation_close_skipped = 0
     while not coq_serapy.ending_proof( remaining_commands[worker.command_index]):
-        cmd =  remaining_commands[worker.command_index]
-        if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) and not re.match(r"\}", coq_serapy.kill_comments(remaining_commands[worker.command_index-1]).strip())  :
+        cmd =  remaining_commands[worker.command_index].strip()
+        worker.command_index += 1 
+        if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) and \
+            not re.match(r"\}", coq_serapy.kill_comments(remaining_commands[worker.command_index-2]).strip())  :
             if current_num_obligation_close_skipped == worker.skip_obligation_close :
                 worker.skip_obligation_close += 1
-                break
+                all_job_solutions.append(list(job_solution))
+                continue
             else :
                 current_num_obligation_close_skipped += 1
         if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
@@ -139,15 +143,16 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[str] :
         if cmd.strip() == "Proof.":
             continue
         job_solution.append(cmd)
-        worker.command_index += 1 
     else :
         assert coq_serapy.ending_proof( remaining_commands[worker.command_index])
+        if len(all_job_solutions) == 0 or len(job_solution) > len(all_job_solutions[-1]) : #Add the last closing Obligation, if an Obligation has not been immidiately closed
+            all_job_solutions.append(list(job_solution))
         while not coq_serapy.ending_proof(remaining_commands[0]) :
             remaining_commands.pop(0)
         worker.skip_obligation_close = 0
-    worker.command_index = 0
 
-    return job_solution
+    worker.command_index = 0
+    return all_job_solutions
 
 
 def sol_cmds_in_predictions(args: argparse.Namespace,
@@ -174,22 +179,27 @@ def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                      worker: Worker, job: ReportJob) -> List[RLTask]:
     _, filename, module_prefix, lemma_statement = job
     if args.obligation_job :
-        job_existing_solution = get_curr_obligation_job_solution(worker)
+        job_existing_solutions = get_curr_obligation_job_solution(worker)
     else :
-        job_existing_solution = get_cur_job_solution(worker)
+        job_existing_solutions = [get_cur_job_solution(worker)]
+    
     sol_command_in_predictions: List[bool] = \
-        sol_cmds_in_predictions(args, worker, predictor, job_existing_solution)
-
+        sol_cmds_in_predictions(args, worker, predictor, job_existing_solutions[-1])
     tasks: List[RLTask] = []
-    cur_task_length = 1
-    while cur_task_length <= args.max_target_length \
-          and cur_task_length < len(job_existing_solution) \
-          and sol_command_in_predictions[-cur_task_length]:
-        tasks.append(RLTask(filename, module_prefix, lemma_statement,
-                            job_existing_solution[:-cur_task_length],
-                            job_existing_solution[-cur_task_length:],
-                            cur_task_length))
-        cur_task_length += 1
+    
+
+    for job_existing_solution in job_existing_solutions :
+        
+        curr_sol_command_in_prediction = sol_command_in_predictions[:len(job_existing_solution)]
+        cur_task_length = 1
+        while cur_task_length <= args.max_target_length \
+            and cur_task_length < len(job_existing_solution) \
+            and curr_sol_command_in_prediction[-cur_task_length]:
+            tasks.append(RLTask(filename, module_prefix, lemma_statement,
+                                job_existing_solution[:-cur_task_length],
+                                job_existing_solution[-cur_task_length:],
+                                cur_task_length))
+            cur_task_length += 1
     return tasks
 
 if __name__ == "__main__":
