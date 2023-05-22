@@ -284,7 +284,7 @@ def show_progress(args: argparse.Namespace) -> None:
         while len(jobs_done) < len(all_jobs):
             new_workers_alive = [int(wid) for wid in
                                  subprocess.check_output(
-                                   "squeue -r -u$USER -h -n proverbot9001-worker -o%K",
+                                   f"squeue -r -u$USER -h -n proverbot9001-worker-{args.output_dir} -o%K",
                                    shell=True, text=True).strip().split("\n")
                                  if wid != ""]
             time.sleep(0.2)
