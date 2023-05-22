@@ -137,7 +137,7 @@ class ReinforcementWorker(Worker):
             experience_proof(self.original_args,
                              self.file_workers[job.filename].coq,
                              self.predictor, self.v_network,
-                             self.replay_buffer, epsilon, tactic_prefix)
+                             self.replay_buffer, epsilon, job.tactic_prefix)
             self.file_workers[job.filename].finish_proof()
         except coq_serapy.CoqAnomaly:
             self.file_workers[job.filename].restart_coq()
@@ -195,6 +195,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
 
     jobs = get_all_jobs(args)
     if args.tasks_file:
+        print("attaching tasks")
         with open(args.tasks_file, 'r') as f:
             partial_tasks = json.load(f)
         f.close()
@@ -338,10 +339,10 @@ def experience_proof(args: argparse.Namespace,
                      v_network: VNetwork,
                      replay_buffer: 'ReplayBuffer',
                      epsilon: float,
-                     done_stmts: [str]) -> None:
+                     tactic_prefix: [str]) -> None:
     path: List[ProofContext] = [coq.proof_context]
-
-    for statement in done_stmts:
+    print("experiencing proof...")
+    for statement in tactic_prefix:
         print(statement)
         print("i'm running the statement " + statement)
         coq.run_stmt(statement)
