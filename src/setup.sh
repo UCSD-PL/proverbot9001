@@ -16,7 +16,7 @@ else
     git submodule init CompCert
     git submodule update
     if [[ ! -f "CompCert/Makefile.config" ]]; then
-        ./configure x86_64-linux
+	 (cd CompCert && ./configure x86_64-linux)
     fi
     make -C CompCert -j `nproc`
     ./src/patch_compcert.sh
