@@ -15,6 +15,9 @@ else
     git submodule init dataloader/gestalt-ratio
     git submodule init CompCert
     git submodule update
+    if [[ ! -f "CompCert/Makefile.config" ]]; then
+        ./configure x86_64-linux
+    fi
     make -C CompCert -j `nproc`
     ./src/patch_compcert.sh
     opam init -a --compiler=4.07.1 -y
