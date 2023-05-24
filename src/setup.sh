@@ -15,6 +15,8 @@ else
     git submodule init dataloader/gestalt-ratio
     git submodule init CompCert
     git submodule update
+    make -C CompCert -j `nproc`
+    ./src/patch_compcert.sh
     opam init -a --compiler=4.07.1 -y
     eval `opam config env`
     opam update
