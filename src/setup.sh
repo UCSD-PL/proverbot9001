@@ -15,11 +15,6 @@ else
     git submodule init dataloader/gestalt-ratio
     git submodule init CompCert
     git submodule update
-    if [[ ! -f "CompCert/Makefile.config" ]]; then
-	 (cd CompCert && ./configure x86_64-linux)
-    fi
-    make -C CompCert -j `nproc`
-    ./src/patch_compcert.sh
     opam init -a --compiler=4.07.1 -y
     eval `opam config env`
     opam update
@@ -28,6 +23,12 @@ else
     opam pin -yn add menhir 20190626
     # For SerAPI:
     opam install -y coq-serapi coq menhir
+    # Setup CompCert
+    if [[ ! -f "CompCert/Makefile.config" ]]; then
+	 (cd CompCert && ./configure x86_64-linux)
+    fi
+    make -C CompCert -j `nproc`
+    ./src/patch_compcert.sh
     # Python dependencies
     pip3 install --no-input --user -r requirements.txt
     pip3 install --no-input --user -e coq_serapy
