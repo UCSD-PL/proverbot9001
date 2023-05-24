@@ -13,6 +13,7 @@ if [[ -f /etc/NIXOS ]]; then
 else
     git submodule init coq_serapy
     git submodule init dataloader/gestalt-ratio
+    git submodule init CompCert
     git submodule update
     opam init -a --compiler=4.07.1 -y
     eval `opam config env`
@@ -29,27 +30,3 @@ else
     rustup toolchain install nightly
     (cd dataloader/dataloader-core && maturin develop -r)
 fi
-
-function check-and-clone {
-    if [[ ! -d $1 ]]; then
-        git clone $2
-    fi
-    (cd $1 && git fetch && git checkout $3) || exit 1
-}
-function setup-compcert {
-    check-and-clone\
-        "CompCert" "https://github.com/AbsInt/CompCert.git"\
-        "76a4ff8f5b37429a614a2a97f628d9d862c93f46"
-    (
-        set -euv
-        cd CompCert
-        if [[ ! -f "Makefile.config" ]]; then
-            ./configure x86_64-linux
-        fi
-        make -j `nproc`
-        ../src/patch_compcert.sh
-    ) || exit 1
-}
-
-# setup-coq-menhir
-setup-compcert
