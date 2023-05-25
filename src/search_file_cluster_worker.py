@@ -35,6 +35,9 @@ from models.tactic_predictor import TacticPredictor
 import util
 from util import eprint, FileLock
 
+class ReplayBuffer:
+       pass
+
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
     workerid = int(environ['SLURM_ARRAY_TASK_ID'])

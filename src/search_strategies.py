@@ -7,9 +7,23 @@ import sys
 import pickle
 import heapq
 import math
-from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast
+from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast, Set, Sequence
 from dataclasses import dataclass, field
 from pathlib import Path
+import torch
+import coq2vec
+#import clearrl_dqn
+#from clearrl_dqn import Agent
+#from clearrl_dqn import get_astar_scores
+#from gym_proof_env import FastProofEnv
+#from report_job import ReportJob
+from completed_proof import completed_proof
+#from rl import ReplayBuffer
+#from rl import ReplayBuffer
+from coq_serapy.contexts import (FullContext, truncate_tactic_context,
+                                         Obligation, TacticContext, ProofContext)
+
+from torch import nn
 
 import pygraphviz as pgv
 from tqdm import tqdm, trange
@@ -29,6 +43,9 @@ from value_estimator import Estimator
 import dataloader
 
 unnamed_goal_number: int = 0
+
+class ReplayBuffer:
+    pass
 
 class FeaturesExtractor:
     tactic_map: Dict[str, int]
@@ -531,11 +548,11 @@ def dfs_proof_search_with_graph(lemma_name: str,
     return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
 
 
-def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
-    if coq.proof_context:
-        return len(coq.proof_context.all_goals) == 0 and \
-            coq.tactic_history.curDepth() == 0
-    return False
+#def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
+#    if coq.proof_context:
+#        return len(coq.proof_context.all_goals) == 0 and \
+#            coq.tactic_history.curDepth() == 0
+#    return False
 
 
 @dataclass
@@ -886,7 +903,7 @@ def best_first_proof_search(lemma_name: str,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    assert args.scoring_function in ["pickled", "const", "pickled-normcert", "rl", "certainty"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
     if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
@@ -977,12 +994,72 @@ def best_first_proof_search(lemma_name: str,
                 start_node.draw_graph(graph_file)
                 return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
                                     prediction_node.interactions()[1:], step+1)
+            #print(args.scoring_function)
             if args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
                 h_score = -abs(next_node.f_score * prediction.certainty)
             elif args.scoring_function == "norm-certainty":
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
+            elif args.scoring_function == "rl":
+                #print("about to get astar scores")
+                # get_astar_scores(args.prelude, coq.proof_context)
+                #network_weights = torch.load("/home/zhannakaufma_umass_edu/work/proverbot9001/runs/zhannaname1.cleanrl_model")
+                weights_location = "/home/zhannakaufma_umass_edu/work/proverbot9001/data/rl_weights-compcert-4.dat"
+                replay_buffer: 'ReplayBuffer'
+                replay_buffer, steps_already_done, pre_network_state, random_state = torch.load(weights_location)
+                network_state, encoder_state = pre_network_state
+                term_encoder = coq2vec.CoqTermRNNVectorizer()
+                term_encoder.load_state(encoder_state)
+                num_hyps = 5
+                insize = term_encoder.hidden_size * (num_hyps + 1)
+                network = nn.Sequential(nn.Linear(insize, 120), nn.ReLU(), nn.Linear(120, 84), nn.ReLU(), nn.Linear(84, 1),)
+                network.load_state_dict(network_state)
+                obligation_encoder = coq2vec.CoqContextVectorizer(term_encoder, num_hyps)
+                encoded_obl_size = (obligation_encoder.term_encoder.hidden_size * (obligation_encoder.max_num_hypotheses + 1))
+                encoded = obligation_encoder.obligations_to_vectors([coq2vec.Obligation(
+                    list(coq.proof_context.fg_goals[0].hypotheses), 
+                    coq.proof_context.fg_goals[0].goal) ]).view(1, encoded_obl_size)
+                scores = network(encoded).view(1)
+                pre_score = scores.detach().numpy()[0]
+
+                if pre_score > 0:
+                    h_score = round(math.log(pre_score, 0.9))
+                else:
+                    h_score = float('inf')
+                #print("making environment")
+                #with torch.no_grad():
+                #    if len(coq.proof_context.fg_goals) > 0:
+                #        print("proof context fg goals")
+                #        print(coq.proof_context.fg_goals[0].goal)
+                #        state_encoding = termvectorizer.term_to_vector(coq.proof_context.fg_goals[0].goal).flatten()
+                #        print("state encoding")
+                #        print(state_encoding)
+                #    else:
+                #        state_encoding = termvectorizer.term_to_vector("").flatten()
+
+                #print(args.prelude)
+                #print(proofs_done)
+                #env = FastProofEnv(["./lib/Parmov.v"], args.prelude, #todo: unhardcode
+                #    skip_proofs = proofs_done, #todo - unhardcode?
+                #    use_wandb = False, #todo - unhardcode?
+                #    max_proof_len = 50, #todo - unhardcode
+                #    num_check_engines = 7) #todo - unhardcode
+
+                #print("getting q network")
+                #q_network = Agent(None).to(device)
+                ##optimizer = optim.Adam(q_network.parameters(), lr=args.learning_rate)
+                #print("loading state dict")
+                #q_network.load_state_dict(network_weights)
+                #print("encoding")
+                #termvectorizer = coq2vec.CoqTermRNNVectorizer()
+                #termvectorizer.load_weights("data/term2vec-weights-59.dat")
+                #print("encoding")
+                #state_encoding = env._encode_state(proof_context)
+                #print("getting maybe scores")
+                #maybe_scores = q_network.get_vvals_from_contexts(state_encoding)
+                #print("maybe scores")
+                #print(maybe_scores)
             else:
                 assert args.scoring_function in ["pickled", "pickled-normcert"]
                 assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
@@ -1062,3 +1139,4 @@ def dfs_estimated(lemma_name: str,
         lemma_name, module_prefix,
         relevant_lemmas, coq, output_dir,
         temp_args, bar_idx, predictor)
+

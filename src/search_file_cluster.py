@@ -41,7 +41,7 @@ from tqdm import tqdm
 from search_file import (add_args_to_parser,
                          get_already_done_jobs, remove_already_done_jobs,
                          project_dicts_from_args, format_arg_value)
-from search_worker import ReportJob
+from rl_search_worker import ReportJob
 import util
 
 details_css = "details.css"

@@ -28,9 +28,10 @@ class ReportJob(NamedTuple):
     lemma_statement: str
 
 T = TypeVar('T', bound='Worker')
-
 class Worker:
     args: argparse.Namespace
+    widx: int
+    predictor: TacticPredictor
     coq: Optional[coq_serapy.SerapiInstance]
     switch_dict: Optional[Dict[str, str]]
 
@@ -40,19 +41,22 @@ class Worker:
     last_program_statement: Optional[str]
     lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
-    obligation_num: int
+    axioms_already_added: bool
 
-    def __init__(self, args: argparse.Namespace,
+    def __init__(self, args: argparse.Namespace, worker_idx: int,
+                 predictor: TacticPredictor,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
         self.args = args
+        self.widx = worker_idx
+        self.predictor = predictor
         self.coq = None
         self.cur_file: Optional[str] = None
         self.cur_project: Optional[str] = None
         self.last_program_statement: Optional[str] = None
         self.lemmas_encountered: List[ReportJob] = []
         self.remaining_commands: List[str] = []
-        self.obligation_num = 0
         self.switch_dict = switch_dict
+        self.axioms_already_added = False
 
     def enter_instance(self) -> None:
         if self.args.backend == 'auto':
@@ -114,14 +118,16 @@ class Worker:
         self.last_program_statement = None
         self.lemmas_encountered = []
         self.remaining_commands = []
-        self.obligation_num = 0
+        self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
-        self.coq.set_filename(filename)
+        module_name = coq_serapy.get_module_from_filename(filename)
+        self.coq.run_stmt(f"Module {module_name}.")
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
+        self.axioms_already_added = False
 
     def exit_cur_file(self) -> None:
         assert self.coq
@@ -151,8 +157,8 @@ class Worker:
                 cancelled_lemma_statement = commands_to_cancel.pop(-1)
                 commands_before_point.pop(-1)
                 last_lemma_encountered = self.lemmas_encountered.pop()
-                assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
-                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(), "Next Obligation."], \
+                assert cancelled_lemma_statement.strip() in \
+                    [last_lemma_encountered.lemma_statement.strip(), "Next Obligation."], \
                     f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
                     f"but cancelling {cancelled_lemma_statement}"
 
@@ -165,7 +171,9 @@ class Worker:
                 while self.coq.proof_context:
                     self.coq.cancel_last()
                 self.coq._file_state.cancel_potential_local_lemmas(
-                    cancelled_lemma_statement, commands_before_point)
+                     cancelled_lemma_statement, commands_before_point)
+                #self.coq._file_state.cancel_potential_local_lemmas(
+                #    cancelled_lemma_statement)
             else:
                 self.coq.cancel_last()
                 popped = commands_to_cancel.pop(-1)
@@ -223,15 +231,15 @@ class Worker:
                     self.restart_coq()
                     self.reset_file_state()
                     self.enter_file(job_file)
-                    eprint("Hit a coq anomaly! Restarting...",
+                    eprint(f"Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, False, careful)
                     return
-                assert False
+                else:
+                    assert False
             except coq_serapy.SerapiException:
                 if not careful:
-                    eprint("Hit a problem, possibly due to admitting proofs! "
-                           "Restarting file with --careful...",
+                    eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
                            guard=self.args.verbose >= 1)
                     self.reset_file_state()
                     self.exit_cur_file()
@@ -259,33 +267,31 @@ class Worker:
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
-            if coq_serapy.kill_comments(unique_lemma_statement).strip() == \
-               coq_serapy.kill_comments(job_lemma).strip() and \
+            self.lemmas_encountered.append(ReportJob(self.cur_project,
+                                                     unwrap(self.cur_file),
+                                                     self.coq.sm_prefix,
+                                                     unique_lemma_statement))
+            if unique_lemma_statement == job_lemma and \
               self.coq.sm_prefix == job_module:
-                self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                         unwrap(self.cur_file),
-                                                         self.coq.sm_prefix,
-                                                         unique_lemma_statement))
                 return
-            try:
-                self.skip_proof(careful)
-            except coq_serapy.SerapiException:
-                if not careful:
-                    eprint("Hit a problem, possibly due to admitting proofs! "
-                           "Restarting file with --careful...",
-                           guard=self.args.verbose >= 1)
-                    self.reset_file_state()
-                    self.exit_cur_file()
-                    self.enter_file(job_file)
-                    self.run_into_job(job, restart_anomaly, True)
-                    return
-                eprint(f"Failed getting to before: {job_lemma}")
-                eprint(f"In file {job_file}")
-                raise
+            else:
+                try:
+                    self.skip_proof(lemma_statement, careful)
+                except coq_serapy.SerapiException:
+                    if not careful:
+                        eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
+                               guard=self.args.verbose >= 1)
+                        self.reset_file_state()
+                        self.exit_cur_file()
+                        self.enter_file(job_file)
+                        self.run_into_job(job, restart_anomaly, True)
+                        return
+                    eprint(f"Failed getting to before: {job_lemma}")
+                    eprint(f"In file {job_file}")
+                    raise
 
-    def skip_proof(self, careful: bool) -> None:
+    def skip_proof(self, lemma_statement: str, careful: bool) -> None:
         assert self.coq
-        lemma_statement = self.coq.prev_tactics[0]
         ending_command = None
         for cmd in self.remaining_commands:
             if coq_serapy.ending_proof(cmd):
@@ -304,10 +310,8 @@ class Worker:
                 coq_serapy.kill_comments(lemma_statement))) or \
             careful
         if proof_relevant:
-            while len(self.coq.prev_tactics) > 1:
-                self.coq.cancel_last()
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
-               self.remaining_commands)) # type: ignore
+                self.remaining_commands)) # type: ignore
         else:
             try:
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
@@ -321,31 +325,6 @@ class Worker:
                 self.remaining_commands.pop(0)
             # Pop the actual Qed/Defined/Save
             self.remaining_commands.pop(0)
-        print(self.coq)
-        self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                 self.cur_file, self.coq.module_prefix,
-                                                 lemma_statement))
-
-
-class SearchWorker(Worker):
-    widx: int
-    predictor: TacticPredictor
-    axioms_already_added: bool
-    def __init__(self, args: argparse.Namespace, worker_idx: int,
-                 predictor: TacticPredictor,
-                 switch_dict: Optional[Dict[str, str]] = None) -> None:
-        super().__init__(args, switch_dict)
-        self.widx = worker_idx
-        self.predictor = predictor
-        self.axioms_already_added = False
-
-    def enter_file(self, filename: str) -> None:
-        super().enter_file(filename)
-        self.axioms_already_added = False
-
-    def reset_file_state(self) -> None:
-        super().reset_file_state()
-        self.axioms_already_added = False
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
@@ -427,8 +406,8 @@ class SearchWorker(Worker):
         ending_command = self.remaining_commands.pop(0)
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
+        self.lemmas_encountered.append(job)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
-
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:

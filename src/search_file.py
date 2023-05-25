@@ -49,12 +49,15 @@ from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, Worker, get_files_jobs, get_predictor, project_dicts_from_args
+from rl_search_worker import ReportJob, Worker, get_files_jobs, get_predictor, project_dicts_from_args
 import util
 
 from tqdm import tqdm
 from pathlib import Path
 import torch
+
+class ReplayBuffer:
+       pass
 
 start_time = datetime.now()
 def main(arg_list: List[str]) -> None:
@@ -146,8 +149,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
-    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='astar')
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert", "rl"], default="rl")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
