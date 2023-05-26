@@ -76,11 +76,11 @@ class TaskWorker(Worker):
             self.remaining_commands = coq_serapy.load_commands_preserve(
                 self.args, 1, self.args.prelude / self.cur_project / filename)
 
-class ObligationTaskWorker(TaskWorker) :
-    def __init__(self, *args, **kwargs) :
-        super(ObligationTaskWorker,self).__init__(*args, **kwargs)
-        self.skip_obligation_close = 0
-        self.command_index = 0
+# class ObligationTaskWorker(TaskWorker) :
+#     def __init__(self, *args, **kwargs) :
+#         super(ObligationTaskWorker,self).__init__(*args, **kwargs)
+#         self.skip_obligation_close = 0
+#         self.command_index = 0
 
 def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.json_project_file.open('r') as f:
@@ -99,7 +99,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.output_file.open('w'):
         pass
 
-    Workerclass = ObligationTaskWorker if args.obligation_job else TaskWorker
+    Workerclass = TaskWorker #ObligationTaskWorker if args.obligation_job else TaskWorker
     job_generator = gen_rl_tasks_obligation_job if args.obligation_job else gen_rl_tasks_job
 
     with Workerclass(args, switch_dict) as worker:
@@ -128,10 +128,10 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
     all_job_solutions = []
     job_solution = []
     remaining_commands = list(worker.remaining_commands)
-    
-    while not coq_serapy.ending_proof( remaining_commands[worker.command_index]):
-        cmd =  remaining_commands[worker.command_index].strip()
-        worker.command_index += 1 
+    command_index = 0
+    while not coq_serapy.ending_proof( remaining_commands[command_index]):
+        cmd =  remaining_commands[command_index].strip()
+        command_index += 1 
         if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) :
             all_job_solutions.append(list(job_solution))
             job_solution.append(cmd)
@@ -142,14 +142,13 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
             continue
         job_solution.append(cmd)
     else :
-        assert coq_serapy.ending_proof( remaining_commands[worker.command_index])
+        assert coq_serapy.ending_proof( remaining_commands[command_index])
         if len(all_job_solutions) == 0 or len(job_solution) > len(all_job_solutions[-1]) : #Add the last closing Obligation, if an Obligation has not been immidiately closed
             all_job_solutions.append(list(job_solution))
         while not coq_serapy.ending_proof(remaining_commands[0]) :
             remaining_commands.pop(0)
         worker.skip_obligation_close = 0
 
-    worker.command_index = 0
     return all_job_solutions
 
 
@@ -209,7 +208,7 @@ def remove_brackets(sol) :
 
 def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredictor,
                      worker: Worker, job: ReportJob) -> List[RLTask]:
-    _, filename, module_prefix, lemma_statement = job
+    _, filename, module_prefix, lemma_statement, tactic_prefix = job
     
     job_existing_solutions = get_curr_obligation_job_solution(worker)
     bracketless_solutions = [remove_brackets(sol) for sol in job_existing_solutions]

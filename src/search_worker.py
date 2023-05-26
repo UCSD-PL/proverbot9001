@@ -184,7 +184,7 @@ class Worker:
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
-        job_project, job_file, job_module, job_lemma = job
+        job_project, job_file, job_module, job_lemma, job_tactic_prefix = job
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
         if job_project != self.cur_project:
