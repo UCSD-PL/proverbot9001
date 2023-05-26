@@ -287,6 +287,12 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
     return already_done_jobs
 
+def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
+    for qualified_ident in proofs_list:
+        if qualified_ident.endswith("." + job_line):
+            return True
+    return False
+
 def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
     proj_filename_tuples = [(project_dict["project_name"], filename)
@@ -295,11 +301,11 @@ def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> Lis
     jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
     if args.proofs_file is not None:
         found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
-                           for project, filename, sm_prefix, stmt in jobs]
+                           for project, filename, sm_prefix, stmt, done_stmts in jobs]
         with open(args.proofs_file, 'r') as f:
             jobs_lines = list(f)
         for job_line in jobs_lines:
-            assert job_line.strip() in found_job_lines, \
+            assert in_qualified_proofs_list(job_line.strip(), found_job_lines), \
                 f"Couldn't find job {job_line.strip()}, found jobs {found_job_lines}"
         assert len(jobs) == len(jobs_lines), \
             f"There are {len(jobs_lines)} lines in the jobs file but only {len(jobs)} found jobs!"

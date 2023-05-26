@@ -12,7 +12,7 @@ def main():
     parser.add_argument("report_dir")
     parser.add_argument("-l", "--max-length", type=int, default=None)
     parser.add_argument("-f", "--prooffile", default=None)
-    parser.add_argument("-d", "--disambiguate", action="store_true")
+    parser.add_argument("-s", "--short", action="store_false", dest="disambiguate")
     args = parser.parse_args()
 
     if args.prooffile:

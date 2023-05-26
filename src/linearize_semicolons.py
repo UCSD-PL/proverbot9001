@@ -591,7 +591,11 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
             fresh_commands = original_commands
         except (CoqAnomaly, CoqExn):
             fresh_commands = original_commands
-        save_lin(fresh_commands, local_filename)
+        try:
+            text_encoding = args.text_encoding
+        except AttributeError:
+            text_encoding = 'utf-8'
+        save_lin(fresh_commands, local_filename, text_encoding)
 
         return fresh_commands
     else:

@@ -26,6 +26,7 @@ class ReportJob(NamedTuple):
     filename: str
     module_prefix: str
     lemma_statement: str
+    tactic_prefix: List[str]
 
 T = TypeVar('T', bound='Worker')
 
@@ -119,7 +120,7 @@ class Worker:
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
-        self.coq.set_filename(filename)
+        self.coq.enter_file(filename)
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
 
@@ -265,7 +266,7 @@ class Worker:
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
-                                                         unique_lemma_statement))
+                                                         unique_lemma_statement, []))
                 return
             try:
                 self.skip_proof(careful)
@@ -323,7 +324,7 @@ class Worker:
             self.remaining_commands.pop(0)
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
-                                                 lemma_statement))
+                                                 lemma_statement, []))
 
 
 class SearchWorker(Worker):
@@ -514,7 +515,7 @@ def attempt_search(args: argparse.Namespace,
 
 def in_proofs_list(module: str, stmt: str, proofs_list: List[str]) -> bool:
     for proof_ident in proofs_list:
-        if (module + coq_serapy.lemma_name_from_statement(stmt)).endswith(proof_ident):
+        if (module + coq_serapy.lemma_name_from_statement(stmt)).endswith("." + proof_ident):
             return True
     return False
 
@@ -530,10 +531,10 @@ def get_file_jobs(args: argparse.Namespace,
     lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
                                                args.include_proof_relevant)
     if arg_proofs_names:
-        return [ReportJob(project, filename, module, stmt)
+        return [ReportJob(project, filename, module, stmt, [])
                 for (module, stmt) in lemmas_in_file
                 if in_proofs_list(module, stmt, arg_proofs_names)]
-    return [ReportJob(project, filename, module, stmt)
+    return [ReportJob(project, filename, module, stmt, [])
             for (module, stmt) in lemmas_in_file]
 
 
