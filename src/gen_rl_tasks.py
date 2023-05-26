@@ -47,7 +47,7 @@ def main():
 
     if args.obligation_job and not args.use_linearized :
         args.use_linearized = True
-        
+
 
     gen_rl_tasks(args)
 
@@ -126,12 +126,12 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
     remaining_commands = list(worker.remaining_commands)
     command_index = 0
     while not coq_serapy.ending_proof( remaining_commands[command_index]):
-        cmd =  remaining_commands[command_index].strip()
-        command_index += 1 
+        cmd = remaining_commands[command_index].strip()
+        command_index += 1
         if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) :
             all_job_solutions.append(list(job_solution))
             job_solution.append(cmd)
-            continue        
+            continue
         if re.match(r"[\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
             eprint("For the command set", remaining_commands)
             raise ValueError("Use Linearized version of the file. Found non Linearized command : " + cmd )
@@ -176,11 +176,11 @@ def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
     _, filename, module_prefix, lemma_statement = job
 
     job_existing_solution = get_cur_job_solution(worker)
-    
+
     sol_command_in_prediction: List[bool] = \
         sol_cmds_in_predictions(args, worker, predictor, job_existing_solution)
     tasks: List[RLTask] = []
-        
+
     cur_task_length = 1
     while cur_task_length <= args.max_target_length \
         and cur_task_length < len(job_existing_solution) \
@@ -206,7 +206,7 @@ def remove_brackets(sol) :
 def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredictor,
                      worker: Worker, job: ReportJob) -> List[RLTask]:
     _, filename, module_prefix, lemma_statement, tactic_prefix = job
-    
+
     job_existing_solutions = get_curr_obligation_job_solution(worker)
     bracketless_solutions = [remove_brackets(sol) for sol in job_existing_solutions]
     sol_command_in_predictions: List[bool] = \
@@ -221,6 +221,8 @@ def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredi
         cur_task_length = 1
         closed_brace_count = 1
         cur_checked_length = 0
+
+
         while cur_task_length <= args.max_target_length \
             and cur_checked_length < len(job_existing_solution) \
             and curr_sol_command_in_prediction[-cur_task_length]  \
@@ -228,23 +230,22 @@ def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredi
 
             cur_checked_length += 1
             if re.match(r"[\{*]+", coq_serapy.kill_comments(job_existing_solution[-cur_checked_length]).strip()) :
-                closed_brace_count -= 1 
+                closed_brace_count -= 1
                 continue
             if re.match(r"[\}*]+", coq_serapy.kill_comments(job_existing_solution[-cur_checked_length]).strip()) :
-                closed_brace_count += 1  
+                closed_brace_count += 1
                 continue
-            
+
+
+            cur_task_length += 1
             if closed_brace_count > 1  :
-                cur_task_length += 1 
                 continue
-            else :
-                tasks.append(RLTask(filename, module_prefix, lemma_statement,
-                                    job_existing_solution[:-cur_checked_length],
-                                    job_existing_solution[-cur_checked_length:],
-                                    cur_task_length))
-                cur_task_length += 1
-                
-            
+
+            tasks.append(RLTask(filename, module_prefix, lemma_statement,
+                                job_existing_bracketless_solution[:-cur_task_length],
+                                job_existing_bracketless_solution[-cur_task_length:],
+                                cur_task_length))
+
     return tasks
 
 
