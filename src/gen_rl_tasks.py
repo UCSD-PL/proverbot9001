@@ -100,10 +100,12 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
         pass
 
     Workerclass = ObligationTaskWorker if args.obligation_job else TaskWorker
+    job_generator = gen_rl_tasks_obligation_job if args.obligation_job else gen_rl_tasks_job
+
     with Workerclass(args, switch_dict) as worker:
         for job in tqdm(all_jobs, desc="Processing jobs"):
             worker.run_into_job(job, False, args.careful)
-            tasks = gen_rl_tasks_job(args, predictor, worker, job)
+            tasks = job_generator(args, predictor, worker, job)
             with args.output_file.open('a') as f:
                 for task in tasks:
                     print(json.dumps(vars(task)), file=f)
@@ -126,20 +128,16 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
     all_job_solutions = []
     job_solution = []
     remaining_commands = list(worker.remaining_commands)
-    current_num_obligation_close_skipped = 0
+    
     while not coq_serapy.ending_proof( remaining_commands[worker.command_index]):
         cmd =  remaining_commands[worker.command_index].strip()
         worker.command_index += 1 
-        if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) and \
-            not re.match(r"\}", coq_serapy.kill_comments(remaining_commands[worker.command_index-2]).strip())  :
-            if current_num_obligation_close_skipped == worker.skip_obligation_close :
-                worker.skip_obligation_close += 1
-                all_job_solutions.append(list(job_solution))
-                continue
-            else :
-                current_num_obligation_close_skipped += 1
-        if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
-            continue
+        if re.match(r"\}", coq_serapy.kill_comments(cmd).strip()) :
+            all_job_solutions.append(list(job_solution))
+            job_solution.append(cmd)
+            continue        
+        if re.match(r"[\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
+            raise ValueError("Use Linearized version of the file. Found non Linearized command : " + cmd )
         if cmd.strip() == "Proof.":
             continue
         job_solution.append(cmd)
@@ -175,32 +173,85 @@ def sol_cmds_in_predictions(args: argparse.Namespace,
     worker.skip_proof(args.careful)
     return sol_command_in_predictions
 
+
+
 def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                      worker: Worker, job: ReportJob) -> List[RLTask]:
     _, filename, module_prefix, lemma_statement = job
-    if args.obligation_job :
-        job_existing_solutions = get_curr_obligation_job_solution(worker)
-    else :
-        job_existing_solutions = [get_cur_job_solution(worker)]
-    
-    sol_command_in_predictions: List[bool] = \
-        sol_cmds_in_predictions(args, worker, predictor, job_existing_solutions[-1])
-    tasks: List[RLTask] = []
-    
 
-    for job_existing_solution in job_existing_solutions :
+    job_existing_solution = get_cur_job_solution(worker)
+    
+    sol_command_in_prediction: List[bool] = \
+        sol_cmds_in_predictions(args, worker, predictor, job_existing_solution)
+    tasks: List[RLTask] = []
         
-        curr_sol_command_in_prediction = sol_command_in_predictions[:len(job_existing_solution)]
-        cur_task_length = 1
-        while cur_task_length <= args.max_target_length \
-            and cur_task_length < len(job_existing_solution) \
-            and curr_sol_command_in_prediction[-cur_task_length]:
-            tasks.append(RLTask(filename, module_prefix, lemma_statement,
-                                job_existing_solution[:-cur_task_length],
-                                job_existing_solution[-cur_task_length:],
-                                cur_task_length))
-            cur_task_length += 1
+    cur_task_length = 1
+    while cur_task_length <= args.max_target_length \
+        and cur_task_length < len(job_existing_solution) \
+        and sol_command_in_prediction[-cur_task_length]:
+        tasks.append(RLTask(filename, module_prefix, lemma_statement,
+                            job_existing_solution[:-cur_task_length],
+                            job_existing_solution[-cur_task_length:],
+                            cur_task_length))
+        cur_task_length += 1
     return tasks
+
+
+def remove_brackets(sol) :
+    bracketless_solution = []
+    for command in sol :
+        if re.match(r"[\{\}]+", coq_serapy.kill_comments(command).strip()) :
+            continue
+        else :
+            bracketless_solution.append(command)
+    return bracketless_solution
+
+
+def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredictor,
+                     worker: Worker, job: ReportJob) -> List[RLTask]:
+    _, filename, module_prefix, lemma_statement = job
+    
+    job_existing_solutions = get_curr_obligation_job_solution(worker)
+    bracketless_solutions = [remove_brackets(sol) for sol in job_existing_solutions]
+    sol_command_in_predictions: List[bool] = \
+        sol_cmds_in_predictions(args, worker, predictor, bracketless_solutions[-1])
+    tasks: List[RLTask] = []
+
+    for index in range(len(job_existing_solutions)) :
+        job_existing_bracketless_solution = bracketless_solutions[index]
+        job_existing_solution = job_existing_solutions[index]
+        curr_sol_command_in_prediction = sol_command_in_predictions[:len(job_existing_bracketless_solution)]
+
+        cur_task_length = 0
+        closed_brace_count = 1
+        cur_checked_length = 0
+
+        
+        while cur_task_length <= args.max_target_length \
+            and cur_checked_length < len(job_existing_solution) \
+            and curr_sol_command_in_prediction[-cur_task_length]  \
+            and closed_brace_count > 0:
+
+            cur_checked_length += 1
+            if re.match(r"[\{*]+", coq_serapy.kill_comments(job_existing_solution[-cur_checked_length]).strip()) :
+                closed_brace_count -= 1 
+                continue
+            if re.match(r"[\}*]+", coq_serapy.kill_comments(job_existing_solution[-cur_checked_length]).strip()) :
+                closed_brace_count += 1  
+                continue
+            
+
+            cur_task_length += 1
+            if closed_brace_count > 1  :     
+                continue
+            
+            tasks.append(RLTask(filename, module_prefix, lemma_statement,
+                                job_existing_solution[:-cur_checked_length],
+                                job_existing_solution[-cur_checked_length:],
+                                cur_task_length))
+            
+    return tasks
+
 
 if __name__ == "__main__":
     main()
