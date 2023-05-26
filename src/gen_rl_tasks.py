@@ -76,8 +76,6 @@ class TaskWorker(Worker):
             self.remaining_commands = coq_serapy.load_commands_preserve(
                 self.args, 1, self.args.prelude / self.cur_project / filename)
 
-
-
 def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.json_project_file.open('r') as f:
         project_dicts = json.loads(f.read())
