@@ -42,7 +42,6 @@ def main():
     parser.add_argument("-l", "--max-target-length", type=int, default=3)
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
-    parser.add_argument("--obligation_job", action="store_true")
     args = parser.parse_args()
 
     if args.obligation_job and not args.use_linearized :
@@ -93,13 +92,10 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.output_file.open('w'):
         pass
 
-    Workerclass = TaskWorker
-    job_generator = gen_rl_tasks_obligation_job if args.obligation_job else gen_rl_tasks_job
-
-    with Workerclass(args, switch_dict) as worker:
+    with TaskWorker(args, switch_dict) as worker:
         for job in tqdm(all_jobs, desc="Processing jobs"):
             worker.run_into_job(job, False, args.careful)
-            tasks = job_generator(args, predictor, worker, job)
+            tasks = gen_rl_tasks_obligation_job(args, predictor, worker, job)
             with args.output_file.open('a') as f:
                 for task in tasks:
                     print(json.dumps(vars(task)), file=f)
