@@ -246,8 +246,8 @@ def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredi
                 continue
             
             tasks.append(RLTask(filename, module_prefix, lemma_statement,
-                                job_existing_solution[:-cur_checked_length],
-                                job_existing_solution[-cur_checked_length:],
+                                job_existing_bracketless_solution[:-cur_task_length],
+                                job_existing_bracketless_solution[-cur_task_length:],
                                 cur_task_length))
             
     return tasks
