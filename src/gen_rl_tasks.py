@@ -46,7 +46,7 @@ def main():
     args = parser.parse_args()
 
     if args.obligation_job and not args.use_linearized :
-        raise ValueError("Use arguments --use-linearized for Obligation Close task")
+        args.use_linearized = True
         
 
     gen_rl_tasks(args)
