@@ -76,11 +76,7 @@ class TaskWorker(Worker):
             self.remaining_commands = coq_serapy.load_commands_preserve(
                 self.args, 1, self.args.prelude / self.cur_project / filename)
 
-# class ObligationTaskWorker(TaskWorker) :
-#     def __init__(self, *args, **kwargs) :
-#         super(ObligationTaskWorker,self).__init__(*args, **kwargs)
-#         self.skip_obligation_close = 0
-#         self.command_index = 0
+
 
 def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.json_project_file.open('r') as f:
@@ -99,7 +95,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.output_file.open('w'):
         pass
 
-    Workerclass = TaskWorker #ObligationTaskWorker if args.obligation_job else TaskWorker
+    Workerclass = TaskWorker
     job_generator = gen_rl_tasks_obligation_job if args.obligation_job else gen_rl_tasks_job
 
     with Workerclass(args, switch_dict) as worker:
@@ -137,6 +133,7 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
             job_solution.append(cmd)
             continue        
         if re.match(r"[\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
+            eprint("For the command set", remaining_commands)
             raise ValueError("Use Linearized version of the file. Found non Linearized command : " + cmd )
         if cmd.strip() == "Proof.":
             continue
@@ -221,11 +218,9 @@ def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredi
         job_existing_solution = job_existing_solutions[index]
         curr_sol_command_in_prediction = sol_command_in_predictions[:len(job_existing_bracketless_solution)]
 
-        cur_task_length = 0
+        cur_task_length = 1
         closed_brace_count = 1
         cur_checked_length = 0
-
-        
         while cur_task_length <= args.max_target_length \
             and cur_checked_length < len(job_existing_solution) \
             and curr_sol_command_in_prediction[-cur_task_length]  \
@@ -239,15 +234,16 @@ def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredi
                 closed_brace_count += 1  
                 continue
             
-
-            cur_task_length += 1
-            if closed_brace_count > 1  :     
+            if closed_brace_count > 1  :
+                cur_task_length += 1 
                 continue
-            
-            tasks.append(RLTask(filename, module_prefix, lemma_statement,
-                                job_existing_bracketless_solution[:-cur_task_length],
-                                job_existing_bracketless_solution[-cur_task_length:],
-                                cur_task_length))
+            else :
+                tasks.append(RLTask(filename, module_prefix, lemma_statement,
+                                    job_existing_solution[:-cur_checked_length],
+                                    job_existing_solution[-cur_checked_length:],
+                                    cur_task_length))
+                cur_task_length += 1
+                
             
     return tasks
 
