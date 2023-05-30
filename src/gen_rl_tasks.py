@@ -202,9 +202,8 @@ def gen_rl_tasks_obligation_job(args: argparse.Namespace, predictor: TacticPredi
         sol_cmds_in_predictions(args, worker, predictor, bracketless_solutions[-1])
     tasks: List[RLTask] = []
 
-    for index in range(len(job_existing_solutions)) :
-        job_existing_bracketless_solution = bracketless_solutions[index]
-        job_existing_solution = job_existing_solutions[index]
+    for job_existing_bracketless_solution, job_existing_solution in \
+            zip(bracketless_solutions, job_existing_solutions):
         curr_sol_command_in_prediction = sol_command_in_predictions[:len(job_existing_bracketless_solution)]
 
         cur_task_length = 1
