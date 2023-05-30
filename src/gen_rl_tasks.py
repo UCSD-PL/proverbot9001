@@ -138,7 +138,6 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
             all_job_solutions.append(list(job_solution))
         while not coq_serapy.ending_proof(remaining_commands[0]) :
             remaining_commands.pop(0)
-        worker.skip_obligation_close = 0
 
     return all_job_solutions
 
