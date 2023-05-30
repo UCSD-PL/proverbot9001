@@ -128,12 +128,12 @@ def get_curr_obligation_job_solution(worker:Worker) -> List[List[str]] :
         if cmd.strip() == "Proof.":
             continue
         job_solution.append(cmd)
-    else :
-        assert coq_serapy.ending_proof( remaining_commands[command_index])
-        if len(all_job_solutions) == 0 or len(job_solution) > len(all_job_solutions[-1]) : #Add the last closing Obligation, if an Obligation has not been immidiately closed
-            all_job_solutions.append(list(job_solution))
-        while not coq_serapy.ending_proof(remaining_commands[0]) :
-            remaining_commands.pop(0)
+
+    assert coq_serapy.ending_proof( remaining_commands[command_index])
+    if len(all_job_solutions) == 0 or len(job_solution) > len(all_job_solutions[-1]) : #Add the last closing Obligation, if an Obligation has not been immidiately closed
+        all_job_solutions.append(list(job_solution))
+    while not coq_serapy.ending_proof(remaining_commands[0]) :
+        remaining_commands.pop(0)
 
     return all_job_solutions
 
