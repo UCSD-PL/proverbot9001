@@ -44,10 +44,6 @@ def main():
     parser.add_argument("json_project_file", type=Path)
     args = parser.parse_args()
 
-    if args.obligation_job and not args.use_linearized :
-        args.use_linearized = True
-
-
     gen_rl_tasks(args)
 
 @dataclass
