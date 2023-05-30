@@ -143,6 +143,8 @@ def sol_cmds_in_predictions(args: argparse.Namespace,
                             sol_commands: List[str]) -> List[bool]:
     sol_command_in_predictions: List[bool] = []
     for sol_cmd in sol_commands:
+        if re.match(r"[\{\}]|([\+\-\*]+)", coq_serapy.kill_comments(sol_cmd).strip()):
+            continue
         predictions = predictor.predictKTactics(
             truncate_tactic_context(FullContext(worker.coq.local_lemmas,
                                                 worker.coq.prev_tactics,
@@ -165,20 +167,25 @@ def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
     _, filename, module_prefix, lemma_statement = job
 
     job_existing_solution = get_cur_job_solution(worker)
+    norm_sol, in_preds = zip(*normalize_and_check_predictions(
+        args, worker.coq, predictor, job_existing_solution))
 
-    sol_command_in_prediction: List[bool] = \
-        sol_cmds_in_predictions(args, worker, predictor, job_existing_solution)
     tasks: List[RLTask] = []
 
-    cur_task_length = 1
-    while cur_task_length <= args.max_target_length \
-        and cur_task_length < len(job_existing_solution) \
-        and sol_command_in_prediction[-cur_task_length]:
+    for cur_task_length in range(1, len(norm_sol)):
+        if not in_preds[-cur_task_length]:
+            break
+        task_prefix = job_existing_solution[:-cur_task_length]
+        task_solution = job_existing_solution[-cur_task_length:]
+        if len([tac for tac in task_solution if tac not in ["{", "}", "Unshelve."]]) > \
+           args.max_target_length:
+            break
+        if len([tac for tac in task_solution if tac == "{"]) != \
+           len([tac for tac in task_solution if tac == "}"]):
+            continue
         tasks.append(RLTask(filename, module_prefix, lemma_statement,
-                            job_existing_solution[:-cur_task_length],
-                            job_existing_solution[-cur_task_length:],
+                            task_prefix, task_solution,
                             cur_task_length))
-        cur_task_length += 1
     return tasks
 
 
