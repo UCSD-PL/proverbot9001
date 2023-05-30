@@ -26,7 +26,6 @@ class ReportJob(NamedTuple):
     filename: str
     module_prefix: str
     lemma_statement: str
-    tactic_prefix: List[str]
 
 T = TypeVar('T', bound='Worker')
 
@@ -184,7 +183,7 @@ class Worker:
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
-        job_project, job_file, job_module, job_lemma, job_tactic_prefix = job
+        job_project, job_file, job_module, job_lemma = job
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
         if job_project != self.cur_project:
@@ -266,7 +265,7 @@ class Worker:
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
-                                                         unique_lemma_statement, []))
+                                                         unique_lemma_statement))
                 return
             try:
                 self.skip_proof(careful)
@@ -324,7 +323,7 @@ class Worker:
             self.remaining_commands.pop(0)
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
-                                                 lemma_statement, []))
+                                                 lemma_statement))
 
 
 class SearchWorker(Worker):
@@ -531,10 +530,10 @@ def get_file_jobs(args: argparse.Namespace,
     lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
                                                args.include_proof_relevant)
     if arg_proofs_names:
-        return [ReportJob(project, filename, module, stmt, [])
+        return [ReportJob(project, filename, module, stmt)
                 for (module, stmt) in lemmas_in_file
                 if in_proofs_list(module, stmt, arg_proofs_names)]
-    return [ReportJob(project, filename, module, stmt, [])
+    return [ReportJob(project, filename, module, stmt)
             for (module, stmt) in lemmas_in_file]
 
 
