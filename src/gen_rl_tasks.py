@@ -37,6 +37,7 @@ def main():
     parser.add_argument("--use-linearized", action="store_true")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--careful", action='store_true')
+    parser.add_argument("--no-resume", action='store_false', dest='resume')
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
@@ -90,8 +91,14 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     jobs_done_output = Path(str(args.output_file) + ".donejobs")
 
     if jobs_done_output.exists():
-        with jobs_done_output.open('r') as f:
-            jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
+        if args.resume:
+            with jobs_done_output.open('r') as f:
+                jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
+        else:
+            with jobs_done_output.open('w') as f:
+                pass
+            with partial_output.open('w') as f:
+                pass
     else:
         jobs_already_done = []
 
