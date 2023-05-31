@@ -3,6 +3,7 @@
 import argparse
 import json
 import re
+import os
 
 from pathlib import Path
 from dataclasses import dataclass
@@ -85,16 +86,28 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     args.splits_file = args.json_project_file
     all_jobs = get_all_jobs(args) #, partition="train_files")
 
-    with args.output_file.open('w'):
-        pass
+    partial_output = Path(str(args.output_file) + ".partial")
+    jobs_done_output = Path(str(args.output_file) + ".donejobs")
+
+    if jobs_done_output.exists():
+        with jobs_done_output.open('r') as f:
+            jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
+    else:
+        jobs_already_done = []
 
     with TaskWorker(args, switch_dict) as worker:
         for job in tqdm(all_jobs, desc="Processing jobs"):
+            if job in jobs_already_done:
+                continue
             worker.run_into_job(job, False, args.careful)
             tasks = gen_rl_obl_tasks_job(args, predictor, worker, job)
-            with args.output_file.open('a') as f:
+            with partial_output.open('a') as f:
                 for task in tasks:
                     print(json.dumps(vars(task)), file=f)
+            with jobs_done_output.open('a') as f:
+                print(json.dumps(job), file=f)
+    os.rename(partial_output, args.output_file)
+    os.remove(jobs_done_output)
 
 def get_cur_job_solution(worker: Worker) -> List[str]:
     job_solution = []
