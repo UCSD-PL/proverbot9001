@@ -309,11 +309,17 @@ class Worker:
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
                self.remaining_commands)) # type: ignore
         else:
+            # Check if the original proof used any section local
+            # variables which would change its type, and if so, add a
+            # "Proof using" declaration that sets the correct type.
+            section_variables = self._get_secvars_used_in_proof()
+            self.coq.run_stmt("Proof using " + " ".join(section_variables) + ".")
+
             try:
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
                 lemma_name = \
-                  coq_serapy.lemma_name_from_statement(lemma_statement)
+                    coq_serapy.lemma_name_from_statement(lemma_statement)
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
                 raise
 
@@ -324,6 +330,21 @@ class Worker:
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
                                                  lemma_statement))
+    def _get_secvars_used_in_proof(self) -> List[str]:
+        assert len(self.coq.prev_tactics) == 1, \
+            "This method is meant to be called just after the start of a proof, " \
+            "so that we can properly determine the section variables. " \
+            f"So far, {len(self.coq.prev_tactics)} statements have been run, " \
+            "but we only accept 1."
+        used_secvars = []
+        for secvar in coq_serapy.get_vars_in_hyps(self.coq.hypotheses):
+            for cmd in self.remaining_commands:
+                if coq_serapy.ending_proof(cmd):
+                    break
+                if re.match(rf".*\W{secvar}[^\w']", cmd, flags=re.DOTALL):
+                    used_secvars.append(secvar)
+                    break
+        return used_secvars
 
 
 class SearchWorker(Worker):
