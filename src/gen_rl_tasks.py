@@ -142,7 +142,7 @@ def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
         sol = []
         bracket_depth = 0
         for cmd in remaining_cmds:
-            if coq_serapy.ending_proof(cmd[0]) or cmd[0] == "}" and bracket_depth == 0:
+            if cmd[0] == "}" and bracket_depth == 0:
                 return sol
             if cmd[0] == "{":
                 bracket_depth += 1
@@ -150,7 +150,7 @@ def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
                 bracket_depth -= 1
             sol.append(cmd)
         return sol
-    obligations = [JobObligation([], get_cur_obl_solution(cmds))]
+    obligations = [JobObligation([], cmds)]
     for cmd_idx, (cmd, _) in enumerate(cmds):
         if cmd == "{":
             obligations.append(JobObligation([cmd[0] for cmd in cmds[:cmd_idx+1]],
