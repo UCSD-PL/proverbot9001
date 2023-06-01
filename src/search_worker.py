@@ -141,9 +141,8 @@ class Worker:
                commands_after_lemma_start[0] != job_lemma):
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
-
-        commands_to_cancel = commands_after_lemma_start[:-len(self.remaining_commands)]
-        commands_before_point = list(all_file_commands[:-len(self.remaining_commands)])
+        commands_to_cancel = commands_after_lemma_start[:len(commands_after_lemma_start)-len(self.remaining_commands)]
+        commands_before_point = list(all_file_commands[:len(all_file_commands)-len(self.remaining_commands)])
         while len(commands_to_cancel) > 0:
             if coq_serapy.ending_proof(commands_to_cancel[-1]):
                 while not coq_serapy.possibly_starting_proof(commands_to_cancel[-1]):
