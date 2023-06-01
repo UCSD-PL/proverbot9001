@@ -152,7 +152,8 @@ class Worker:
                 commands_before_point.pop(-1)
                 last_lemma_encountered = self.lemmas_encountered.pop()
                 assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
-                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(), "Next Obligation."], \
+                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(),
+                     "Next Obligation."], \
                     f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
                     f"but cancelling {cancelled_lemma_statement}"
 
@@ -523,11 +524,10 @@ def attempt_search(args: argparse.Namespace,
                                              args, bar_idx, predictor)
         else:
             assert False, args.search_type
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as exc:
         if args.max_search_time_per_lemma:
-            raise KilledException("Lemma timeout")
-        else:
-            raise
+            raise KilledException("Lemma timeout") from exc
+        raise
     finally:
         if args.max_search_time_per_lemma:
             timer.cancel()
