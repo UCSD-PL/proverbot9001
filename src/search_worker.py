@@ -17,7 +17,7 @@ from search_strategies import best_first_proof_search, bfs_beam_proof_search, df
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 
-from util import unwrap, eprint, escape_lemma_name
+from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching
 
 unnamed_goal_number: int = 0
 
@@ -41,6 +41,7 @@ class Worker:
     lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
     obligation_num: int
+    secvar_dep_map: 'SectionVarDepMap'
 
     def __init__(self, args: argparse.Namespace,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
@@ -53,6 +54,7 @@ class Worker:
         self.remaining_commands: List[str] = []
         self.obligation_num = 0
         self.switch_dict = switch_dict
+        self.secvar_dep_map = SectionVarDepMap()
 
     def enter_instance(self) -> None:
         if self.args.backend == 'auto':
@@ -115,6 +117,7 @@ class Worker:
         self.lemmas_encountered = []
         self.remaining_commands = []
         self.obligation_num = 0
+        self.secvar_dep_map = SectionVarDepMap()
 
     def enter_file(self, filename: str) -> None:
         assert self.coq
@@ -167,16 +170,26 @@ class Worker:
                     self.coq.cancel_last()
                 self.coq._file_state.cancel_potential_local_lemmas(
                     cancelled_lemma_statement, commands_before_point)
+                self.secvar_dep_map.cancelBinding(
+                    self.coq.module_prefix + coq_serapy.lemma_name_from_statement(
+                        cancelled_lemma_statement))
             else:
                 self.coq.cancel_last()
-                popped = commands_to_cancel.pop(-1)
+                cancelled_cmd = coq_serapy.kill_comments(commands_to_cancel.pop(-1)).strip()
                 commands_before_point.pop(-1)
                 newstack = \
                     coq_serapy.coq_util.cancel_update_sm_stack(
                         self.coq._file_state.sm_stack,
-                        popped, commands_before_point)
+                        cancelled_cmd, commands_before_point)
+
                 if newstack != self.coq._file_state.sm_stack:
                     self.coq._file_state.sm_stack = newstack
+                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cancelled_cmd)
+                if section_start_match:
+                    self.secvar_dep_map.cancelSectionStart()
+                end_match = re.match(r"End\s+([\w']*)\.", cancelled_cmd)
+                if end_match and self.coq._file_state.sm_stack[-1][1]:
+                    self.secvar_dep_map.cancelSectionEnd()
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
         self.lemmas_encountered.append(job)
@@ -218,6 +231,14 @@ class Worker:
                     unwrap(cast(Optional[Tuple[List[str], List[str]]],
                                 self.coq.run_into_next_proof(
                                     self.remaining_commands)))
+                for command in run_commands:
+                    cmd = coq_serapy.kill_comments(command).strip()
+                    section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cmd)
+                    if section_start_match:
+                        self.secvar_dep_map.addSectionStart()
+                    end_match = re.match(r"End\s+([\w']*)\.", cmd)
+                    if end_match and self.coq._file_state.sm_stack[-1][1]:
+                        self.secvar_dep_map.addSectionEnd()
                 assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except coq_serapy.CoqAnomaly:
                 if restart_anomaly:
@@ -293,6 +314,12 @@ class Worker:
                 ending_command = cmd
                 break
         assert ending_command
+        # Check if the original proof used any section local variables
+        # which would change its type, and add a "Proof using"
+        # declaration that sets the correct type. This also sets up a
+        # table of lemma dependencies for recursive use of section
+        # variables.
+        self._mark_proof_using()
         proof_relevant = ending_command.strip() == "Defined." or \
             bool(re.match(
                 r"\s*Derive",
@@ -310,17 +337,11 @@ class Worker:
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
                self.remaining_commands)) # type: ignore
         else:
-            # Check if the original proof used any section local
-            # variables which would change its type, and if so, add a
-            # "Proof using" declaration that sets the correct type.
-            section_variables = self._get_secvars_used_in_proof()
-            self.coq.run_stmt("Proof using " + " ".join(section_variables) + ".")
-
+            lemma_name = \
+                coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
-                lemma_name = \
-                    coq_serapy.lemma_name_from_statement(lemma_statement)
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
                 raise
 
@@ -331,7 +352,24 @@ class Worker:
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
                                                  lemma_statement))
+    def _mark_proof_using(self) -> None:
+        lemma_name = \
+            coq_serapy.lemma_name_from_statement(self.coq.prev_tactics[0])
+        section_variables = self._get_secvars_used_in_proof()
+        self.coq.run_stmt("Proof using " + " ".join(section_variables) + ".")
+        assert self.coq.module_prefix + lemma_name not in self.secvar_dep_map.curBindings(), (lemma_name, self.secvar_dep_map.curBindings())
+        self.secvar_dep_map.addBinding(self.coq.module_prefix + lemma_name, section_variables)
+
     def _get_secvars_used_in_proof(self) -> List[str]:
+        def has_ident(ident: str, haystack: str) -> bool:
+            return bool(re.match(rf".*\W{ident}[^\w']", haystack, flags=re.DOTALL))
+        def ident_in_next_proof(ident: str) -> bool:
+            for cmd in self.remaining_commands:
+                if coq_serapy.ending_proof(cmd):
+                    return False
+                if has_ident(ident, cmd):
+                    return True
+            assert False
         assert len(self.coq.prev_tactics) == 1, \
             "This method is meant to be called just after the start of a proof, " \
             "so that we can properly determine the section variables. " \
@@ -339,12 +377,14 @@ class Worker:
             "but we only accept 1."
         used_secvars = []
         for secvar in coq_serapy.get_vars_in_hyps(self.coq.hypotheses):
-            for cmd in self.remaining_commands:
-                if coq_serapy.ending_proof(cmd):
-                    break
-                if re.match(rf".*\W{secvar}[^\w']", cmd, flags=re.DOTALL):
+            if ident_in_next_proof(secvar):
+                prebinder_string = split_by_char_outside_matching(
+                    r"\(", r"\)", ":", self.coq.prev_tactics[0])[0]
+                if not has_ident(secvar, prebinder_string):
                     used_secvars.append(secvar)
-                    break
+        for ident, deps in self.secvar_dep_map.curBindings().items():
+            if ident_in_next_proof(ident.rsplit(".")[-1]):
+                used_secvars += deps
         return used_secvars
 
 
@@ -446,6 +486,7 @@ class SearchWorker(Worker):
             self.remaining_commands.pop(0)
         # Pop the actual Qed/Defined/Save
         ending_command = self.remaining_commands.pop(0)
+        self._mark_proof_using()
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
@@ -582,3 +623,69 @@ def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
         project_dicts = [{"project_name": ".",
                           "test_files": [str(filename) for filename in args.filenames]}]
     return project_dicts
+
+class SectionVarDepMap:
+    _root: 'MapNode'
+    _cur_depth: int
+    def __init__(self) -> None:
+        self._root = self.MapNode()
+        self._cur_depth = 0
+
+    def addBinding(self, lemma_name: str, secvar_deps: List[str]) -> None:
+        cur_node = self._root
+        for _ in range(self._cur_depth):
+            assert len(cur_node.children) > 0
+            assert lemma_name not in cur_node.bindings
+            cur_node = cur_node.children[-1]
+        assert lemma_name not in cur_node.bindings
+        cur_node.bindings[lemma_name] = secvar_deps
+
+    def cancelBinding(self, lemma_name: str) -> None:
+        cur_node = self._root
+        for _ in range(self._cur_depth):
+            assert len(cur_node.children) > 0
+            assert lemma_name not in cur_node.bindings, \
+                "Can only cancel bindings in the current section, " \
+                "but this binding appears to be in a parent section!"
+            cur_node = cur_node.children[-1]
+        assert lemma_name in cur_node.bindings, \
+            "Can't find this binding in the bindings map!"
+        del cur_node.bindings[lemma_name]
+
+    def curBindings(self) -> Dict[str, List[str]]:
+        bindings = self._root.bindings
+        cur_node = self._root
+        for _ in range(self._cur_depth):
+            assert len(cur_node.children) > 0
+            cur_node = cur_node.children[-1]
+            bindings = {**bindings, **cur_node.bindings}
+        return bindings
+
+    def addSectionStart(self) -> None:
+        cur_node = self._root
+        for _ in range(self._cur_depth):
+            assert len(cur_node.children) > 0
+            cur_node = cur_node.children[-1]
+        cur_node.children.append(self.MapNode())
+        self._cur_depth += 1
+
+    def cancelSectionStart(self) -> None:
+        self._cur_depth -= 1
+        cur_node = self._root
+        for _ in range(self._cur_depth):
+            assert len(cur_node.children) > 0
+            cur_node = cur_node.children[-1]
+        cur_node.children.pop()
+
+    def addSectionEnd(self) -> None:
+        self._cur_depth -= 1
+
+    def cancelSectionEnd(self) -> None:
+        self._cur_depth += 1
+
+    class MapNode:
+        children: List['MapNode']
+        bindings: Dict[str, List[str]]
+        def __init__(self) -> None:
+            self.children = []
+            self.bindings = {}
