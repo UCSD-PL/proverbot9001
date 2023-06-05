@@ -1,3 +1,46 @@
 {
-  "git.detectSubmodulesLimit": 60
+  "git.detectSubmodulesLimit": 60,
+  "terminal.integrated.profiles.osx": {
+    "bash": {
+      "path": "/bin/bash",
+      "args": [
+        "-c",
+        "${workspaceFolder}/scripts/track-history.bash; exec bash"
+      ]
+    },
+    "fish": {
+      "path": "/usr/local/bin/fish",
+      // executes command to source the script before going interactive
+      "args": [
+        "-C",
+        "source ${workspaceFolder}/scripts/track-history.fish"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.osx": "fish",
+  "terminal.integrated.profiles.linux": {
+    "bash": {
+      "path": "/bin/bash",
+      "args": [
+        "-c",
+        "${workspaceFolder}/scripts/track-history.bash; exec bash"
+      ]
+    },
+    "fish": {
+      "path": "/usr/local/bin/fish",
+      // executes command to source the script before going interactive
+      "args": [
+        "-C",
+        "source ${workspaceFolder}/scripts/track-history.fish"
+      ]
+    }
+  },
+  "terminal.integrated.defaultProfile.linux": "fish",
+  "terminal.integrated.shell.linux": "/usr/bin/fish",
+  "terminal.integrated.shellArgs.linux": [
+    "-C",
+    "source ${workspaceFolder}/scripts/track-history.fish",
+    "-C",
+    "source ${workspaceFolder}/.venv/bin/activate.fish"
+  ],
 }

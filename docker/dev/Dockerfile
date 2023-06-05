@@ -61,6 +61,6 @@ ARG guest_gid=${guest_uid}
 RUN curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh -s -- -y
 
 RUN apt update \
-    && apt install -y software-properties-common git graphviz libgraphviz-dev
+    && apt install -y software-properties-common git fish graphviz libgraphviz-dev
 
 USER vscode
