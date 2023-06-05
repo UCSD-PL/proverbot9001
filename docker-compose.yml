@@ -1,0 +1,16 @@
+version: '3.8'
+
+services:
+  dev:
+    build:
+      context: ./docker/dev
+      dockerfile: Dockerfile
+    restart: unless-stopped
+    volumes:
+      - .:/workspace:cached
+      - vscode:/vscode
+    command: /bin/sh -c "while sleep 1000; do :; done"
+volumes:
+  vscode:
+    driver: local
+    name: vscode

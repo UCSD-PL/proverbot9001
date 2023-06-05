@@ -18,3 +18,5 @@ report/
 *.mypy_cache/*
 */.mypy_cache/*
 *.lock
+.venv
+proverbot-env
