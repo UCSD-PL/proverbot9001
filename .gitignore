@@ -20,3 +20,4 @@ report/
 *.lock
 .venv
 proverbot-env
+.fish_history
