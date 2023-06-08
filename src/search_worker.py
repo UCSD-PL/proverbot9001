@@ -400,6 +400,7 @@ class SearchWorker(Worker):
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
+        self._mark_proof_using()
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         if self.args.add_axioms and not self.axioms_already_added:
@@ -475,7 +476,6 @@ class SearchWorker(Worker):
             self.remaining_commands.pop(0)
         # Pop the actual Qed/Defined/Save
         ending_command = self.remaining_commands.pop(0)
-        self._mark_proof_using()
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
