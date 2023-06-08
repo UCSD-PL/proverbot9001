@@ -38,6 +38,7 @@ def main():
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--careful", action='store_true')
     parser.add_argument("--no-resume", action='store_false', dest='resume')
+    parser.add_argument("--ignore-lin-hash", action='store_true')
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
