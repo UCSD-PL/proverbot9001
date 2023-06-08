@@ -91,16 +91,14 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     partial_output = Path(str(args.output_file) + ".partial")
     jobs_done_output = Path(str(args.output_file) + ".donejobs")
 
-    if jobs_done_output.exists():
-        if args.resume:
-            with jobs_done_output.open('r') as f:
-                jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
-        else:
-            with jobs_done_output.open('w') as f:
-                pass
-            with partial_output.open('w') as f:
-                pass
+    if jobs_done_output.exists() and args.resume:
+        with jobs_done_output.open('r') as f:
+            jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
     else:
+        with jobs_done_output.open('w') as f:
+            pass
+        with partial_output.open('w') as f:
+            pass
         jobs_already_done = []
 
     with TaskWorker(args, switch_dict) as worker:
