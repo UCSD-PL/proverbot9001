@@ -193,7 +193,6 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
     
-    jobs = [(job, []) for job in get_all_jobs(args)]
     if args.tasks_file:
         jobs = []
         with open(args.tasks_file, 'r') as f:
@@ -203,6 +202,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                         lemma_statement=task['proof_statement'])
                 jobs.append((task_job, task['tactic_prefix']))
         f.close()
+    else:
+        jobs = [(job, []) for job in get_all_jobs(args)]
 
     with ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
