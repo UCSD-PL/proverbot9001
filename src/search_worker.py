@@ -17,7 +17,7 @@ from search_strategies import best_first_proof_search, bfs_beam_proof_search, df
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 
-from util import unwrap, eprint, escape_lemma_name
+from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching
 
 unnamed_goal_number: int = 0
 
@@ -26,7 +26,6 @@ class ReportJob(NamedTuple):
     filename: str
     module_prefix: str
     lemma_statement: str
-    tactic_prefix: List[str]
 
 T = TypeVar('T', bound='Worker')
 
@@ -152,7 +151,8 @@ class Worker:
                 commands_before_point.pop(-1)
                 last_lemma_encountered = self.lemmas_encountered.pop()
                 assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
-                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(), "Next Obligation."], \
+                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(),
+                     "Next Obligation."], \
                     f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
                     f"but cancelling {cancelled_lemma_statement}"
 
@@ -166,16 +166,26 @@ class Worker:
                     self.coq.cancel_last()
                 self.coq._file_state.cancel_potential_local_lemmas(
                     cancelled_lemma_statement, commands_before_point)
+                self.coq.secvar_dep_map.cancelBinding(
+                    self.coq.module_prefix + coq_serapy.lemma_name_from_statement(
+                        cancelled_lemma_statement))
             else:
                 self.coq.cancel_last()
-                popped = commands_to_cancel.pop(-1)
+                cancelled_cmd = coq_serapy.kill_comments(commands_to_cancel.pop(-1)).strip()
                 commands_before_point.pop(-1)
                 newstack = \
                     coq_serapy.coq_util.cancel_update_sm_stack(
                         self.coq._file_state.sm_stack,
-                        popped, commands_before_point)
+                        cancelled_cmd, commands_before_point)
+
                 if newstack != self.coq._file_state.sm_stack:
                     self.coq._file_state.sm_stack = newstack
+                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cancelled_cmd)
+                if section_start_match:
+                    self.coq.secvar_dep_map.cancelSectionStart()
+                end_match = re.match(r"End\s+([\w']*)\.", cancelled_cmd)
+                if end_match and self.coq._file_state.sm_stack[-1][1]:
+                    self.coq.secvar_dep_map.cancelSectionEnd()
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
         self.lemmas_encountered.append(job)
@@ -265,7 +275,7 @@ class Worker:
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
-                                                         unique_lemma_statement, []))
+                                                         unique_lemma_statement))
                 return
             try:
                 self.skip_proof(careful)
@@ -292,6 +302,12 @@ class Worker:
                 ending_command = cmd
                 break
         assert ending_command
+        # Check if the original proof used any section local variables
+        # which would change its type, and add a "Proof using"
+        # declaration that sets the correct type. This also sets up a
+        # table of lemma dependencies for recursive use of section
+        # variables.
+        self._mark_proof_using()
         proof_relevant = ending_command.strip() == "Defined." or \
             bool(re.match(
                 r"\s*Derive",
@@ -309,11 +325,11 @@ class Worker:
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
                self.remaining_commands)) # type: ignore
         else:
+            lemma_name = \
+                coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
-                lemma_name = \
-                  coq_serapy.lemma_name_from_statement(lemma_statement)
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
                 raise
 
@@ -323,7 +339,41 @@ class Worker:
             self.remaining_commands.pop(0)
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
-                                                 lemma_statement, []))
+                                                 lemma_statement))
+    def _mark_proof_using(self) -> None:
+        lemma_name = \
+            coq_serapy.lemma_name_from_statement(self.coq.prev_tactics[0])
+        section_variables = self._get_secvars_used_in_proof()
+        assert self.coq.module_prefix + lemma_name not in self.coq.secvar_dep_map.curBindings(), (lemma_name, self.coq.secvar_dep_map.curBindings())
+        self.coq.run_stmt("Proof using " + " ".join(section_variables) + ".")
+
+    def _get_secvars_used_in_proof(self) -> List[str]:
+        def has_ident(ident: str, haystack: str) -> bool:
+            return bool(re.match(rf".*\W{ident}[^\w']", haystack, flags=re.DOTALL))
+        def ident_in_next_proof(ident: str) -> bool:
+            for cmd in self.remaining_commands:
+                if coq_serapy.ending_proof(cmd):
+                    return False
+                if has_ident(ident, cmd):
+                    return True
+            assert False
+        assert len(self.coq.prev_tactics) == 1, \
+            "This method is meant to be called just after the start of a proof, " \
+            "so that we can properly determine the section variables. " \
+            f"So far, {len(self.coq.prev_tactics)} statements have been run, " \
+            "but we only accept 1."
+        used_secvars = []
+        for secvar in coq_serapy.get_vars_in_hyps(self.coq.hypotheses):
+            prebinder_string = split_by_char_outside_matching(
+                r"\(", r"\)", ":", self.coq.prev_tactics[0])[0]
+            if has_ident(secvar, prebinder_string):
+                continue
+            if ident_in_next_proof(secvar):
+                used_secvars.append(secvar)
+        for ident, deps in self.coq.secvar_dep_map.curBindings().items():
+            if ident_in_next_proof(ident.rsplit(".")[-1]):
+                used_secvars += deps
+        return used_secvars
 
 
 class SearchWorker(Worker):
@@ -349,6 +399,7 @@ class SearchWorker(Worker):
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
+        self._mark_proof_using()
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         if self.args.add_axioms and not self.axioms_already_added:
@@ -502,11 +553,10 @@ def attempt_search(args: argparse.Namespace,
                                              args, bar_idx, predictor)
         else:
             assert False, args.search_type
-    except KeyboardInterrupt:
+    except KeyboardInterrupt as exc:
         if args.max_search_time_per_lemma:
-            raise KilledException("Lemma timeout")
-        else:
-            raise
+            raise KilledException("Lemma timeout") from exc
+        raise
     finally:
         if args.max_search_time_per_lemma:
             timer.cancel()
@@ -530,10 +580,10 @@ def get_file_jobs(args: argparse.Namespace,
     lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
                                                args.include_proof_relevant)
     if arg_proofs_names:
-        return [ReportJob(project, filename, module, stmt, [])
+        return [ReportJob(project, filename, module, stmt)
                 for (module, stmt) in lemmas_in_file
                 if in_proofs_list(module, stmt, arg_proofs_names)]
-    return [ReportJob(project, filename, module, stmt, [])
+    return [ReportJob(project, filename, module, stmt)
             for (module, stmt) in lemmas_in_file]
 
 
