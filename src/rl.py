@@ -195,6 +195,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     
     jobs = [(job, []) for job in get_all_jobs(args)]
     if args.tasks_file:
+        jobs = []
         with open(args.tasks_file, 'r') as f:
             for line in f:
                 task = json.loads(line) 
