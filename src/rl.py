@@ -54,6 +54,8 @@ def main():
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
 
+    parser.add_argument("--tasks-file", default=None)
+
     parser.add_argument("--no-interleave", dest="interleave", action="store_false")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
@@ -122,7 +124,7 @@ class ReinforcementWorker(Worker):
                                               args.allow_partial_batches)
         self.verbosity = args.verbose
         self.file_workers = {}
-    def run_job_reinforce(self, job: ReportJob, epsilon: float, restart: bool = True) -> None:
+    def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str], epsilon: float, restart: bool = True) -> None:
         if job.filename not in self.file_workers:
             self.file_workers[job.filename] = FileReinforcementWorker(self.args, None)
             self.file_workers[job.filename].enter_instance()
@@ -135,7 +137,7 @@ class ReinforcementWorker(Worker):
             experience_proof(self.original_args,
                              self.file_workers[job.filename].coq,
                              self.predictor, self.v_network,
-                             self.replay_buffer, epsilon)
+                             self.replay_buffer, epsilon, tactic_prefix)
             self.file_workers[job.filename].finish_proof()
         except coq_serapy.CoqAnomaly:
             self.file_workers[job.filename].restart_coq()
@@ -190,8 +192,16 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                              args.batch_step, args.lr_step)
         target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
-
-    jobs = get_all_jobs(args)
+    
+    jobs = [(job, []) for job in get_all_jobs(args)]
+    if args.tasks_file:
+        with open(args.tasks_file, 'r') as f:
+            partial_tasks = json.load(f)
+        f.close()
+        for task in partial_tasks:
+            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
+                    lemma_statement=task['proof_statement'])
+            jobs.append((task_job, task['tactic_prefix']))
 
     with ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
@@ -204,10 +214,11 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             with nostderr():
                 worker.v_network.adjuster.step()
 
-        for step, task in enumerate(tqdm(tasks[steps_already_done:]),
+        for step, task_and_prefix in enumerate(tqdm(tasks[steps_already_done:]),
                                     start=steps_already_done+1):
             cur_epsilon = args.starting_epsilon + ((step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon))
-            worker.run_job_reinforce(task, cur_epsilon)
+            task, task_tactic_prefix = task_and_prefix
+            worker.run_job_reinforce(task, task_tactic_prefix, cur_epsilon)
             if (step + 1) % args.save_every == 0:
                 save_state(args, worker, step + 1)
             if (step + 1) % args.sync_target_every == 0:
@@ -244,6 +255,7 @@ class VNetwork:
     batch_step: int
     lr_step: int
     learning_rate: float
+
     def get_state(self) -> Any:
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state())
@@ -327,8 +339,12 @@ def experience_proof(args: argparse.Namespace,
                      predictor: TacticPredictor,
                      v_network: VNetwork,
                      replay_buffer: 'ReplayBuffer',
-                     epsilon: float) -> None:
+                     epsilon: float,
+                     tactic_prefix: [str]) -> None:
     path: List[ProofContext] = [coq.proof_context]
+    for statement in tactic_prefix:
+        coq.run_stmt(statement)
+    initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
         if args.verbose >= 3:
@@ -383,6 +399,11 @@ def experience_proof(args: argparse.Namespace,
         path.append(coq.proof_context)
         if completed_proof(coq):
             break
+        current_open_obligations = len(coq.proof_context.all_goals)
+        if current_open_obligations < initial_open_obligations:
+            #assert current_open_obligations == (initial_open_obligations - 1)
+            break
+
 def evaluate_actions(coq: coq_serapy.CoqAgent,
                      v_network: VNetwork, path: List[ProofContext],
                      actions: List[str]) -> List[float]:
@@ -533,9 +554,10 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
 
 def evaluate_results(args: argparse.Namespace,
                      worker: ReinforcementWorker,
-                     jobs: List[ReportJob]) -> None:
+                     jobs: List[tuple]) -> None:
     proofs_completed = 0
-    for job in jobs:
+    for job_and_prefix in jobs:
+        job, tactic_prefix = job_and_prefix
         worker.run_into_job(job, True, False)
         path: List[ProofContext] = [worker.coq.proof_context]
         proof_succeeded = False
