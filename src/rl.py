@@ -196,12 +196,12 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     jobs = [(job, []) for job in get_all_jobs(args)]
     if args.tasks_file:
         with open(args.tasks_file, 'r') as f:
-            partial_tasks = json.load(f)
+            for line in f:
+                task = json.loads(line) 
+                task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
+                        lemma_statement=task['proof_statement'])
+                jobs.append((task_job, task['tactic_prefix']))
         f.close()
-        for task in partial_tasks:
-            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
-                    lemma_statement=task['proof_statement'])
-            jobs.append((task_job, task['tactic_prefix']))
 
     with ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                              initial_replay_buffer = replay_buffer) as worker:
