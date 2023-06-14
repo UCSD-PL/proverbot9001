@@ -130,7 +130,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                     print(json.dumps("\"(* End of File *)\""), file=f)
                 shutil.move(temp_file, result_file)
                 return result_file
-            except serapi_instance.TimeoutError:
+            except serapi_instance.CoqTimeoutError:
                 eprint("Command in {} timed out.".format(filename))
                 return temp_file
     except Exception as e:

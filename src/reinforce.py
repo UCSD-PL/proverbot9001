@@ -639,7 +639,7 @@ def reinforce_lemma_multithreaded(
                         break
                     except (serapi_instance.ParseError,
                             serapi_instance.CoqExn,
-                            serapi_instance.TimeoutError):
+                            serapi_instance.CoqTimeoutError):
                         if args.ghosts:
                             transition = assign_failed_reward(
                                 context_trunced.relevant_lemmas,
