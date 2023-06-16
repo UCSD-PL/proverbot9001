@@ -6,7 +6,6 @@ import re
 import os
 
 from pathlib import Path
-from pathlib_revised import Path2
 from dataclasses import dataclass
 from typing import List, Tuple
 
@@ -22,7 +21,6 @@ from models.tactic_predictor import TacticPredictor
 from util import unwrap, eprint, print_time
 from linearize_semicolons import get_linearized
 
-import dataloader
 import data
 
 
@@ -68,7 +66,7 @@ class ScrapeTaskWorker(Worker):
         filename += ".scrape"
         if filename[0] =="." :
             filename = "CompCert" + filename[1:]
-        interactions = data.read_all_text_data(Path2(filename))
+        interactions = data.read_all_text_data(Path(filename))
         self.all_tactics = []
         self.all_contexts = []
         for interaction in interactions :
