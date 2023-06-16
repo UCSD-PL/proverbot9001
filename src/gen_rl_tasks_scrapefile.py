@@ -14,6 +14,8 @@ from tqdm import tqdm
 import coq_serapy
 from coq_serapy.contexts import (FullContext, ProofContext, truncate_tactic_context)
 
+from dataloader import scraped_from_file
+
 from search_file import get_all_jobs
 from search_worker import get_predictor, Worker, ReportJob
 from models.tactic_predictor import TacticPredictor
@@ -58,7 +60,27 @@ class RLTask:
     orig_solution: List[str]
     target_length: int
 
-class ScrapeTaskWorker(Worker):   
+def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
+    full_path = args.prelude / job.project_dir / job.filename
+    file_interactions = scraped_from_file(str(full_path.with_suffix(".v.scrape")))
+
+    sm_stack = coq_serapy.initial_sm_stack(job.filename)
+    in_proof = False
+    job_interactions = []
+    for interaction in file_interactions:
+        if isinstance(interaction, str):
+            sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
+            if coq_serapy.kill_comments(job.lemma_statement).strip() == \
+               coq_serapy.kill_comments(interaction).strip() and \
+               coq_serapy.sm_prefix_from_stack(sm_stack) == job.module_prefix:
+                in_proof = True
+        elif in_proof:
+            job_interactions.append(ScrapedTactic.from_structeq(interaction))
+            if coq_serapy.ending_proof(interaction.tactic):
+                return job_interactions
+    assert False, "Couldn't find job or proof ending"
+
+class ScrapeTaskWorker(Worker):
     def enter_file(self, filename:str) -> None :
         filename += ".scrape"
         if filename[0] =="." :
