@@ -7,12 +7,13 @@ import os
 
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Optional
 
 from tqdm import tqdm
 
 import coq_serapy
-from coq_serapy.contexts import (FullContext, ProofContext, truncate_tactic_context)
+from coq_serapy.contexts import (FullContext, ProofContext,
+                                 ScrapedTactic, truncate_tactic_context)
 
 from dataloader import scraped_from_file
 
@@ -226,6 +227,63 @@ def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
             obligations.append(JobObligation([cmd[0] for cmd in cmds[:cmd_idx+1]],
                                              get_cur_obl_solution(cmds[cmd_idx+1:])))
     return obligations
+
+def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[ScrapedTactic]:
+    output_interactions: List[ScrapedTactic] = []
+    num_subgoals_stack: List[int] = [1]
+    previous_num_subgoals: int = 1
+    for interaction in interactions:
+        subgoals_created_by_last_tac = \
+            len(interaction.context.all_goals) - previous_num_subgoals
+        if subgoals_created_by_last_tac > 0:
+            num_subgoals_stack.append(subgoals_created_by_last_tac + 1)
+            output_interactions.append(
+                ScrapedTactic(interaction.relevant_lemmas,
+                              interaction.prev_tactics,
+                              interaction.context,
+                              "{"))
+        if subgoals_created_by_last_tac < 0:
+            assert subgoals_created_by_last_tac == -1, \
+                "Shouldn't be able to close more than one subgoal at a time."
+            num_subgoals_stack[-1] -= 1
+            output_interactions.append(
+                ScrapedTactic(
+                    interaction.relevant_lemmas,
+                    interaction.prev_tactics,
+                    interaction.context,
+                "}"))
+            while len(num_subgoals_stack) > 1 and num_subgoals_stack[-1] == 0:
+                num_subgoals_stack.pop()
+                num_subgoals_stack[-1] -= 1
+                if len(num_subgoals_stack) > 1:
+                    output_interactions.append(
+                        ScrapedTactic(interaction.relevant_lemmas,
+                                      interaction.prev_tactics,
+                                      interaction.context,
+                                      "}"))
+                else:
+                    assert interaction.tactic.strip() in ["Qed.", "}"], interaction.tactic
+            if len(num_subgoals_stack) > 1:
+                output_interactions.append(
+                    ScrapedTactic(
+                        interaction.relevant_lemmas,
+                        interaction.prev_tactics,
+                        ProofContext(interaction.context.bg_goals[:num_subgoals_stack[-1]],
+                                     interaction.context.bg_goals[num_subgoals_stack[-1]:],
+                                     interaction.context.shelved_goals,
+                                     interaction.context.given_up_goals),
+                        "{"))
+        previous_num_subgoals = len(interaction.context.all_goals)
+        if interaction.tactic.strip() not in ["{", "}"]:
+            output_interactions.append(interaction)
+    assert len(interactions) > 0
+    for _ in range(len(num_subgoals_stack) - 1):
+        output_interactions.append(
+            ScrapedTactic(interactions[-1].relevant_lemmas,
+                          interactions[-1].prev_tactics,
+                          interactions[-1].context,
+                          "}"))
+    return output_interactions
 
 def normalize_and_check_predictions(args: argparse.Namespace,
                                     predictor: TacticPredictor,
