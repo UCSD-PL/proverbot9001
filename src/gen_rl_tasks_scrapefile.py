@@ -103,7 +103,7 @@ class ScrapeTaskWorker(Worker):
             self.all_contexts.append(FullContext(relevant_lemmas = scraped.relevant_lemmas, \
                                                  prev_tactics = scraped.prev_tactics, \
                                                     obligations = proof_context))
-        
+
         self.remaining_commands = list(self.all_tactics)
         self.remaining_contexts = list(self.all_contexts)
 
@@ -125,7 +125,7 @@ class ScrapeTaskWorker(Worker):
             self.enter_file(job_file)
 
         # Where's the lemma being collected from? Found a place in scrape file where the full scrape lemma is not exactly matching the full job lemma
-        # Resorting to just finding lemma names        
+        # Resorting to just finding lemma names
         job_lemma_name = coq_serapy.kill_comments(job_lemma).split(':')[0].strip()
         for ind in range(len(self.all_tactics)) :
             cmd = coq_serapy.kill_comments(self.all_tactics[ind])
@@ -140,7 +140,7 @@ class ScrapeTaskWorker(Worker):
         else :
             print(coq_serapy.kill_comments(job_lemma))
             raise ValueError("Lemma " + job_lemma_name + " not found in file " + job_file)
-        
+
 
 def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.json_project_file.open('r') as f:
@@ -192,7 +192,7 @@ def get_cur_job_solution(worker: Worker) -> List[str]:
         cmd = remaining_commands.pop(0)
         context = remaining_contexts.pop(0)
         if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
-            continue 
+            continue
         if cmd.strip() == "Proof.":
             continue
         job_solution.append(cmd)
@@ -289,10 +289,10 @@ def normalize_and_check_predictions(args: argparse.Namespace,
                                     predictor: TacticPredictor,
                                     input_cmds: List[str],
                                     input_contexts : List[FullContext]) -> List[Tuple[str, bool]]:
-    
+
     #Question, Does Scrape file always produce normalized commands?
     normalized_checked_cmds = []
-    
+
     assert len(input_cmds) == len(input_contexts), str(len(input_cmds)) + " , " + str(len(input_contexts))
     for index in range(len(input_cmds)):
         cmd = input_cmds[index]
