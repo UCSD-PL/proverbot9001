@@ -270,33 +270,6 @@ def normalize_and_check_predictions(args: argparse.Namespace,
     return normalized_checked_cmds
 
 
-def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
-                     worker: Worker, job: ReportJob) -> List[RLTask]:
-
-    job_existing_solution, job_existing_contexts = get_cur_job_solution(worker)
-    norm_sol, in_preds = zip(*normalize_and_check_predictions(
-        args, predictor, job_existing_solution, job_existing_contexts))
-
-    tasks: List[RLTask] = []
-
-    for cur_task_length in range(1, len(norm_sol)):
-        if not in_preds[-cur_task_length]:
-            break
-        task_prefix = job_existing_solution[:-cur_task_length]
-        task_solution = job_existing_solution[-cur_task_length:]
-        if len([tac for tac in task_solution if tac not in ["{", "}", "Unshelve."]]) > \
-           args.max_target_length:
-            break
-        if len([tac for tac in task_solution if tac == "{"]) != \
-           len([tac for tac in task_solution if tac == "}"]):
-            continue
-        tasks.append(RLTask(job.filename, job.module_prefix,
-                            job.lemma_statement,
-                            task_prefix, task_solution,
-                            cur_task_length))
-    return tasks
-
-
 def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                          worker: Worker, job: ReportJob) -> List[RLTask]:
     annotated_cmds = normalize_and_check_predictions(args, predictor,
