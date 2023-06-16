@@ -169,6 +169,16 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             pass
         jobs_already_done = []
 
+    for job in all_jobs:
+        commands = get_job_interactions(args, job)
+        normalized = normalize_proof_interactions(commands)
+        for line in normalized:
+            print(line.tactic,
+                  f"num fg_goals: {len(line.context.fg_goals)}",
+                  f"num bg_goals: {len(line.context.bg_goals)}")
+
+    assert False
+
     with ScrapeTaskWorker(args, switch_dict) as worker:
         for job in tqdm(all_jobs, desc="Processing jobs"):
             if job in jobs_already_done:
