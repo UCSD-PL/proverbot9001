@@ -285,7 +285,14 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                         "{"))
         previous_num_subgoals = len(interaction.context.all_goals)
         if interaction.tactic.strip() not in ["{", "}"]:
-            output_interactions.append(interaction)
+            output_interactions.append(
+                ScrapedTactic(
+                    interaction.relevant_lemmas,
+                    interaction.prev_tactics,
+                    ProofContext(interaction.context.fg_goals[0],
+                                 interaction.context.fg_goals[1:] + interaction.bg_goals,
+                                 interaction.context.shelved_goals,
+                                 interaction.context.given_up_goals)))
     assert len(interactions) > 0
     for _ in range(len(num_subgoals_stack) - 1):
         output_interactions.append(
