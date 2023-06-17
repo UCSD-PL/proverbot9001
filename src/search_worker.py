@@ -328,6 +328,17 @@ def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
     return coq.check_term(lemma_name).replace("\n", "")
 
+def custom_lemma_head_function(coq):
+    # bool_dec : forall b1 b2 : bool, {b1 = b2} + {b1 <> b2}
+    #add_succ_l n m : (S n) + m = S (n + m)
+    #"nat_refl: forall n: nat, n = n"
+    #print("custom head")
+
+    rel_lemmas = coq.get_lemmas_about_head()[:20] if coq.proof_context.focused_goal.strip() != "" else []   
+    #rel_lemmas = ["nat_refl: forall n: nat, n = n", "sumbool_of_bool : forall b:bool, {b = true} + {b = false}", 
+                  #"bool_dec : forall b1 b2 : bool, {b1 = b2} + {b1 <> b2}"]     
+    return rel_lemmas + coq.local_lemmas
+
 def context_lemmas_from_args(args: argparse.Namespace,
                              coq: coq_serapy.SerapiInstance) -> List[str]:
     if args.add_env_lemmas:
@@ -339,6 +350,8 @@ def context_lemmas_from_args(args: argparse.Namespace,
         env_lemmas = []
     if args.relevant_lemmas == "local":
         relevant_lemmas = coq.local_lemmas[:-1]
+    elif args.relevant_lemmas == "custom-head":
+        relevant_lemmas = custom_lemma_head_function(coq)
     else:
         assert False, f"Unrecognized relevant lemmas option {args.relevant_lemmas}"
     return env_lemmas + relevant_lemmas
