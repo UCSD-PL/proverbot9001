@@ -260,8 +260,8 @@ def tryPrediction(args: argparse.Namespace,
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
-    except (coq_serapy.TimeoutError, coq_serapy.ParseError,
-            coq_serapy.CoqExn, coq_serapy.OverflowError,
+    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
             coq_serapy.ParseError,
             RecursionError,
             coq_serapy.UnrecognizedError) as e:
