@@ -121,7 +121,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
 
     os.rename(partial_output, args.output_file)
     os.remove(jobs_done_output)
-    
+
 
 def get_cur_job_solution(worker: Worker) -> List[str]:
     job_solution = []
@@ -173,8 +173,8 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
     num_subgoals_stack: List[int] = [1]
     previous_num_subgoals: int = 1
     for interaction in interactions:
-        subgoals_created_by_last_tac = \
-            len(interaction.context.all_goals) - previous_num_subgoals
+        num_subgoals = len(interaction.context.fg_goals) + len(interaction.context.bg_goals)
+        subgoals_created_by_last_tac = num_subgoals - previous_num_subgoals
         if subgoals_created_by_last_tac > 0:
             num_subgoals_stack.append(subgoals_created_by_last_tac + 1)
             output_interactions.append(
@@ -213,7 +213,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                                      interaction.context.shelved_goals,
                                      interaction.context.given_up_goals),
                         "{"))
-        previous_num_subgoals = len(interaction.context.all_goals)
+        previous_num_subgoals = num_subgoals
 
         if len(interaction.context.fg_goals) == 0:
             output_interactions.append(interaction)
@@ -239,7 +239,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
 def annotate_cmds_in_pred(args: argparse.Namespace,
                             predictor: TacticPredictor,
                             sol_contexts: List[ScrapedTactic]) -> List[bool]:
-    
+
     annotated_sol: List[(str,bool)] = []
     for sol_context in sol_contexts:
         sol_cmd = sol_context.tactic
@@ -262,7 +262,7 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
                           in [p.prediction for p in predictions])
         if coq_serapy.kill_comments(sol_cmd).strip() == "auto.":
             in_predictions |= "eauto." in [p.prediction for p in predictions]
-        
+
         annotated_sol.append((sol_cmd, in_predictions))
     return annotated_sol
 
@@ -270,7 +270,7 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
 
 def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                          normalized_scrape: List[ScrapedTactic], job: ReportJob) -> List[RLTask]:
-    
+
 
     annotated_cmds = annotate_cmds_in_pred(args, predictor, normalized_scrape)
     annotated_obls = obls_from_solution(annotated_cmds)
