@@ -184,7 +184,9 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                               "{"))
         if subgoals_created_by_last_tac < 0:
             assert subgoals_created_by_last_tac == -1, \
-                "Shouldn't be able to close more than one subgoal at a time."
+                "Shouldn't be able to close more than one subgoal at a time. " \
+                f"Num subgoals before: {previous_num_subgoals}, "\
+                f"num subgoals after: {len(interaction.context.all_goals)}"
             num_subgoals_stack[-1] -= 1
             output_interactions.append(
                 ScrapedTactic(
