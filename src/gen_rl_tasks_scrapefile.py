@@ -81,66 +81,6 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
                 return job_interactions
     assert False, "Couldn't find job or proof ending"
 
-class ScrapeTaskWorker(Worker):
-    def enter_file(self, filename:str) -> None :
-        filename += ".scrape"
-        if filename[0] =="." :
-            filename = "CompCert" + filename[1:]
-        interactions = data.read_all_text_data(Path(filename))
-        self.all_tactics = []
-        self.all_contexts = []
-        for interaction in interactions :
-            if isinstance(interaction, str) :
-                self.all_tactics.append(interaction)
-                self.all_contexts.append("")
-                continue
-            scraped = interaction
-            self.all_tactics.append(scraped.tactic)
-            proof_context = ProofContext(fg_goals = scraped.context.fg_goals, \
-                                         bg_goals = scraped.context.bg_goals, \
-                                            shelved_goals = scraped.context.shelved_goals, \
-                                                given_up_goals = scraped.context.given_up_goals)
-            self.all_contexts.append(FullContext(relevant_lemmas = scraped.relevant_lemmas, \
-                                                 prev_tactics = scraped.prev_tactics, \
-                                                    obligations = proof_context))
-
-        self.remaining_commands = list(self.all_tactics)
-        self.remaining_contexts = list(self.all_contexts)
-
-    def run_into_job(self, job: ReportJob) -> None :
-        job_project, job_file, job_module, job_lemma = job
-        # If we need to change projects, we'll have to reset the coq instance
-        # to load new includes, and set the opam switch
-        if job_project != self.cur_project:
-            if self.cur_project is not None:
-                self.reset_file_state()
-            self.cur_project = job_project
-            if self.args.set_switch:
-                self.set_switch_from_proj()
-            self.enter_file(job_file)
-
-        # If the job is in a different file load the jobs file from scratch.
-        if job_file != self.cur_file:
-            self.reset_file_state()
-            self.enter_file(job_file)
-
-        # Where's the lemma being collected from? Found a place in scrape file where the full scrape lemma is not exactly matching the full job lemma
-        # Resorting to just finding lemma names
-        job_lemma_name = coq_serapy.kill_comments(job_lemma).split(':')[0].strip()
-        for ind in range(len(self.all_tactics)) :
-            cmd = coq_serapy.kill_comments(self.all_tactics[ind])
-            if job_lemma_name in cmd :
-                if "Program" in job_lemma_name :
-                    self.remaining_commands = list(self.all_tactics[ind + 2 : ])
-                    self.remaining_contexts = list(self.all_contexts[ind + 2 : ])
-                else :
-                    self.remaining_commands = list(self.all_tactics[ind + 1 : ])
-                    self.remaining_contexts = list(self.all_contexts[ind + 1 : ])
-                break
-        else :
-            print(coq_serapy.kill_comments(job_lemma))
-            raise ValueError("Lemma " + job_lemma_name + " not found in file " + job_file)
-
 
 def gen_rl_tasks(args: argparse.Namespace) -> None:
     with args.json_project_file.open('r') as f:
@@ -169,29 +109,19 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             pass
         jobs_already_done = []
 
-    for job in all_jobs:
+    for job in tqdm(all_jobs):
         commands = get_job_interactions(args, job)
         normalized = normalize_proof_interactions(commands)
-        for line in normalized:
-            print(line.tactic,
-                  f"num fg_goals: {len(line.context.fg_goals)}",
-                  f"num bg_goals: {len(line.context.bg_goals)}")
+        tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
+        with partial_output.open('a') as f:
+            for task in tasks:
+                print(json.dumps(vars(task)), file=f)
+        with jobs_done_output.open('a') as f:
+            print(json.dumps(job), file=f)
 
-    assert False
-
-    with ScrapeTaskWorker(args, switch_dict) as worker:
-        for job in tqdm(all_jobs, desc="Processing jobs"):
-            if job in jobs_already_done:
-                continue
-            worker.run_into_job(job)
-            tasks = gen_rl_obl_tasks_job(args, predictor, worker, job)
-            with partial_output.open('a') as f:
-                for task in tasks:
-                    print(json.dumps(vars(task)), file=f)
-            with jobs_done_output.open('a') as f:
-                print(json.dumps(job), file=f)
     os.rename(partial_output, args.output_file)
     os.remove(jobs_done_output)
+    
 
 def get_cur_job_solution(worker: Worker) -> List[str]:
     job_solution = []
@@ -284,15 +214,27 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                                      interaction.context.given_up_goals),
                         "{"))
         previous_num_subgoals = len(interaction.context.all_goals)
-        if interaction.tactic.strip() not in ["{", "}"]:
+        if interaction.tactic.strip() in ["Qed."]:
             output_interactions.append(
                 ScrapedTactic(
                     interaction.relevant_lemmas,
                     interaction.prev_tactics,
-                    ProofContext(interaction.context.fg_goals[0],
-                                 interaction.context.fg_goals[1:] + interaction.bg_goals,
+                    ProofContext(interaction.context.fg_goals,
+                                 interaction.context.bg_goals,
                                  interaction.context.shelved_goals,
-                                 interaction.context.given_up_goals)))
+                                 interaction.context.given_up_goals),
+                    interaction.tactic))
+            
+        elif interaction.tactic.strip() not in ["{", "}"]:
+            output_interactions.append(
+                ScrapedTactic(
+                    interaction.relevant_lemmas,
+                    interaction.prev_tactics,
+                    ProofContext([interaction.context.fg_goals[0]],
+                                 interaction.context.fg_goals[1:] + interaction.context.bg_goals,
+                                 interaction.context.shelved_goals,
+                                 interaction.context.given_up_goals),
+                    interaction.tactic))
     assert len(interactions) > 0
     for _ in range(len(num_subgoals_stack) - 1):
         output_interactions.append(
@@ -302,72 +244,43 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                           "}"))
     return output_interactions
 
-def normalize_and_check_predictions(args: argparse.Namespace,
-                                    predictor: TacticPredictor,
-                                    input_cmds: List[str],
-                                    input_contexts : List[FullContext]) -> List[Tuple[str, bool]]:
-
-    #Question, Does Scrape file always produce normalized commands?
-    normalized_checked_cmds = []
-
-    assert len(input_cmds) == len(input_contexts), str(len(input_cmds)) + " , " + str(len(input_contexts))
-    for index in range(len(input_cmds)):
-        cmd = input_cmds[index]
-        fullcontext = input_contexts[index]
-        proofcontext = fullcontext.obligations
-        # Ignore original goal selectors, we'll add them ourselves.
-        if re.match(r"[\{\}]|([\+\-\*]+)", coq_serapy.kill_comments(cmd).strip()):
+def annotate_cmds_in_pred(args: argparse.Namespace,
+                            predictor: TacticPredictor,
+                            sol_contexts: List[ScrapedTactic]) -> List[bool]:
+    
+    annotated_sol: List[(str,bool)] = []
+    for sol_context in sol_contexts:
+        sol_cmd = sol_context.tactic
+        if sol_cmd in ['{', '}'] :
+            annotated_sol.append((sol_cmd, True))
             continue
-
-        if coq_serapy.ending_proof(cmd):
-            normalized_checked_cmds.append((cmd, True))
+        if coq_serapy.ending_proof(sol_cmd) :
+            annotated_sol.append((sol_cmd,True))
             break
-        # Next call the predictor, to determine if the command is in
-        # the predictions.
+
         predictions = predictor.predictKTactics(
-            truncate_tactic_context(FullContext(fullcontext.relevant_lemmas,
-                                                fullcontext.prev_tactics,
-                                                unwrap(fullcontext.obligations)
+            truncate_tactic_context(FullContext(sol_context.relevant_lemmas,
+                                                sol_context.prev_tactics,
+                                                unwrap(sol_context.context)
                                                 ).as_tcontext(),
                                     30),
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
-        in_predictions = (coq_serapy.kill_comments(cmd).strip()
+        in_predictions = (coq_serapy.kill_comments(sol_cmd).strip()
                           in [p.prediction for p in predictions])
-        # Special-case the `auto` tactic, since the proverbot model
-        # preprocesses it into "eauto." If the solution tactic is
-        # "auto", but we predict "eauto", that would work too so count
-        # it as in-domain.
-        if coq_serapy.kill_comments(cmd).strip() == "auto.":
+        if coq_serapy.kill_comments(sol_cmd).strip() == "auto.":
             in_predictions |= "eauto." in [p.prediction for p in predictions]
+        
+        annotated_sol.append((sol_cmd, in_predictions))
+    return annotated_sol
 
-        # All non-goal-selectors get added to the normalized solution.
-        normalized_checked_cmds.append((cmd, in_predictions))
-
-        # All goal manipulation commands will be given a True for
-        # in_predictions, since the prediction running engine is able
-        # to run them automatically.
-
-        # If we've completed all our subgoals, close goals until we
-        # hit the Qed or some goals come into the foreground.
-        just_closed = False
-        while len(proofcontext.fg_goals) == 0 and \
-              (len(proofcontext.all_goals) > 0 or len(fullcontext.prev_tactics) > 0 ) : #Is this the right check for tactichistory.depth > 0?
-            just_closed = True
-            normalized_checked_cmds.append(("}", True))
-        # If we just created multiple obligations, or if we just
-        # closed an obligation, and we're starting the next one, add
-        # the open bracket.
-        if  len(proofcontext.fg_goals)  > 1 or (just_closed and  len(proofcontext.fg_goals) > 0):
-            normalized_checked_cmds.append(("{", True))
-
-    return normalized_checked_cmds
 
 
 def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
-                         worker: Worker, job: ReportJob) -> List[RLTask]:
-    annotated_cmds = normalize_and_check_predictions(args, predictor,
-                                                     *get_cur_job_solution(worker))
+                         normalized_scrape: List[ScrapedTactic], job: ReportJob) -> List[RLTask]:
+    
+
+    annotated_cmds = annotate_cmds_in_pred(args, predictor, normalized_scrape)
     annotated_obls = obls_from_solution(annotated_cmds)
 
     tasks = []
