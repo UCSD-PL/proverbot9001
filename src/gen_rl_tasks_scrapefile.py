@@ -37,7 +37,6 @@ def main():
     parser.add_argument("--output", "-o", dest="output_file", type=Path,
                         default="data/rl_jobs.json")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
-    parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--include-proof-relevant", action="store_true")
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
     parser.add_argument("--no-resume", action='store_false', dest='resume')
@@ -83,14 +82,6 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
 
 
 def gen_rl_tasks(args: argparse.Namespace) -> None:
-    with args.json_project_file.open('r') as f:
-        project_dicts = json.loads(f.read())
-    if any("switch" in item for item in project_dicts):
-        switch_dict = {item["project_name"]: item["switch"]
-                       for item in project_dicts}
-    else:
-        switch_dict = None
-
     predictor = get_predictor(args, allow_static_predictor=False)
 
     args.splits_file = args.json_project_file
