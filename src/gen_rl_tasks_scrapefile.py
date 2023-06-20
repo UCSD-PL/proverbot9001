@@ -158,7 +158,7 @@ def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
                 bracket_depth -= 1
             sol.append(cmd)
         return sol
-    obligations = [JobObligation([], cmds)]
+    obligations = [JobObligation([], cmds[:-1])]
     for cmd_idx, (cmd, _) in enumerate(cmds):
         if cmd == "{":
             obligations.append(JobObligation([cmd[0] for cmd in cmds[:cmd_idx+1]],
