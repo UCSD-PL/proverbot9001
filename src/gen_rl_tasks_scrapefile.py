@@ -199,7 +199,8 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                                       interaction.context,
                                       "}"))
                 else:
-                    assert coq_serapy.kill_comments(interaction.tactic).strip() in ["Qed.", "}"], coq_serapy.kill_comments(interaction.tactic)
+                    tac = coq_serapy.kill_comments(interaction.tactic).strip()
+                    assert tac in ["Qed.", "}"] or re.fullmatch("[*+-]+", tac), interaction.tactic
             if len(num_subgoals_stack) > 1:
                 output_interactions.append(
                     ScrapedTactic(
