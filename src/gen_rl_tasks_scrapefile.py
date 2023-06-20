@@ -101,6 +101,8 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
         jobs_already_done = []
 
     for job in tqdm(all_jobs):
+        if job in jobs_already_done and args.resume:
+            continue
         commands = get_job_interactions(args, job)
         normalized = normalize_proof_interactions(commands)
         tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
