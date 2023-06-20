@@ -103,6 +103,8 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     for job in tqdm(all_jobs):
         if job in jobs_already_done and args.resume:
             continue
+        if "Program" in coq_serapy.kill_comments(job.lemma_statement) :
+            continue
         commands = get_job_interactions(args, job)
         normalized = normalize_proof_interactions(commands)
         tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
@@ -197,7 +199,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[Scra
                                       interaction.context,
                                       "}"))
                 else:
-                    assert interaction.tactic.strip() in ["Qed.", "}"], interaction.tactic
+                    assert coq_serapy.kill_comments(interaction.tactic).strip() in ["Qed.", "}"], coq_serapy.kill_comments(interaction.tactic)
             if len(num_subgoals_stack) > 1:
                 output_interactions.append(
                     ScrapedTactic(
