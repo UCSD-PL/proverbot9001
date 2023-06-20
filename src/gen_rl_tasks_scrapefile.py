@@ -32,7 +32,7 @@ def main():
         description="Generate demonstrating-tasks up to a given length "
         "for training an rl agent refining a given predictor")
     parser.add_argument("--verbose", "-v", help="verbose output",
-                        action="count", default=0)
+                        action="count", default=0, dest='verbosity')
     parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_file", type=Path,
                         default="data/rl_jobs.json")
@@ -105,8 +105,10 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             continue
         if "Program" in coq_serapy.kill_comments(job.lemma_statement) :
             continue
+        if args.verbosity > 0:
+            eprint(f"Running job {job}")
         commands = get_job_interactions(args, job)
-        normalized = normalize_proof_interactions(commands)
+        normalized = normalize_proof_interactions(commands, args.verbosity)
         tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
         with partial_output.open('a') as f:
             for task in tasks:
@@ -163,11 +165,15 @@ def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
                                              get_cur_obl_solution(cmds[cmd_idx+1:])))
     return obligations
 
-def normalize_proof_interactions(interactions: List[ScrapedTactic]) -> List[ScrapedTactic]:
+def normalize_proof_interactions(interactions: List[ScrapedTactic],
+                                 verbosity:int = 0) -> List[ScrapedTactic]:
     output_interactions: List[ScrapedTactic] = []
     num_subgoals_stack: List[int] = [1]
     previous_num_subgoals: int = 1
     for interaction in interactions:
+        if verbosity > 0:
+            coq_serapy.summarizeContext(interaction.context)
+            eprint(interaction.tactic)
         num_subgoals = len(interaction.context.fg_goals) + len(interaction.context.bg_goals)
         subgoals_created_by_last_tac = num_subgoals - previous_num_subgoals
         if subgoals_created_by_last_tac > 0:
