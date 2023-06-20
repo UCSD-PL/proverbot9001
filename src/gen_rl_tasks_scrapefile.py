@@ -275,7 +275,6 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
 def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                          normalized_scrape: List[ScrapedTactic], job: ReportJob) -> List[RLTask]:
 
-
     annotated_cmds = annotate_cmds_in_pred(args, predictor, normalized_scrape)
     annotated_obls = obls_from_solution(annotated_cmds)
 
@@ -297,7 +296,6 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                 continue
             tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
                                 task_prefix, task_solution, sol_tac_length))
-    # worker.skip_proof(args.careful)
     return tasks
 
 if __name__ == "__main__":
