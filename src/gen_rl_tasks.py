@@ -12,31 +12,30 @@ from typing import List, Tuple
 from tqdm import tqdm
 
 import coq_serapy
-from coq_serapy.contexts import (FullContext, truncate_tactic_context)
+from coq_serapy.contexts import (FullContext, ProofContext,
+                                 ScrapedTactic, truncate_tactic_context)
+
+from dataloader import scraped_from_file
 
 from search_file import get_all_jobs
-from search_worker import get_predictor, Worker, ReportJob
+from search_worker import get_predictor, ReportJob
 from models.tactic_predictor import TacticPredictor
 
-from util import unwrap, eprint, print_time
-from linearize_semicolons import get_linearized
+from util import unwrap, eprint
+
 
 def main():
     parser = argparse.ArgumentParser(
         description="Generate demonstrating-tasks up to a given length "
         "for training an rl agent refining a given predictor")
     parser.add_argument("--verbose", "-v", help="verbose output",
-                        action="count", default=0)
+                        action="count", default=0, dest='verbosity')
     parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_file", type=Path,
                         default="data/rl_jobs.json")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
-    parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--include-proof-relevant", action="store_true")
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
-    parser.add_argument("--use-linearized", action="store_true")
-    parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
-    parser.add_argument("--careful", action='store_true')
     parser.add_argument("--no-resume", action='store_false', dest='resume')
     parser.add_argument("--ignore-lin-hash", action='store_true')
     proofsGroup = parser.add_mutually_exclusive_group()
@@ -58,31 +57,28 @@ class RLTask:
     orig_solution: List[str]
     target_length: int
 
-class TaskWorker(Worker):
-    def enter_file(self, filename: str) -> None:
-        assert self.coq
-        self.cur_file = filename
-        module_name = coq_serapy.get_module_from_filename(filename)
-        self.coq.run_stmt(f"Module {module_name}.")
-        if self.args.use_linearized:
-            self.args.linearizer_timeout = 60 ** 2
-            self.args.progress = True
-            self.args.hardfail = False
-            self.remaining_commands = get_linearized(self.args, ["sertop"], 0,
-                                                     str(Path(self.cur_project) / filename))
-        else:
-            self.remaining_commands = coq_serapy.load_commands_preserve(
-                self.args, 1, self.args.prelude / self.cur_project / filename)
+def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
+    full_path = args.prelude / job.project_dir / job.filename
+    file_interactions = scraped_from_file(str(full_path.with_suffix(".v.scrape")))
+
+    sm_stack = coq_serapy.initial_sm_stack(job.filename)
+    in_proof = False
+    job_interactions = []
+    for interaction in file_interactions:
+        if isinstance(interaction, str):
+            sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
+            if coq_serapy.kill_comments(job.lemma_statement).strip() == \
+               coq_serapy.kill_comments(interaction).strip() and \
+               coq_serapy.sm_prefix_from_stack(sm_stack) == job.module_prefix:
+                in_proof = True
+        elif in_proof:
+            job_interactions.append(ScrapedTactic.from_structeq(interaction))
+            if coq_serapy.ending_proof(interaction.tactic):
+                return job_interactions
+    assert False, "Couldn't find job or proof ending"
+
 
 def gen_rl_tasks(args: argparse.Namespace) -> None:
-    with args.json_project_file.open('r') as f:
-        project_dicts = json.loads(f.read())
-    if any("switch" in item for item in project_dicts):
-        switch_dict = {item["project_name"]: item["switch"]
-                       for item in project_dicts}
-    else:
-        switch_dict = None
-
     predictor = get_predictor(args, allow_static_predictor=False)
 
     args.splits_file = args.json_project_file
@@ -101,31 +97,24 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             pass
         jobs_already_done = []
 
-    with TaskWorker(args, switch_dict) as worker:
-        for job in tqdm(all_jobs, desc="Processing jobs"):
-            if job in jobs_already_done:
-                continue
-            worker.run_into_job(job, False, args.careful)
-            tasks = gen_rl_obl_tasks_job(args, predictor, worker, job)
-            with partial_output.open('a') as f:
-                for task in tasks:
-                    print(json.dumps(vars(task)), file=f)
-            with jobs_done_output.open('a') as f:
-                print(json.dumps(job), file=f)
+    for job in tqdm(all_jobs):
+        if job in jobs_already_done and args.resume:
+            continue
+        if "Program" in coq_serapy.kill_comments(job.lemma_statement) :
+            continue
+        if args.verbosity > 0:
+            eprint(f"Running job {job}")
+        commands = get_job_interactions(args, job)
+        normalized = normalize_proof_interactions(commands, args.verbosity)
+        tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
+        with partial_output.open('a') as f:
+            for task in tasks:
+                print(json.dumps(vars(task)), file=f)
+        with jobs_done_output.open('a') as f:
+            print(json.dumps(job), file=f)
+
     os.rename(partial_output, args.output_file)
     os.remove(jobs_done_output)
-
-def get_cur_job_solution(worker: Worker) -> List[str]:
-    job_solution = []
-    remaining_commands = list(worker.remaining_commands)
-    while not coq_serapy.ending_proof(remaining_commands[0]):
-        cmd = remaining_commands.pop(0)
-        if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
-            continue
-        if cmd.strip() == "Proof.":
-            continue
-        job_solution.append(cmd)
-    return job_solution
 
 @dataclass
 class JobObligation:
@@ -149,108 +138,127 @@ def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
                 bracket_depth -= 1
             sol.append(cmd)
         return sol
-    obligations = [JobObligation([], cmds)]
+    obligations = [JobObligation([], cmds[:-1])]
     for cmd_idx, (cmd, _) in enumerate(cmds):
         if cmd == "{":
             obligations.append(JobObligation([cmd[0] for cmd in cmds[:cmd_idx+1]],
                                              get_cur_obl_solution(cmds[cmd_idx+1:])))
     return obligations
 
-def normalize_and_check_predictions(args: argparse.Namespace,
-                                    coq: coq_serapy.CoqAgent,
-                                    predictor: TacticPredictor,
-                                    input_cmds: List[str]) -> List[Tuple[str, bool]]:
-    normalized_checked_cmds = []
-    for cmd in input_cmds:
-        # Ignore original goal selectors, we'll add them ourselves.
-        if re.match(r"[\{\}]|([\+\-\*]+)", coq_serapy.kill_comments(cmd).strip()):
-            continue
+def normalize_proof_interactions(interactions: List[ScrapedTactic],
+                                 verbosity:int = 0) -> List[ScrapedTactic]:
+    output_interactions: List[ScrapedTactic] = []
+    num_subgoals_stack: List[int] = [1]
+    previous_num_subgoals: int = 1
+    for interaction in interactions:
+        if verbosity > 0:
+            coq_serapy.summarizeContext(interaction.context)
+            eprint(interaction.tactic)
+        num_subgoals = len(interaction.context.fg_goals) + len(interaction.context.bg_goals)
+        subgoals_created_by_last_tac = num_subgoals - previous_num_subgoals
+        if subgoals_created_by_last_tac > 0:
+            num_subgoals_stack.append(subgoals_created_by_last_tac + 1)
+            output_interactions.append(
+                ScrapedTactic(interaction.relevant_lemmas,
+                              interaction.prev_tactics,
+                              interaction.context,
+                              "{"))
+        if subgoals_created_by_last_tac < 0:
+            assert subgoals_created_by_last_tac == -1, \
+                "Shouldn't be able to close more than one subgoal at a time. " \
+                f"Num subgoals before: {previous_num_subgoals}, "\
+                f"num subgoals after: {len(interaction.context.all_goals)}"
+            num_subgoals_stack[-1] -= 1
+            output_interactions.append(
+                ScrapedTactic(
+                    interaction.relevant_lemmas,
+                    interaction.prev_tactics,
+                    interaction.context,
+                "}"))
+            while len(num_subgoals_stack) > 1 and num_subgoals_stack[-1] == 0:
+                num_subgoals_stack.pop()
+                num_subgoals_stack[-1] -= 1
+                if len(num_subgoals_stack) > 1:
+                    output_interactions.append(
+                        ScrapedTactic(interaction.relevant_lemmas,
+                                      interaction.prev_tactics,
+                                      interaction.context,
+                                      "}"))
+                else:
+                    tac = coq_serapy.kill_comments(interaction.tactic).strip()
+                    assert tac in ["Qed.", "}"] or re.fullmatch("[*+-]+", tac), interaction.tactic
+            if len(num_subgoals_stack) > 1:
+                output_interactions.append(
+                    ScrapedTactic(
+                        interaction.relevant_lemmas,
+                        interaction.prev_tactics,
+                        ProofContext(interaction.context.bg_goals[:num_subgoals_stack[-1]],
+                                     interaction.context.bg_goals[num_subgoals_stack[-1]:],
+                                     interaction.context.shelved_goals,
+                                     interaction.context.given_up_goals),
+                        "{"))
+        previous_num_subgoals = num_subgoals
 
-        if coq_serapy.ending_proof(cmd):
-            normalized_checked_cmds.append((cmd, True))
+        if interaction.tactic.strip() not in ["{", "}"]:
+            if len(interaction.context.fg_goals) == 0:
+                output_interactions.append(interaction)
+            else:
+                output_interactions.append(
+                    ScrapedTactic(
+                        interaction.relevant_lemmas,
+                        interaction.prev_tactics,
+                        ProofContext([interaction.context.fg_goals[0]],
+                                     interaction.context.fg_goals[1:] +
+                                     interaction.context.bg_goals,
+                                     interaction.context.shelved_goals,
+                                     interaction.context.given_up_goals),
+                        interaction.tactic))
+    assert len(interactions) > 0
+    for _ in range(len(num_subgoals_stack) - 1):
+        output_interactions.append(
+            ScrapedTactic(interactions[-1].relevant_lemmas,
+                          interactions[-1].prev_tactics,
+                          interactions[-1].context,
+                          "}"))
+    return output_interactions
+
+def annotate_cmds_in_pred(args: argparse.Namespace,
+                            predictor: TacticPredictor,
+                            sol_contexts: List[ScrapedTactic]) -> List[bool]:
+
+    annotated_sol: List[(str,bool)] = []
+    for sol_context in tqdm(sol_contexts, desc="Checking predictions",
+                            disable=len(sol_contexts) < 200):
+        sol_cmd = sol_context.tactic
+        if sol_cmd in ['{', '}'] :
+            annotated_sol.append((sol_cmd, True))
+            continue
+        if coq_serapy.ending_proof(sol_cmd) :
+            annotated_sol.append((sol_cmd,True))
             break
-        # Next call the predictor, to determine if the command is in
-        # the predictions.
+
         predictions = predictor.predictKTactics(
-            truncate_tactic_context(FullContext(coq.local_lemmas,
-                                                coq.prev_tactics,
-                                                unwrap(coq.proof_context)
+            truncate_tactic_context(FullContext(sol_context.relevant_lemmas,
+                                                sol_context.prev_tactics,
+                                                unwrap(sol_context.context)
                                                 ).as_tcontext(),
                                     30),
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
-        in_predictions = (coq_serapy.kill_comments(cmd).strip()
+        in_predictions = (coq_serapy.kill_comments(sol_cmd).strip()
                           in [p.prediction for p in predictions])
-        # Special-case the `auto` tactic, since the proverbot model
-        # preprocesses it into "eauto." If the solution tactic is
-        # "auto", but we predict "eauto", that would work too so count
-        # it as in-domain.
-        if coq_serapy.kill_comments(cmd).strip() == "auto.":
+        if coq_serapy.kill_comments(sol_cmd).strip() == "auto.":
             in_predictions |= "eauto." in [p.prediction for p in predictions]
 
-        # All non-goal-selectors get added to the normalized solution.
-        normalized_checked_cmds.append((cmd, in_predictions))
+        annotated_sol.append((sol_cmd, in_predictions))
+    return annotated_sol
 
-        coq.run_stmt(cmd)
-
-        # All goal manipulation commands will be given a True for
-        # in_predictions, since the prediction running engine is able
-        # to run them automatically.
-
-        # If we've completed all our subgoals, close goals until we
-        # hit the Qed or some goals come into the foreground.
-        just_closed = False
-        while coq.count_fg_goals() == 0 and \
-              (len(coq.proof_context.all_goals) > 0 or \
-               coq.tactic_history.curDepth() > 0):
-            just_closed = True
-            coq.run_stmt("}")
-            normalized_checked_cmds.append(("}", True))
-        # If we just created multiple obligations, or if we just
-        # closed an obligation, and we're starting the next one, add
-        # the open bracket.
-        if coq.count_fg_goals() > 1 or (just_closed and coq.count_fg_goals() > 0):
-            coq.run_stmt("{")
-            normalized_checked_cmds.append(("{", True))
-    # Clean up our state by cancelling to right after the theorem
-    # statement.
-    while len(coq.prev_tactics) > 1:
-        coq.cancel_last()
-
-    return normalized_checked_cmds
-
-
-def gen_rl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
-                     worker: Worker, job: ReportJob) -> List[RLTask]:
-
-    job_existing_solution = get_cur_job_solution(worker)
-    norm_sol, in_preds = zip(*normalize_and_check_predictions(
-        args, worker.coq, predictor, job_existing_solution))
-
-    tasks: List[RLTask] = []
-
-    for cur_task_length in range(1, len(norm_sol)):
-        if not in_preds[-cur_task_length]:
-            break
-        task_prefix = job_existing_solution[:-cur_task_length]
-        task_solution = job_existing_solution[-cur_task_length:]
-        if len([tac for tac in task_solution if tac not in ["{", "}", "Unshelve."]]) > \
-           args.max_target_length:
-            break
-        if len([tac for tac in task_solution if tac == "{"]) != \
-           len([tac for tac in task_solution if tac == "}"]):
-            continue
-        tasks.append(RLTask(job.filename, job.module_prefix,
-                            job.lemma_statement,
-                            task_prefix, task_solution,
-                            cur_task_length))
-    return tasks
 
 
 def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
-                         worker: Worker, job: ReportJob) -> List[RLTask]:
-    annotated_cmds = normalize_and_check_predictions(args, worker.coq, predictor,
-                                                     get_cur_job_solution(worker))
+                         normalized_scrape: List[ScrapedTactic], job: ReportJob) -> List[RLTask]:
+
+    annotated_cmds = annotate_cmds_in_pred(args, predictor, normalized_scrape)
     annotated_obls = obls_from_solution(annotated_cmds)
 
     tasks = []
@@ -271,7 +279,6 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                 continue
             tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
                                 task_prefix, task_solution, sol_tac_length))
-    worker.skip_proof(args.careful)
     return tasks
 
 if __name__ == "__main__":

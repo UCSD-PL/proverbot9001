@@ -77,14 +77,11 @@ def main():
         coqargs += args.sertop_flags.split()
     tasks = [(idx % args.threads, filename) for (idx, filename)
              in enumerate(args.inputs)]
-    with multiprocessing.Pool(args.threads) as pool:
-        scrape_result_files = pool.imap_unordered(
-            functools.partial(scrape_file, coqargs, args),
-            tasks)
-        with (open(args.output, 'w') if args.output
-              else contextlib.nullcontext(sys.stdout)) as out:
-            for idx, scrape_result_file in enumerate(scrape_result_files,
-                                                     start=1):
+    if args.threads == 1:
+        scrape_result_files = (scrape_file(coqargs, args, task) for task in tasks)
+        for idx, scrape_result_file in enumerate(scrape_result_files, start=1):
+            with (open(args.output, 'w') if args.output
+                  else contextlib.nullcontext(sys.stdout)) as out:
                 if scrape_result_file is None:
                     eprint("Failed file {} of {}"
                            .format(idx, len(args.inputs)))
@@ -95,6 +92,25 @@ def main():
                     with open(scrape_result_file, 'r') as f:
                         for line in f:
                             out.write(line)
+    else:
+        with multiprocessing.Pool(args.threads) as pool:
+            scrape_result_files = pool.imap_unordered(
+                functools.partial(scrape_file, coqargs, args),
+                tasks)
+            with (open(args.output, 'w') if args.output
+                  else contextlib.nullcontext(sys.stdout)) as out:
+                for idx, scrape_result_file in enumerate(scrape_result_files,
+                                                         start=1):
+                    if scrape_result_file is None:
+                        eprint("Failed file {} of {}"
+                               .format(idx, len(args.inputs)))
+                    else:
+                        if args.verbose:
+                            eprint("Finished file {} of {}"
+                                   .format(idx, len(args.inputs)))
+                        with open(scrape_result_file, 'r') as f:
+                            for line in f:
+                                out.write(line)
 
 
 def scrape_file(coqargs: List[str], args: argparse.Namespace,
