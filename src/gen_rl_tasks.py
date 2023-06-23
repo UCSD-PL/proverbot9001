@@ -7,7 +7,7 @@ import os
 
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Tuple, Optional
+from typing import List, Tuple
 
 from tqdm import tqdm
 
@@ -18,13 +18,10 @@ from coq_serapy.contexts import (FullContext, ProofContext,
 from dataloader import scraped_from_file
 
 from search_file import get_all_jobs
-from search_worker import get_predictor, Worker, ReportJob
+from search_worker import get_predictor, ReportJob
 from models.tactic_predictor import TacticPredictor
 
-from util import unwrap, eprint, print_time
-from linearize_semicolons import get_linearized
-
-import data
+from util import unwrap, eprint
 
 
 def main():
