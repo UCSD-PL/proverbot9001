@@ -208,7 +208,8 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
                         interaction.relevant_lemmas,
                         interaction.prev_tactics,
                         ProofContext([interaction.context.fg_goals[0]],
-                                     interaction.context.fg_goals[1:] + interaction.context.bg_goals,
+                                     interaction.context.fg_goals[1:] +
+                                     interaction.context.bg_goals,
                                      interaction.context.shelved_goals,
                                      interaction.context.given_up_goals),
                         interaction.tactic))
@@ -226,7 +227,8 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
                             sol_contexts: List[ScrapedTactic]) -> List[bool]:
 
     annotated_sol: List[(str,bool)] = []
-    for sol_context in tqdm(sol_contexts, desc="Checking predictions", disable=len(sol_contexts) < 200):
+    for sol_context in tqdm(sol_contexts, desc="Checking predictions",
+                            disable=len(sol_contexts) < 200):
         sol_cmd = sol_context.tactic
         if sol_cmd in ['{', '}'] :
             annotated_sol.append((sol_cmd, True))
