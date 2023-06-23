@@ -119,23 +119,6 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     os.rename(partial_output, args.output_file)
     os.remove(jobs_done_output)
 
-
-def get_cur_job_solution(worker: Worker) -> List[str]:
-    job_solution = []
-    job_contexts = []
-    remaining_commands = list(worker.remaining_commands)
-    remaining_contexts = list(worker.remaining_contexts)
-    while not coq_serapy.ending_proof(remaining_commands[0]):
-        cmd = remaining_commands.pop(0)
-        context = remaining_contexts.pop(0)
-        if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(cmd).strip()):
-            continue
-        if cmd.strip() == "Proof.":
-            continue
-        job_solution.append(cmd)
-        job_contexts.append(context)
-    return job_solution, job_contexts
-
 @dataclass
 class JobObligation:
     tactic_prefix: List[str]
