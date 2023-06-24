@@ -1,14 +1,16 @@
 {
   "name": "proverbot9001",
   // based on https://code.visualstudio.com/remote/advancedcontainers/connect-multiple-containers
-  "dockerComposeFile": ["../docker-compose.yml"],
+  "dockerComposeFile": [
+    "../docker-compose.yml"
+  ],
   "service": "dev",
   "workspaceFolder": "/workspace",
   "remoteUser": "vscode",
   "customizations": {
     "vscode": {
       "settings": {
-        "terminal.integrated.defaultProfile.linux": "fish",
+        "terminal.integrated.defaultProfile.linux": "bash",
         "terminal.integrated.defaultProfile.osx": "fish",
         "editor.formatOnSave": true,
         "ocaml-formatter.profile": "janestreet",
