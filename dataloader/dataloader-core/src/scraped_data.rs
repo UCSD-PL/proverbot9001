@@ -69,19 +69,19 @@ impl ScrapedTactic {
         }
     }
     pub fn with_focused_obl(&self, fg_obl: Obligation) -> Self {
-	let mut fg_goals = vec![fg_obl];
-	fg_goals.extend(self.context.fg_goals.iter().skip(1).cloned());
-	ScrapedTactic {
-	    relevant_lemmas: self.relevant_lemmas.clone(),
-	    prev_tactics: self.prev_tactics.clone(),
-	    context: ProofContext {
-		fg_goals,
-		bg_goals: self.context.bg_goals.clone(),
-		shelved_goals: self.context.shelved_goals.clone(),
-		given_up_goals: self.context.given_up_goals.clone(),
-	    },
-	    tactic: self.tactic.clone()
-	}
+        let mut fg_goals = vec![fg_obl];
+        fg_goals.extend(self.context.fg_goals.iter().skip(1).cloned());
+        ScrapedTactic {
+            relevant_lemmas: self.relevant_lemmas.clone(),
+            prev_tactics: self.prev_tactics.clone(),
+            context: ProofContext {
+                fg_goals,
+                bg_goals: self.context.bg_goals.clone(),
+                shelved_goals: self.context.shelved_goals.clone(),
+                given_up_goals: self.context.given_up_goals.clone(),
+            },
+            tactic: self.tactic.clone(),
+        }
     }
 }
 #[pyclass]
@@ -127,7 +127,6 @@ impl Obligation {
         Obligation { hypotheses, goal }
     }
 }
-
 
 #[pyclass]
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -251,8 +250,10 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
                 command: serde_json::from_str(&actual_line).expect("Couldn't parse string"),
             })
         } else {
-            ScrapedData::Tactic(serde_json::from_str(&actual_line)
-                                .expect(&format!("Couldn't parse line {}", actual_line)))
+            ScrapedData::Tactic(
+                serde_json::from_str(&actual_line)
+                    .expect(&format!("Couldn't parse line {}", actual_line)),
+            )
         }
     })
 }
@@ -399,50 +400,57 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
     // Numeric args
     if let Some((stem, argstr)) = split_tactic(&newtac) {
         if stem == "induction" || stem == "destruct" {
-	    // Figure out the numeric argument
+            // Figure out the numeric argument
             let argstr = if argstr.chars().last() == Some('.') {
                 argstr.chars().take(argstr.len() - 1).collect()
             } else {
                 argstr
             };
             let argstr_tokens: Vec<_> = argstr.split_whitespace().collect();
-	    if argstr_tokens.len() != 1 {
-		return vec![datum.with_tactic(newtac)];
-	    }
-	    let arg_num = match argstr_tokens[0].parse::<i64>() {
-		Ok(var_idx) => var_idx,
-		Err(_) => { return vec![datum.with_tactic(newtac)]; }
-	    };
+            if argstr_tokens.len() != 1 {
+                return vec![datum.with_tactic(newtac)];
+            }
+            let arg_num = match argstr_tokens[0].parse::<i64>() {
+                Ok(var_idx) => var_idx,
+                Err(_) => {
+                    return vec![datum.with_tactic(newtac)];
+                }
+            };
 
-	    // Set up a vector to hold the interactions that this unfolds to.
-	    let mut new_scrapeds = Vec::new();
+            // Set up a vector to hold the interactions that this unfolds to.
+            let mut new_scrapeds = Vec::new();
 
-	    let mut hyps_list = datum.context.focused_hyps().clone();
-	    let mut curgoal = datum.context.focused_goal().clone();
-	    let mut induction_target_var = None;
+            let mut hyps_list = datum.context.focused_hyps().clone();
+            let mut curgoal = datum.context.focused_goal().clone();
+            let mut induction_target_var = None;
 
-	    for _ in 0..arg_num {
-		// Get interactions from introing the named variables first
-	        loop {
-	            match get_named_intro_result(&curgoal) {
+            for _ in 0..arg_num {
+                // Get interactions from introing the named variables first
+                loop {
+                    match get_named_intro_result(&curgoal) {
                         Some((new_hyp, new_goal)) => {
-		            let new_hyp_var = new_hyp.split(":").next().unwrap().trim();
-                            new_scrapeds.push(datum.with_focused_obl(Obligation{
-                                hypotheses:hyps_list.clone(),
-                                goal: curgoal})
-                                              .with_tactic(
-                                                  format!("intro {}.", new_hyp_var)));
+                            let new_hyp_var = new_hyp.split(":").next().unwrap().trim();
+                            new_scrapeds.push(
+                                datum
+                                    .with_focused_obl(Obligation {
+                                        hypotheses: hyps_list.clone(),
+                                        goal: curgoal,
+                                    })
+                                    .with_tactic(format!("intro {}.", new_hyp_var)),
+                            );
                             hyps_list.push(new_hyp);
                             curgoal = new_goal;
-                        },
+                        }
                         None => break,
                     }
                 }
 
                 // Get interactions introing unnamed variable
                 let fresh_hyp_name = {
-                    let existing_hyp_names: Vec<_> = hyps_list.iter().map(
-                        |hyp| hyp.split(":").next().unwrap().trim()).collect();
+                    let existing_hyp_names: Vec<_> = hyps_list
+                        .iter()
+                        .map(|hyp| hyp.split(":").next().unwrap().trim())
+                        .collect();
                     let alts = ["H", "H0", "H1", "H2", "H3", "H4", "H5", "H6", "H7"];
                     let mut optional_result = None;
                     for alt in alts.into_iter() {
@@ -451,27 +459,36 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
                             break;
                         }
                     }
-                    optional_result.expect(
-                        &format!("Couldn't find fresh hyp name from {:?}, \
+                    optional_result.expect(&format!(
+                        "Couldn't find fresh hyp name from {:?}, \
                                   existing hyps were {:?}",
-                                 alts, hyps_list))
+                        alts, hyps_list
+                    ))
                 };
-                new_scrapeds.push(datum.with_focused_obl(Obligation{
-                    hypotheses: hyps_list.clone(),
-                    goal: curgoal.clone()}).with_tactic(format!("intro {}.", fresh_hyp_name)));
-                let unnamed_intro_result = get_unnamed_intro_result(
-                    &curgoal, fresh_hyp_name);
-                let (new_hyp, new_goal) = unnamed_intro_result.expect(
-                    "Couldn't intro unnamed hypothesis");
+                new_scrapeds.push(
+                    datum
+                        .with_focused_obl(Obligation {
+                            hypotheses: hyps_list.clone(),
+                            goal: curgoal.clone(),
+                        })
+                        .with_tactic(format!("intro {}.", fresh_hyp_name)),
+                );
+                let unnamed_intro_result = get_unnamed_intro_result(&curgoal, fresh_hyp_name);
+                let (new_hyp, new_goal) =
+                    unnamed_intro_result.expect("Couldn't intro unnamed hypothesis");
                 hyps_list.push(new_hyp);
                 curgoal = new_goal;
                 induction_target_var = Some(fresh_hyp_name);
             }
 
-            new_scrapeds.push(datum.with_focused_obl(Obligation{
-                hypotheses: hyps_list.clone(),
-                goal: curgoal}).with_tactic(
-                format!("induction {}.", induction_target_var.unwrap())));
+            new_scrapeds.push(
+                datum
+                    .with_focused_obl(Obligation {
+                        hypotheses: hyps_list.clone(),
+                        goal: curgoal,
+                    })
+                    .with_tactic(format!("induction {}.", induction_target_var.unwrap())),
+            );
 
             return new_scrapeds;
         }
@@ -546,7 +563,7 @@ fn get_named_intro_result(goal: &str) -> Option<(String, String)> {
             }
             Some((result_hyp, result_goal))
         }
-        None => None
+        None => None,
     }
 }
 /// A function for doing some quick & dirty parsing of forall binders,
@@ -561,7 +578,7 @@ fn get_unnamed_intro_result(goal: &str, fresh_hyp_name: &str) -> Option<(String,
             }
             Some((format!("{} :{}", fresh_hyp_name, hyp_parts[1]), result_goal))
         }
-        None => None
+        None => None,
     }
 }
 
@@ -573,7 +590,7 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
     let mut got_binder = false;
     let goal_symbols = get_words(goal);
     if goal_symbols[0] != "forall" {
-        return None
+        return None;
     }
     let mut new_hyp_symbols = vec![];
     let mut new_goal_symbols: Vec<&str> = vec![];
@@ -584,18 +601,18 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
             // "forall ," there, but our logic so far has dictated
             // that after popping a parenthesized argument we should
             // leave the rest of it's forall.
-	    if *w == "," && new_goal_symbols.len() == 1 {
-		new_goal_symbols = vec![];
-	    } else {
-		new_goal_symbols.push(w);
-	    }
-	} else if *w == "(" {
+            if *w == "," && new_goal_symbols.len() == 1 {
+                new_goal_symbols = vec![];
+            } else {
+                new_goal_symbols.push(w);
+            }
+        } else if *w == "(" {
             paren_depth += 1;
-	} else if *w == ")" {
-	    paren_depth -= 1;
-	    if paren_depth == 0 {
-		got_binder = true;
-		new_goal_symbols.push(&goal_symbols[0]);
+        } else if *w == ")" {
+            paren_depth -= 1;
+            if paren_depth == 0 {
+                got_binder = true;
+                new_goal_symbols.push(&goal_symbols[0]);
                 // If we're dealing with multiple variables in a single type binding,
                 // like `forall ( a a' : expr) ...`, then we need to leave one and
                 // take the other.
@@ -607,14 +624,18 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
                         new_hyp_symbols.remove(1);
                     }
                 }
-	    }
-	} else if *w == "," && paren_depth == 0 {
-	    got_binder = true;
-	} else {
-	    new_hyp_symbols.push(*w)
-	}
+            }
+        } else if *w == "," && paren_depth == 0 {
+            got_binder = true;
+        } else {
+            new_hyp_symbols.push(*w)
+        }
     }
-    assert_eq!(new_hyp_symbols[1], ":", "Can't figure out how to parse goal {}", goal);
+    assert_eq!(
+        new_hyp_symbols[1], ":",
+        "Can't figure out how to parse goal {}",
+        goal
+    );
     Some((new_hyp_symbols.join(" "), new_goal_symbols.join(" ")))
 }
 

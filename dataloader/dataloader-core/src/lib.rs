@@ -183,7 +183,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         _py: Python,
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
-        term: String) -> LongTensor1D {
+        term: String,
+    ) -> LongTensor1D {
         tokenize_fpa(args, metadata, term)
     }
     #[pyfn(m)]
@@ -191,13 +192,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         args: DataloaderArgs,
         metadata: PickleableFPAMetadata,
         goal: String,
-        premise: String) -> FloatTensor1D {
+        premise: String,
+    ) -> FloatTensor1D {
         get_premise_features_rs(args, metadata, goal, premise)
     }
     #[pyfn(m)]
-    pub fn get_premise_features_size(
-        args: DataloaderArgs,
-        metadata: PickleableFPAMetadata) -> i64 {
+    pub fn get_premise_features_size(args: DataloaderArgs, metadata: PickleableFPAMetadata) -> i64 {
         get_premise_features_size_rs(args, metadata)
     }
     #[pyfn(m)]
@@ -240,7 +240,7 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     ) -> Option<i64> {
         match encode_fpa_arg_unbounded(&args, hyps, goal, arg) {
             Ok(val) => Some(val),
-            Err(_err) => None
+            Err(_err) => None,
         }
     }
     #[pyfn(m)]
@@ -253,16 +253,22 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         fpa_get_num_possible_args_rs(&args)
     }
     #[pyfn(m)]
-    fn get_num_indices(_py: Python, metadata: PickleableFPAMetadata) -> (PickleableFPAMetadata, i64) {
+    fn get_num_indices(
+        _py: Python,
+        metadata: PickleableFPAMetadata,
+    ) -> (PickleableFPAMetadata, i64) {
         let (mut indexer, tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         indexer.freeze();
         let num_indices = indexer.num_indices();
-        (fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)), num_indices)
+        (
+            fpa_metadata_to_pickleable((indexer, tokenizer, ftmap)),
+            num_indices,
+        )
     }
     #[pyfn(m)]
     fn get_all_tactics(_py: Python, metadata: PickleableFPAMetadata) -> Vec<String> {
-	let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
-	indexer.get_all_tactics()
+        let (indexer, _, _) = fpa_metadata_from_pickleable(metadata);
+        indexer.get_all_tactics()
     }
     #[pyfn(m)]
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
@@ -330,11 +336,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn scraped_tactics_from_file(
         _py: Python,
         filename: String,
-	filter_spec: String,
-	max_term_length: usize,
-	num_tactics: Option<usize>,
+        filter_spec: String,
+        max_term_length: usize,
+        num_tactics: Option<usize>,
     ) -> PyResult<Vec<ScrapedTactic>> {
-	let filter = parse_filter(&filter_spec);
+        let filter = parse_filter(&filter_spec);
         let iter = scraped_data::scraped_from_file(
             File::open(filename)
                 .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
@@ -342,7 +348,8 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         .flat_map(|datum| match datum {
             ScrapedData::Vernac(_) => None,
             ScrapedData::Tactic(t) => Some(t),
-        }).filter(|datum| apply_filter(max_term_length, &filter, datum));
+        })
+        .filter(|datum| apply_filter(max_term_length, &filter, datum));
         match num_tactics {
             Some(num) => Ok(iter.take(num).collect()),
             None => Ok(iter.collect()),
