@@ -317,14 +317,14 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         tokenize_goal(args, metadata, s)
     }
     #[pyfn(m)]
-    fn scraped_from_file(
-        py: Python,
-        filename: String,
-    ) -> PyResult<Vec<PyObject>> {
-        Ok(scraped_data::scraped_from_file(
-            File::open(filename)
-                .map_err(|_err| exceptions::PyValueError::new_err("Failed to open file"))?,
-        ).map(|scraped| scraped.to_object(py)).collect())
+    fn scraped_from_file(py: Python, filename: String) -> PyResult<Vec<PyObject>> {
+        Ok(
+            scraped_data::scraped_from_file(File::open(filename.clone()).map_err(|_err| {
+                exceptions::PyValueError::new_err(format!("Failed to open file {}", filename))
+            })?)
+            .map(|scraped| scraped.to_object(py))
+            .collect(),
+        )
     }
     #[pyfn(m)]
     fn scraped_tactics_from_file(
