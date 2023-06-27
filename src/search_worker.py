@@ -131,13 +131,13 @@ class Worker:
         assert self.coq
         assert not self.coq.proof_context, "Already in a proof!"
 
-        _, job_file, job_module, job_lemma = job
+        job_project, job_file, job_module, job_lemma = job
         all_file_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / job_file)
         commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
         while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
-               commands_after_lemma_start[0] != job_lemma):
+               coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() != coq_serapy.kill_comments(job_lemma).strip()):
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
         commands_to_cancel = commands_after_lemma_start[:len(commands_after_lemma_start)-len(self.remaining_commands)]
@@ -188,7 +188,8 @@ class Worker:
                     self.coq.secvar_dep_map.cancelSectionEnd()
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
-        self.lemmas_encountered.append(job)
+        appendjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
+        self.lemmas_encountered.append(appendjob)
 
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
@@ -204,9 +205,12 @@ class Worker:
             if self.args.set_switch:
                 self.set_switch_from_proj()
             self.enter_file(job_file)
-        if job in self.lemmas_encountered:
+        # Strip comments for comparison with lemmas encountered
+        checkjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
+        if checkjob in self.lemmas_encountered:
             self.run_backwards_into_job(job)
             return
+
         # If the job is in a different file load the jobs file from scratch.
         if job_file != self.cur_file:
             self.reset_file_state()
@@ -275,7 +279,7 @@ class Worker:
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
-                                                         unique_lemma_statement))
+                                                         coq_serapy.kill_comments(unique_lemma_statement).strip()))
                 return
             try:
                 self.skip_proof(careful)
@@ -339,7 +343,7 @@ class Worker:
             self.remaining_commands.pop(0)
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
-                                                 lemma_statement))
+                                                 coq_serapy.kill_comments(lemma_statement).strip()))
     def _mark_proof_using(self) -> None:
         lemma_name = \
             coq_serapy.lemma_name_from_statement(self.coq.prev_tactics[0])
