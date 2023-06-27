@@ -330,9 +330,17 @@ class FeaturesPolyargPredictor(
                                 (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, contexts: List[TacticContext], k: int,
-                              verbosity:int = 0) -> List[List[Prediction]]:
+                              verbosity:int = 0,
+                              blacklist: Optional[List[str]] = None) -> List[List[Prediction]]:
+        if blacklist is None:
+            blacklist = []
+        else:
+            for stem in blacklist:
+                assert coq_serapy.get_stem(stem) == stem, \
+                    "Item {stem} in blacklist isn't a tactic stem!"
         with torch.no_grad():
             all_predictions_batch = self.getAllPredictionIdxs_batch(contexts,
+                                                                    blacklist,
                                                                     verbosity=verbosity)
 
         def generate():
@@ -398,6 +406,7 @@ class FeaturesPolyargPredictor(
         return result
 
     def getAllPredictionIdxs_batch(self, contexts: List[TacticContext],
+                                   blacklist: List[str],
                                    verbosity:int = 0) -> List[List[Tuple[float, int, int]]]:
         assert self.training_args
         assert self._model
@@ -416,7 +425,8 @@ class FeaturesPolyargPredictor(
 
         _, stem_certainties_batch, stem_idxs_batch = self.predict_stems(
             self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features),
-            [])
+            [encode_fpa_stem(extract_dataloader_args(self.training_args),
+                             self.metadata, stem) for stem in blacklist])
 
         goal_arg_values_batch = self.goal_token_scores(
             self._model, self.training_args,
