@@ -8,6 +8,7 @@ import time
 import contextlib
 import math
 from pathlib import Path
+from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable)
 
@@ -80,6 +81,7 @@ def main():
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
+    parser.add_argument("--curriculum",action="store_true")
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -195,13 +197,17 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     
     if args.tasks_file:
         jobs = []
-        with open(args.tasks_file, 'r') as f:
-            for line in f:
-                task = json.loads(line) 
-                task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
-                        lemma_statement=task['proof_statement'])
-                jobs.append((task_job, task['tactic_prefix']))
+        with open(args.tasks_file, "r") as f:
+            readjobs = [json.loads(line) for line in f]
         f.close()
+
+        if args.curriculum:
+            readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=True)
+
+        for task in readjobs:
+            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
+                    lemma_statement=task['proof_statement'])
+            jobs.append((task_job, task['tactic_prefix']))
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]
 
