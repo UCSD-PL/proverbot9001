@@ -228,7 +228,7 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
 
     annotated_sol: List[(str,bool)] = []
     for sol_context in tqdm(sol_contexts, desc="Checking predictions",
-                            disable=len(sol_contexts) < 200):
+                            leave=False, disable=len(sol_contexts) < 200):
         sol_cmd = sol_context.tactic
         if sol_cmd in ['{', '}'] :
             annotated_sol.append((sol_cmd, True))
