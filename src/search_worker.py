@@ -123,7 +123,7 @@ class Worker:
         self.coq.enter_file(filename)
         self.remaining_commands = get_linearized(
             self.args, ["sertop"], 1,
-            self.args.prelude / self.cur_project / filename)
+            str(Path(self.cur_project) / filename))
 
     def exit_cur_file(self) -> None:
         assert self.coq
