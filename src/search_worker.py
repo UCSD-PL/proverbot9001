@@ -16,6 +16,7 @@ from search_results import SearchResult, KilledException, SearchStatus, TacticIn
 from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
+from linearize_semicolons import get_linearized
 
 from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching
 
@@ -120,8 +121,9 @@ class Worker:
         assert self.coq
         self.cur_file = filename
         self.coq.enter_file(filename)
-        self.remaining_commands = coq_serapy.load_commands_preserve(
-            self.args, 1, self.args.prelude / self.cur_project / filename)
+        self.remaining_commands = get_linearized(
+            self.args, ["sertop"], 1,
+            self.args.prelude / self.cur_project / filename)
 
     def exit_cur_file(self) -> None:
         assert self.coq
