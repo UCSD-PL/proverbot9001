@@ -73,6 +73,8 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
                coq_serapy.sm_prefix_from_stack(sm_stack) == job.module_prefix:
                 in_proof = True
         elif in_proof:
+            if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
+                continue
             job_interactions.append(ScrapedTactic.from_structeq(interaction))
             if coq_serapy.ending_proof(interaction.tactic):
                 return job_interactions
@@ -98,7 +100,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             pass
         jobs_already_done = []
 
-    for job in tqdm(all_jobs):
+    for job in tqdm(all_jobs,desc="Creating tasks"):
         if job in jobs_already_done and args.resume:
             continue
         if "Program" in coq_serapy.kill_comments(job.lemma_statement) :
@@ -152,7 +154,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
     num_subgoals_stack: List[int] = [1]
     previous_num_subgoals: int = 1
     for interaction in interactions:
-        if verbosity > 0:
+        if verbosity > 1:
             coq_serapy.summarizeContext(interaction.context)
             eprint(interaction.tactic)
         num_subgoals = len(interaction.context.fg_goals) + len(interaction.context.bg_goals)
