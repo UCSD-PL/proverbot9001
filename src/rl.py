@@ -202,7 +202,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         f.close()
 
         if args.curriculum:
-            readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=True)
+            readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False)
 
         for task in readjobs:
             task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
