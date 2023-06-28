@@ -134,8 +134,9 @@ class Worker:
         assert not self.coq.proof_context, "Already in a proof!"
 
         job_project, job_file, job_module, job_lemma = job
-        all_file_commands = coq_serapy.load_commands_preserve(
-            self.args, 1, self.args.prelude / self.cur_project / job_file)
+        all_file_commands = get_linearized(
+            self.args, ["sertop"], 1,
+            str(Path(self.cur_project) / job_file))
         commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
         while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
