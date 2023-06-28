@@ -140,7 +140,8 @@ class Worker:
         commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
         while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
-               coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() != coq_serapy.kill_comments(job_lemma).strip()):
+               coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() !=
+               coq_serapy.kill_comments(job_lemma).strip()):
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
         commands_to_cancel = commands_after_lemma_start[:len(commands_after_lemma_start)-len(self.remaining_commands)]
