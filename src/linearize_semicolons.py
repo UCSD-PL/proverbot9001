@@ -647,6 +647,7 @@ def main():
                         action='store_const', const=True, default=False)
     parser.add_argument("--linearizer-timeout",
                         type=int, default=(60 * 60 * 2))
+    parser.add_argument("--text-encoding", default='utf-8', type=str)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     arg_values = parser.parse_args()
 
