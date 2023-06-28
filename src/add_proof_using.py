@@ -47,20 +47,21 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
         else:
             yield cmd
         if coq_serapy.ending_proof(cmd):
-            assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
-            suggestion_match = re.match(
-                r"\n?The proof of ([^ \n]+)(?: |\n)"
-                r"should start with one of the following commands:"
-                r"(?: |\n)(Proof using[^.]+\.)",
-                coq.backend.feedback_string)
-            suggested_command = unwrap(suggestion_match).group(2) + "\n"
-            if cur_proof_commands[0].strip() == "Proof.":
-                cur_proof_commands[0] = suggested_command
-            else:
-                # If there's a Proof command with extra annotations,
-                # just leave the original.
-                if not re.match(r"Proof\s+[^.]+\.", cur_proof_commands[0].strip()):
-                    cur_proof_commands.insert(0, suggested_command)
+            if cmd.strip() == "Qed.":
+                assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
+                suggestion_match = re.match(
+                    r"\n?The proof of ([^ \n]+)(?: |\n)"
+                    r"should start with one of the following commands:"
+                    r"(?: |\n)(Proof using[^.]+\.)",
+                    coq.backend.feedback_string)
+                suggested_command = unwrap(suggestion_match).group(2) + "\n"
+                if cur_proof_commands[0].strip() == "Proof.":
+                    cur_proof_commands[0] = suggested_command
+                else:
+                    # If there's a Proof command with extra annotations,
+                    # just leave the original.
+                    if not re.match(r"Proof\s+[^.]+\.", cur_proof_commands[0].strip()):
+                        cur_proof_commands.insert(0, suggested_command)
 
             yield from cur_proof_commands
             cur_proof_commands = []
