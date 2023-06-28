@@ -99,7 +99,7 @@ class FileReinforcementWorker(Worker):
         ending_cmd = self.remaining_commands.pop(0)
         coq_serapy.admit_proof(self.coq, self.coq.prev_tactics[0], ending_cmd)
 
-class ReinforcementWorker(Worker):
+class ReinforcementWorker:
     v_network: 'VNetwork'
     target_v_network: 'VNetwork'
     replay_buffer: 'ReplayBuffer'
