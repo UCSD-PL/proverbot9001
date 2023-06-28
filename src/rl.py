@@ -194,7 +194,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                              args.batch_step, args.lr_step)
         target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
-    
+
     if args.tasks_file:
         jobs = []
         with open(args.tasks_file, "r") as f:
@@ -205,7 +205,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False)
 
         for task in readjobs:
-            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'], 
+            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
                     lemma_statement=task['proof_statement'])
             jobs.append((task_job, task['tactic_prefix']))
     else:
