@@ -112,10 +112,7 @@ class ReinforcementWorker:
                  target_network: 'VNetwork',
                  switch_dict: Optional[Dict[str, str]] = None,
                  initial_replay_buffer: Optional['ReplayBuffer'] = None) -> None:
-        self.original_args = args
-        args_copy = argparse.Namespace(**vars(args))
-        args_copy.verbose = args.verbose - 2
-        super().__init__(args_copy, switch_dict)
+        self.args = args
         self.v_network = v_network
         self.target_v_network = target_network
         self.predictor = predictor
@@ -128,11 +125,13 @@ class ReinforcementWorker:
         self.file_workers = {}
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str], epsilon: float, restart: bool = True) -> None:
         if job.filename not in self.file_workers:
-            self.file_workers[job.filename] = FileReinforcementWorker(self.args, None)
+            args_copy = argparse.Namespace(**vars(self.args))
+            args_copy.verbose = self.args.verbose - 2
+            self.file_workers[job.filename] = FileReinforcementWorker(args_copy, None)
             self.file_workers[job.filename].enter_instance()
         self.file_workers[job.filename].run_into_job(job, restart, False)
         try:
-            experience_proof(self.original_args,
+            experience_proof(self.args,
                              self.file_workers[job.filename].coq,
                              self.predictor, self.v_network,
                              self.replay_buffer, epsilon, tactic_prefix)
@@ -140,7 +139,7 @@ class ReinforcementWorker:
         except coq_serapy.CoqAnomaly:
             self.file_workers[job.filename].restart_coq()
             self.file_workers[job.filename].enter_file(job.filename)
-        train_v_network(self.original_args, self.v_network, self.target_v_network,
+        train_v_network(self.args, self.v_network, self.target_v_network,
                         self.replay_buffer)
     def sync_networks(self) -> None:
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
@@ -207,30 +206,30 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]
 
-    with ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                             initial_replay_buffer = replay_buffer) as worker:
-        if args.interleave:
-            tasks = jobs * args.num_episodes
-        else:
-            tasks = [task for job in jobs for task in [job] * args.num_episodes]
+    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                 initial_replay_buffer = replay_buffer)
+    if args.interleave:
+        tasks = jobs * args.num_episodes
+    else:
+        tasks = [task for job in jobs for task in [job] * args.num_episodes]
 
-        for step in range(steps_already_done):
-            with nostderr():
-                worker.v_network.adjuster.step()
+    for step in range(steps_already_done):
+        with nostderr():
+            worker.v_network.adjuster.step()
 
-        for step, task_and_prefix in enumerate(tqdm(tasks[steps_already_done:]),
-                                    start=steps_already_done+1):
-            cur_epsilon = args.starting_epsilon + ((step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon))
-            task, task_tactic_prefix = task_and_prefix
-            worker.run_job_reinforce(task, task_tactic_prefix, cur_epsilon)
-            if (step + 1) % args.save_every == 0:
-                save_state(args, worker, step + 1)
-            if (step + 1) % args.sync_target_every == 0:
-                worker.sync_networks()
-        if steps_already_done < len(tasks):
-            save_state(args, worker, step)
-        if args.evaluate:
-            evaluate_results(args, worker, jobs)
+    for step, task_and_prefix in enumerate(tqdm(tasks[steps_already_done:]),
+                                start=steps_already_done+1):
+        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon))
+        task, task_tactic_prefix = task_and_prefix
+        worker.run_job_reinforce(task, task_tactic_prefix, cur_epsilon)
+        if (step + 1) % args.save_every == 0:
+            save_state(args, worker, step + 1)
+        if (step + 1) % args.sync_target_every == 0:
+            worker.sync_networks()
+    if steps_already_done < len(tasks):
+        save_state(args, worker, step)
+    if args.evaluate:
+        evaluate_results(args, worker, jobs)
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
