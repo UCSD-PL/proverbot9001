@@ -130,8 +130,6 @@ class ReinforcementWorker(Worker):
         if job.filename not in self.file_workers:
             self.file_workers[job.filename] = FileReinforcementWorker(self.args, None)
             self.file_workers[job.filename].enter_instance()
-        job_name = job.module_prefix + coq_serapy.lemma_name_from_statement(
-            job.lemma_statement)
         self.file_workers[job.filename].run_into_job(job, restart, False)
         try:
             experience_proof(self.original_args,
