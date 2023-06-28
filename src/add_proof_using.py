@@ -18,7 +18,7 @@ def main() -> None:
     parser.add_argument("output_file", type=Path)
     args = parser.parse_args()
 
-    in_commands = coq_serapy.load_commands(args.prelude / args.input_file)
+    in_commands = coq_serapy.load_commands(args.input_file)
     out_commands = list(add_proof_using(tqdm(in_commands), args.prelude, verbosity=args.verbosity))
 
     with args.output_file.open('w') as f:
