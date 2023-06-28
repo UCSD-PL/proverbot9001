@@ -47,8 +47,8 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
         else:
             yield cmd
         if coq_serapy.ending_proof(cmd):
+            assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
             if cmd.strip() == "Qed." and coq.backend.feedback_string.strip() != "":
-                assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
                 suggestion_match = re.match(
                     r"\n?The proof of ([^ \n]+)(?: |\n)"
                     r"should start with one of the following commands:"
