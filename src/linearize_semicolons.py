@@ -32,6 +32,7 @@ from traceback import *
 from util import *
 from util import eprint, split_by_char_outside_matching, hash_file
 from compcert_linearizer_failures import compcert_failures
+from add_proof_using import add_proof_using_with_running_instance
 
 import coq_serapy as serapi_instance
 from coq_serapy import (AckError, CompletedError, CoqExn,
@@ -540,12 +541,14 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
                     try:
                         failed = False
                         result = list(
-                            postlinear_desugar_tacs(
-                                linearize_commands(
-                                    args, file_idx,
-                                    generate_lifted(commands, coq, pbar),
-                                    coq, filename, relative_filename,
-                                    skip_nochange_tac, failures)))
+                            add_proof_using_with_running_instance(
+                                coq,
+                                postlinear_desugar_tacs(
+                                    linearize_commands(
+                                        args, file_idx,
+                                        generate_lifted(commands, coq, pbar),
+                                        coq, filename, relative_filename,
+                                        skip_nochange_tac, failures))))
                     except CoqAnomaly as e:
                         if isinstance(e.msg, str):
                             raise
