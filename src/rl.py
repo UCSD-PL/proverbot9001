@@ -588,6 +588,7 @@ def evaluate_proof(args: argparse.Namespace,
     for statement in tactic_prefix:
         coq.run_stmt(statement)
         path.append(coq.proof_context)
+    initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
         actions = predictor.predictKTactics(
             truncate_tactic_context(FullContext(
@@ -610,7 +611,8 @@ def evaluate_proof(args: argparse.Namespace,
                guard=args.verbose >= 1)
         execute_action(coq, best_action.prediction)
         path.append(coq.proof_context)
-        if completed_proof(coq):
+        current_open_obligations = len(coq.proof_context.all_goals)
+        if current_open_obligations < initial_open_obligations:
             proof_succeeded = True
             break
     return proof_succeeded
