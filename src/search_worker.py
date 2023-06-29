@@ -41,6 +41,7 @@ class Worker:
     last_program_statement: Optional[str]
     lemmas_encountered: List[ReportJob]
     remaining_commands: List[str]
+    original_commands: List[str]
     obligation_num: int
 
     def __init__(self, args: argparse.Namespace,
@@ -121,9 +122,10 @@ class Worker:
         assert self.coq
         self.cur_file = filename
         self.coq.enter_file(filename)
-        self.remaining_commands = get_linearized(
+        self.original_commands = get_linearized(
             self.args, ["sertop"], 1,
             str(Path(self.cur_project) / filename))
+        self.remaining_commands = self.original_commands
 
     def exit_cur_file(self) -> None:
         assert self.coq
@@ -134,9 +136,7 @@ class Worker:
         assert not self.coq.proof_context, "Already in a proof!"
 
         job_project, job_file, job_module, job_lemma = job
-        all_file_commands = get_linearized(
-            self.args, ["sertop"], 1,
-            str(Path(self.cur_project) / job_file))
+        all_file_commands = self.original_commands
         commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
         while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
