@@ -106,7 +106,7 @@ def linearize_commands(args: argparse.Namespace,
             continue
 
         # This might not be super robust?
-        match = re.fullmatch("\s*Proof with (.*)\.\s*", command_batch[0])
+        match = re.fullmatch(r"\s*Proof with (.*)\.\s*", command_batch[0])
         if match and match.group(1):
             with_tactic = match.group(1)
         else:
@@ -126,11 +126,11 @@ def linearize_commands(args: argparse.Namespace,
                     eprint("Proof of:\n{}\nin file {}".format(
                         theorem_name, filename))
                     eprint()
-                if args.hardfail:
+                if vars(args).get("hardfail", False):
                     raise e
                 coq.run_stmt("Abort.")
                 for command in orig:
-                    inner_ltac_match = re.match("\s*(?:(?:Local|Global)\s+)?Ltac\s+(\S+)\s+", command)
+                    inner_ltac_match = re.match(r"\s*(?:(?:Local|Global)\s+)?Ltac\s+(\S+)\s+", command)
                     if inner_ltac_match:
                         coq.run_stmt("Reset {}.".format(inner_ltac_match.group(1)))
                 coq.run_stmt(theorem_statement)
@@ -491,7 +491,7 @@ def prelinear_desugar_tacs(commands: Iterable[str]) -> Iterable[str]:
 
 
 def lifted_vernac(command: str) -> Optional[Match[Any]]:
-    return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
+    return re.match(r"Ltac\s", serapi_instance.kill_comments(command).strip())
 
 
 def generate_lifted(commands: List[str], coq: serapi_instance.CoqAgent,
