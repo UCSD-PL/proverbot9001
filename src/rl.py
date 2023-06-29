@@ -123,22 +123,27 @@ class ReinforcementWorker:
                                               args.allow_partial_batches)
         self.verbosity = args.verbose
         self.file_workers = {}
-    def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str], epsilon: float, restart: bool = True) -> None:
-        if job.filename not in self.file_workers:
+    def _get_worker(self, filename: str) -> FileReinforcementWorker:
+        if filename not in self.file_workers:
             args_copy = argparse.Namespace(**vars(self.args))
             args_copy.verbose = self.args.verbose - 2
-            self.file_workers[job.filename] = FileReinforcementWorker(args_copy, None)
-            self.file_workers[job.filename].enter_instance()
-        self.file_workers[job.filename].run_into_job(job, restart, False)
+            self.file_workers[filename] = FileReinforcementWorker(args_copy, None)
+            self.file_workers[filename].enter_instance()
+        return self.file_workers[filename]
+
+    def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
+                          epsilon: float, restart: bool = True) -> None:
+        file_worker = self._get_worker(job.filename)
+        file_worker.run_into_job(job, restart, False)
         try:
             experience_proof(self.args,
-                             self.file_workers[job.filename].coq,
+                             file_worker.coq,
                              self.predictor, self.v_network,
                              self.replay_buffer, epsilon, tactic_prefix)
-            self.file_workers[job.filename].finish_proof()
+            file_worker.finish_proof()
         except coq_serapy.CoqAnomaly:
-            self.file_workers[job.filename].restart_coq()
-            self.file_workers[job.filename].enter_file(job.filename)
+            file_worker.restart_coq()
+            file_worker.enter_file(job.filename)
         train_v_network(self.args, self.v_network, self.target_v_network,
                         self.replay_buffer)
     def sync_networks(self) -> None:
