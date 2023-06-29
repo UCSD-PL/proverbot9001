@@ -58,7 +58,7 @@ class LinearizerThisShouldNotHappen(Exception):
     pass
 
 
-def linearize_commands(args: argparse.Namespace, file_idx: int,
+def linearize_commands(args: argparse.Namespace,
                        commands_sequence: Iterable[str],
                        coq: serapi_instance.CoqAgent,
                        filename: str, relative_filename: str,
@@ -545,7 +545,7 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
                                 coq,
                                 postlinear_desugar_tacs(
                                     linearize_commands(
-                                        args, file_idx,
+                                        args,
                                         generate_lifted(commands, coq, pbar),
                                         coq, filename, relative_filename,
                                         skip_nochange_tac, failures))))
