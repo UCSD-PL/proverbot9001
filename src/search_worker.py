@@ -315,7 +315,6 @@ class Worker:
         # declaration that sets the correct type. This also sets up a
         # table of lemma dependencies for recursive use of section
         # variables.
-        self._mark_proof_using()
         proof_relevant = ending_command.strip() == "Defined." or \
             bool(re.match(
                 r"\s*Derive",
@@ -348,40 +347,6 @@ class Worker:
         self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                  self.cur_file, self.coq.module_prefix,
                                                  coq_serapy.kill_comments(lemma_statement).strip()))
-    def _mark_proof_using(self) -> None:
-        lemma_name = \
-            coq_serapy.lemma_name_from_statement(self.coq.prev_tactics[0])
-        section_variables = self._get_secvars_used_in_proof()
-        assert self.coq.module_prefix + lemma_name not in self.coq.secvar_dep_map.curBindings(), (lemma_name, self.coq.secvar_dep_map.curBindings())
-        self.coq.run_stmt("Proof using " + " ".join(section_variables) + ".")
-
-    def _get_secvars_used_in_proof(self) -> List[str]:
-        def has_ident(ident: str, haystack: str) -> bool:
-            return bool(re.match(rf".*\W{ident}[^\w']", haystack, flags=re.DOTALL))
-        def ident_in_next_proof(ident: str) -> bool:
-            for cmd in self.remaining_commands:
-                if coq_serapy.ending_proof(cmd):
-                    return False
-                if has_ident(ident, cmd):
-                    return True
-            assert False
-        assert len(self.coq.prev_tactics) == 1, \
-            "This method is meant to be called just after the start of a proof, " \
-            "so that we can properly determine the section variables. " \
-            f"So far, {len(self.coq.prev_tactics)} statements have been run, " \
-            "but we only accept 1."
-        used_secvars = []
-        for secvar in coq_serapy.get_vars_in_hyps(self.coq.hypotheses):
-            prebinder_string = split_by_char_outside_matching(
-                r"\(", r"\)", ":", self.coq.prev_tactics[0])[0]
-            if has_ident(secvar, prebinder_string):
-                continue
-            if ident_in_next_proof(secvar):
-                used_secvars.append(secvar)
-        for ident, deps in self.coq.secvar_dep_map.curBindings().items():
-            if ident_in_next_proof(ident.rsplit(".")[-1]):
-                used_secvars += deps
-        return used_secvars
 
 
 class SearchWorker(Worker):
@@ -407,7 +372,6 @@ class SearchWorker(Worker):
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
-        self._mark_proof_using()
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         if self.args.add_axioms and not self.axioms_already_added:
@@ -486,7 +450,6 @@ class SearchWorker(Worker):
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
-
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
