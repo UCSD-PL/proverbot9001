@@ -371,6 +371,7 @@ def experience_proof(args: argparse.Namespace,
     path: List[ProofContext] = [coq.proof_context]
     for statement in tactic_prefix:
         coq.run_stmt(statement)
+        path.append(coq.proof_context)
     initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
