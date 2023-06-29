@@ -427,7 +427,6 @@ def experience_proof(args: argparse.Namespace,
 
         current_open_obligations = len(coq.proof_context.all_goals)
         if current_open_obligations < initial_open_obligations:
-            #assert current_open_obligations == (initial_open_obligations - 1)
             break
 
 def evaluate_actions(coq: coq_serapy.CoqAgent,
