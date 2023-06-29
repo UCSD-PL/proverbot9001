@@ -146,6 +146,25 @@ class ReinforcementWorker:
             file_worker.enter_file(job.filename)
         train_v_network(self.args, self.v_network, self.target_v_network,
                         self.replay_buffer)
+    def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
+            -> bool:
+        file_worker = self._get_worker(job.filename)
+        file_worker.run_into_job(job, restart, False)
+        success = False
+        try:
+            success = evaluate_proof(self.args, file_worker.coq, self.predictor,
+                                     self.v_network, tactic_prefix)
+            file_worker.finish_proof()
+        except coq_serapy.CoqAnomaly:
+            file_worker.restart_coq()
+            file_worker.enter_file(job.filename)
+        proof_name = coq_serapy.lemma_name_from_statement(job.lemma_statement)
+        if success:
+            eprint(f"Solved proof {proof_name}!")
+        else:
+            eprint(f"Failed to solve proof {proof_name}")
+        return success
+
     def sync_networks(self) -> None:
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
 
@@ -560,55 +579,53 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
                     worker.target_v_network.get_state(),
                     random.getstate()), f)
 
+def evaluate_proof(args: argparse.Namespace,
+                   coq: coq_serapy.CoqAgent,
+                   predictor: TacticPredictor,
+                   v_network: VNetwork,
+                   tactic_prefix: List[str]) -> bool:
+    path: List[ProofContext] = [coq.proof_context]
+    proof_succeeded = False
+    for statement in tactic_prefix:
+        coq.run_stmt(statement)
+        path.append(coq.proof_context)
+    for _step in range(args.steps_per_episode):
+        actions = predictor.predictKTactics(
+            truncate_tactic_context(FullContext(
+                coq.local_lemmas,
+                coq.prev_tactics,
+                unwrap(coq.proof_context)).as_tcontext(),
+                                    30),
+            args.num_predictions,
+            blacklist=args.blacklisted_tactics)
+        if args.verbose >= 1:
+            coq_serapy.summarizeContext(coq.proof_context)
+        eprint(f"Trying predictions {[action.prediction for action in actions]}",
+               guard=args.verbose >= 2)
+        action_scores = evaluate_actions(coq, v_network, path,
+                                         [action.prediction for action in actions])
+        best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
+        if best_score == -float("Inf"):
+            break
+        eprint(f"Taking action {best_action} with estimated value {best_score}",
+               guard=args.verbose >= 1)
+        execute_action(coq, best_action.prediction)
+        path.append(coq.proof_context)
+        if completed_proof(coq):
+            proof_succeeded = True
+            break
+    return proof_succeeded
+
+
 def evaluate_results(args: argparse.Namespace,
                      worker: ReinforcementWorker,
                      jobs: List[tuple]) -> None:
     proofs_completed = 0
-    for job_and_prefix in jobs:
-        job, tactic_prefix = job_and_prefix
-        worker.run_into_job(job, True, False)
-        path: List[ProofContext] = [worker.coq.proof_context]
-        proof_succeeded = False
-        for _step in range(args.steps_per_episode):
-            actions = worker.predictor.predictKTactics(
-                truncate_tactic_context(FullContext(
-                    worker.coq.local_lemmas,
-                    worker.coq.prev_tactics,
-                    unwrap(worker.coq.proof_context)).as_tcontext(),
-                                        30),
-                args.num_predictions,
-                blacklist=args.blacklisted_tactics)
-            if args.verbose >= 1:
-                coq_serapy.summarizeContext(worker.coq.proof_context)
-            eprint(f"Trying predictions {[action.prediction for action in actions]}",
-                   guard=args.verbose >= 2)
-            action_scores = evaluate_actions(worker.coq, worker.v_network, path,
-                                             [action.prediction for action in actions])
-            best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
-            if best_score == -float("Inf"):
-                break
-            eprint(f"Taking action {best_action} with estimated value {best_score}",
-                   guard=args.verbose >= 1)
-            execute_action(worker.coq, best_action.prediction)
-            path.append(worker.coq.proof_context)
-            if completed_proof(worker.coq):
-                proof_succeeded = True
-                break
-        proof_name = coq_serapy.lemma_name_from_statement(job.lemma_statement)
-        while not coq_serapy.ending_proof(worker.remaining_commands[0]):
-            worker.remaining_commands.pop(0)
-        ending_command = worker.remaining_commands.pop(0)
-        if re.match("\s*Proof .*", ending_command) :
-            ending_command = "Qed."
-        if proof_succeeded:
-            eprint(f"Solved proof {proof_name}!")
+    for job, tactic_prefix in jobs:
+        if worker.evaluate_job(job, tactic_prefix):
             proofs_completed += 1
-            worker.coq.run_stmt(ending_command)
-        else:
-            eprint(f"Failed to solve proof {proof_name}")
-            coq_serapy.admit_proof(worker.coq, job.lemma_statement, ending_command)
     print(f"{proofs_completed} out of {len(jobs)} "
-          f"theorems/lemmas successfully proven "
+          f"tasks successfully proven "
           f"({stringified_percent(proofs_completed, len(jobs))}%)")
 
 def stringified_percent(total : float, outof : float) -> str:
