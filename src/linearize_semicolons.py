@@ -581,7 +581,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
             serapi_instance.load_commands_preserve(
                 args, bar_idx, str(args.prelude) + "/" + filename)
         try:
-            if args.linearizer_timeout:
+            if "linearizer_timeout" in vars(args):
                 signal.signal(signal.SIGALRM, timeout_handler)
                 signal.alarm(args.linearizer_timeout)
             fresh_commands = preprocess_file_commands(
