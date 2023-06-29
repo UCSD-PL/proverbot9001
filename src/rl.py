@@ -424,8 +424,7 @@ def experience_proof(args: argparse.Namespace,
             coq_serapy.summarizeContext(coq.proof_context)
         replay_buffer.add_transition((before_obl, chosen_action.prediction, resulting_obls))
         path.append(coq.proof_context)
-        if completed_proof(coq):
-            break
+
         current_open_obligations = len(coq.proof_context.all_goals)
         if current_open_obligations < initial_open_obligations:
             #assert current_open_obligations == (initial_open_obligations - 1)
