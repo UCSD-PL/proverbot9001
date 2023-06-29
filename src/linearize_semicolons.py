@@ -60,7 +60,7 @@ class LinearizerThisShouldNotHappen(Exception):
 
 def linearize_commands(args: argparse.Namespace, file_idx: int,
                        commands_sequence: Iterable[str],
-                       coq: serapi_instance.SerapiInstance,
+                       coq: serapi_instance.CoqAgent,
                        filename: str, relative_filename: str,
                        skip_nochange_tac: bool,
                        known_failures: List[List[str]]):
@@ -494,7 +494,7 @@ def lifted_vernac(command: str) -> Optional[Match[Any]]:
     return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
 
 
-def generate_lifted(commands: List[str], coq: serapi_instance.SerapiInstance,
+def generate_lifted(commands: List[str], coq: serapi_instance.CoqAgent,
                     pbar: tqdm) \
         -> Iterator[str]:
     lemma_stack = []  # type: List[List[str]]
