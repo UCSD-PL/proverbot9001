@@ -338,7 +338,7 @@ class Worker:
             # Pop the actual Qed/Defined/Save
             self.remaining_commands.pop(0)
         self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                 self.cur_file, self.coq.module_prefix,
+                                                 self.cur_file, self.coq.sm_prefix,
                                                  coq_serapy.kill_comments(lemma_statement).strip()))
 
 
