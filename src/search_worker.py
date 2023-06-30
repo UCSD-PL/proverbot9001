@@ -170,9 +170,6 @@ class Worker:
                     self.coq.cancel_last()
                 self.coq._file_state.cancel_potential_local_lemmas(
                     cancelled_lemma_statement, commands_before_point)
-                self.coq.secvar_dep_map.cancelBinding(
-                    self.coq.module_prefix + coq_serapy.lemma_name_from_statement(
-                        cancelled_lemma_statement))
             else:
                 self.coq.cancel_last()
                 cancelled_cmd = coq_serapy.kill_comments(commands_to_cancel.pop(-1)).strip()
@@ -185,11 +182,7 @@ class Worker:
                 if newstack != self.coq._file_state.sm_stack:
                     self.coq._file_state.sm_stack = newstack
                 section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cancelled_cmd)
-                if section_start_match:
-                    self.coq.secvar_dep_map.cancelSectionStart()
                 end_match = re.match(r"End\s+([\w']*)\.", cancelled_cmd)
-                if end_match and self.coq._file_state.sm_stack[-1][1]:
-                    self.coq.secvar_dep_map.cancelSectionEnd()
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
         appendjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
