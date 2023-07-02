@@ -54,9 +54,33 @@ https://www.python.org/downloads/windows/
 or use Windows Subsystem for Linux
 
 ## Getting Started with RL4Proof
-
+```
 git submodule init CompCert && git submodule update
 cd CompCert
 ./configure x86_64-linux
 make
 make data/compcert-scrape.txt && make data/scrape-test.txt
+```
+Note the make commands are to be ran under CompCert directory. If you are using a Unity cluster, ```srun -c8``` and use ```-j8``` arguments for make.
+
+### Troubleshooting
+- Make sure you are using ```Coq 8.10.2```.
+- If anything went wrong and you need to re-make the CompCert, run ```make clean``` under CompCert directory and repeat the above steps again.
+
+
+## Running the script
+### Checklist
+1. Make sure CompCert making is done.
+2. Have ```data/polyarg-weights-develop.dat``` and ```data/term2vec-weights-59.dat``` included in your local repo.
+### Generating tasks
+```
+python src/gen_rl_tasks.py --prelude=CompCert \
+      --supervised-weights=data/polyarg-weights-develop.dat -o rl_train_jobs.json compcert_projs_splits.json
+```
+### Run Reinforcement Learning Script
+```
+python src/rl.py --supervised-weights=data/polyarg-weights-develop.dat --coq2vec-weights=data/term2vec-weights-59.dat compcert_projs_splits.json \
+         --tasks-file=rl_train_jobs.json --prelude=./CompCert --backend=serapi --allow-partial-batches \
+         --learning-rate=0.0001 -n10 -o data/rl_weights-compcert-5.dat -s5
+```
+
