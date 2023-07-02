@@ -73,6 +73,7 @@ def main():
     parser.add_argument("--batch-step", default=25, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
+    parser.add_argument("--train-every", default=1, type=int)
     parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--sync-target-every",
                         help="Sync target network to v network every <n> episodes",
@@ -132,6 +133,10 @@ class ReinforcementWorker:
             self.file_workers[filename].enter_instance()
         return self.file_workers[filename]
 
+    def train(self) -> None:
+        train_v_network(self.args, self.v_network, self.target_v_network,
+                        self.replay_buffer)
+
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
         file_worker = self._get_worker(job.filename)
@@ -145,8 +150,6 @@ class ReinforcementWorker:
         except coq_serapy.CoqAnomaly:
             file_worker.restart_coq()
             file_worker.enter_file(job.filename)
-        train_v_network(self.args, self.v_network, self.target_v_network,
-                        self.replay_buffer)
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
@@ -234,11 +237,15 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         with nostderr():
             worker.v_network.adjuster.step()
 
-    for step, task_and_prefix in enumerate(tqdm(tasks[steps_already_done:]),
-                                start=steps_already_done+1):
-        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon))
-        task, task_tactic_prefix = task_and_prefix
-        worker.run_job_reinforce(task, task_tactic_prefix, cur_epsilon)
+    for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
+                                                          initial=steps_already_done,
+                                                          total=len(tasks)),
+                                           start=steps_already_done+1):
+        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
+                                               (args.ending_epsilon - args.starting_epsilon))
+        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
+        if (step + 1) % args.train_every == 0:
+            worker.train()
         if (step + 1) % args.save_every == 0:
             save_state(args, worker, step + 1)
         if (step + 1) % args.sync_target_every == 0:
