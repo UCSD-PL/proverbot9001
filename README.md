@@ -78,6 +78,8 @@ python src/gen_rl_tasks.py --prelude=CompCert \
       --supervised-weights=data/polyarg-weights-develop.dat -o rl_train_jobs.json compcert_projs_splits.json
 ```
 ### Filter data by length
+If you want tasks only up to a certain length, you can just use the jq tool to filter down to the task length.
+For example, if you want target length up to 3, you can run the following command:
 ```
 jq -c "select(.target_length <= 3)" rl_train_jobs.json > rl_train_jobs_len3.json
 ```
