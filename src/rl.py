@@ -222,7 +222,6 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         jobs = []
         with open(args.tasks_file, "r") as f:
             readjobs = [json.loads(line) for line in f]
-        f.close()
         if args.curriculum:
             readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False)
         for task in readjobs:
