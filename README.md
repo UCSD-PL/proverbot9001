@@ -77,6 +77,10 @@ Note the make commands are to be ran under CompCert directory. If you are using 
 python src/gen_rl_tasks.py --prelude=CompCert \
       --supervised-weights=data/polyarg-weights-develop.dat -o rl_train_jobs.json compcert_projs_splits.json
 ```
+### Filter data by length
+```
+jq -c "select(.target_length <= 3)" rl_train_jobs.json > rl_train_jobs_len3.json
+```
 ### Fill in task curriculum
 Run 
 ```
