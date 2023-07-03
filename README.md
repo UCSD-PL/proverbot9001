@@ -77,6 +77,12 @@ Note the make commands are to be ran under CompCert directory. If you are using 
 python src/gen_rl_tasks.py --prelude=CompCert \
       --supervised-weights=data/polyarg-weights-develop.dat -o rl_train_jobs.json compcert_projs_splits.json
 ```
+### Fill in task curriculum
+Run 
+```
+python src/fill_in_task_curriculum.py $INPUT_DIR $OUTPUT_DIR
+```
+to fill in task currriculum.
 ### Run Reinforcement Learning Script
 ```
 python src/rl.py --supervised-weights=data/polyarg-weights-develop.dat --coq2vec-weights=data/term2vec-weights-59.dat compcert_projs_splits.json \
@@ -84,3 +90,4 @@ python src/rl.py --supervised-weights=data/polyarg-weights-develop.dat --coq2vec
          --learning-rate=0.0001 -n10 -o data/rl_weights-compcert-5.dat -s5
 ```
 You may specify the number of episode to be ran to by passing that to  ```-n```.  
+
