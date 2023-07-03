@@ -83,4 +83,4 @@ python src/rl.py --supervised-weights=data/polyarg-weights-develop.dat --coq2vec
          --tasks-file=rl_train_jobs.json --prelude=./CompCert --backend=serapi --allow-partial-batches \
          --learning-rate=0.0001 -n10 -o data/rl_weights-compcert-5.dat -s5
 ```
-
+You may specify the number of episode to be ran to by passing that to  ```-n```.  
