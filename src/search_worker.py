@@ -181,8 +181,6 @@ class Worker:
 
                 if newstack != self.coq._file_state.sm_stack:
                     self.coq._file_state.sm_stack = newstack
-                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cancelled_cmd)
-                end_match = re.match(r"End\s+([\w']*)\.", cancelled_cmd)
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
         appendjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
