@@ -81,9 +81,10 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
     for interaction in file_interactions:
         if isinstance(interaction, str):
             sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
+            sm_prefix = coq_serapy.sm_prefix_from_stack(sm_stack)
             if coq_serapy.kill_comments(job.lemma_statement).strip() == \
                coq_serapy.kill_comments(interaction).strip() and \
-               coq_serapy.sm_prefix_from_stack(sm_stack) == job.module_prefix:
+               sm_prefix == job.module_prefix:
                 in_proof = True
         elif in_proof:
             if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
