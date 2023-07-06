@@ -326,6 +326,7 @@ class Worker:
             lemma_name = \
                 coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
+                self.coq.run_stmt(self.remaining_commands[0])
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
