@@ -44,6 +44,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
     parser.add_argument("--no-resume", action='store_false', dest='resume')
     parser.add_argument("--ignore-lin-hash", action='store_true')
+    parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--data-partition", choices=["test", "train"], default="train")
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
