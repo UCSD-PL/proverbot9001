@@ -28,6 +28,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate demonstrating-tasks up to a given length "
         "for training an rl agent refining a given predictor")
+    add_args_to_parser(parser)
+    args = parser.parse_args()
+
+    gen_rl_tasks(args)
+
+def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0, dest='verbosity')
     parser.add_argument("--prelude", default=".", type=Path)
@@ -45,9 +51,6 @@ def main():
     parser.add_argument("-l", "--max-target-length", type=int, default=None)
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
-    args = parser.parse_args()
-
-    gen_rl_tasks(args)
 
 @dataclass
 class RLTask:
