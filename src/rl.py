@@ -225,9 +225,15 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                              args.batch_step, args.lr_step)
 
     if args.tasks_file:
-        taskhandler = Taskhandler()
-        taskhandler.configure({"curriculum"  : True})
-        jobs = taskhandler.get_jobs(args.tasks_file)
+        jobs = []
+        with open(args.tasks_file, "r") as f:
+            readjobs = [json.loads(line) for line in f]
+        if args.curriculum:
+            readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False)
+        for task in readjobs:
+            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
+                    lemma_statement=task['proof_statement'])
+            jobs.append((task_job, task['tactic_prefix']))
 
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]

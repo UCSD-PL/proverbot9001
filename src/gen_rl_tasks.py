@@ -42,7 +42,7 @@ def main():
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-    parser.add_argument("-l", "--max-target-length", type=int, default=3)
+    parser.add_argument("-l", "--max-target-length", type=int, default=None)
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
     args = parser.parse_args()
@@ -274,7 +274,7 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
             task_prefix = aobl.tactic_prefix + [cmd[0] for cmd in aobl.tactic_contents[:cmd_idx]]
             task_solution = [cmd[0] for cmd in aobl.tactic_contents[cmd_idx:]]
             sol_tac_length = len([tac for tac in task_solution if tac not in ["{", "}"]])
-            if sol_tac_length > args.max_target_length:
+            if args.max_target_length and sol_tac_length > args.max_target_length:
                 break
             if len([tac for tac in task_solution if tac == "{"]) != \
                len([tac for tac in task_solution if tac == "}"]):

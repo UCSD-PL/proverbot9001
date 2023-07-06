@@ -181,8 +181,6 @@ class Worker:
 
                 if newstack != self.coq._file_state.sm_stack:
                     self.coq._file_state.sm_stack = newstack
-                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cancelled_cmd)
-                end_match = re.match(r"End\s+([\w']*)\.", cancelled_cmd)
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
         appendjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
@@ -328,6 +326,8 @@ class Worker:
             lemma_name = \
                 coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
+                if "Proof" in coq_serapy.kill_comments(self.remaining_commands[0]).strip().split()[0] :
+                    self.coq.run_stmt(self.remaining_commands[0])
                 coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
