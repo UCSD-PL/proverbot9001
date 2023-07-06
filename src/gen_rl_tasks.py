@@ -120,9 +120,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             continue
         if args.verbosity > 0:
             eprint(f"Running job {job}")
-        commands = get_job_interactions(args, job)
-        normalized = normalize_proof_interactions(commands, args.verbosity)
-        tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
+        tasks = get_job_tasks(args, predictor, job)
         with partial_output.open('a') as f:
             for task in tasks:
                 print(json.dumps(vars(task)), file=f)
@@ -131,6 +129,13 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
 
     os.rename(partial_output, args.output_file)
     os.remove(jobs_done_output)
+
+def get_job_tasks(args: argparse.Namespace, predictor: TacticPredictor,
+                  job: ReportJob) -> List[RLTask]:
+    commands = get_job_interactions(args, job)
+    normalized = normalize_proof_interactions(commands, args.verbosity)
+    tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
+    return tasks
 
 @dataclass
 class JobObligation:
