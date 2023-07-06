@@ -80,6 +80,7 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
     job_interactions = []
     for interaction in file_interactions:
         if isinstance(interaction, str):
+            eprint(f"Processing {interaction}", guard=args.verbosity > 1)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
             sm_prefix = coq_serapy.sm_prefix_from_stack(sm_stack)
             if coq_serapy.kill_comments(job.lemma_statement).strip() == \
@@ -87,6 +88,7 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
                sm_prefix == job.module_prefix:
                 in_proof = True
         elif in_proof:
+            eprint(f"Processing {interaction.tactic}", guard=args.verbosity > 1)
             if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
                 continue
             job_interactions.append(ScrapedTactic.from_structeq(interaction))
