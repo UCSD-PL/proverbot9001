@@ -33,6 +33,9 @@ from search_strategies import completed_proof
 from models.tactic_predictor import (TacticPredictor, Prediction)
 
 from util import unwrap, eprint, print_time, nostderr
+from ray import tune, air
+from ray.air import session
+from ray.tune.search.optuna import OptunaSearch
 
 def main():
     parser = argparse.ArgumentParser(
@@ -84,6 +87,7 @@ def main():
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
+    parser.add_argument("--hyperparameter_search",action="store_true")
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -91,8 +95,10 @@ def main():
         args.filenames = None
     else:
         args.splits_file = None
-
-    reinforce_jobs(args)
+    if args.hyperparameter_search:
+        tuning(args)
+    else:
+        result = reinforce_jobs(args)
 
 class FileReinforcementWorker(Worker):
     def finish_proof(self) -> None:
@@ -259,7 +265,15 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     if steps_already_done < len(tasks):
         save_state(args, worker, step)
     if args.evaluate:
-        evaluate_results(args, worker, jobs)
+        proofs_solved = evaluate_results(args, worker, jobs)
+    return proofs_solved
+
+
+
+
+
+
+
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
@@ -634,6 +648,7 @@ def evaluate_results(args: argparse.Namespace,
     print(f"{proofs_completed} out of {len(jobs)} "
           f"tasks successfully proven "
           f"({stringified_percent(proofs_completed, len(jobs))}%)")
+    return proofs_completed
 
 def stringified_percent(total : float, outof : float) -> str:
     if outof == 0:
@@ -721,6 +736,205 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
     return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
 
 
+
+
+
+
+
+def reinforce_jobs(args: argparse.Namespace) -> None:
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+        if any("switch" in item for item in project_dicts):
+            switch_dict = {item["project_name"]: item["switch"]
+                           for item in project_dicts}
+        else:
+            switch_dict = None
+    else:
+        switch_dict = None
+    # predictor = get_predictor(args)
+    predictor = MemoizingPredictor(get_predictor(args))
+    # predictor = DummyPredictor()
+    if args.resume == "ask" and args.output_file.exists():
+        print(f"Found existing weights at {args.output_file}. Resume?")
+        response = input("[Y/n] ")
+        if response.lower() not in ["no", "n"]:
+            args.resume = "yes"
+        else:
+            args.resume = "no"
+    elif not args.output_file.exists():
+        args.resume = "no"
+
+    if args.resume == "yes":
+        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
+            torch.load(str(args.output_file))
+        random.setstate(random_state)
+        print(f"Resuming from existing weights of {steps_already_done} steps")
+        v_network = VNetwork(None, args.learning_rate,
+                             args.batch_step, args.lr_step)
+        target_network = VNetwork(None, args.learning_rate,
+                                  args.batch_step, args.lr_step)
+        v_network.load_state(network_state)
+        target_network.load_state(tnetwork_state)
+
+    else:
+        assert args.resume == "no"
+        steps_already_done = 0
+        replay_buffer = None
+        v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+                             args.batch_step, args.lr_step)
+        target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+                             args.batch_step, args.lr_step)
+
+    if args.tasks_file:
+        taskhandler = Taskhandler()
+        taskhandler.configure({"curriculum"  : True})
+        jobs = taskhandler.get_jobs(args.tasks_file)
+
+    else:
+        jobs = [(job, []) for job in get_all_jobs(args)]
+
+    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                 initial_replay_buffer = replay_buffer)
+    if args.interleave:
+        tasks = jobs * args.num_episodes
+    else:
+        tasks = [task for job in jobs for task in [job] * args.num_episodes]
+
+    for step in range(steps_already_done):
+        with nostderr():
+            worker.v_network.adjuster.step()
+
+    for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
+                                                          initial=steps_already_done,
+                                                          total=len(tasks)),
+                                           start=steps_already_done+1):
+        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
+                                               (args.ending_epsilon - args.starting_epsilon))
+        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
+        if (step + 1) % args.train_every == 0:
+            worker.train()
+        if (step + 1) % args.save_every == 0:
+            save_state(args, worker, step + 1)
+        if (step + 1) % args.sync_target_every == 0:
+            worker.sync_networks()
+    if steps_already_done < len(tasks):
+        save_state(args, worker, step)
+    if args.evaluate:
+        proofs_solved = evaluate_results(args, worker, jobs)
+    return proofs_solved
+
+
+
+
+
+def tuning(args) -> None:
+    
+    def objective(config,args):
+        setattr(args,'gamma',config['gamma'])
+        setattr(args,'starting_epsilon',config['starting_epsilon'])
+        setattr(args,'batch_step',config['batch_step'])
+        setattr(args,'lr_step',config['lr_step'])
+        setattr(args,'batches_per_proof',config['batches_per_proof'])
+        setattr(args,'sync_target_every',config['sync_target_every'])
+        if args.splits_file:
+            with args.splits_file.open('r') as f:
+                project_dicts = json.loads(f.read())
+            if any("switch" in item for item in project_dicts):
+                switch_dict = {item["project_name"]: item["switch"]
+                            for item in project_dicts}
+            else:
+                switch_dict = None
+        else:
+            switch_dict = None
+        # predictor = get_predictor(args)
+        predictor = MemoizingPredictor(get_predictor(args))
+        # predictor = DummyPredictor()
+        # if args.resume == "ask" and args.output_file.exists():
+        #     print(f"Found existing weights at {args.output_file}. Resume?")
+        #     response = input("[Y/n] ")
+        #     if response.lower() not in ["no", "n"]:
+        #         args.resume = "yes"
+        #     else:
+        args.resume = "no"
+        # elif not args.output_file.exists():
+        #     args.resume = "no"
+
+        if args.resume == "yes":
+            replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
+                torch.load(str(args.output_file))
+            random.setstate(random_state)
+            print(f"Resuming from existing weights of {steps_already_done} steps")
+            v_network = VNetwork(None, args.learning_rate,
+                                args.batch_step, args.lr_step)
+            target_network = VNetwork(None, args.learning_rate,
+                                    args.batch_step, args.lr_step)
+            v_network.load_state(network_state)
+            target_network.load_state(tnetwork_state)
+
+        else:
+            assert args.resume == "no"
+            steps_already_done = 0
+            replay_buffer = None
+            v_network = VNetwork(args.coq2vec_weights,  args.learning_rate,
+                                args.batch_step, args.lr_step)
+            target_network = VNetwork(args.coq2vec_weights,  args.learning_rate,
+                                args.batch_step, args.lr_step)
+
+        if args.tasks_file:
+            taskhandler = Taskhandler()
+            taskhandler.configure({"curriculum"  : True})
+            jobs = taskhandler.get_jobs(args.tasks_file)
+
+        else:
+            jobs = [(job, []) for job in get_all_jobs(args)]
+
+        worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                    initial_replay_buffer = replay_buffer)
+        if args.interleave:
+            tasks = jobs * args.num_episodes
+        else:
+            tasks = [task for job in jobs for task in [job] * args.num_episodes]
+
+        for step in range(steps_already_done):
+            with nostderr():
+                worker.v_network.adjuster.step()
+
+        for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
+                                                            initial=steps_already_done,
+                                                            total=len(tasks)),
+                                            start=steps_already_done+1):
+            cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
+                                                (args.ending_epsilon - args.starting_epsilon))
+            worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
+            if (step + 1) % args.train_every == 0:
+                worker.train()
+            # if (step + 1) % args.save_every == 0:
+            #     save_state(args, worker, step + 1)
+            if (step + 1) % args.sync_target_every == 0:
+                worker.sync_networks()
+        # if steps_already_done < len(tasks):
+        #     save_state(args, worker, step)
+        # if args.evaluate:
+        proofs_solved = evaluate_results(args, worker, jobs)
+        session.report({"score":proofs_solved})
+
+
+    search_space = {
+        "learning_rate":tune.grid_search([1e-4]), #tune.grid_search([1e-4,2.5e-4,1e-3]),
+        "gamma": tune.grid_search([0.9]),  #([0.95,0.9]),
+        "starting_epsilon":tune.grid_search([0,1]),#([0,1]),
+        "batch_step":tune.grid_search([25]),#([25,30]),
+        "lr_step":tune.grid_search([0.8]),#([0.8,1]),
+        "batches_per_proof":tune.grid_search([1]),
+        "sync_target_every":tune.grid_search([10]),
+    }
+    tuner = tune.Tuner(tune.with_resources(
+                         tune.with_parameters(objective,args=args), {"cpu": 1, "gpu": 1}),param_space=search_space)
+                        
+    results = tuner.fit()
+    print(results.get_best_result(metric="score", mode="max").config)
+    
 
 if __name__ == "__main__":
     main()
