@@ -97,3 +97,22 @@ python src/rl.py --supervised-weights=data/polyarg-weights-develop.dat --coq2vec
 ```
 You may specify the number of episode to be ran to by passing that to  ```-n```.  
 
+### Hyperparameter tuning
+Hyperparameter tuning using Ray Tune. Current implementation allows single GPU/single CPU tuning for the following parameters:
+- learning_rate
+- gamma
+- starting_epsilon
+- batch_step
+- lr_step
+- batches_per_proof
+- sync_target_every
+
+Pass in ```--hyperparameter_search``` flag when running. Note that due to the use of Ray Tune, one will need to specify the root of each path. It can be done as follows
+
+```
+ROOT=/root/of/your/proverbot
+python src/rl.py --supervised-weights=$ROOT/data/polyarg-weights-develop.dat --coq2vec-weights=$ROOT/data/term2vec-weights-59.dat $ROOT/compcert_projs_splits.json \
+         --tasks-file=$ROOT/rl_train_jobs_100lines_curriculum.json --prelude=$ROOT/CompCert --backend=serapi --allow-partial-batches \
+         --learning-rate=0.0001 -n1 -o $ROOT/data/rl_weights-compcert-5.dat -s5 --hyperparameter_search --output $ROOT/data/rl_weights.dat
+
+```
