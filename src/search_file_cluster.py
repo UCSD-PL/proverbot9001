@@ -160,13 +160,13 @@ def main(arg_list: List[str]) -> None:
                 time.sleep(0.2)
 
 
-def get_all_jobs_cluster(args: argparse.Namespace) -> None:
+def get_all_jobs_cluster(args: argparse.Namespace, partition: str = "test_files") -> None:
     if (args.output_dir / "all_jobs.txt").exists():
         return
     project_dicts = project_dicts_from_args(args)
     projfiles = [(project_dict["project_name"], filename)
                  for project_dict in project_dicts
-                 for filename in project_dict["test_files"]]
+                 for filename in project_dict[partition]]
     with (args.output_dir / "all_jobs.txt.partial").open("w") as f:
         pass
     with (args.output_dir / "proj_files.txt").open("w") as f:
