@@ -56,7 +56,7 @@ def gen_rl_tasks_worker(args: argparse.Namespace, workerid: int) -> None:
         with (args.output_dir / f"output-{workerid}.json").open('a') as f, FileLock(f):
             eprint(f"Finished job {current_job}")
             for task in tasks:
-                print(json.dumps(task)), file=f)
+                print(json.dumps(vars(task)), file=f)
         with (args.output_dir / f"worker-{workerid}-done.json").open('a') as f:
             print(json.dumps(current_job), file=f)
 
