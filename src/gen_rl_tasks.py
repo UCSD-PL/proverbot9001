@@ -296,7 +296,7 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
         largest_prediction_rank = 0
         for cmd_idx, (cmd, prediction_rank) in \
                 reversed(list(enumerate(aobl.tactic_contents))):
-            if not prediction_rank:
+            if prediction_rank is None:
                 break
             largest_prediction_rank = max(largest_prediction_rank, prediction_rank)
             if cmd in ["{", "}"]:
