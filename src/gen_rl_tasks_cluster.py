@@ -57,7 +57,7 @@ def main():
             sys.exit(0)
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
         dispatch_workers(args, sys.argv[1:])
-        with util.sighandler_context(signal.SIGINT, cancel_workers):
+        with util.sighandler_context(signal.SIGINT, interrupt_early):
             show_progress(args)
         cancel_workers()
     else:
