@@ -57,6 +57,7 @@ class RLTask:
     tactic_prefix: List[str]
     orig_solution: List[str]
     target_length: int
+    largest_prediction_idx: int
 
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
@@ -128,8 +129,9 @@ class JobObligation:
 
 # Only works properly for goal-selector-normalized solutions that are
 # annotated with whether they are in the predictions.
-def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
-    def get_cur_obl_solution(remaining_cmds: List[Tuple[str, bool]]) -> List[str]:
+def obls_from_solution(cmds: List[Tuple[str, Optional[int]]]) -> List[JobObligation]:
+    def get_cur_obl_solution(remaining_cmds: List[Tuple[str, Optional[int]]]) \
+            -> List[Tuple[str, Optional[int]]]:
         sol = []
         bracket_depth = 0
         for cmd in remaining_cmds:
@@ -225,18 +227,19 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
     return output_interactions
 
 def annotate_cmds_in_pred(args: argparse.Namespace,
-                            predictor: TacticPredictor,
-                            sol_contexts: List[ScrapedTactic]) -> List[bool]:
+                          predictor: TacticPredictor,
+                          sol_contexts: List[ScrapedTactic]) \
+                          -> List[Tuple[str, Optional[int]]]:
 
-    annotated_sol: List[(str,bool)] = []
+    annotated_sol: List[Tuple[str,Optional[int]]] = []
     for sol_context in tqdm(sol_contexts, desc="Checking predictions",
                             leave=False, disable=len(sol_contexts) < 200):
         sol_cmd = sol_context.tactic
         if sol_cmd in ['{', '}'] :
-            annotated_sol.append((sol_cmd, True))
+            annotated_sol.append((sol_cmd, 0))
             continue
         if coq_serapy.ending_proof(sol_cmd) :
-            annotated_sol.append((sol_cmd,True))
+            annotated_sol.append((sol_cmd,0))
             break
 
         predictions = predictor.predictKTactics(
@@ -247,12 +250,16 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
                                     30),
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
-        in_predictions = (coq_serapy.kill_comments(sol_cmd).strip()
-                          in [p.prediction for p in predictions])
-        if coq_serapy.kill_comments(sol_cmd).strip() == "auto.":
-            in_predictions |= "eauto." in [p.prediction for p in predictions]
 
-        annotated_sol.append((sol_cmd, in_predictions))
+        nsol_cmd = coq_serapy.kill_comments(sol_cmd).strip()
+        if nsol_cmd == "auto.":
+            nsol_cmd = "eauto."
+        try:
+            sol_rank = [p.prediction for p in predictions].index(nsol_cmd)
+        except ValueError:
+            sol_rank = None
+
+        annotated_sol.append((sol_cmd, sol_rank))
     return annotated_sol
 
 
@@ -266,9 +273,12 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
     tasks = []
 
     for aobl in annotated_obls:
-        for cmd_idx, (cmd, in_pred) in reversed(list(enumerate(aobl.tactic_contents))):
-            if not in_pred:
+        largest_prediction_rank = 0
+        for cmd_idx, (cmd, prediction_rank) in \
+                reversed(list(enumerate(aobl.tactic_contents))):
+            if not prediction_rank:
                 break
+            largest_prediction_rank = max(largest_prediction_rank, prediction_rank)
             if cmd in ["{", "}"]:
                 continue
             task_prefix = aobl.tactic_prefix + [cmd[0] for cmd in aobl.tactic_contents[:cmd_idx]]
@@ -280,7 +290,8 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                len([tac for tac in task_solution if tac == "}"]):
                 continue
             tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
-                                task_prefix, task_solution, sol_tac_length))
+                                task_prefix, task_solution, sol_tac_length,
+                                largest_prediction_rank))
     return tasks
 
 if __name__ == "__main__":
