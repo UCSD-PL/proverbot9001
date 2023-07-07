@@ -7,7 +7,7 @@ import os
 
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Any
+from typing import List, Tuple, Dict, Any, Optional
 
 from tqdm import tqdm
 
