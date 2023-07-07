@@ -131,7 +131,7 @@ class Worker:
         assert self.coq
         self.coq.reset()
 
-    def run_backwards_into_job(self, job: ReportJob) -> None:
+    def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
         assert self.coq
         assert not self.coq.proof_context, "Already in a proof!"
 
@@ -146,41 +146,55 @@ class Worker:
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
         commands_to_cancel = commands_after_lemma_start[:len(commands_after_lemma_start)-len(self.remaining_commands)]
         commands_before_point = list(all_file_commands[:len(all_file_commands)-len(self.remaining_commands)])
+        
         while len(commands_to_cancel) > 0:
-            if coq_serapy.ending_proof(commands_to_cancel[-1]):
-                while not coq_serapy.possibly_starting_proof(commands_to_cancel[-1]):
-                    popped = commands_to_cancel.pop(-1)
+            try :
+                if coq_serapy.ending_proof(commands_to_cancel[-1]):
+                    while not coq_serapy.possibly_starting_proof(commands_to_cancel[-1]):
+                        popped = commands_to_cancel.pop(-1)
+                        commands_before_point.pop(-1)
+                    cancelled_lemma_statement = commands_to_cancel.pop(-1)
                     commands_before_point.pop(-1)
-                cancelled_lemma_statement = commands_to_cancel.pop(-1)
-                commands_before_point.pop(-1)
-                last_lemma_encountered = self.lemmas_encountered.pop()
-                assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
-                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(),
-                     "Next Obligation."], \
-                    f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
-                    f"but cancelling {cancelled_lemma_statement}"
+                    last_lemma_encountered = self.lemmas_encountered.pop()
+                    assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
+                        [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(),
+                        "Next Obligation."], \
+                        f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
+                        f"but cancelling {cancelled_lemma_statement}"
 
-                assert not self.coq.proof_context
-                # Sometimes a Qed in file corresponds to two commands
-                # in our coqagent history, because of the way we need
-                # to Admit Let's
-                while not self.coq.proof_context:
+                    assert not self.coq.proof_context
+                    # Sometimes a Qed in file corresponds to two commands
+                    # in our coqagent history, because of the way we need
+                    # to Admit Let's
+                    while not self.coq.proof_context:
+                        self.coq.cancel_last()
+                    while self.coq.proof_context:
+                        self.coq.cancel_last()
+                    self.coq._file_state.cancel_potential_local_lemmas(
+                        cancelled_lemma_statement, commands_before_point)
+                else:
                     self.coq.cancel_last()
-                while self.coq.proof_context:
-                    self.coq.cancel_last()
-                self.coq._file_state.cancel_potential_local_lemmas(
-                    cancelled_lemma_statement, commands_before_point)
-            else:
-                self.coq.cancel_last()
-                cancelled_cmd = coq_serapy.kill_comments(commands_to_cancel.pop(-1)).strip()
-                commands_before_point.pop(-1)
-                newstack = \
-                    coq_serapy.coq_util.cancel_update_sm_stack(
-                        self.coq._file_state.sm_stack,
-                        cancelled_cmd, commands_before_point)
+                    cancelled_cmd = coq_serapy.kill_comments(commands_to_cancel.pop(-1)).strip()
+                    commands_before_point.pop(-1)
+                    newstack = \
+                        coq_serapy.coq_util.cancel_update_sm_stack(
+                            self.coq._file_state.sm_stack,
+                            cancelled_cmd, commands_before_point)
 
-                if newstack != self.coq._file_state.sm_stack:
-                    self.coq._file_state.sm_stack = newstack
+                    if newstack != self.coq._file_state.sm_stack:
+                        self.coq._file_state.sm_stack = newstack
+            except coq_serapy.CoqAnomaly as e:
+                if restart_anomaly:
+                    self.restart_coq()
+                    self.reset_file_state()
+                    self.enter_file(job_file)
+                    eprint("Hit a coq anomaly! Restarting...",
+                        guard=self.args.verbose >= 1)
+                    self.run_backwards_into_job(job, False)
+                    return
+                eprint(e)
+                assert False
+
         self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
         appendjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
