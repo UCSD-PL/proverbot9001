@@ -63,14 +63,6 @@ class RLTask:
     target_length: int
     largest_prediction_idx: int
 
-    def to_dict(self) -> Dict[str, Any]:
-        return {"src_file": str(self.src_file),
-                "module_prefix": self.module_prefix,
-                "proof_statement": self.proof_statement,
-                "tactic_prefix": self.tactic_prefix,
-                "orig_solution": self.orig_solution,
-                "target_length": self.target_length}
-
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
     file_interactions = scraped_from_file(str(full_path.with_suffix(".v.scrape")))
