@@ -31,7 +31,7 @@ def main():
     parser.add_argument("--workers-output-dir", default=Path("output"),
                             type=Path)
     parser.add_argument("--worker-timeout", default="6:00:00")
-    parser.add_argument("--partition", default="defq")
+    parser.add_argument("--partition", default="cpu")
     parser.add_argument("--mem", default="2G")
     args = parser.parse_args()
     args.output_dir = Path(str(args.output_file) + ".d")
