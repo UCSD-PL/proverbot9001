@@ -274,7 +274,6 @@ def show_progress(args: argparse.Namespace) -> None:
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
         workers_scheduled = list(f)
     jobs_done = get_already_done_jobs(args)
-    num_workers_alive = 0
     crashed_workers: List[int] = []
 
     with tqdm(desc="Jobs finished", total=len(all_jobs), initial=len(jobs_done), dynamic_ncols=True) as bar, \
