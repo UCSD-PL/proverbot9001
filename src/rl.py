@@ -140,16 +140,21 @@ class ReinforcementWorker:
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
         file_worker = self._get_worker(job.filename)
-        file_worker.run_into_job(job, restart, False)
-        try:
-            experience_proof(self.args,
-                             file_worker.coq,
-                             self.predictor, self.v_network,
-                             self.replay_buffer, epsilon, tactic_prefix)
-            file_worker.finish_proof()
-        except coq_serapy.CoqAnomaly:
-            file_worker.restart_coq()
-            file_worker.enter_file(job.filename)
+        
+        for _ in range(2) :
+            try:
+                file_worker.run_into_job(job, restart, False)
+                experience_proof(self.args,
+                                file_worker.coq,
+                                self.predictor, self.v_network,
+                                self.replay_buffer, epsilon, tactic_prefix)
+                file_worker.finish_proof()
+                break
+            except coq_serapy.CoqAnomaly:
+                file_worker.restart_coq()
+                file_worker.enter_file(job.filename)
+ 
+
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
