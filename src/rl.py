@@ -208,6 +208,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                              args.batch_step, args.lr_step)
         target_network = VNetwork(None, args.learning_rate,
                                   args.batch_step, args.lr_step)
+        # This ensures that the target and obligation will share a cache for coq2vec encodings
+        target_network.obligation_encoder = v_network.obligation_encoder
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
 
@@ -219,6 +221,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                              args.batch_step, args.lr_step)
         target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                              args.batch_step, args.lr_step)
+        # This ensures that the target and obligation will share a cache for coq2vec encodings
+        target_network.obligation_encoder = v_network.obligation_encoder
 
     if args.tasks_file:
         jobs = []
