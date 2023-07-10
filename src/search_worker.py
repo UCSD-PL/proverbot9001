@@ -341,9 +341,10 @@ class Worker:
                 coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
                 starting_command = coq_serapy.kill_comments(self.remaining_commands[0]).strip()
-                if starting_command.startswith("Proof") and not coq_serapy.ending_proof(starting_command):
+                if starting_command.startswith("Proof"):
                     self.coq.run_stmt(starting_command)
-                coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
+                if not coq_serapy.ending_proof(starting_command):
+                    coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
                 raise
