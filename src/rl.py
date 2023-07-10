@@ -101,6 +101,33 @@ class FileReinforcementWorker(Worker):
         ending_cmd = self.remaining_commands.pop(0)
         coq_serapy.admit_proof(self.coq, self.coq.prev_tactics[0], ending_cmd)
 
+    def run_into_task(self, job: ReportJob, tactic_prefix: List[str],
+                      restart_anomaly: bool = True, careful: bool = False) -> None:
+        if job.project_dir != self.cur_project or job.filename != self.cur_file \
+           or job.module_prefix != self.coq.sm_prefix or self.coq.proof_context is None \
+               or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
+            if self.coq.proof_context is not None:
+                self.finish_proof()
+            with print_time("Running into job"):
+                self.run_into_job(job, restart_anomaly, careful)
+            with print_time("Running task prefix"):
+                for statement in tactic_prefix:
+                    self.coq.run_stmt_noupdate(statement)
+                self.coq.update_state()
+        else:
+            with print_time("Traversing to tactic prefix"):
+                cur_path = self.coq.tactic_history.getFullHistory()[1:]
+                common_prefix_len = 0
+                for item1, item2 in zip(cur_path, tactic_prefix):
+                    if item1 != item2:
+                        break
+                    common_prefix_len += 1
+                for _ in range(len(cur_path) - common_prefix_len):
+                    self.coq.cancel_last_noupdate()
+                for cmd in tactic_prefix[common_prefix_len:]:
+                    self.coq.run_stmt_noupdate(cmd)
+                self.coq.update_state()
+
 class ReinforcementWorker:
     v_network: 'VNetwork'
     target_v_network: 'VNetwork'
@@ -140,30 +167,26 @@ class ReinforcementWorker:
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
         file_worker = self._get_worker(job.filename)
-        file_worker.run_into_job(job, restart, False)
+        file_worker.run_into_task(job, tactic_prefix)
         try:
             experience_proof(self.args,
-                            file_worker.coq,
-                            self.predictor, self.v_network,
-                            self.replay_buffer, epsilon, tactic_prefix)
-            file_worker.finish_proof()
+                             file_worker.coq,
+                             self.predictor, self.v_network,
+                             self.replay_buffer, epsilon)
         except coq_serapy.CoqAnomaly:
             eprint("Encountered Coq anomaly. Closing current job.")
             file_worker.restart_coq()
             file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
-            
- 
 
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
-        file_worker.run_into_job(job, restart, False)
+        file_worker.run_into_task(job, tactic_prefix)
         success = False
         try:
             success = evaluate_proof(self.args, file_worker.coq, self.predictor,
-                                     self.v_network, tactic_prefix)
-            file_worker.finish_proof()
+                                     self.v_network)
         except coq_serapy.CoqAnomaly:
             file_worker.restart_coq()
             file_worker.enter_file(job.filename)
@@ -381,12 +404,8 @@ def experience_proof(args: argparse.Namespace,
                      predictor: TacticPredictor,
                      v_network: VNetwork,
                      replay_buffer: 'ReplayBuffer',
-                     epsilon: float,
-                     tactic_prefix: [str]) -> None:
+                     epsilon: float) -> None:
     path: List[ProofContext] = [coq.proof_context]
-    for statement in tactic_prefix:
-        coq.run_stmt(statement)
-        path.append(coq.proof_context)
     initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
@@ -596,13 +615,9 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
 def evaluate_proof(args: argparse.Namespace,
                    coq: coq_serapy.CoqAgent,
                    predictor: TacticPredictor,
-                   v_network: VNetwork,
-                   tactic_prefix: List[str]) -> bool:
+                   v_network: VNetwork) -> bool:
     path: List[ProofContext] = [coq.proof_context]
     proof_succeeded = False
-    for statement in tactic_prefix:
-        coq.run_stmt(statement)
-        path.append(coq.proof_context)
     initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
         actions = predictor.predictKTactics(
