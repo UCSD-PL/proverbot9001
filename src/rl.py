@@ -122,8 +122,8 @@ class FileReinforcementWorker(Worker):
                 target_path = [tac for tac in tactic_prefix
                                if coq_serapy.kill_comments(tac).strip() != ""]
                 common_prefix_len = 0
-                for item1, item2 in zip(cur_path, tactic_prefix):
-                    if item1 != item2:
+                for item1, item2 in zip(cur_path, target_path):
+                    if item1.strip() != item2.strip():
                         break
                     common_prefix_len += 1
                 for _ in range(len(cur_path) - common_prefix_len):
