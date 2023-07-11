@@ -190,7 +190,7 @@ class Worker:
                     self.enter_file(job_file)
                     eprint("Hit a coq anomaly! Restarting...",
                         guard=self.args.verbose >= 1)
-                    self.run_backwards_into_job(job, False)
+                    self.run_into_job(job, True, False)
                     return
                 eprint(e)
                 assert False
