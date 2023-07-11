@@ -921,13 +921,13 @@ def tuning(args) -> None:
 
 
     search_space = {
-        "learning_rate":tune.grid_search([1e-4]), #tune.grid_search([1e-4,2.5e-4,1e-3]),
-        "gamma": tune.grid_search([0.9]),  #([0.95,0.9]),
-        "starting_epsilon":tune.grid_search([0,1]),#([0,1]),
-        "batch_step":tune.grid_search([25]),#([25,30]),
-        "lr_step":tune.grid_search([0.8]),#([0.8,1]),
-        "batches_per_proof":tune.grid_search([1]),
-        "sync_target_every":tune.grid_search([10]),
+        "learning_rate":tune.loguniform([1e-4,1e-2]), #tune.grid_search([1e-4,2.5e-4,1e-3]),
+        "gamma": tune.uniform([0.1,0.99]),  #([0.95,0.9]),
+        "starting_epsilon":tune.uniform([0,1]),#([0,1]),
+        "batch_step":tune.uniform([25,30]),#([25,30]),
+        "lr_step":tune.uniform([0.8,1]),#([0.8,1]),
+        "batches_per_proof":tune.randint([1,10]),
+        "sync_target_every":tune.randint([1,100]),
     }
     tuner = tune.Tuner(tune.with_resources(
                          tune.with_parameters(objective,args=args), {"cpu": 1, "gpu": 1}),param_space=search_space)
