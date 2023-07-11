@@ -454,11 +454,11 @@ def experience_proof(args: argparse.Namespace,
             for action in random.sample(actions, k=len(actions)):
                 try:
                     coq.run_stmt(action.prediction)
-                    if any(coq_serapy.contextSurjective(coq.proof_context, path_context)
+                    resulting_context = coq.proof_context
+                    coq.cancel_last_noupdate()
+                    if any(coq_serapy.contextSurjective(resulting_context, path_context)
                            for path_context in path):
-                        coq.cancel_last()
                         continue
-                    coq.cancel_last()
                     chosen_action = action
                     break
                 except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
