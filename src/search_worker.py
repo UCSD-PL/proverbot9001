@@ -252,6 +252,7 @@ class Worker:
                     return
                 assert False
             except coq_serapy.SerapiException:
+                raise
                 if not careful:
                     eprint("Hit a problem, possibly due to admitting proofs! "
                            "Restarting file with --careful...",
