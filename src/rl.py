@@ -517,7 +517,7 @@ def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
         eprint(f"Action produced error {e}", guard=verbosity >= 3)
         return None
     context_after = coq.proof_context
-    coq.cancel_last()
+    coq.cancel_last_noupdate()
     if any(coq_serapy.contextSurjective(context_after, path_context)
            for path_context in path):
         return None
