@@ -309,7 +309,7 @@ class Worker:
 
     def skip_proof(self, careful: bool) -> None:
         assert self.coq
-        lemma_statement = self.coq.prev_tactics[0]
+        lemma_statement = coq_serapy.kill_comments(self.coq.prev_tactics[0]).strip()
         ending_command = None
         important_vernac_cmds = []
         for cmd in self.remaining_commands:
@@ -325,15 +325,10 @@ class Worker:
         # table of lemma dependencies for recursive use of section
         # variables.
         proof_relevant = ending_command.strip() == "Defined." or \
-            bool(re.match(
-                r"\s*Derive",
-                coq_serapy.kill_comments(lemma_statement))) or \
-            bool(re.match(
-                r"\s*Let",
-                coq_serapy.kill_comments(lemma_statement))) or \
-            bool(re.match(
-                r"\s*Equations",
-                coq_serapy.kill_comments(lemma_statement))) or \
+            bool(re.match(r"\s*Derive", lemma_statement)) or \
+            bool(re.match(r"\s*Let", lemma_statement)) or \
+            bool(re.match(r"\s*Equations", lemma_statement)) or \
+            bool(re.match(r"\s*Next\s+Obligation", lemma_statement)) or \
             careful
         if proof_relevant:
             while len(self.coq.prev_tactics) > 1:
