@@ -310,7 +310,10 @@ class Worker:
         assert self.coq
         lemma_statement = self.coq.prev_tactics[0]
         ending_command = None
+        important_vernac_cmds = []
         for cmd in self.remaining_commands:
+            if re.match("\s*(?:Opaque|Transparent)\s+[\w']+\.", cmd):
+                important_vernac_cmds.append(cmd)
             if coq_serapy.ending_proof(cmd):
                 ending_command = cmd
                 break
@@ -343,6 +346,8 @@ class Worker:
                 starting_command = coq_serapy.kill_comments(self.remaining_commands[0]).strip()
                 if starting_command.startswith("Proof"):
                     self.coq.run_stmt(starting_command)
+                for cmd in important_vernac_cmds:
+                    self.coq.run_stmt(cmd)
                 if not coq_serapy.ending_proof(starting_command):
                     coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
