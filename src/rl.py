@@ -117,6 +117,10 @@ class FileReinforcementWorker(Worker):
         else:
             with print_time("Traversing to tactic prefix"):
                 cur_path = self.coq.tactic_history.getFullHistory()[1:]
+                # this is needed because commands that are just comments don't
+                # show up in the history (because cancelling skips them).
+                target_path = [tac for tac in tactic_prefix
+                               if coq_serapy.kill_comments(tac).strip() != ""]
                 common_prefix_len = 0
                 for item1, item2 in zip(cur_path, tactic_prefix):
                     if item1 != item2:
