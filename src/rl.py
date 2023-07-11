@@ -126,10 +126,25 @@ class FileReinforcementWorker(Worker):
                     if item1.strip() != item2.strip():
                         break
                     common_prefix_len += 1
-                for _ in range(len(cur_path) - common_prefix_len):
-                    self.coq.cancel_last_noupdate()
-                for cmd in tactic_prefix[common_prefix_len:]:
-                    self.coq.run_stmt_noupdate(cmd)
+                # Heuristically assume that cancelling a command is about
+                # 1/20th as expensive as running one.
+                if len(target_path) < \
+                        (len(cur_path) - common_prefix_len) * 0.05 + \
+                        (len(target_path) - common_prefix_len):
+                    eprint(f"Decided to abort because the target path is only {len(target_path)} tactics long, "
+                           f"but the common prefix is only {common_prefix_len} tactics long, "
+                           f"so we would have to cancel {len(cur_path) - common_prefix_len} tactics "
+                           f"and rerun {len(target_path) - common_prefix_len} tactics.",
+                           guard=self.args.verbose >= 1)
+                    self.coq.run_stmt("Abort.")
+                    self.coq.run_stmt(job.lemma_statement)
+                    for cmd in target_path:
+                        self.coq.run_stmt_noupdate(cmd)
+                else:
+                    for _ in range(len(cur_path) - common_prefix_len):
+                        self.coq.cancel_last_noupdate()
+                    for cmd in target_path[common_prefix_len:]:
+                        self.coq.run_stmt_noupdate(cmd)
                 self.coq.update_state()
 
 class ReinforcementWorker:
