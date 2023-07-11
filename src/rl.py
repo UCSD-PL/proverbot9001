@@ -465,7 +465,8 @@ def experience_proof(args: argparse.Namespace,
                         coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
                         coq_serapy.ParseError,
                         RecursionError,
-                        coq_serapy.UnrecognizedError):
+                        coq_serapy.UnrecognizedError) as e:
+                    eprint(f"Action produced error {e}", guard=args.verbose >= 3)
                     pass
             if chosen_action is None:
                 break
@@ -485,9 +486,9 @@ def experience_proof(args: argparse.Namespace,
 
 def evaluate_actions(coq: coq_serapy.CoqAgent,
                      v_network: VNetwork, path: List[ProofContext],
-                     actions: List[str]) -> List[float]:
+                     actions: List[str], verbosity: int = 0) -> List[float]:
     resulting_contexts: List[Optional[ProofContext]] = \
-        [action_result(coq, path, action) for action in actions]
+        [action_result(coq, path, action, verbosity) for action in actions]
     num_output_obls: List[Optional[int]] = [len(context.fg_goals) if context else None
                                             for context in resulting_contexts]
     all_obls = [obl for context in resulting_contexts
@@ -505,14 +506,15 @@ def evaluate_actions(coq: coq_serapy.CoqAgent,
     return resulting_action_scores
 
 def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
-                  action: str) -> Optional[ProofContext]:
+                  action: str, verbosity: int = 0) -> Optional[ProofContext]:
     try:
         coq.run_stmt(action)
     except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
             coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
             coq_serapy.ParseError,
             RecursionError,
-            coq_serapy.UnrecognizedError):
+            coq_serapy.UnrecognizedError) as e:
+        eprint(f"Action produced error {e}", guard=verbosity >= 3)
         return None
     context_after = coq.proof_context
     coq.cancel_last()
@@ -652,7 +654,8 @@ def evaluate_proof(args: argparse.Namespace,
         eprint(f"Trying predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 2)
         action_scores = evaluate_actions(coq, v_network, path,
-                                         [action.prediction for action in actions])
+                                         [action.prediction for action in actions],
+                                         args.verbose)
         best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
         if best_score == -float("Inf"):
             break
