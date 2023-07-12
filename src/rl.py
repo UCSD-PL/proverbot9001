@@ -148,9 +148,11 @@ class ReinforcementWorker:
                             self.replay_buffer, epsilon, tactic_prefix)
             file_worker.finish_proof()
         except coq_serapy.CoqAnomaly:
+            eprint("Encountered Coq anomaly. Closing current job.")
             file_worker.restart_coq()
-            file_worker.enter_file(job.filename)
             file_worker.reset_file_state()
+            file_worker.enter_file(job.filename)
+            
  
 
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
