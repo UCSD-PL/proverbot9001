@@ -150,6 +150,7 @@ class ReinforcementWorker:
         except coq_serapy.CoqAnomaly:
             file_worker.restart_coq()
             file_worker.enter_file(job.filename)
+            file_worker.reset_file_state()
  
 
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
