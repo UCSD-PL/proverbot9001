@@ -47,6 +47,7 @@ def main():
                         action="count", default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_true')
+    parser.add_argument("--print-timings", "-t", action='store_true')
     parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--include-proof-relevant", action="store_true")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
@@ -108,14 +109,14 @@ class FileReinforcementWorker(Worker):
                or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
             if self.coq.proof_context is not None:
                 self.finish_proof()
-            with print_time("Running into job"):
+            with print_time("Running into job", guard=self.args.print_timings):
                 self.run_into_job(job, restart_anomaly, careful)
-            with print_time("Running task prefix"):
+            with print_time("Running task prefix", guard=self.args.print_timings):
                 for statement in tactic_prefix:
                     self.coq.run_stmt_noupdate(statement)
                 self.coq.update_state()
         else:
-            with print_time("Traversing to tactic prefix"):
+            with print_time("Traversing to tactic prefix", self.args.print_timings):
                 cur_path = self.coq.tactic_history.getFullHistory()[1:]
                 # this is needed because commands that are just comments don't
                 # show up in the history (because cancelling skips them).
@@ -188,10 +189,11 @@ class ReinforcementWorker:
         file_worker = self._get_worker(job.filename)
         file_worker.run_into_task(job, tactic_prefix)
         try:
-            experience_proof(self.args,
-                             file_worker.coq,
-                             self.predictor, self.v_network,
-                             self.replay_buffer, epsilon)
+            with print_time("Experiencing", guard=self.args.print_timings):
+                experience_proof(self.args,
+                                 file_worker.coq,
+                                 self.predictor, self.v_network,
+                                 self.replay_buffer, epsilon)
         except coq_serapy.CoqAnomaly:
             eprint("Encountered Coq anomaly. Closing current job.")
             file_worker.restart_coq()
@@ -302,7 +304,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                                (args.ending_epsilon - args.starting_epsilon))
         worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
-            worker.train()
+            with print_time("Training"):
+                worker.train()
         if (step + 1) % args.save_every == 0:
             save_state(args, worker, step + 1)
         if (step + 1) % args.sync_target_every == 0:
