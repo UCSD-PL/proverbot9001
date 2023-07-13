@@ -28,14 +28,15 @@ from coq_serapy.contexts import (FullContext, truncate_tactic_context,
                                  Obligation, TacticContext, ProofContext)
 import coq2vec
 
-from search_file import get_all_jobs
-from search_worker import ReportJob, Worker, get_predictor
-from search_strategies import completed_proof
+with print_time("Importing search code"):
+    from search_file import get_all_jobs
+    from search_worker import ReportJob, Worker, get_predictor
+    from search_strategies import completed_proof
 
-from models.tactic_predictor import (TacticPredictor, Prediction)
-
+    from models.tactic_predictor import (TacticPredictor, Prediction)
 
 def main():
+    eprint("Starting main")
     parser = argparse.ArgumentParser(
         description="Train a state estimator using reinforcement learning"
         "to complete proofs using Proverbot9001.")
@@ -224,6 +225,7 @@ class ReinforcementWorker:
 
 
 def reinforce_jobs(args: argparse.Namespace) -> None:
+    eprint("Starting reinforce_jobs")
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
@@ -268,12 +270,13 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         assert args.resume == "no"
         steps_already_done = 0
         replay_buffer = None
-        v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                             args.batch_step, args.lr_step)
-        target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                             args.batch_step, args.lr_step)
-        # This ensures that the target and obligation will share a cache for coq2vec encodings
-        target_network.obligation_encoder = v_network.obligation_encoder
+        with print_time("Building models"):
+            v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+                                 args.batch_step, args.lr_step)
+            target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+                                 args.batch_step, args.lr_step)
+            # This ensures that the target and obligation will share a cache for coq2vec encodings
+            target_network.obligation_encoder = v_network.obligation_encoder
 
     if args.tasks_file:
         jobs = []
@@ -315,7 +318,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         if (step + 1) % args.sync_target_every == 0:
             worker.sync_networks()
     if steps_already_done < len(tasks):
-        save_state(args, worker, step)
+        with print_time("Saving"):
+            save_state(args, worker, step)
     if args.evaluate:
         evaluate_results(args, worker, jobs)
 
