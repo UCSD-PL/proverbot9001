@@ -437,7 +437,7 @@ def experience_proof(args: argparse.Namespace,
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)
         actions = predictor.predictKTactics(
-            truncate_tactic_context(FullContext(coq.local_lemmas,
+            truncate_tactic_context(FullContext(coq.local_lemmas[:-1],
                                                 coq.prev_tactics,
                                                 unwrap(coq.proof_context)).as_tcontext(),
                                     30),
@@ -649,7 +649,7 @@ def evaluate_proof(args: argparse.Namespace,
     for _step in range(args.steps_per_episode):
         actions = predictor.predictKTactics(
             truncate_tactic_context(FullContext(
-                coq.local_lemmas,
+                coq.local_lemmas[:-1],
                 coq.prev_tactics,
                 unwrap(coq.proof_context)).as_tcontext(),
                                     30),
