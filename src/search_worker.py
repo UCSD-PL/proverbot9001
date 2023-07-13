@@ -135,12 +135,6 @@ class Worker:
         assert self.coq
         assert not self.coq.proof_context, "Already in a proof!"
         job_project, job_file, job_module, job_lemma = job
-        # Filter lemmas out of lemmas_encountered that occur after the target
-        # lemma.
-        self.lemmas_encountered = \
-                {lemma: state
-                 for lemma, state in self.lemmas_encountered.items()
-                 if state <= state_before_lemma}
         lemma_name = coq_serapy.lemma_name_from_statement(job_lemma)
         for i in range(len(self.coq._file_state.local_lemmas)):
             ll_sm_stack, ll_lemma_hyp, ll_is_sec_local = self.coq._file_state.local_lemmas[-1]
@@ -169,8 +163,14 @@ class Worker:
         # Get the state number from before the lemma from our dict.
         checkjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
         state_before_lemma = self.lemmas_encountered[checkjob]
+        # Filter lemmas out of lemmas_encountered that occur after the target
+        # lemma.
+        self.lemmas_encountered = \
+                {lemma: state
+                 for lemma, state in self.lemmas_encountered.items()
+                 if state <= state_before_lemma}
         try:
-            # Reset to that state number
+            # Reset to the state number before the target lemma
             self.coq.run_stmt(f"BackTo {state_before_lemma}.")
             # Finally run the lemma statement
             self.coq.run_stmt(job_lemma)
