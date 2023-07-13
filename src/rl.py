@@ -12,11 +12,14 @@ from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable)
 
-import torch
-from torch import nn
-import torch.nn.functional as F
-from torch import optim
-import torch.optim.lr_scheduler as scheduler
+from util import unwrap, eprint, print_time, nostderr
+
+with print_time("Importing torch"):
+    import torch
+    from torch import nn
+    import torch.nn.functional as F
+    from torch import optim
+    import torch.optim.lr_scheduler as scheduler
 
 from tqdm import tqdm
 
@@ -31,7 +34,6 @@ from search_strategies import completed_proof
 
 from models.tactic_predictor import (TacticPredictor, Prediction)
 
-from util import unwrap, eprint, print_time, nostderr
 
 def main():
     parser = argparse.ArgumentParser(
