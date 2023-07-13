@@ -70,7 +70,8 @@ class SimpleEmbedding(Embedding):
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from util import maybe_cuda, eprint, timeSince, FloatTensor
+from util import eprint, timeSince
+from torch_util import maybe_cuda, FloatTensor
 from typing import TypeVar, Generic, Iterable, Tuple
 import argparse
 

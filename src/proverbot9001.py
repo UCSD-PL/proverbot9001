@@ -67,7 +67,7 @@ def train(args):
                         list(evaluate_state.trainable_modules.keys()))
     arg_values = parser.parse_args(args[:1])
     if arg_values.model in predict_tactic.trainable_modules.keys():
-        predict_tactic.trainable_modules[arg_values.model](args[1:])
+        loadTrainablePredictor(arg_values.model)(args[1:])
     elif arg_values.model in evaluate_state.trainable_modules.keys():
         evaluate_state.trainable_modules[arg_values.model](args[1:])
     else:

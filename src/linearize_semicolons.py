@@ -608,7 +608,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
 def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
         -> Optional[List[str]]:
     lin_path = Path(filename + ".lin")
-    if args.verbose:
+    if args.verbose > 0:
         eprint("Attempting to load cached linearized version from {}"
                .format(lin_path))
     if not lin_path.exists():

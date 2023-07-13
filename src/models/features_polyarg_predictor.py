@@ -31,8 +31,8 @@ from features import (WordFeature, VecFeature, Feature,
 from tokenizer import Tokenizer
 from data import (ListDataset, RawDataset,
                   EOS_token)
-from util import (eprint, maybe_cuda, LongTensor, FloatTensor,
-                  ByteTensor, print_time, unwrap)
+from util import (eprint, print_time, unwrap)
+from torch_util import (maybe_cuda, LongTensor, FloatTensor, ByteTensor)
 import util
 import math
 from coq_serapy.contexts import TacticContext
