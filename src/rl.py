@@ -11,7 +11,6 @@ from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable)
-from taskhandler import Taskhandler
 
 import torch
 from torch import nn
