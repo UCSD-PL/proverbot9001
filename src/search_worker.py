@@ -275,21 +275,7 @@ class Worker:
                coq_serapy.kill_comments(job_lemma).strip() and \
               self.coq.sm_prefix == job_module:
                 return
-            try:
-                self.skip_proof(careful)
-            except coq_serapy.SerapiException:
-                if not careful:
-                    eprint("Hit a problem, possibly due to admitting proofs! "
-                           "Restarting file with --careful...",
-                           guard=self.args.verbose >= 1)
-                    self.reset_file_state()
-                    self.exit_cur_file()
-                    self.enter_file(job_file)
-                    self.run_into_job(job, restart_anomaly, True)
-                    return
-                eprint(f"Failed getting to before: {job_lemma}")
-                eprint(f"In file {job_file}")
-                raise
+            self.skip_proof(careful)
 
     def skip_proof(self, careful: bool) -> None:
         assert self.coq
