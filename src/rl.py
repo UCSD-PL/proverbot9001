@@ -244,6 +244,9 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         else:
             args.resume = "no"
     elif not args.output_file.exists():
+        assert args.resume != "yes", \
+                "Can't resume because output file " \
+                f"{args.output_file} doesn't already exist."
         args.resume = "no"
 
     if args.resume == "yes":
