@@ -80,9 +80,9 @@ python src/gen_rl_tasks.py --prelude=CompCert \
 ```
 To generate training tasks. To generate test tasks, specify ```--data-partition='test'```. To run faster, use ```src/gen_rl_tasks_cluster.py``` instead.
 ### Filter data by length
-By default, ```gen_rl_tasks.py``` extracts tasks by making 16 predictions at each state, and seeing if the solution tactic matches any of them. But by default, 
-rl.py only makes 5 predictions at each state to choose between, so if using both defaults filtering task length and prediction width is required.
-So filter task prediction width to at most 5 and task length to at least 5. 
+By default, ```gen_rl_tasks.py``` extracts tasks by making 16 predictions at each state, and seeing if the solution tactic matches any of them. Also 
+by default, ```rl.py``` only makes 5 predictions at each state to choose between. Therefore, if using both defaults, make sure to filter task length to 
+at least 5 and prediction width to at most 5.
 You can use the jq tool to filter task length and width.
 For example, to filter as specified above, run the following command:
 ```
