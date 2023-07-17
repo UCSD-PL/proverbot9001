@@ -353,7 +353,8 @@ class VNetwork:
 
     def get_state(self) -> Any:
         return (self.network.state_dict(),
-                self.obligation_encoder.term_encoder.get_state())
+                self.obligation_encoder.term_encoder.get_state(),
+                self.obligation_encoder.obl_cache)
 
     def _load_encoder_state(self, encoder_state: Any) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
@@ -373,10 +374,17 @@ class VNetwork:
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
 
-
     def load_state(self, state: Any) -> None:
-        network_state, encoder_state = state
-        self._load_encoder_state(encoder_state)
+        # This case exists for compatibility with older resume files that
+        # didn't save the obligation cache.
+        if len(state) == 2:
+            network_state, encoder_state = state
+            self._load_encoder_state(encoder_state)
+        else:
+            assert len(state) == 3
+            network_state, encoder_state, obl_cache = state
+            self._load_encoder_state(encoder_state)
+            self.obligation_encoder.obl_cache = obl_cache
         self.network.load_state_dict(network_state)
 
 
