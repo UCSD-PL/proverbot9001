@@ -7,7 +7,7 @@ import os
 
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any, Optional
 
 from tqdm import tqdm
 
@@ -28,6 +28,12 @@ def main():
     parser = argparse.ArgumentParser(
         description="Generate demonstrating-tasks up to a given length "
         "for training an rl agent refining a given predictor")
+    add_args_to_parser(parser)
+    args = parser.parse_args()
+
+    gen_rl_tasks(args)
+
+def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action="count", default=0, dest='verbosity')
     parser.add_argument("--prelude", default=".", type=Path)
@@ -38,6 +44,7 @@ def main():
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
     parser.add_argument("--no-resume", action='store_false', dest='resume')
     parser.add_argument("--ignore-lin-hash", action='store_true')
+    parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--data-partition", choices=["test", "train"], default="train")
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
@@ -45,9 +52,6 @@ def main():
     parser.add_argument("-l", "--max-target-length", type=int, default=None)
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
-    args = parser.parse_args()
-
-    gen_rl_tasks(args)
 
 @dataclass
 class RLTask:
@@ -57,6 +61,7 @@ class RLTask:
     tactic_prefix: List[str]
     orig_solution: List[str]
     target_length: int
+    largest_prediction_idx: int
 
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
@@ -67,12 +72,15 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
     job_interactions = []
     for interaction in file_interactions:
         if isinstance(interaction, str):
+            eprint(f"Processing {interaction}", guard=args.verbosity > 1)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
+            sm_prefix = coq_serapy.sm_prefix_from_stack(sm_stack)
             if coq_serapy.kill_comments(job.lemma_statement).strip() == \
                coq_serapy.kill_comments(interaction).strip() and \
-               coq_serapy.sm_prefix_from_stack(sm_stack) == job.module_prefix:
+               sm_prefix == job.module_prefix:
                 in_proof = True
         elif in_proof:
+            eprint(f"Processing {interaction.tactic}", guard=args.verbosity > 1)
             if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
                 continue
             job_interactions.append(ScrapedTactic.from_structeq(interaction))
@@ -107,9 +115,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
             continue
         if args.verbosity > 0:
             eprint(f"Running job {job}")
-        commands = get_job_interactions(args, job)
-        normalized = normalize_proof_interactions(commands, args.verbosity)
-        tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
+        tasks = get_job_tasks(args, predictor, job)
         with partial_output.open('a') as f:
             for task in tasks:
                 print(json.dumps(vars(task)), file=f)
@@ -118,6 +124,13 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
 
     os.rename(partial_output, args.output_file)
     os.remove(jobs_done_output)
+
+def get_job_tasks(args: argparse.Namespace, predictor: TacticPredictor,
+                  job: ReportJob) -> List[RLTask]:
+    commands = get_job_interactions(args, job)
+    normalized = normalize_proof_interactions(commands, args.verbosity)
+    tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
+    return tasks
 
 @dataclass
 class JobObligation:
@@ -128,8 +141,9 @@ class JobObligation:
 
 # Only works properly for goal-selector-normalized solutions that are
 # annotated with whether they are in the predictions.
-def obls_from_solution(cmds: List[Tuple[str, bool]]) -> List[JobObligation]:
-    def get_cur_obl_solution(remaining_cmds: List[Tuple[str, bool]]) -> List[str]:
+def obls_from_solution(cmds: List[Tuple[str, Optional[int]]]) -> List[JobObligation]:
+    def get_cur_obl_solution(remaining_cmds: List[Tuple[str, Optional[int]]]) \
+            -> List[Tuple[str, Optional[int]]]:
         sol = []
         bracket_depth = 0
         for cmd in remaining_cmds:
@@ -225,18 +239,19 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
     return output_interactions
 
 def annotate_cmds_in_pred(args: argparse.Namespace,
-                            predictor: TacticPredictor,
-                            sol_contexts: List[ScrapedTactic]) -> List[bool]:
+                          predictor: TacticPredictor,
+                          sol_contexts: List[ScrapedTactic]) \
+                          -> List[Tuple[str, Optional[int]]]:
 
-    annotated_sol: List[(str,bool)] = []
+    annotated_sol: List[Tuple[str,Optional[int]]] = []
     for sol_context in tqdm(sol_contexts, desc="Checking predictions",
                             leave=False, disable=len(sol_contexts) < 200):
         sol_cmd = sol_context.tactic
         if sol_cmd in ['{', '}'] :
-            annotated_sol.append((sol_cmd, True))
+            annotated_sol.append((sol_cmd, 0))
             continue
         if coq_serapy.ending_proof(sol_cmd) :
-            annotated_sol.append((sol_cmd,True))
+            annotated_sol.append((sol_cmd,0))
             break
 
         predictions = predictor.predictKTactics(
@@ -247,12 +262,16 @@ def annotate_cmds_in_pred(args: argparse.Namespace,
                                     30),
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
-        in_predictions = (coq_serapy.kill_comments(sol_cmd).strip()
-                          in [p.prediction for p in predictions])
-        if coq_serapy.kill_comments(sol_cmd).strip() == "auto.":
-            in_predictions |= "eauto." in [p.prediction for p in predictions]
 
-        annotated_sol.append((sol_cmd, in_predictions))
+        nsol_cmd = coq_serapy.kill_comments(sol_cmd).strip()
+        if nsol_cmd == "auto.":
+            nsol_cmd = "eauto."
+        try:
+            sol_rank = [p.prediction for p in predictions].index(nsol_cmd)
+        except ValueError:
+            sol_rank = None
+
+        annotated_sol.append((sol_cmd, sol_rank))
     return annotated_sol
 
 
@@ -266,9 +285,12 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
     tasks = []
 
     for aobl in annotated_obls:
-        for cmd_idx, (cmd, in_pred) in reversed(list(enumerate(aobl.tactic_contents))):
-            if not in_pred:
+        largest_prediction_rank = 0
+        for cmd_idx, (cmd, prediction_rank) in \
+                reversed(list(enumerate(aobl.tactic_contents))):
+            if prediction_rank is None:
                 break
+            largest_prediction_rank = max(largest_prediction_rank, prediction_rank)
             if cmd in ["{", "}"]:
                 continue
             task_prefix = aobl.tactic_prefix + [cmd[0] for cmd in aobl.tactic_contents[:cmd_idx]]
@@ -280,7 +302,8 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
                len([tac for tac in task_solution if tac == "}"]):
                 continue
             tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
-                                task_prefix, task_solution, sol_tac_length))
+                                task_prefix, task_solution, sol_tac_length,
+                                largest_prediction_rank))
     return tasks
 
 if __name__ == "__main__":

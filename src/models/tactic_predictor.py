@@ -227,7 +227,8 @@ from torch import optim
 import torch.nn as nn
 import numpy as np
 from util import *
-from util import chunks, maybe_cuda
+from util import chunks
+from torch_util import maybe_cuda
 
 optimizers = {
     "SGD": optim.SGD,

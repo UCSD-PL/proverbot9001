@@ -65,7 +65,7 @@ def main(arg_list: List[str]) -> None:
 
     if not args.predictor and not args.weightsfile:
         print("You must specify a weightsfile or a predictor.")
-        parser.print_help()
+        arg_parser.print_help()
         sys.exit(1)
 
 
