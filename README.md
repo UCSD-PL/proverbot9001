@@ -86,7 +86,7 @@ at least 5 and prediction width to at most 5.
 You can use the jq tool to filter task length and width.
 For example, to filter as specified above, run the following command:
 ```
-jq -c "select(.largest_prediction_idx <= 5 and .target_length >= 5)" rl_train_jobs.json > rl_train_jobs_len3.json
+jq -c "select(.largest_prediction_idx <= 5 and .target_length >= 5)" rl_train_jobs.json > rl_train_jobs_len5_wid5.json
 ```
 ### Fill in task curriculum
 Run 
