@@ -17,7 +17,8 @@ from search_strategies import best_first_proof_search, bfs_beam_proof_search, df
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 
-from util import unwrap, eprint, escape_lemma_name
+from syntax import syntax_words
+from util import unwrap, eprint, escape_lemma_name, extract_unbound
 
 unnamed_goal_number: int = 0
 
@@ -329,15 +330,29 @@ def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
     return coq.check_term(lemma_name).replace("\n", "")
 
 def custom_lemma_head_function(coq):
-    # bool_dec : forall b1 b2 : bool, {b1 = b2} + {b1 <> b2}
-    #add_succ_l n m : (S n) + m = S (n + m)
-    #"nat_refl: forall n: nat, n = n"
-    #print("custom head")
+    #return lemmas_about_goal_identifiers(coq)
 
     rel_lemmas = coq.get_lemmas_about_head()[:20] if coq.proof_context.focused_goal.strip() != "" else []   
-    #rel_lemmas = ["nat_refl: forall n: nat, n = n", "sumbool_of_bool : forall b:bool, {b = true} + {b = false}", 
-                  #"bool_dec : forall b1 b2 : bool, {b1 = b2} + {b1 <> b2}"]     
     return rel_lemmas + coq.local_lemmas
+
+def lemmas_about_goal_identifiers(coq):
+    blacklist = [None, "eq"]
+
+    search_terms = (x[0] for x in extract_unbound(coq.proof_context.focused_goal).most_common())
+
+    rel_lemmas = []
+    for search_term in search_terms:
+        # Search until we get non-local lemmas
+        if search_term not in blacklist:
+            rel_lemmas = coq.search_about(search_term)
+            rel_lemmas.sort(key=len)
+            denamespaced_loc_lems = [re.match(r".*?\.([^.]*?:.*)", l).group(1) for l in coq.local_lemmas]
+            dedup_lemmas = list({l.split(':')[0].strip(): l for l in denamespaced_loc_lems + rel_lemmas}.values())
+            rel_lemmas = dedup_lemmas[len(coq.local_lemmas):]
+        if rel_lemmas:
+            break # We found non-local lemmas!
+
+    return coq.local_lemmas + rel_lemmas[:5]
 
 def context_lemmas_from_args(args: argparse.Namespace,
                              coq: coq_serapy.SerapiInstance) -> List[str]:

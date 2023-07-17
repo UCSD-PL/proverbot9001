@@ -27,6 +27,7 @@ import re
 import itertools
 import argparse
 import fcntl
+from collections import Counter
 from datetime import datetime, timedelta
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
@@ -336,6 +337,56 @@ def split_by_char_outside_matching(openpat: str, closepat: str,
                 assert nextsplitpos > curpos
                 curpos = nextsplitpos
     return None
+
+def drop_parens(s: str) -> str:
+    # Beware: This function will naively transform i.e. "(a) (b)" -> "a) (b"
+    outer_parens = re.compile(r"^\((.*)\)$")
+    match = outer_parens.match(s)
+    return match.group(1) if match is not None else s
+
+def extract_unbound(expr: str) -> Counter:
+    "Given a proof goal, count the occurences of each unbound identifier"
+    def _extract_unbound(expr: str, bindings: List[str]) -> Counter:
+        expr = re.sub(r"\s+", " ", expr)
+
+        if len(expr) == 0:
+            return Counter()
+        if len(expr.split()) == 1:
+            return Counter([] if expr in bindings else [expr.strip()])
+        else:
+            terms = Counter()
+            if expr.split()[0] == "forall":
+                bind_str, body_str = split_by_char_outside_matching("\(", "\)", ",", expr)
+                body_str = body_str[2:] # Drop the initial ", "
+
+                bind_exprs = multisplit_matching("\(", "\)", " ", bind_str)[1:] \
+                    if re.match(r"forall \(.*", bind_str) \
+                    else [bind_str[len("forall "):]]
+
+                for binding in bind_exprs:
+                    binding = drop_parens(binding.strip())
+                    if binding == "":
+                        continue
+
+                    bindings += binding.split(":")[0].split()
+                    
+                    try:
+                        terms += _extract_unbound(
+                                split_by_char_outside_matching("\(", "\)", ":", binding)[1][2:], bindings)
+                    except Exception as e:
+                        eprint("Failed on:")
+                        eprint(f"expr: {expr}")
+                        eprint(f"binding: {binding}")
+                        eprint(f"bind_exprs: {bind_exprs}")
+                        raise e
+                
+                terms += _extract_unbound(
+                        split_by_char_outside_matching("\(", "\)", ",", expr)[1][2:], bindings)
+            else:
+                for subexpr in multisplit_matching("\(", "\)", " ", expr):
+                    terms += _extract_unbound(drop_parens(subexpr.strip()), bindings)
+            return terms
+    return _extract_unbound(expr, [])
 
 def copyArgs(args: argparse.Namespace) -> argparse.Namespace:
     result = argparse.Namespace()

@@ -145,7 +145,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         dest="count_softfail_predictions")
     parser.add_argument("--careful", action='store_true')
     parser.add_argument("--relevant-lemmas", dest="relevant_lemmas",
-                        choices=['local'],
+                        choices=['local','custom-head'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
