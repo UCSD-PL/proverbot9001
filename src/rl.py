@@ -3,7 +3,6 @@
 import argparse
 import json
 import random
-import re
 import time
 import contextlib
 import math
