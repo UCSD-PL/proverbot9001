@@ -334,7 +334,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                                (args.ending_epsilon - args.starting_epsilon))
         worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
-            with print_time("Training"):
+            with print_time("Training", guard=args.print_timings):
                 worker.train()
         if (step + 1) % args.save_every == 0:
             save_state(args, worker, step + 1)
