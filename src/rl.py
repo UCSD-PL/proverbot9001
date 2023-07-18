@@ -63,6 +63,7 @@ def main():
     parser.add_argument("--no-interleave", dest="interleave", action="store_false")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
+    parser.add_argument("--max-sertop-workers", default=16, type=int)
     parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
     parser.add_argument("-g", "--gamma", default=0.9, type=float)
     parser.add_argument("--starting-epsilon", default=0, type=float)
@@ -155,7 +156,8 @@ class ReinforcementWorker:
     replay_buffer: 'ReplayBuffer'
     verbosity: int
     predictor: TacticPredictor
-    file_workers: Dict[str, FileReinforcementWorker]
+    last_worker_idx: int
+    file_workers: Dict[str, Tuple[FileReinforcementWorker, int]]
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
@@ -166,6 +168,7 @@ class ReinforcementWorker:
         self.v_network = v_network
         self.target_v_network = target_network
         self.predictor = predictor
+        self.last_worker_idx = 0
         if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
         else:
@@ -177,9 +180,24 @@ class ReinforcementWorker:
         if filename not in self.file_workers:
             args_copy = argparse.Namespace(**vars(self.args))
             args_copy.verbose = self.args.verbose - 2
-            self.file_workers[filename] = FileReinforcementWorker(args_copy, None)
-            self.file_workers[filename].enter_instance()
-        return self.file_workers[filename]
+            worker = FileReinforcementWorker(args_copy, None)
+            worker.enter_instance()
+            self.file_workers[filename] = (worker, self.last_worker_idx)
+            self.last_worker_idx += 1
+        if len(self.file_workers) > self.args.max_sertop_workers:
+            removing_worker_filename = None
+            target_worker_idx = self.last_worker_idx - self.args.max_sertop_workers - 1
+            for w_filename, (worker, idx) in self.file_workers.items():
+                if idx == target_worker_idx:
+                    removing_worker_filename = w_filename
+                    break
+            assert removing_worker_filename is not None
+            worker_coq_instance = self.file_workers[removing_worker_filename][0].coq
+            assert worker_coq_instance is not None
+            worker_coq_instance.kill()
+            del self.file_workers[removing_worker_filename]
+
+        return self.file_workers[filename][0]
 
     def train(self) -> None:
         train_v_network(self.args, self.v_network, self.target_v_network,
