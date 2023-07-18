@@ -82,7 +82,8 @@ def main():
                         help="Sync target network to v network every <n> episodes",
                         default=10, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
-    parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--blacklist-tactic", action="append",
+                        dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
@@ -99,6 +100,7 @@ def main():
 
 class FileReinforcementWorker(Worker):
     def finish_proof(self) -> None:
+        assert self.coq
         while not coq_serapy.ending_proof(self.remaining_commands[0]):
             self.remaining_commands.pop(0)
         ending_cmd = self.remaining_commands.pop(0)
@@ -106,8 +108,10 @@ class FileReinforcementWorker(Worker):
 
     def run_into_task(self, job: ReportJob, tactic_prefix: List[str],
                       restart_anomaly: bool = True, careful: bool = False) -> None:
+        assert self.coq
         if job.project_dir != self.cur_project or job.filename != self.cur_file \
-           or job.module_prefix != self.coq.sm_prefix or self.coq.proof_context is None \
+           or job.module_prefix != self.coq.sm_prefix \
+               or self.coq.proof_context is None \
                or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
             if self.coq.proof_context is not None:
                 self.finish_proof()
@@ -206,6 +210,7 @@ class ReinforcementWorker:
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
         file_worker = self._get_worker(job.filename)
+        assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
         try:
             with print_time("Experiencing", guard=self.args.print_timings):
@@ -222,6 +227,7 @@ class ReinforcementWorker:
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
+        assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
         success = False
         try:
@@ -342,11 +348,12 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
-    def __init__(self, term_encoder: 'CoqTermRNNVectorizer',
+    def __init__(self, term_encoder: 'coq2vec.CoqTermRNNVectorizer',
                  max_num_hypotheses: int) -> None:
         super().__init__(term_encoder, max_num_hypotheses)
         self.obl_cache = {}
-    def obligations_to_vectors_cached(self, obls: List[Obligation]) -> torch.FloatTensor:
+    def obligations_to_vectors_cached(self, obls: List[Obligation]) \
+            -> torch.FloatTensor:
         encoded_obl_size = self.term_encoder.hidden_size * (self.max_num_hypotheses + 1)
         encoded = run_network_with_cache(
             lambda x: self.obligations_to_vectors(x).view(len(x), encoded_obl_size),
@@ -369,6 +376,7 @@ class VNetwork:
     learning_rate: float
 
     def get_state(self) -> Any:
+        assert self.obligation_encoder is not None
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state(),
                 self.obligation_encoder.obl_cache)
