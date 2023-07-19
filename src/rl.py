@@ -258,7 +258,7 @@ class ReinforcementWorker:
         if num_obls is None:
             resulting_state_val = float("-Inf")
         else:
-            resulting_state_val = math.prod(all_obl_scores)
+            resulting_state_val = math.prod(all_obl_scores).item()
 
         return resulting_state_val
     
@@ -779,7 +779,7 @@ def verify_vvals(args: argparse.Namespace,
     if args.resume :
         try :
             with open('vvalverify.dat','rb') as f:
-                vval, steps_already_done = pickle.load(f)
+                vval_err_sum, steps_already_done = pickle.load(f)
         except :
             vval_err_sum  = 0
             steps_already_done = 0
