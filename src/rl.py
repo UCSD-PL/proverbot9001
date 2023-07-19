@@ -6,6 +6,7 @@ import random
 import time
 import contextlib
 import math
+import pickle
 from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -245,7 +246,7 @@ class ReinforcementWorker:
             eprint(f"Failed to solve proof {proof_name}")
         return success
 
-    def verify_vval(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) -> float :
+    def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) -> float :
         file_worker = self._get_worker(job.filename)
         file_worker.run_into_task(job, tactic_prefix)
 
@@ -774,14 +775,28 @@ def verify_vvals(args: argparse.Namespace,
                      worker: ReinforcementWorker,
                      jobs: List[tuple]) -> None:
     print("Verifying VVals")
-    vvals_checked = 0
-    vval = 0
-    for job, tactic_prefix in tqdm(jobs, desc="Tasks checked"):
+
+    if args.resume :
+        try :
+            with open('vvalverify.dat','rb') as f:
+                vval, steps_already_done = pickle.load(f)
+        except :
+            vval_err_sum  = 0
+            steps_already_done = 0
+    else :
+        vval_err_sum  = 0
+        steps_already_done = 0
+    
+    for idx, (job, tactic_prefix) in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
+                                              initial=steps_already_done, total=len(jobs)), start=steps_already_done + 1):
         reportjob = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
                 lemma_statement=job.proof_statement)
-        vval += abs(worker.verify_vval(reportjob, tactic_prefix) - args.gamma**job.target_length )
-        vvals_checked += 1
-    print(f"Average Vval difference to gamma^n over states in the task set : {vval/vvals_checked}")
+        vval_err_sum  += abs(worker.estimate_starting_vval(reportjob, tactic_prefix) - args.gamma**job.target_length )
+        
+        if idx%100 == 0 :
+            with open('vvalverify.dat','wb') as f :
+                pickle.dump((vval_err_sum ,idx),f)
+    print(f"Average Vval difference to gamma^n over states in the task set : {vval_err_sum /len(jobs)}")
 
 
 def stringified_percent(total : float, outof : float) -> str:
