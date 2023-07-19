@@ -57,9 +57,8 @@ def main():
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-
     parser.add_argument("--tasks-file", default=None)
-
+    parser.add_argument("--test-file", default=None)
     parser.add_argument("--no-interleave", dest="interleave", action="store_false")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
@@ -302,16 +301,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             target_network.obligation_encoder = v_network.obligation_encoder
 
     if args.tasks_file:
-        jobs = []
-        with open(args.tasks_file, "r") as f:
-            readjobs = [json.loads(line) for line in f]
-        if args.curriculum:
-            readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False)
-        for task in readjobs:
-            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
-                    lemma_statement=task['proof_statement'])
-            jobs.append((task_job, task['tactic_prefix']))
-
+        jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]
 
@@ -344,7 +334,28 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         with print_time("Saving"):
             save_state(args, worker, step)
     if args.evaluate:
-        evaluate_results(args, worker, jobs)
+        if args.test_file:
+            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
+            evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                         initial_replay_buffer = replay_buffer)
+            evaluate_results(args, evaluation_worker, test_jobs)
+            #TODO: does evaluation save? do we need to implement "steps already done"?
+        else:
+            evaluate_results(args, worker, jobs)
+
+def get_job_and_prefix_from_task_file(task_file, args):
+    jobs = []
+    with open(task_file, "r") as f:
+        readjobs = [json.loads(line) for line in f]
+    if args.curriculum:
+        readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False) #TODO: do we need curriculum for testing?
+    for task in readjobs:
+        task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
+                lemma_statement=task['proof_statement'])
+        jobs.append((task_job, task['tactic_prefix']))
+    return jobs
+
+
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
