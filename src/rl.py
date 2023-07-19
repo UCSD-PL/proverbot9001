@@ -295,8 +295,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         args.resume = "no"
 
     if args.resume == "yes":
-        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
-            torch.load(str(args.output_file))
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = torch.load(str(args.output_file), map_location=device)
         random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
@@ -324,14 +324,12 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                  initial_replay_buffer = replay_buffer)
     
     if args.tasks_file:
-        jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
+        jobs = get_job_and_prefix_from_task_file(args, args.tasks_file)
         
-        if args.verifyvval:
-            verify_vvals(args, worker, readjobs)
-
         for task in readjobs:
-            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
-                    lemma_statement=task['proof_statement'])
+            task_job = RLTask( src_file = task['src_file'], module_prefix = task['module_prefix'], proof_statement = task['proof_statement'],
+                              tactic_prefix = task['tactic_prefix'], orig_solution = task['orig_solution'], target_length = task['target_length'],
+                               largest_prediction_idx = task['largest_prediction_idx'] )
             jobs.append((task_job, task['tactic_prefix']))
 
     else:
@@ -353,6 +351,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                            start=steps_already_done+1):
         cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
                                                (args.ending_epsilon - args.starting_epsilon))
+        job = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
+                lemma_statement=job.proof_statement)
         worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
             with print_time("Training", guard=args.print_timings):
@@ -366,15 +366,17 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             save_state(args, worker, step)
     if args.evaluate:
         if args.test_file:
-            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
+            test_jobs = get_job_and_prefix_from_task_file(args, args.test_file)
             evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                                          initial_replay_buffer = replay_buffer)
             evaluate_results(args, evaluation_worker, test_jobs)
             #TODO: does evaluation save? do we need to implement "steps already done"?
         else:
             evaluate_results(args, worker, jobs)
+    if args.verifyvval:
+        verify_vvals(args, worker, jobs)
 
-def get_job_and_prefix_from_task_file(task_file, args):
+def get_job_and_prefix_from_task_file(args: argparse.Namespace, task_file: str):
     jobs = []
     with open(task_file, "r") as f:
         readjobs = [json.loads(line) for line in f]
@@ -385,8 +387,6 @@ def get_job_and_prefix_from_task_file(task_file, args):
                 lemma_statement=task['proof_statement'])
         jobs.append((task_job, task['tactic_prefix']))
     return jobs
-
-
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
@@ -761,6 +761,8 @@ def evaluate_results(args: argparse.Namespace,
                      jobs: List[tuple]) -> None:
     proofs_completed = 0
     for job, tactic_prefix in jobs:
+        job = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
+                lemma_statement=job.proof_statement)
         if worker.evaluate_job(job, tactic_prefix):
             proofs_completed += 1
     print(f"{proofs_completed} out of {len(jobs)} "
@@ -774,10 +776,10 @@ def verify_vvals(args: argparse.Namespace,
     print("Verifying VVals")
     vvals_checked = 0
     vval = 0
-    for job in tqdm(jobs, desc="Tasks checked"):
-        reportjob = ReportJob(project_dir=".", filename=job['src_file'], module_prefix=job['module_prefix'],
-                    lemma_statement=job['proof_statement'])
-        vval += abs(worker.verify_vval(reportjob, job['tactic_prefix']) - args.gamma**job['target_length'] )
+    for job, tactic_prefix in tqdm(jobs, desc="Tasks checked"):
+        reportjob = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
+                lemma_statement=job.proof_statement)
+        vval += abs(worker.verify_vval(reportjob, tactic_prefix) - args.gamma**job.target_length )
         vvals_checked += 1
     print(f"Average Vval difference to gamma^n over states in the task set : {vval/vvals_checked}")
 
