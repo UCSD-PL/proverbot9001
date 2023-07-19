@@ -27,6 +27,8 @@ from coq_serapy.contexts import (FullContext, truncate_tactic_context,
                                  Obligation, TacticContext, ProofContext)
 import coq2vec
 
+from gen_rl_tasks import RLTask
+
 with print_time("Importing search code"):
     from search_file import get_all_jobs
     from search_worker import ReportJob, Worker, get_predictor
@@ -87,6 +89,7 @@ def main():
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
+    parser.add_argument("--verifyvval",action="store_true")
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -242,6 +245,23 @@ class ReinforcementWorker:
             eprint(f"Failed to solve proof {proof_name}")
         return success
 
+    def verify_vval(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) -> float :
+        file_worker = self._get_worker(job.filename)
+        file_worker.run_into_task(job, tactic_prefix)
+
+        context: List[Optional[ProofContext]] = file_worker.coq.proof_context
+        num_obls: List[Optional[int]] = len(context.fg_goals) if context else None
+        all_obls = [obl for obl in (context.fg_goals if context else [])]
+        all_obl_scores = self.v_network(all_obls)
+
+        if num_obls is None:
+            resulting_state_val = float("-Inf")
+        else:
+            resulting_state_val = math.prod(all_obl_scores)
+
+        return resulting_state_val
+    
+
     def sync_networks(self) -> None:
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
 
@@ -299,14 +319,25 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                  args.batch_step, args.lr_step)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
-
+    
+    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                 initial_replay_buffer = replay_buffer)
+    
     if args.tasks_file:
         jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
+        
+        if args.verifyvval:
+            verify_vvals(args, worker, readjobs)
+
+        for task in readjobs:
+            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
+                    lemma_statement=task['proof_statement'])
+            jobs.append((task_job, task['tactic_prefix']))
+
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]
 
-    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                 initial_replay_buffer = replay_buffer)
+    
     if args.interleave:
         tasks = jobs * args.num_episodes
     else:
@@ -735,6 +766,21 @@ def evaluate_results(args: argparse.Namespace,
     print(f"{proofs_completed} out of {len(jobs)} "
           f"tasks successfully proven "
           f"({stringified_percent(proofs_completed, len(jobs))}%)")
+
+
+def verify_vvals(args: argparse.Namespace,
+                     worker: ReinforcementWorker,
+                     jobs: List[tuple]) -> None:
+    print("Verifying VVals")
+    vvals_checked = 0
+    vval = 0
+    for job in tqdm(jobs, desc="Tasks checked"):
+        reportjob = ReportJob(project_dir=".", filename=job['src_file'], module_prefix=job['module_prefix'],
+                    lemma_statement=job['proof_statement'])
+        vval += abs(worker.verify_vval(reportjob, job['tactic_prefix']) - args.gamma**job['target_length'] )
+        vvals_checked += 1
+    print(f"Average Vval difference to gamma^n over states in the task set : {vval/vvals_checked}")
+
 
 def stringified_percent(total : float, outof : float) -> str:
     if outof == 0:
