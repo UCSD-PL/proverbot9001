@@ -48,6 +48,18 @@ def main():
     parser = argparse.ArgumentParser(
         description="Train a state estimator using reinforcement learning"
         "to complete proofs using Proverbot9001.")
+    add_args_to_parser(parser)
+    args = parser.parse_args()
+
+    if args.filenames[0].suffix == ".json":
+        args.splits_file = args.filenames[0]
+        args.filenames = None
+    else:
+        args.splits_file = None
+
+    reinforce_jobs(args)
+
+def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_file",
                         help="output data folder name",
@@ -102,13 +114,6 @@ def main():
     
     args = parser.parse_args()
 
-    if args.filenames[0].suffix == ".json":
-        args.splits_file = args.filenames[0]
-        args.filenames = None
-    else:
-        args.splits_file = None
-
-    reinforce_jobs(args)
 
 class FileReinforcementWorker(Worker):
     def finish_proof(self) -> None:
