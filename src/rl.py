@@ -866,7 +866,7 @@ class ReplayBuffer:
     _contents: Dict[Obligation, Tuple[int, Set[Transition]]]
     window_size: int
     window_end_position: int
-    allow_partial_batches: int
+    allow_partial_batches: bool
     def __init__(self, window_size: int,
                  allow_partial_batches: bool) -> None:
         self.window_size = window_size
