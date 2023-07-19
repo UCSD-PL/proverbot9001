@@ -136,11 +136,6 @@ def show_progress(args: argparse.Namespace) -> None:
                 if worker_id in crashed_workers:
                     continue
                 # Skip any worker that hasn't started yet, and get the jobs taken by workers that did.
-                try:
-                    with (args.output_dir / f"worker-{worker_id}-taken.txt").open('r') as f:
-                        taken_by_worker = [ReportJob(*json.loads(l)) for l in f]
-                except FileNotFoundError:
-                    continue
                 jobs_left_behind = 0
                 for job in all_jobs:
                     if job not in jobs_done and job in taken_by_worker:
