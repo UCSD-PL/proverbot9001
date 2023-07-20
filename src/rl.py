@@ -92,8 +92,12 @@ def main():
     parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--hyperparameter_search",action="store_true")
-    args = parser.parse_args()
-
+    args,_ = parser.parse_known_args()
+    if args.hyperparameter_search:
+        parser.add_argument("--num-trails",default=20,type=int,help="Number of trails for hyperparameter search")
+        parser.add_argument("--num-cpus",default=1,type=int,help="Number of CPUs available for a hyperparameter search")
+        parser.add_argument("--num-gpus",default=1,type=int,help="Number of GPUs available for a hyperparameter search")
+        args = parser.parse_args()
     if args.filenames[0].suffix == ".json":
         args.splits_file = args.filenames[0]
         args.filenames = None
@@ -1021,7 +1025,7 @@ def tuning(args) -> None:
         "sync_target_every":tune.randint(1,100),
     }
     tuner = tune.Tuner(tune.with_resources(
-                         tune.with_parameters(objective,args=args), {"cpu": 1, "gpu": 1}),param_space=search_space)
+                         tune.with_parameters(objective,args=args), {"cpu": args.num_cpus, "gpu": args.num_gpus}),param_space=search_space,tune_config=tune.TuneConfig(num_samples=args.num_trails))
                         
     results = tuner.fit()
     print(results.get_best_result(metric="score", mode="max").config)
