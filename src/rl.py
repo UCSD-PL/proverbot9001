@@ -3,6 +3,7 @@
 import argparse
 import json
 import random
+import os
 import time
 import contextlib
 import math
@@ -356,6 +357,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                 lemma_statement=job.proof_statement)
         worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
+            if os.path.isfile("vvalverify.dat") :
+                os.remove('vvalverify.dat')
             with print_time("Training", guard=args.print_timings):
                 worker.train()
         if (step + 1) % args.save_every == 0:
@@ -776,13 +779,10 @@ def verify_vvals(args: argparse.Namespace,
                      jobs: List[tuple]) -> None:
     print("Verifying VVals")
 
-    if args.resume :
-        try :
-            with open('vvalverify.dat','rb') as f:
-                vval_err_sum, steps_already_done = pickle.load(f)
-        except :
-            vval_err_sum  = 0
-            steps_already_done = 0
+
+    if os.path.isfile("vvalverify.dat") :
+        with open('vvalverify.dat','rb') as f:
+            vval_err_sum, steps_already_done = pickle.load(f)
     else :
         vval_err_sum  = 0
         steps_already_done = 0
@@ -797,6 +797,8 @@ def verify_vvals(args: argparse.Namespace,
             with open('vvalverify.dat','wb') as f :
                 pickle.dump((vval_err_sum ,idx),f)
     print(f"Average Vval difference to gamma^n over states in the task set : {vval_err_sum /len(jobs)}")
+
+    os.remove('vvalverify.dat')
 
 
 def stringified_percent(total : float, outof : float) -> str:
