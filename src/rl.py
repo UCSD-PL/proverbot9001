@@ -19,6 +19,7 @@ with print_time("Importing torch"):
     import torch.nn.functional as F
     from torch import optim
     import torch.optim.lr_scheduler as scheduler
+    from models.tactic_predictor import (TacticPredictor, Prediction)
 
 from tqdm import tqdm
 
@@ -974,13 +975,10 @@ def tuning(args) -> None:
             target_network = VNetwork(args.coq2vec_weights,  args.learning_rate,
                                 args.batch_step, args.lr_step)
 
-        if args.tasks_file:
-            taskhandler = Taskhandler()
-            taskhandler.configure({"curriculum"  : True})
-            jobs = taskhandler.get_jobs(args.tasks_file)
-
-        else:
-            jobs = [(job, []) for job in get_all_jobs(args)]
+            if args.tasks_file:
+                jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
+            else:
+                jobs = [(job, []) for job in get_all_jobs(args)]
 
         worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                                     initial_replay_buffer = replay_buffer)
@@ -1014,13 +1012,13 @@ def tuning(args) -> None:
 
 
     search_space = {
-        "learning_rate":tune.loguniform([1e-4,1e-2]), #tune.grid_search([1e-4,2.5e-4,1e-3]),
-        "gamma": tune.uniform([0.1,0.99]),  #([0.95,0.9]),
-        "starting_epsilon":tune.uniform([0,1]),#([0,1]),
-        "batch_step":tune.uniform([25,30]),#([25,30]),
-        "lr_step":tune.uniform([0.8,1]),#([0.8,1]),
-        "batches_per_proof":tune.randint([10,50]),
-        "sync_target_every":tune.randint([1,100]),
+        "learning_rate":tune.loguniform(1e-4,1e-2), #tune.grid_search([1e-4,2.5e-4,1e-3]),
+        "gamma": tune.uniform(0.1,0.99),  #([0.95,0.9]),
+        "starting_epsilon":tune.uniform(0,1),#([0,1]),
+        "batch_step":tune.uniform(25,30),#([25,30]),
+        "lr_step":tune.uniform(0.8,1),#([0.8,1]),
+        "batches_per_proof":tune.randint(10,50),
+        "sync_target_every":tune.randint(1,100),
     }
     tuner = tune.Tuner(tune.with_resources(
                          tune.with_parameters(objective,args=args), {"cpu": 1, "gpu": 1}),param_space=search_space)
