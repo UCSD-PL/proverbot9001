@@ -223,31 +223,37 @@ class ReinforcementWorker:
             return
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
-        file_worker.run_into_task(job, tactic_prefix)
         try:
+            file_worker.run_into_task(job, tactic_prefix)
             with print_time("Experiencing", guard=self.args.print_timings):
                 experience_proof(self.args,
                                  file_worker.coq,
                                  self.predictor, self.v_network,
                                  self.replay_buffer, epsilon)
         except coq_serapy.CoqAnomaly:
-            eprint("Encountered Coq anomaly. Closing current job.")
+            eprint("Encountered Coq anomaly.")
             file_worker.restart_coq()
             file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
-
+            if restart:
+                self.run_job_reinforce(job, tactic_prefix, epsilon, restart=False)
+            else:
+                eprint("Encountered anomaly without restart, closing current job")
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
-        file_worker.run_into_task(job, tactic_prefix)
         success = False
         try:
+            file_worker.run_into_task(job, tactic_prefix)
             success = evaluate_proof(self.args, file_worker.coq, self.predictor,
                                      self.v_network)
         except coq_serapy.CoqAnomaly:
             file_worker.restart_coq()
+            file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
+            if restart:
+                return self.evaluate_job(job, tactic_prefix, restart=False)
         proof_name = coq_serapy.lemma_name_from_statement(job.lemma_statement)
         if success:
             eprint(f"Solved proof {proof_name}!")
@@ -257,7 +263,16 @@ class ReinforcementWorker:
 
     def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) -> float :
         file_worker = self._get_worker(job.filename)
-        file_worker.run_into_task(job, tactic_prefix)
+        try:
+            file_worker.run_into_task(job, tactic_prefix)
+        except coq_serapy.CoqAnomaly:
+            if restart:
+                file_worker.restart_coq()
+                file_worker.reset_file_state()
+                file_worker.enter_file(job.filename)
+                return self.estimate_starting_vval(job, tactic_prefix, restart=False)
+            else:
+                raise
 
         context: List[Optional[ProofContext]] = file_worker.coq.proof_context
         num_obls: List[Optional[int]] = len(context.fg_goals) if context else None
