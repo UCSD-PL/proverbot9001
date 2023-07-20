@@ -283,7 +283,7 @@ class Worker:
         ending_command = None
         important_vernac_cmds = []
         for cmd in self.remaining_commands:
-            if re.match("\s*(?:Local|Global\s+)?(?:Opaque|Transparent)\s+[\w']+\.", cmd):
+            if re.match("\s*(?:Local\s+|Global\s+)?(?:Opaque|Transparent)\s+[\w']+\.\s*", cmd):
                 important_vernac_cmds.append(cmd)
             if coq_serapy.ending_proof(cmd):
                 ending_command = cmd

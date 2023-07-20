@@ -3,7 +3,6 @@
 import argparse
 import json
 import random
-import re
 import time
 import contextlib
 import math
@@ -61,12 +60,12 @@ def main():
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
-
     parser.add_argument("--tasks-file", default=None)
-
+    parser.add_argument("--test-file", default=None)
     parser.add_argument("--no-interleave", dest="interleave", action="store_false")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
+    parser.add_argument("--max-sertop-workers", default=16, type=int)
     parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
     parser.add_argument("-g", "--gamma", default=0.9, type=float)
     parser.add_argument("--starting-epsilon", default=0, type=float)
@@ -85,7 +84,8 @@ def main():
                         help="Sync target network to v network every <n> episodes",
                         default=10, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
-    parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--blacklist-tactic", action="append",
+                        dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
@@ -105,6 +105,7 @@ def main():
 
 class FileReinforcementWorker(Worker):
     def finish_proof(self) -> None:
+        assert self.coq
         while not coq_serapy.ending_proof(self.remaining_commands[0]):
             self.remaining_commands.pop(0)
         ending_cmd = self.remaining_commands.pop(0)
@@ -112,8 +113,10 @@ class FileReinforcementWorker(Worker):
 
     def run_into_task(self, job: ReportJob, tactic_prefix: List[str],
                       restart_anomaly: bool = True, careful: bool = False) -> None:
+        assert self.coq
         if job.project_dir != self.cur_project or job.filename != self.cur_file \
-           or job.module_prefix != self.coq.sm_prefix or self.coq.proof_context is None \
+           or job.module_prefix != self.coq.sm_prefix \
+               or self.coq.proof_context is None \
                or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
             if self.coq.proof_context is not None:
                 self.finish_proof()
@@ -162,7 +165,8 @@ class ReinforcementWorker:
     replay_buffer: 'ReplayBuffer'
     verbosity: int
     predictor: TacticPredictor
-    file_workers: Dict[str, FileReinforcementWorker]
+    last_worker_idx: int
+    file_workers: Dict[str, Tuple[FileReinforcementWorker, int]]
     def __init__(self, args: argparse.Namespace,
                  predictor: TacticPredictor,
                  v_network: 'VNetwork',
@@ -173,6 +177,7 @@ class ReinforcementWorker:
         self.v_network = v_network
         self.target_v_network = target_network
         self.predictor = predictor
+        self.last_worker_idx = 0
         if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
         else:
@@ -184,9 +189,24 @@ class ReinforcementWorker:
         if filename not in self.file_workers:
             args_copy = argparse.Namespace(**vars(self.args))
             args_copy.verbose = self.args.verbose - 2
-            self.file_workers[filename] = FileReinforcementWorker(args_copy, None)
-            self.file_workers[filename].enter_instance()
-        return self.file_workers[filename]
+            worker = FileReinforcementWorker(args_copy, None)
+            worker.enter_instance()
+            self.file_workers[filename] = (worker, self.last_worker_idx)
+            self.last_worker_idx += 1
+        if len(self.file_workers) > self.args.max_sertop_workers:
+            removing_worker_filename = None
+            target_worker_idx = self.last_worker_idx - self.args.max_sertop_workers - 1
+            for w_filename, (worker, idx) in self.file_workers.items():
+                if idx == target_worker_idx:
+                    removing_worker_filename = w_filename
+                    break
+            assert removing_worker_filename is not None
+            worker_coq_instance = self.file_workers[removing_worker_filename][0].coq
+            assert worker_coq_instance is not None
+            worker_coq_instance.kill()
+            del self.file_workers[removing_worker_filename]
+
+        return self.file_workers[filename][0]
 
     def train(self) -> None:
         train_v_network(self.args, self.v_network, self.target_v_network,
@@ -195,6 +215,7 @@ class ReinforcementWorker:
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
         file_worker = self._get_worker(job.filename)
+        assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
         try:
             with print_time("Experiencing", guard=self.args.print_timings):
@@ -211,6 +232,7 @@ class ReinforcementWorker:
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
+        assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
         success = False
         try:
@@ -285,16 +307,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             target_network.obligation_encoder = v_network.obligation_encoder
 
     if args.tasks_file:
-        jobs = []
-        with open(args.tasks_file, "r") as f:
-            readjobs = [json.loads(line) for line in f]
-        if args.curriculum:
-            readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False)
-        for task in readjobs:
-            task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
-                    lemma_statement=task['proof_statement'])
-            jobs.append((task_job, task['tactic_prefix']))
-
+        jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]
 
@@ -317,7 +330,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                                (args.ending_epsilon - args.starting_epsilon))
         worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
-            with print_time("Training"):
+            with print_time("Training", guard=args.print_timings):
                 worker.train()
         if (step + 1) % args.save_every == 0:
             save_state(args, worker, step + 1)
@@ -327,23 +340,37 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         with print_time("Saving"):
             save_state(args, worker, step)
     if args.evaluate:
-        proofs_solved = evaluate_results(args, worker, jobs)
-    return proofs_solved
+        if args.test_file:
+            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
+            evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                         initial_replay_buffer = replay_buffer)
+            evaluate_results(args, evaluation_worker, test_jobs)
+            #TODO: does evaluation save? do we need to implement "steps already done"?
+        else:
+            evaluate_results(args, worker, jobs)
 
-
-
-
-
+def get_job_and_prefix_from_task_file(task_file, args):
+    jobs = []
+    with open(task_file, "r") as f:
+        readjobs = [json.loads(line) for line in f]
+    if args.curriculum:
+        readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False) #TODO: do we need curriculum for testing?
+    for task in readjobs:
+        task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
+                lemma_statement=task['proof_statement'])
+        jobs.append((task_job, task['tactic_prefix']))
+    return jobs
 
 
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
-    def __init__(self, term_encoder: 'CoqTermRNNVectorizer',
+    def __init__(self, term_encoder: 'coq2vec.CoqTermRNNVectorizer',
                  max_num_hypotheses: int) -> None:
         super().__init__(term_encoder, max_num_hypotheses)
         self.obl_cache = {}
-    def obligations_to_vectors_cached(self, obls: List[Obligation]) -> torch.FloatTensor:
+    def obligations_to_vectors_cached(self, obls: List[Obligation]) \
+            -> torch.FloatTensor:
         encoded_obl_size = self.term_encoder.hidden_size * (self.max_num_hypotheses + 1)
         encoded = run_network_with_cache(
             lambda x: self.obligations_to_vectors(x).view(len(x), encoded_obl_size),
@@ -366,8 +393,10 @@ class VNetwork:
     learning_rate: float
 
     def get_state(self) -> Any:
+        assert self.obligation_encoder is not None
         return (self.network.state_dict(),
-                self.obligation_encoder.term_encoder.get_state())
+                self.obligation_encoder.term_encoder.get_state(),
+                self.obligation_encoder.obl_cache)
 
     def _load_encoder_state(self, encoder_state: Any) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
@@ -387,10 +416,17 @@ class VNetwork:
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
 
-
     def load_state(self, state: Any) -> None:
-        network_state, encoder_state = state
-        self._load_encoder_state(encoder_state)
+        # This case exists for compatibility with older resume files that
+        # didn't save the obligation cache.
+        if len(state) == 2:
+            network_state, encoder_state = state
+            self._load_encoder_state(encoder_state)
+        else:
+            assert len(state) == 3
+            network_state, encoder_state, obl_cache = state
+            self._load_encoder_state(encoder_state)
+            self.obligation_encoder.obl_cache = obl_cache
         self.network.load_state_dict(network_state)
 
 

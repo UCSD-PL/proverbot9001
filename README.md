@@ -73,22 +73,27 @@ Note the make commands are to be ran under CompCert directory. If you are using 
 1. Make sure CompCert making is done.
 2. Have ```data/polyarg-weights-develop.dat``` and ```data/term2vec-weights-59.dat``` included in your local repo.
 ### Generating tasks
+Run
 ```
 python src/gen_rl_tasks.py --prelude=CompCert \
       --supervised-weights=data/polyarg-weights-develop.dat -o rl_train_jobs.json compcert_projs_splits.json
 ```
+To generate training tasks. To generate test tasks, specify ```--data-partition='test'```. To run faster, use ```src/gen_rl_tasks_cluster.py``` instead.
 ### Filter data by length
-If you want tasks only up to a certain length, you can just use the jq tool to filter down to the task length.
-For example, if you want target length up to 3, you can run the following command:
+By default, ```gen_rl_tasks.py``` extracts tasks by making 16 predictions at each state, and seeing if the solution tactic matches any of them. Also 
+by default, ```rl.py``` only makes 5 predictions at each state to choose between. Therefore, if using both defaults, make sure to filter task length to 
+at least 5 and prediction width to at most 5.
+You can use the jq tool to filter task length and width.
+For example, to filter as specified above, run the following command:
 ```
-jq -c "select(.target_length <= 3)" rl_train_jobs.json > rl_train_jobs_len3.json
+jq -c "select(.largest_prediction_idx <= 5 and .target_length >= 5)" rl_train_jobs.json > rl_train_jobs_len5_wid5.json
 ```
 ### Fill in task curriculum
 Run 
 ```
-python src/fill_in_task_curriculum.py $INPUT_DIR $OUTPUT_DIR
+python src/fill_in_task_curriculum.py $INPUT_FILE $OUTPUT_FILE
 ```
-to fill in task currriculum.
+to fill in task currriculum. INPUT_FILE should be the output of the jq tool. The output file is used for the tasks-file parameter in the next step.
 ### Run Reinforcement Learning Script
 ```
 python src/rl.py --supervised-weights=data/polyarg-weights-develop.dat --coq2vec-weights=data/term2vec-weights-59.dat compcert_projs_splits.json \
