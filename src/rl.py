@@ -983,7 +983,7 @@ def tuning(args) -> None:
         "starting_epsilon":tune.uniform([0,1]),#([0,1]),
         "batch_step":tune.uniform([25,30]),#([25,30]),
         "lr_step":tune.uniform([0.8,1]),#([0.8,1]),
-        "batches_per_proof":tune.randint([1,10]),
+        "batches_per_proof":tune.randint([10,50]),
         "sync_target_every":tune.randint([1,100]),
     }
     tuner = tune.Tuner(tune.with_resources(
