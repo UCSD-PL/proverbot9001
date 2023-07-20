@@ -117,7 +117,7 @@ Pass in ```--hyperparameter_search``` flag when running. Note that due to the us
 ```
 ROOT=/root/of/your/proverbot
 python src/rl.py --supervised-weights=$ROOT/data/polyarg-weights-develop.dat --coq2vec-weights=$ROOT/data/term2vec-weights-59.dat $ROOT/compcert_projs_splits.json \
-         --tasks-file=$ROOT/rl_train_jobs_100lines_curriculum.json --prelude=$ROOT/CompCert --backend=serapi --allow-partial-batches \
-         --learning-rate=0.0001 -n1 -o $ROOT/data/rl_weights-compcert-5.dat -s5 --hyperparameter_search --output $ROOT/data/rl_weights.dat
-
+         --tasks-file=/absolute/path/to/your/train/file.json --test-file=/absolute/path/to/your/test/file.json --prelude=$ROOT/CompCert --backend=serapi --allow-partial-batches \
+         --learning-rate=0.0001 -n1 -o $ROOT/data/rl_weights-compcert-5.dat -s5 --hyperparameter_search --output $ROOT/data/rl_weights.dat \
+         --num-trails $NUM_OF_HYPERPARAMETERS_YOU_WANT_TO_TRY --num-cpus $NUM_CPUS_AVAILABLE --num-gpus $NUM_GPUS_AVAILABLE
 ```
