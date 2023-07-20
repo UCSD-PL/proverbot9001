@@ -3,6 +3,7 @@
 import argparse
 import json
 import random
+import re
 import os
 import time
 import contextlib
@@ -803,12 +804,13 @@ def verify_vvals(args: argparse.Namespace,
     print("Verifying VVals")
     if os.path.isfile("vvalverify.dat") :
         with open('vvalverify.dat','rb') as f:
-            vval_err_sum, steps_already_done = pickle.load(f)
+            vval_err_sum, steps_already_done, jobs_skipped = pickle.load(f)
+        print("Found existing vvalverify.dat file with", steps_already_done, "steps already done.")
     else :
         vval_err_sum  = 0
         steps_already_done = 0
-
-    jobs_skipped = 0
+        jobs_skipped = 0
+    
     
     for idx, (job, tactic_prefix) in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
                                               initial=steps_already_done, total=len(jobs)), start=steps_already_done + 1):
@@ -822,8 +824,8 @@ def verify_vvals(args: argparse.Namespace,
         
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
-                pickle.dump((vval_err_sum ,idx),f)
-    print(f"Average step error: {vval/(len(jobs) - jobs_skipped)}")
+                pickle.dump((vval_err_sum ,idx, jobs_skipped),f)
+    print(f"Average step error: {vval_err_sum/(len(jobs) - jobs_skipped)}")
 
     os.remove('vvalverify.dat')
 
