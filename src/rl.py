@@ -801,8 +801,6 @@ def verify_vvals(args: argparse.Namespace,
                      worker: ReinforcementWorker,
                      jobs: List[tuple]) -> None:
     print("Verifying VVals")
-
-
     if os.path.isfile("vvalverify.dat") :
         with open('vvalverify.dat','rb') as f:
             vval_err_sum, steps_already_done = pickle.load(f)
