@@ -8,6 +8,8 @@ import time
 import contextlib
 import math
 import pickle
+import sys
+import re
 from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -213,6 +215,12 @@ class ReinforcementWorker:
 
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
+        if not tactic_prefix_is_usable(tactic_prefix):
+            if self.args.verbose >= 2:
+                eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
+            else:
+                eprint(f"Skipping a job because it can't be purely focused")
+            return
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
@@ -786,17 +794,23 @@ def verify_vvals(args: argparse.Namespace,
     else :
         vval_err_sum  = 0
         steps_already_done = 0
+
+    jobs_skipped = 0
     
     for idx, (job, tactic_prefix) in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
                                               initial=steps_already_done, total=len(jobs)), start=steps_already_done + 1):
         reportjob = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
                 lemma_statement=job.proof_statement)
-        vval_err_sum  += abs(worker.estimate_starting_vval(reportjob, tactic_prefix) - args.gamma**job.target_length )
+        if not tactic_prefix_is_usable(tactic_prefix):
+            eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
+            jobs_skipped += 1
+            continue
+        vval_err_sum += abs((math.log(max(sys.float_info.min, worker.estimate_starting_vval(reportjob, tactic_prefix))) / math.log(args.gamma)) - job.target_length )
         
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
                 pickle.dump((vval_err_sum ,idx),f)
-    print(f"Average Vval difference to gamma^n over states in the task set : {vval_err_sum /len(jobs)}")
+    print(f"Average step error: {vval/(len(jobs) - jobs_skipped)}")
 
     os.remove('vvalverify.dat')
 
@@ -886,6 +900,11 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
             output_list[idx] = result
     return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
 
+def tactic_prefix_is_usable(tactic_prefix: List[str]):
+    for tactic in tactic_prefix:
+        if re.match("\s*\d+\s*:", tactic):
+            return False
+    return True
 
 
 if __name__ == "__main__":
