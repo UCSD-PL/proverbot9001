@@ -62,6 +62,11 @@ class RLTask:
     orig_solution: List[str]
     target_length: int
     largest_prediction_idx: int
+    def to_job(self) -> ReportJob:
+        return ReportJob(".", self.src_file, self.module_prefix, self.proof_statement)
+    @classmethod
+    def from_job(cls, job: ReportJob) -> 'RLTask':
+        return RLTask(job.filename, job.module_prefix, job.lemma_statment, [], [], -1, -1)
 
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
