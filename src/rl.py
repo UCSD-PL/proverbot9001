@@ -3,9 +3,14 @@
 import argparse
 import json
 import random
+import re
+import os
 import time
 import contextlib
 import math
+import pickle
+import sys
+import re
 from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -26,6 +31,8 @@ import coq_serapy
 from coq_serapy.contexts import (FullContext, truncate_tactic_context,
                                  Obligation, TacticContext, ProofContext)
 import coq2vec
+
+from gen_rl_tasks import RLTask
 
 with print_time("Importing search code"):
     from search_file import get_all_jobs
@@ -87,6 +94,7 @@ def main():
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
+    parser.add_argument("--verifyvval",action="store_true")
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -208,39 +216,73 @@ class ReinforcementWorker:
 
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> None:
+        if not tactic_prefix_is_usable(tactic_prefix):
+            if self.args.verbose >= 2:
+                eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
+            else:
+                eprint(f"Skipping a job because it can't be purely focused")
+            return
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
-        file_worker.run_into_task(job, tactic_prefix)
         try:
+            file_worker.run_into_task(job, tactic_prefix)
             with print_time("Experiencing", guard=self.args.print_timings):
                 experience_proof(self.args,
                                  file_worker.coq,
                                  self.predictor, self.v_network,
                                  self.replay_buffer, epsilon)
         except coq_serapy.CoqAnomaly:
-            eprint("Encountered Coq anomaly. Closing current job.")
+            eprint("Encountered Coq anomaly.")
             file_worker.restart_coq()
             file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
-
+            if restart:
+                self.run_job_reinforce(job, tactic_prefix, epsilon, restart=False)
+            else:
+                eprint("Encountered anomaly without restart, closing current job")
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
-        file_worker.run_into_task(job, tactic_prefix)
         success = False
         try:
+            file_worker.run_into_task(job, tactic_prefix)
             success = evaluate_proof(self.args, file_worker.coq, self.predictor,
                                      self.v_network)
         except coq_serapy.CoqAnomaly:
             file_worker.restart_coq()
+            file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
+            if restart:
+                return self.evaluate_job(job, tactic_prefix, restart=False)
         proof_name = coq_serapy.lemma_name_from_statement(job.lemma_statement)
         if success:
             eprint(f"Solved proof {proof_name}!")
         else:
             eprint(f"Failed to solve proof {proof_name}")
         return success
+
+    def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) -> float :
+        file_worker = self._get_worker(job.filename)
+        try:
+            file_worker.run_into_task(job, tactic_prefix)
+        except coq_serapy.CoqAnomaly:
+            if restart:
+                file_worker.restart_coq()
+                file_worker.reset_file_state()
+                file_worker.enter_file(job.filename)
+                return self.estimate_starting_vval(job, tactic_prefix, restart=False)
+            else:
+                raise
+
+        context: List[Optional[ProofContext]] = file_worker.coq.proof_context
+        assert context is not None
+        all_obl_scores = self.v_network(context.fg_goals)
+
+        resulting_state_val = math.prod(all_obl_scores).item()
+
+        return resulting_state_val
+    
 
     def sync_networks(self) -> None:
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
@@ -275,8 +317,9 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         args.resume = "no"
 
     if args.resume == "yes":
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
-            torch.load(str(args.output_file))
+            torch.load(str(args.output_file), map_location=device)
         random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
@@ -299,63 +342,62 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                  args.batch_step, args.lr_step)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
-
-    if args.tasks_file:
-        jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
-    else:
-        jobs = [(job, []) for job in get_all_jobs(args)]
-
+    
     worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                                  initial_replay_buffer = replay_buffer)
-    if args.interleave:
-        tasks = jobs * args.num_episodes
+    
+    if args.tasks_file:
+        tasks = read_tasks_file(args, args.tasks_file, args.curriculum)
     else:
-        tasks = [task for job in jobs for task in [job] * args.num_episodes]
+        tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
+
+    
+    if args.interleave:
+        task_episodes = tasks * args.num_episodes
+    else:
+        task_episodes = [task_ep for task in tasks for task_ep in [task] * args.num_episodes]
 
     for step in range(steps_already_done):
         with nostderr():
             worker.v_network.adjuster.step()
 
-    for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
-                                                          initial=steps_already_done,
-                                                          total=len(tasks)),
-                                           start=steps_already_done+1):
-        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
+    for step, task in enumerate(tqdm(task_episodes[steps_already_done:],
+                                     initial=steps_already_done,
+                                     total=len(task_episodes)),
+                                     start=steps_already_done+1):
+        cur_epsilon = args.starting_epsilon + ((step / len(task_episodes)) *
                                                (args.ending_epsilon - args.starting_epsilon))
-        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
+        worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
+            if os.path.isfile("vvalverify.dat") :
+                os.remove('vvalverify.dat')
             with print_time("Training", guard=args.print_timings):
                 worker.train()
         if (step + 1) % args.save_every == 0:
             save_state(args, worker, step + 1)
         if (step + 1) % args.sync_target_every == 0:
             worker.sync_networks()
-    if steps_already_done < len(tasks):
+    if steps_already_done < len(task_episodes):
         with print_time("Saving"):
             save_state(args, worker, step)
     if args.evaluate:
         if args.test_file:
-            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
+            test_tasks = read_tasks_file(args, args.test_file, False)
             evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                         initial_replay_buffer = replay_buffer)
-            evaluate_results(args, evaluation_worker, test_jobs)
-            #TODO: does evaluation save? do we need to implement "steps already done"?
+                                                    initial_replay_buffer = replay_buffer)
+            evaluate_results(args, evaluation_worker, test_tasks)
         else:
-            evaluate_results(args, worker, jobs)
+            evaluate_results(args, worker, tasks)
+    if args.verifyvval:
+        verify_vvals(args, worker, tasks)
 
-def get_job_and_prefix_from_task_file(task_file, args):
-    jobs = []
+def read_tasks_file(args: argparse.Namespace, task_file: str, curriculum: bool):
+    tasks = []
     with open(task_file, "r") as f:
-        readjobs = [json.loads(line) for line in f]
-    if args.curriculum:
-        readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False) #TODO: do we need curriculum for testing?
-    for task in readjobs:
-        task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
-                lemma_statement=task['proof_statement'])
-        jobs.append((task_job, task['tactic_prefix']))
-    return jobs
-
-
+        tasks = [RLTask(**json.loads(line)) for line in f]
+    if curriculum:
+        tasks = sorted(tasks, key=lambda t: t.target_length)
+    return tasks
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
@@ -727,14 +769,58 @@ def evaluate_proof(args: argparse.Namespace,
 
 def evaluate_results(args: argparse.Namespace,
                      worker: ReinforcementWorker,
-                     jobs: List[tuple]) -> None:
+                     tasks: List[RLTask]) -> None:
     proofs_completed = 0
-    for job, tactic_prefix in jobs:
-        if worker.evaluate_job(job, tactic_prefix):
+    for task in tasks:
+        if worker.evaluate_job(task.to_job(), tactic_prefix):
             proofs_completed += 1
-    print(f"{proofs_completed} out of {len(jobs)} "
+    print(f"{proofs_completed} out of {len(tasks)} "
           f"tasks successfully proven "
-          f"({stringified_percent(proofs_completed, len(jobs))}%)")
+          f"({stringified_percent(proofs_completed, len(tasks))}%)")
+
+
+def verify_vvals(args: argparse.Namespace,
+                 worker: ReinforcementWorker,
+                 tasks: List[RLTask]) -> None:
+    print("Verifying VVals")
+    resumepath = Path("vvalverify.dat")
+    if args.resume == "ask" and resumepath.exists():
+        print(f"Found vval verification in progress at {str(resumepath)}. Resume?")
+        response = input("[Y/n] ")
+        if response.lower() not in ["no", "n"]:
+            args.resume = "yes"
+        else:
+            args.resume = "no"
+    elif not resumepath.exists():
+        args.resume = "no"
+    if resumepath.exists() and args.resume == "yes":
+        with resumepath.open('rb') as f:
+            vval_err_sum, steps_already_done, jobs_skipped = pickle.load(f)
+    else :
+        vval_err_sum  = 0
+        steps_already_done = 0
+        jobs_skipped = 0
+    
+    
+    for idx, task in enumerate(tqdm(tasks[steps_already_done:], desc="Tasks checked",
+                                    initial=steps_already_done, total=len(tasks)),
+                                    start=steps_already_done + 1):
+        if not tactic_prefix_is_usable(task.tactic_prefix):
+            eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
+            jobs_skipped += 1
+            continue
+        vval_predicted = worker.estimate_starting_vval(task.to_job(), task.tactic_prefix)
+        steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) / math.log(args.gamma)
+        step_error = abs(steps_predicted - task.target_length)
+        vval_err_sum += step_error
+        if idx%100 == 0 :
+            with open('vvalverify.dat','wb') as f :
+                pickle.dump((vval_err_sum ,idx, jobs_skipped),f)
+    print(f"Average step error: {vval_err_sum/(len(tasks) - jobs_skipped)}")
+
+    if len(tasks) > 100:
+        os.remove('vvalverify.dat')
+
 
 def stringified_percent(total : float, outof : float) -> str:
     if outof == 0:
@@ -821,6 +907,11 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
             output_list[idx] = result
     return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
 
+def tactic_prefix_is_usable(tactic_prefix: List[str]):
+    for tactic in tactic_prefix:
+        if re.match("\s*\d+\s*:", tactic):
+            return False
+    return True
 
 
 if __name__ == "__main__":
