@@ -276,14 +276,10 @@ class ReinforcementWorker:
                 raise
 
         context: List[Optional[ProofContext]] = file_worker.coq.proof_context
-        num_obls: List[Optional[int]] = len(context.fg_goals) if context else None
-        all_obls = [obl for obl in (context.fg_goals if context else [])]
-        all_obl_scores = self.v_network(all_obls)
+        assert context is not None
+        all_obl_scores = self.v_network(context.fg_goals)
 
-        if num_obls is None:
-            resulting_state_val = float("-Inf")
-        else:
-            resulting_state_val = math.prod(all_obl_scores).item()
+        resulting_state_val = math.prod(all_obl_scores).item()
 
         return resulting_state_val
     
@@ -354,13 +350,11 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         jobs = get_job_and_prefix_from_task_file(args, args.tasks_file)
         
         for task in readjobs:
-            task_job = RLTask( src_file = task['src_file'], module_prefix = task['module_prefix'], proof_statement = task['proof_statement'],
-                              tactic_prefix = task['tactic_prefix'], orig_solution = task['orig_solution'], target_length = task['target_length'],
-                               largest_prediction_idx = task['largest_prediction_idx'] )
-            jobs.append((task_job, task['tactic_prefix']))
+            task_job = RLTask(**task)
+            jobs.append(task_job)
 
     else:
-        jobs = [(job, []) for job in get_all_jobs(args)]
+        jobs = [RLTask.from_job(job) for job in get_all_jobs(args)]
 
     
     if args.interleave:
@@ -372,15 +366,13 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         with nostderr():
             worker.v_network.adjuster.step()
 
-    for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
+    for step, task in enumerate(tqdm(tasks[steps_already_done:],
                                                           initial=steps_already_done,
                                                           total=len(tasks)),
                                            start=steps_already_done+1):
         cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
                                                (args.ending_epsilon - args.starting_epsilon))
-        job = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
-                lemma_statement=job.proof_statement)
-        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
+        worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
             if os.path.isfile("vvalverify.dat") :
                 os.remove('vvalverify.dat')
@@ -813,15 +805,14 @@ def verify_vvals(args: argparse.Namespace,
         jobs_skipped = 0
     
     
-    for idx, (job, tactic_prefix) in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
+    for idx, task in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
                                               initial=steps_already_done, total=len(jobs)), start=steps_already_done + 1):
-        reportjob = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
-                lemma_statement=job.proof_statement)
-        if not tactic_prefix_is_usable(tactic_prefix):
+        eprint(task)
+        if not tactic_prefix_is_usable(task.tactic_prefix):
             eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
             continue
-        vval_err_sum += abs((math.log(max(sys.float_info.min, worker.estimate_starting_vval(reportjob, tactic_prefix))) / math.log(args.gamma)) - job.target_length )
+        vval_err_sum += abs((math.log(max(sys.float_info.min, worker.estimate_starting_vval(task.to_job(), task.tactic_prefix))) / math.log(args.gamma)) - task.target_length )
         
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
