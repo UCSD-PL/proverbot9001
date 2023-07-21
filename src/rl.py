@@ -807,13 +807,11 @@ def verify_vvals(args: argparse.Namespace,
     
     for idx, task in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
                                               initial=steps_already_done, total=len(jobs)), start=steps_already_done + 1):
-        eprint(task)
         if not tactic_prefix_is_usable(task.tactic_prefix):
             eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
             continue
         vval_err_sum += abs((math.log(max(sys.float_info.min, worker.estimate_starting_vval(task.to_job(), task.tactic_prefix))) / math.log(args.gamma)) - task.target_length )
-        
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
                 pickle.dump((vval_err_sum ,idx, jobs_skipped),f)
