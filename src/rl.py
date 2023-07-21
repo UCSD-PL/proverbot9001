@@ -322,7 +322,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
 
     if args.resume == "yes":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = torch.load(str(args.output_file), map_location=device)
+        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
+            torch.load(str(args.output_file), map_location=device)
         random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
