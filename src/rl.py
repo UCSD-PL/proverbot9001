@@ -347,30 +347,25 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                  initial_replay_buffer = replay_buffer)
     
     if args.tasks_file:
-        jobs = get_job_and_prefix_from_task_file(args, args.tasks_file)
-        
-        for task in readjobs:
-            task_job = RLTask(**task)
-            jobs.append(task_job)
-
+        tasks = read_tasks_file(args, args.tasks_file, args.curriculum)
     else:
-        jobs = [RLTask.from_job(job) for job in get_all_jobs(args)]
+        tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
 
     
     if args.interleave:
-        tasks = jobs * args.num_episodes
+        task_episodes = tasks * args.num_episodes
     else:
-        tasks = [task for job in jobs for task in [job] * args.num_episodes]
+        task_episodes = [task_ep for task in tasks for task_ep in [task] * args.num_episodes]
 
     for step in range(steps_already_done):
         with nostderr():
             worker.v_network.adjuster.step()
 
-    for step, task in enumerate(tqdm(tasks[steps_already_done:],
-                                                          initial=steps_already_done,
-                                                          total=len(tasks)),
-                                           start=steps_already_done+1):
-        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
+    for step, task in enumerate(tqdm(task_episodes[steps_already_done:],
+                                     initial=steps_already_done,
+                                     total=len(task_episodes)),
+                                     start=steps_already_done+1):
+        cur_epsilon = args.starting_epsilon + ((step / len(task_episodes)) *
                                                (args.ending_epsilon - args.starting_epsilon))
         worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
@@ -382,32 +377,27 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             save_state(args, worker, step + 1)
         if (step + 1) % args.sync_target_every == 0:
             worker.sync_networks()
-    if steps_already_done < len(tasks):
+    if steps_already_done < len(task_episodes):
         with print_time("Saving"):
             save_state(args, worker, step)
     if args.evaluate:
         if args.test_file:
-            test_jobs = get_job_and_prefix_from_task_file(args, args.test_file)
+            test_tasks = read_tasks_file(args, args.test_file, False)
             evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                         initial_replay_buffer = replay_buffer)
-            evaluate_results(args, evaluation_worker, test_jobs)
-            #TODO: does evaluation save? do we need to implement "steps already done"?
+                                                    initial_replay_buffer = replay_buffer)
+            evaluate_results(args, evaluation_worker, test_tasks)
         else:
-            evaluate_results(args, worker, jobs)
+            evaluate_results(args, worker, tasks)
     if args.verifyvval:
-        verify_vvals(args, worker, jobs)
+        verify_vvals(args, worker, tasks)
 
-def get_job_and_prefix_from_task_file(args: argparse.Namespace, task_file: str):
-    jobs = []
+def read_tasks_file(args: argparse.Namespace, task_file: str, curriculum: bool):
+    tasks = []
     with open(task_file, "r") as f:
-        readjobs = [json.loads(line) for line in f]
-    if args.curriculum:
-        readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False) #TODO: do we need curriculum for testing?
-    for task in readjobs:
-        task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
-                lemma_statement=task['proof_statement'])
-        jobs.append((task_job, task['tactic_prefix']))
-    return jobs
+        tasks = [RLTask(**json.loads(line)) for line in f]
+    if curriculum:
+        tasks = sorted(tasks, key=lambda t: t.target_length)
+    return tasks
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
@@ -779,21 +769,19 @@ def evaluate_proof(args: argparse.Namespace,
 
 def evaluate_results(args: argparse.Namespace,
                      worker: ReinforcementWorker,
-                     jobs: List[tuple]) -> None:
+                     tasks: List[RLTask]) -> None:
     proofs_completed = 0
-    for job, tactic_prefix in jobs:
-        job = ReportJob(project_dir=".", filename=job.src_file, module_prefix=job.module_prefix,
-                lemma_statement=job.proof_statement)
-        if worker.evaluate_job(job, tactic_prefix):
+    for task in tasks:
+        if worker.evaluate_job(task.to_job(), tactic_prefix):
             proofs_completed += 1
-    print(f"{proofs_completed} out of {len(jobs)} "
+    print(f"{proofs_completed} out of {len(tasks)} "
           f"tasks successfully proven "
-          f"({stringified_percent(proofs_completed, len(jobs))}%)")
+          f"({stringified_percent(proofs_completed, len(tasks))}%)")
 
 
 def verify_vvals(args: argparse.Namespace,
                  worker: ReinforcementWorker,
-                 jobs: List[tuple]) -> None:
+                 tasks: List[RLTask]) -> None:
     print("Verifying VVals")
     resumepath = Path("vvalverify.dat")
     if args.resume == "ask" and resumepath.exists():
@@ -814,8 +802,8 @@ def verify_vvals(args: argparse.Namespace,
         jobs_skipped = 0
     
     
-    for idx, task in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
-                                    initial=steps_already_done, total=len(jobs)),
+    for idx, task in enumerate(tqdm(tasks[steps_already_done:], desc="Tasks checked",
+                                    initial=steps_already_done, total=len(tasks)),
                                     start=steps_already_done + 1):
         if not tactic_prefix_is_usable(task.tactic_prefix):
             eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
@@ -828,9 +816,9 @@ def verify_vvals(args: argparse.Namespace,
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
                 pickle.dump((vval_err_sum ,idx, jobs_skipped),f)
-    print(f"Average step error: {vval_err_sum/(len(jobs) - jobs_skipped)}")
+    print(f"Average step error: {vval_err_sum/(len(tasks) - jobs_skipped)}")
 
-    if len(jobs) > 100:
+    if len(tasks) > 100:
         os.remove('vvalverify.dat')
 
 
