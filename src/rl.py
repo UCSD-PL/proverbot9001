@@ -821,7 +821,10 @@ def verify_vvals(args: argparse.Namespace,
             eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
             continue
-        vval_err_sum += abs((math.log(max(sys.float_info.min, worker.estimate_starting_vval(task.to_job(), task.tactic_prefix))) / math.log(args.gamma)) - task.target_length )
+        vval_predicted = worker.estimate_starting_vval(task.to_job(), task.tactic_prefix)
+        steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) / math.log(args.gamma)
+        step_error = abs(steps_predicted - task.target_length)
+        vval_err_sum += step_error
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
                 pickle.dump((vval_err_sum ,idx, jobs_skipped),f)
