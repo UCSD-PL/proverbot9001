@@ -792,8 +792,8 @@ def evaluate_results(args: argparse.Namespace,
 
 
 def verify_vvals(args: argparse.Namespace,
-                     worker: ReinforcementWorker,
-                     jobs: List[tuple]) -> None:
+                 worker: ReinforcementWorker,
+                 jobs: List[tuple]) -> None:
     print("Verifying VVals")
     if os.path.isfile("vvalverify.dat") :
         with open('vvalverify.dat','rb') as f:
@@ -806,7 +806,8 @@ def verify_vvals(args: argparse.Namespace,
     
     
     for idx, task in enumerate(tqdm(jobs[steps_already_done:], desc="Tasks checked",
-                                              initial=steps_already_done, total=len(jobs)), start=steps_already_done + 1):
+                                    initial=steps_already_done, total=len(jobs)),
+                                    start=steps_already_done + 1):
         if not tactic_prefix_is_usable(task.tactic_prefix):
             eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
