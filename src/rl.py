@@ -830,7 +830,8 @@ def verify_vvals(args: argparse.Namespace,
                 pickle.dump((vval_err_sum ,idx, jobs_skipped),f)
     print(f"Average step error: {vval_err_sum/(len(jobs) - jobs_skipped)}")
 
-    os.remove('vvalverify.dat')
+    if len(jobs) > 100:
+        os.remove('vvalverify.dat')
 
 
 def stringified_percent(total : float, outof : float) -> str:
