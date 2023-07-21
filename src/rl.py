@@ -795,10 +795,19 @@ def verify_vvals(args: argparse.Namespace,
                  worker: ReinforcementWorker,
                  jobs: List[tuple]) -> None:
     print("Verifying VVals")
-    if os.path.isfile("vvalverify.dat") :
-        with open('vvalverify.dat','rb') as f:
+    resumepath = Path("vvalverify.dat")
+    if args.resume == "ask" and resumepath.exists():
+        print(f"Found vval verification in progress at {str(resumepath)}. Resume?")
+        response = input("[Y/n] ")
+        if response.lower() not in ["no", "n"]:
+            args.resume = "yes"
+        else:
+            args.resume = "no"
+    elif not resumepath.exists():
+        args.resume = "no"
+    if resumepath.exists() and args.resume == "yes":
+        with resumepath.open('rb') as f:
             vval_err_sum, steps_already_done, jobs_skipped = pickle.load(f)
-        print("Found existing vvalverify.dat file with", steps_already_done, "steps already done.")
     else :
         vval_err_sum  = 0
         steps_already_done = 0
