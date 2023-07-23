@@ -1,0 +1,15 @@
+    search_space = {
+        "learning_rate":tune.loguniform(1e-4,1e-2), 
+        "gamma": tune.uniform(0.1,0.99), 
+        "starting_epsilon":tune.uniform(0,1),
+        "batch_step":tune.uniform(25,30),
+        "lr_step":tune.uniform(0.8,1),
+        "batches_per_proof":tune.randint(10,50),
+        "sync_target_every":tune.randint(1,100),
+    }
+
+Best Config:
+{'learning_rate': 0.006059640138444662, 'gamma': 0.9592277887552405, 'starting_epsilon': 0.26154905085921276, 'batch_step': 26.929142227897607, 'lr_step': 0.8798651727090414, 'batches_per_proof': 43, 'sync_target_every': 99}
+
+Result:
+43/50 Solved
