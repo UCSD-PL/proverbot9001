@@ -1,4 +1,5 @@
-    search_space = {
+Search Space:
+    {
         "learning_rate":tune.loguniform(1e-4,1e-2), 
         "gamma": tune.uniform(0.1,0.99), 
         "starting_epsilon":tune.uniform(0,1),
