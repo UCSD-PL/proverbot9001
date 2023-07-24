@@ -297,36 +297,39 @@ class ReinforcementWorker:
     def sync_networks(self) -> None:
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
 
-
-def reinforce_jobs(args: argparse.Namespace) -> None:
-    eprint("Starting reinforce_jobs")
+def switch_dict_from_args(args: argparse.Namespace) -> Dict[str, str]:
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
         if any("switch" in item for item in project_dicts):
-            switch_dict = {item["project_name"]: item["switch"]
-                           for item in project_dicts}
+            return  {item["project_name"]: item["switch"]
+                     for item in project_dicts}
         else:
-            switch_dict = None
+            return None
     else:
-        switch_dict = None
+        return None
+
+def possibly_resume_rworker(args: argparse.Namespace) \
+        -> Tuple[ReinforcementWorker, int, Any]:
     # predictor = get_predictor(args)
-    predictor = MemoizingPredictor(get_predictor(args))
     # predictor = DummyPredictor()
+    predictor = MemoizingPredictor(get_predictor(args))
     if args.resume == "ask" and args.output_file.exists():
         print(f"Found existing weights at {args.output_file}. Resume?")
         response = input("[Y/n] ")
         if response.lower() not in ["no", "n"]:
-            args.resume = "yes"
+            resume = "yes"
         else:
-            args.resume = "no"
+            resume = "no"
     elif not args.output_file.exists():
         assert args.resume != "yes", \
                 "Can't resume because output file " \
                 f"{args.output_file} doesn't already exist."
-        args.resume = "no"
+        resume = "no"
+    else:
+        resume = args.resume
 
-    if args.resume == "yes":
+    if resume == "yes":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
             torch.load(str(args.output_file), map_location=device)
@@ -336,15 +339,16 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                              args.batch_step, args.lr_step)
         target_network = VNetwork(None, args.learning_rate,
                                   args.batch_step, args.lr_step)
-        # This ensures that the target and obligation will share a cache for coq2vec encodings
-        target_network.obligation_encoder = v_network.obligation_encoder
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
+        # This ensures that the target and obligation will share a cache for coq2vec encodings
+        target_network.obligation_encoder = v_network.obligation_encoder
 
     else:
-        assert args.resume == "no"
+        assert resume == "no"
         steps_already_done = 0
         replay_buffer = None
+        random_state = random.getstate()
         with print_time("Building models"):
             v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                                  args.batch_step, args.lr_step)
@@ -352,16 +356,22 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                  args.batch_step, args.lr_step)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
-    
-    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+    worker = ReinforcementWorker(args, predictor, v_network, target_network,
+                                 switch_dict_from_args(args),
                                  initial_replay_buffer = replay_buffer)
-    
+    return worker, steps_already_done, random_state
+
+def reinforce_jobs(args: argparse.Namespace) -> None:
+    eprint("Starting reinforce_jobs")
+
+    worker, steps_already_done, random_state = possibly_resume_rworker(args)
+    random.setstate(random_state)
+
     if args.tasks_file:
         tasks = read_tasks_file(args, args.tasks_file, args.curriculum)
     else:
         tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
 
-    
     if args.interleave:
         task_episodes = tasks * args.num_episodes
     else:
