@@ -97,6 +97,7 @@ def main():
     parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--verifyvval",action="store_true")
+    parser.add_argument("--evaluate-baseline", action="store_true")
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -767,7 +768,17 @@ def evaluate_proof(args: argparse.Namespace,
             coq_serapy.summarizeContext(coq.proof_context)
         eprint(f"Trying predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 2)
-        action_scores = evaluate_actions(coq, v_network, path,
+        if args.evaluate_baseline :
+            resulting_contexts: List[Optional[ProofContext]] = \
+                [action_result(coq, path, action.prediction, args.verbose) for action in actions]
+            action_scores = []
+            for resulting_context, action in zip(resulting_contexts, actions) :
+                if resulting_context == None :
+                    action_scores.append(float("-Inf"))
+                else :
+                    action_scores.append(action.certainty)
+        else :
+            action_scores = evaluate_actions(coq, v_network, path,
                                          [action.prediction for action in actions],
                                          args.verbose)
         best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
