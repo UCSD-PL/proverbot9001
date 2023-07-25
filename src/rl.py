@@ -1019,10 +1019,10 @@ def tuning(args) -> None:
         "learning_rate":tune.loguniform(1e-4,1e-2), #tune.grid_search([1e-4,2.5e-4,1e-3]),
         "gamma": tune.uniform(0.1,0.99),  #([0.95,0.9]),
         "starting_epsilon":tune.uniform(0,1),#([0,1]),
-        "batch_step":tune.uniform(25,30),#([25,30]),
+        "batch_step":tune.randint(1,30),#([25,30]),
         "lr_step":tune.uniform(0.8,1),#([0.8,1]),
         "batches_per_proof":tune.randint(10,50),
-        "sync_target_every":tune.randint(1,100),
+        "sync_target_every":tune.randint(1,250),
     }
     tuner = tune.Tuner(tune.with_resources(
                          tune.with_parameters(objective,args=args), {"cpu": args.num_cpus, "gpu": args.num_gpus}),param_space=search_space,tune_config=tune.TuneConfig(num_samples=args.num_trails))
@@ -1033,3 +1033,4 @@ def tuning(args) -> None:
 
 if __name__ == "__main__":
     main()
+| objective_ec91c_00024 | TERMINATED | 130.126.139.102:2809163 |      26.9291 |                  43 | 0.959228 |     0.00605964  |  0.879865 |         0.261549   |                  99 |      1 |          83.2639 |      43 
