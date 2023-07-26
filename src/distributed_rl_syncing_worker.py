@@ -31,13 +31,13 @@ def main():
 def sync_worker_target_networks(args: argparse.Namespace) -> None:
     retry_delay_secs = 1
     next_save_num = 0
-    last_weights_versions = []
+    last_weights_versions: List[Tuple[int, int]] = []
     while True:
         worker_weights_versions = get_latest_worker_weights_versions(args)
         if worker_weights_versions == last_weights_versions:
             time.sleep(retry_delay_secs)
             continue
-        worker_weights = load_worker_weights(args, next_save_num)
+        worker_weights = load_worker_weights(args, worker_weights_versions)
         result_params = {}
         for key in worker_weights[0]:
             result_params[key] = sum((weights_dict[key] for weights_dict
