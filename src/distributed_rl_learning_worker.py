@@ -130,7 +130,7 @@ def load_latest_target_network(args: argparse.Namespace,
         eprint("Skipping sync because the target network doesn't exist yet")
         return
     target_network_save_nums = [
-        int(re.match("common-target-network-(\d+).dat", path).group(1))
+        int(re.match(r"common-target-network-(\d+).dat", path).group(1))
         for path in target_networks]
     latest_target_network_path = str(
         args.state_dir / "weights" /
