@@ -16,7 +16,7 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 
 #pylint: disable=wrong-import-position
 import rl
-from util import eprint, print_time
+from util import eprint, print_time, unwrap
 from distributed_rl import add_distrl_args_to_parser
 #pylint: enable=wrong-import-position
 
@@ -58,7 +58,8 @@ def get_latest_worker_weights_versions(args: argparse.Namespace) \
         if len(worker_networks) == 0:
             continue
         latest_worker_save_num = max(
-            int(re.match(rf"worker-{workerid}-network-(\d+).dat", path).group(1))
+            int(unwrap(re.match(rf"worker-{workerid}-network-(\d+).dat",
+                                path)).group(1))
             for path in worker_networks)
         save_nums.append((workerid, latest_worker_save_num))
     return save_nums
