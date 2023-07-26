@@ -42,7 +42,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         for key in worker_weights[0]:
             result_params[key] = sum((weights_dict[key] for weights_dict
                                       in worker_weights)) / len(worker_weights)
-        eprint(f"Saving weights with versinos {worker_weights_versions}")
+        eprint(f"Saving weights with versions {worker_weights_versions}")
         with print_time("Saving weights"):
             torch.save(result_params,
                        args.state_dir / "weights" / f"common-target-network-{next_save_num}.dat")
