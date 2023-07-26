@@ -119,8 +119,8 @@ def save_state(args: argparse.Namespace, worker: rl.ReinforcementWorker,
         torch.save((worker.replay_buffer, step,
                     worker.v_network.get_state(),
                     random.getstate()), f)
-    os.rename(args.state_dir / "weights" / f"worker-{workerid}-network-{save_num}.dat.tmp",
-              args.state_dir / "weights" / f"worker-{workerid}-network-{save_num}.dat")
+    save_path = str(args.state_dir / "weights" / f"worker-{workerid}-network-{save_num}.dat")
+    os.rename(save_path + ".tmp", save_path)
 
 def load_latest_target_network(args: argparse.Namespace,
                                worker: rl.ReinforcementWorker) -> None:
