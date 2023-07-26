@@ -769,19 +769,17 @@ def evaluate_proof(args: argparse.Namespace,
         eprint(f"Trying predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 2)
         if args.evaluate_baseline :
-            resulting_contexts: List[Optional[ProofContext]] = \
-                [action_result(coq, path, action.prediction, args.verbose) for action in actions]
-            action_scores = []
-            for resulting_context, action in zip(resulting_contexts, actions) :
-                if resulting_context == None :
-                    action_scores.append(float("-Inf"))
-                else :
-                    action_scores.append(action.certainty)
+            sorted_action = sorted(actions, key = lambda x : x.certainty)
+            best_action,best_score = None, float("-Inf")
+            for action in sorted_action :
+                if action_result(coq, path, action.prediction, args.verbose) :
+                    best_action, best_score = action, action.certainty 
+                    break
         else :
             action_scores = evaluate_actions(coq, v_network, path,
                                          [action.prediction for action in actions],
                                          args.verbose)
-        best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
+            best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
         if best_score == -float("Inf"):
             break
         eprint(f"Taking action {best_action} with estimated value {best_score}",
