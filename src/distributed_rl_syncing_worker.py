@@ -79,11 +79,20 @@ def load_worker_weights(args: argparse.Namespace,
 
 def delete_old_worker_weights(args: argparse.Namespace,
                               cur_versions: List[Tuple[int, int]]) -> None:
-    for workerid, save_num in cur_versions:
-        if save_num == 1:
+    for workerid, latest_save_num in cur_versions:
+        if latest_save_num == 1:
             continue
-        (args.state_dir / "weights" /
-         f"worker-{workerid}-network-{save_num - 1}.dat").unlink()
+        worker_network_paths = glob(f"worker-{workerid}-network-*.dat",
+                                    root_dir = str(args.state_dir / "weights"))
+        worker_save_nums = [int(unwrap(re.match(rf"worker-{workerid}-network-(\d+).dat",
+                                                path)).group(1))
+                            for path in worker_network_paths]
+        old_worker_save_nums = [save_num for save_num in worker_save_nums
+                                if save_num != latest_save_num]
+        for save_num in old_worker_save_nums:
+            old_save_path = (args.state_dir / "weights" /
+                             f"worker-{workerid}-network-{save_num}.dat")
+            old_save_path.unlink()
 
 if __name__ == "__main__":
     main()
