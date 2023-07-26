@@ -36,7 +36,6 @@ def main():
     with util.sighandler_context(signal.SIGINT,
                                  functools.partial(interrupt_early, args)):
         show_progress(args)
-    cancel_workers(args)
 
 def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--num-workers", default=32, type=int)
@@ -106,12 +105,16 @@ def dispatch_syncing_worker(args: argparse.Namespace) -> None:
                     f"{cur_dir}/distributed_rl_syncing_worker.py"] + sys.argv[1:],
                    check=False)
 
-def show_progress(args: argparse.Namespace) -> None:
+def get_all_task_eps(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     with open(args.tasks_file, 'r') as f:
         all_tasks = [RLTask(*json.loads(line)) for line in f]
-        all_task_eps = [(task, episode) for episode, tasks_lits in
-                        enumerate([all_tasks] * args.num_episodes)
-                        for task in all_tasks]
+    return [(task, episode) for episode, tasks_lits in
+            enumerate([all_tasks] * args.num_episodes)
+            for task in all_tasks]
+
+
+def show_progress(args: argparse.Namespace) -> None:
+    all_task_eps = get_all_task_eps(args)
     task_eps_done = get_task_eps_done(args)
     scheduled_workers: List[int] = []
     crashed_workers: List[int] = []
@@ -189,7 +192,6 @@ def show_progress(args: argparse.Namespace) -> None:
                 new_scheduled_workers = list(f)
             wbar.update(len(new_scheduled_workers) - len(scheduled_workers))
             scheduled_workers = new_scheduled_workers
-    cancel_workers(args)
 
 def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []

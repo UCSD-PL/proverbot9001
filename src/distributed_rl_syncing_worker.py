@@ -17,7 +17,8 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 #pylint: disable=wrong-import-position
 import rl
 from util import eprint, print_time, unwrap
-from distributed_rl import add_distrl_args_to_parser
+from distributed_rl import (add_distrl_args_to_parser,
+                            get_all_task_eps, get_task_eps_done)
 #pylint: enable=wrong-import-position
 
 def main():
@@ -32,7 +33,10 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
     retry_delay_secs = 1
     next_save_num = 0
     last_weights_versions: List[Tuple[int, int]] = []
+    all_task_eps = get_all_task_eps(args)
+    task_eps_done = get_task_eps_done(args)
     while True:
+        task_eps_done = get_task_eps_done(args)
         worker_weights_versions = get_latest_worker_weights_versions(args)
         if worker_weights_versions == last_weights_versions:
             time.sleep(retry_delay_secs)
@@ -49,6 +53,11 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         os.rename(save_path + ".tmp", save_path)
         delete_old_worker_weights(args, worker_weights_versions)
         next_save_num += 1
+        if len(task_eps_done) >= len(all_task_eps):
+            break
+
+    eprint("Saving final weights and cleaning up")
+    os.rename(save_path, args.output_file)
 
 def get_latest_worker_weights_versions(args: argparse.Namespace) \
         -> List[Tuple[int, int]]:
