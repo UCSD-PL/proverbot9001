@@ -99,7 +99,7 @@ def reinforce_jobs_worker(args: argparse.Namespace, workerid: int) -> None:
 
     if steps_already_done < len(task_episodes):
         with print_time("Saving"):
-            save_state(args, worker, len(taken_task_episodes), workerid)
+            save_state(args, worker, worker_step, workerid)
 
 def reinforce_task(args: argparse.Namespace, worker: rl.ReinforcementWorker,
                    task: RLTask, step: int, cur_epsilon,
