@@ -26,6 +26,11 @@ def main():
     args = parser.parse_args()
 
     setup_jobstate(args)
+    num_todo_tasks = len(get_all_task_eps(args)) - len(get_task_eps_done(args))
+    if num_todo_tasks == 0:
+        eprint("All jobs are done! Exiting")
+        return
+    args.num_workers = min(args.num_workers, num_todo_tasks)
     dispatch_learning_workers(args, sys.argv[1:])
     dispatch_syncing_worker(args)
     with util.sighandler_context(signal.SIGINT,
