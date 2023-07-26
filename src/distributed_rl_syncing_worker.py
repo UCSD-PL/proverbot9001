@@ -11,10 +11,11 @@ import torch
 
 sys.path.append(str(Path(os.getcwd()) / "src"))
 
+#pylint: disable=wrong-import-position
 import rl
 from util import eprint, print_time
 from distributed_rl import add_distrl_args_to_parser
-
+#pylint: enable=wrong-import-position
 
 def main():
     parser = argparse.ArgumentParser()
