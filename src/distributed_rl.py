@@ -165,7 +165,7 @@ def show_progress(args: argparse.Namespace) -> None:
             # jobs, print a message and exit (we'll just exit if the
             # jobs are all done at the while condition)
             if len(new_workers_alive) == 0 and len(task_eps_done) < len(all_task_eps):
-                util.eprint("All workers existed, but jobs aren't done!")
+                util.eprint("All workers exited, but jobs aren't done!")
                 cancel_workers(args)
                 sys.exit(1)
             # If the syncing worker dies, print a message and exit
