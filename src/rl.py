@@ -893,7 +893,7 @@ class ReplayBuffer:
                 sample_pool.append((obl, transitions))
         if len(sample_pool) >= batch_size:
             return random.sample(sample_pool, batch_size)
-        if self.allow_partial_batches:
+        if self.allow_partial_batches and len(sample_pool) > 0:
             return sample_pool
         return None
 
