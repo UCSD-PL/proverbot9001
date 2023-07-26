@@ -94,10 +94,12 @@ def main():
                         dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
-    parser.add_argument("--evaluate", action="store_true")
+    evalGroup = parser.add_mutually_exclusive_group()
+    evalGroup.add_argument("--evaluate", action="store_true")
+    evalGroup.add_argument("--evaluate-baseline", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--verifyvval",action="store_true")
-    parser.add_argument("--evaluate-baseline", action="store_true")
+    
     args = parser.parse_args()
 
     if args.filenames[0].suffix == ".json":
@@ -383,7 +385,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     if steps_already_done < len(task_episodes):
         with print_time("Saving"):
             save_state(args, worker, step)
-    if args.evaluate:
+    if args.evaluate or args.evaluate_baseline:
         if args.test_file:
             test_tasks = read_tasks_file(args, args.test_file, False)
             evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
@@ -769,16 +771,15 @@ def evaluate_proof(args: argparse.Namespace,
         eprint(f"Trying predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 2)
         if args.evaluate_baseline :
-            sorted_action = sorted(actions, key = lambda x : x.certainty)
             best_action,best_score = None, float("-Inf")
-            for action in sorted_action :
+            for action in actions :
                 if action_result(coq, path, action.prediction, args.verbose) :
                     best_action, best_score = action, action.certainty 
                     break
         else :
             action_scores = evaluate_actions(coq, v_network, path,
-                                         [action.prediction for action in actions],
-                                         args.verbose)
+                                             [action.prediction for action in actions],
+                                             args.verbose)
             best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
         if best_score == -float("Inf"):
             break
@@ -832,7 +833,7 @@ def verify_vvals(args: argparse.Namespace,
                                     initial=steps_already_done, total=len(tasks)),
                                     start=steps_already_done + 1):
         if not tactic_prefix_is_usable(task.tactic_prefix):
-            eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
+            eprint(f"Skipping job {task} with prefix {task.tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
             continue
         vval_predicted = worker.estimate_starting_vval(task.to_job(), task.tactic_prefix)
