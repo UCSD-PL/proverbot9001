@@ -43,10 +43,9 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
             result_params[key] = sum((weights_dict[key] for weights_dict
                                       in worker_weights)) / len(worker_weights)
         eprint(f"Saving weights with versions {worker_weights_versions}")
-        with print_time("Saving weights"):
-            torch.save(result_params,
-                       args.state_dir / "weights" / f"common-target-network-{next_save_num}.dat")
-            delete_old_worker_weights(args, worker_weights_versions)
+        torch.save(result_params,
+                   args.state_dir / "weights" / f"common-target-network-{next_save_num}.dat")
+        delete_old_worker_weights(args, worker_weights_versions)
         next_save_num += 1
 
 def get_latest_worker_weights_versions(args: argparse.Namespace) \
