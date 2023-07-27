@@ -33,6 +33,9 @@ def main():
     if num_todo_tasks == 0:
         eprint("All jobs are done! Exiting")
         return
+    assert num_todo_tasks > 0, \
+        (num_todo_tasks, get_all_task_eps(args), 
+         get_task_eps_done(args))
     args.num_workers = min(args.num_workers, num_todo_tasks)
     dispatch_learning_workers(args, sys.argv[1:])
     dispatch_syncing_worker(args)
@@ -62,7 +65,7 @@ def setup_jobstate(args: argparse.Namespace) -> None:
         assert args.resume != "yes", \
              "Can't resume because no worker weights exist " \
              "in state dir {arg.state_dir}"
-        resume == "no"
+        resume = "no"
     else:
         resume = args.resume
 
@@ -106,6 +109,7 @@ def dispatch_learning_workers(args: argparse.Namespace,
                               rest_args: List[str]) -> None:
     with (args.state_dir / "workers_scheduled.txt").open('w'):
         pass
+    assert args.num_workers > 0, args.num_workers
 
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     subprocess.run([f"{cur_dir}/sbatch-retry.sh",
@@ -140,7 +144,7 @@ def get_all_task_eps(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
 
 def show_progress(args: argparse.Namespace) -> None:
     all_task_eps = get_all_task_eps(args)
-    task_eps_done = get_task_eps_done(args)
+    task_eps_done = get_task_eps_progress(args)
     scheduled_workers: List[int] = []
     crashed_workers: List[int] = []
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
@@ -161,7 +165,7 @@ def show_progress(args: argparse.Namespace) -> None:
             # file are fully propagated.
             time.sleep(0.2)
             # Update the bar with the tasks that have been finished
-            new_task_eps_done = get_task_eps_done(args)
+            new_task_eps_done = get_task_eps_progress(args)
             task_eps_bar.update(len(new_task_eps_done) - len(task_eps_done))
             task_eps_done = new_task_eps_done
             # Update the workers scheduled bar with workers that have been newly scheduled
@@ -219,6 +223,17 @@ def show_progress(args: argparse.Namespace) -> None:
             scheduled_workers = new_scheduled_workers
 
 def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
+    task_eps_done: List[Tuple[RLTask, int]] = []
+
+    for workerid in range(args.num_workers):
+        with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
+            worker_task_eps_done = [(RLTask(**task_dict), episode)
+                                    for line in f
+                                    for task_dict, episode in (json.loads(line),)]
+            task_eps_done += worker_task_eps_done
+    return task_eps_done
+
+def get_task_eps_progress(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
 
     for workerid in range(args.num_workers):
