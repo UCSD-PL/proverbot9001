@@ -127,27 +127,6 @@ def show_progress(args: argparse.Namespace) -> None:
             new_jobs_done = get_already_done_jobs(args)
             bar.update(len(new_jobs_done) - len(jobs_done))
             jobs_done = new_jobs_done
-            # Check for newly crashed workers
-            for worker_id in range(num_workers_total):
-                # Skip any living worker
-                if worker_id in new_workers_alive:
-                    continue
-                # Skip any worker for which we've already reported a crash
-                if worker_id in crashed_workers:
-                    continue
-                # Skip any worker that hasn't started yet, and get the jobs taken by workers that did.
-                try:
-                    with (args.output_dir / f"worker-{worker_id}-taken.txt").open('r') as f:
-                        taken_by_worker = [ReportJob(*json.loads(l)) for l in f]
-                except FileNotFoundError:
-                    continue
-                jobs_left_behind = 0
-                for job in all_jobs:
-                    if job not in jobs_done and job in taken_by_worker:
-                        jobs_left_behind += 1
-                if jobs_left_behind > 0:
-                    util.eprint(f"Worker {worker_id} crashed! Left behind {jobs_left_behind} unfinished jobs")
-                    crashed_workers.append(worker_id)
             if len(new_workers_alive) == 0:
                 time.sleep(1)
                 if len(jobs_done) < len(all_jobs):

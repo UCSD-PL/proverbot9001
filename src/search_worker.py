@@ -32,7 +32,7 @@ T = TypeVar('T', bound='Worker')
 
 class Worker:
     args: argparse.Namespace
-    coq: Optional[coq_serapy.SerapiInstance]
+    coq: Optional[coq_serapy.CoqAgent]
     switch_dict: Optional[Dict[str, str]]
 
     # File-local state
