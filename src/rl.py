@@ -111,8 +111,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--verifyvval",action="store_true")
-    
-    args = parser.parse_args()
+    return parser
 
 
 class FileReinforcementWorker(Worker):
