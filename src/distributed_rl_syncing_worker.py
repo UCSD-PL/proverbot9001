@@ -18,7 +18,8 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 import rl
 from util import eprint, print_time, unwrap
 from distributed_rl import (add_distrl_args_to_parser,
-                            get_all_task_eps, get_task_eps_done)
+                            get_all_task_eps, get_task_eps_done,
+                            latest_worker_save_num)
 #pylint: enable=wrong-import-position
 
 def main():
@@ -63,15 +64,9 @@ def get_latest_worker_weights_versions(args: argparse.Namespace) \
         -> List[Tuple[int, int]]:
     save_nums = []
     for workerid in range(args.num_workers):
-        worker_networks = glob(f"worker-{workerid}-network-*.dat",
-                               root_dir = str(args.state_dir / "weights"))
-        if len(worker_networks) == 0:
-            continue
-        latest_worker_save_num = max(
-            int(unwrap(re.match(rf"worker-{workerid}-network-(\d+).dat",
-                                path)).group(1))
-            for path in worker_networks)
-        save_nums.append((workerid, latest_worker_save_num))
+        save_num = latest_worker_save_num(args, workerid)
+        if save_num is not None:
+            save_nums.append((workerid, save_num))
     return save_nums
 
 def load_worker_weights(args: argparse.Namespace,
@@ -79,9 +74,11 @@ def load_worker_weights(args: argparse.Namespace,
         -> List[dict]:
     worker_weights = []
     for workerid, save_num in worker_weights_versions:
-        latest_worker_save = torch.load(
+        latest_worker_save_path = (
             args.state_dir / "weights" /
             f"worker-{workerid}-network-{save_num}.dat")
+        eprint(f"Loading worker weights from {latest_worker_save_path}")
+        latest_worker_save = torch.load(latest_worker_save_path)
         _replay_buffer, _step, (weights, _obl_encoder_state, _obl_enccoder_cache), \
             _random_state = latest_worker_save
         worker_weights.append(weights)

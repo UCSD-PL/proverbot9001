@@ -8,8 +8,11 @@ import sys
 import os
 import json
 import time
+import re
+import shutil
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Optional
+from glob import glob
 
 from tqdm import tqdm
 
@@ -47,6 +50,24 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state_dir", default="drl_state", type=Path)
 
 def setup_jobstate(args: argparse.Namespace) -> None:
+    resume_exists = len(glob(str(args.state_dir / "weights" / "worker-*-network-*.dat"))) > 0
+    if args.resume == "ask" and resume_exists:
+        print(f"Found existing worker weights in state dir {args.state_dir}. Resume?")
+        response = input("[Y/n] ")
+        if response.lower() in ["no", "n"]:
+            resume = "no"
+        else:
+            resume = "yes"
+    elif not resume_exists:
+        assert args.resume != "yes", \
+             "Can't resume because no worker weights exist " \
+             "in state dir {arg.state_dir}"
+        resume == "no"
+    else:
+        resume = args.resume
+
+    if resume == "no" and resume_exists:
+       shutil.rmtree(str(args.state_dir))
     args.state_dir.mkdir(exist_ok=True)
     (args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
     (args.state_dir / "weights").mkdir(exist_ok=True)
@@ -69,6 +90,10 @@ def setup_jobstate(args: argparse.Namespace) -> None:
         taken_path = args.state_dir / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
+        progress_path = args.state_dir / f"progress-{workerid}.txt"
+        with progress_path.open("w") as f:
+            for task, ep in done_task_eps:
+                print(json.dumps((vars(task), ep)), file=f, flush=True)
     with (args.state_dir / "taken.txt").open("w") as f:
         for task, ep in done_task_eps:
             print(json.dumps((vars(task), ep)), file=f, flush=True)
@@ -197,7 +222,7 @@ def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
 
     for workerid in range(args.num_workers):
-        with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
+        with (args.state_dir / f"progress-{workerid}.txt").open('r') as f:
             worker_task_eps_done = [(RLTask(**task_dict), episode)
                                     for line in f
                                     for task_dict, episode in (json.loads(line),)]
@@ -207,6 +232,25 @@ def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
     cancel_workers(args)
     sys.exit(0)
+
+def latest_worker_save_num(args: argparse.Namespace,
+                           workerid: int) -> Optional[int]:
+    worker_networks = glob(f"worker-{workerid}-network-*.dat",
+                           root_dir = str(args.state_dir / "weights"))
+    if len(worker_networks) == 0:
+        return None
+    return max(int(util.unwrap(re.match(
+             rf"worker-{workerid}-network-(\d+).dat",
+             path)).group(1))
+            for path in worker_networks)
+
+def latest_worker_save(args: argparse.Namespace,
+                       workerid: int) -> Optional[Path]:
+    latest_save_num = latest_worker_save_num(args, workerid)
+    if latest_save_num is None:
+        return None
+    return (args.state_dir / "weights" /
+            f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def cancel_workers(args: argparse.Namespace) -> None:
     subprocess.run([f"scancel -u$USER -n drl-worker-{args.output_file}"], shell=True, check=True)

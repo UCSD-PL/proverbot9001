@@ -331,7 +331,8 @@ def possibly_resume_rworker(args: argparse.Namespace) \
 
     if resume == "yes":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
+        replay_buffer, steps_already_done, network_state, \
+          tnetwork_state, random_state = \
             torch.load(str(args.output_file), map_location=device)
         random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
@@ -364,7 +365,8 @@ def possibly_resume_rworker(args: argparse.Namespace) \
 def reinforce_jobs(args: argparse.Namespace) -> None:
     eprint("Starting reinforce_jobs")
 
-    worker, steps_already_done, random_state = possibly_resume_rworker(args)
+    worker, steps_already_done, random_state = \
+        possibly_resume_rworker(args)
     random.setstate(random_state)
 
     if args.tasks_file:
