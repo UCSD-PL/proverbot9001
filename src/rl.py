@@ -11,6 +11,8 @@ import math
 import pickle
 import sys
 import re
+from mpire import WorkerPool
+from multiprocessing import Process
 from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -94,6 +96,7 @@ def main():
                         dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
+    parser.add_argument("--num-eval-workers", type=int, default=5)
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
@@ -392,7 +395,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                                     initial_replay_buffer = replay_buffer)
             evaluate_results(args, evaluation_worker, test_tasks)
         else:
-            evaluate_results(args, worker, tasks)
+            dispatch_evaluation_workers(args, predictor, worker.v_network, worker.target_v_network, switch_dict, worker.replay_buffer, tasks)
+            # evaluate_results(args, worker, tasks)
     if args.verifyvval:
         verify_vvals(args, worker, tasks)
 
@@ -793,6 +797,20 @@ def evaluate_proof(args: argparse.Namespace,
             break
     return proof_succeeded
 
+
+def dispatch_evaluation_workers(args, predictor, v_network, target_network, switch_dict, replay_buffer, tasks) :
+
+    workers = [ ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                 initial_replay_buffer = replay_buffer) for _ in range(args.num_eval_workers) ]
+    Processes = []
+    for i in range(args.num_eval_workers) :
+        Processes.append(Process(target = evaluate_results, args = (args, workers[i], 
+                                 tasks[len(tasks)*i//args.num_eval_workers : len(tasks)*(i+1)//args.num_eval_workers])))
+        Processes[-1].start()
+    
+    for i in range(args.num_eval_workers) :
+        Processes[i].join()
+    
 
 def evaluate_results(args: argparse.Namespace,
                      worker: ReinforcementWorker,
