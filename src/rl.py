@@ -12,7 +12,7 @@ import pickle
 import sys
 import re
 from mpire import WorkerPool
-from multiprocessing import Process
+from multiprocessing import Process, Manager, Queue
 from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -413,6 +413,9 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                                     initial_replay_buffer = replay_buffer)
             evaluate_results(args, evaluation_worker, test_tasks)
         else:
+            # with WorkerPool(n_jobs = args.num_eval_workers, shared_variables = worker) as pool :
+            #     results = pool.map(evaluate_results, () )
+
             dispatch_evaluation_workers(args, predictor, worker.v_network, worker.target_v_network, switch_dict, worker.replay_buffer, tasks)
             # evaluate_results(args, worker, tasks)
     if args.verifyvval:
@@ -817,17 +820,38 @@ def evaluate_proof(args: argparse.Namespace,
 
 
 def dispatch_evaluation_workers(args, predictor, v_network, target_network, switch_dict, replay_buffer, tasks) :
-
+    
+    return_queue = Queue()
     workers = [ ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
                                  initial_replay_buffer = replay_buffer) for _ in range(args.num_eval_workers) ]
-    Processes = []
+    processes = []
     for i in range(args.num_eval_workers) :
-        Processes.append(Process(target = evaluate_results, args = (args, workers[i], 
-                                 tasks[len(tasks)*i//args.num_eval_workers : len(tasks)*(i+1)//args.num_eval_workers])))
-        Processes[-1].start()
+        processes.append(Process(target = evaluation_worker, args = (args, workers[i], 
+                                 tasks[len(tasks)*i//args.num_eval_workers : len(tasks)*(i+1)//args.num_eval_workers], return_queue)))
+        processes[-1].start()
+        print("Process", i, "started")
+        
+    for process in processes :
+        process.join()
     
-    for i in range(args.num_eval_workers) :
-        Processes[i].join()
+    results = []
+    while not return_queue.empty() :
+        results.append(return_queue.get())
+        
+    assert len(results) == args.num_eval_workers, "Here's the queue : " + str(results)
+
+    proofs_completed = sum(results)
+    print(f"{proofs_completed} out of {len(tasks)} "
+          f"tasks successfully proven "
+          f"({stringified_percent(proofs_completed, len(tasks))}%)")
+    
+
+def evaluation_worker(args: argparse.Namespace,
+                     worker: ReinforcementWorker,
+                     tasks: List[RLTask], return_queue) :
+
+    return_queue.put(evaluate_results(args, worker,tasks))
+    return
     
 
 def evaluate_results(args: argparse.Namespace,
@@ -837,9 +861,9 @@ def evaluate_results(args: argparse.Namespace,
     for task in tasks:
         if worker.evaluate_job(task.to_job(), task.tactic_prefix):
             proofs_completed += 1
-    print(f"{proofs_completed} out of {len(tasks)} "
-          f"tasks successfully proven "
-          f"({stringified_percent(proofs_completed, len(tasks))}%)")
+
+    return proofs_completed
+
 
 
 def verify_vvals(args: argparse.Namespace,
