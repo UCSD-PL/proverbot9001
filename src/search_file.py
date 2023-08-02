@@ -109,6 +109,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         action='store_false')
     parser.add_argument("--search-width", type=int, default=5)
     parser.add_argument("--max-attempts", type=int, default=10)
+    parser.add_argument("--attemptidx", type=int, default=0)
+    parser.add_argument("--withlemma", type=int, default=0)
     parser.add_argument("--search-depth", type=int, default=6)
     parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--beam-width", type=int, default=16)

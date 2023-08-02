@@ -317,7 +317,16 @@ class Worker:
             self.remaining_commands.pop(0)
         # Pop the actual Qed/Defined/Save
         ending_command = self.remaining_commands.pop(0)
-        coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
+        self.restart_coq()
+        self.reset_file_state()
+        self.enter_file(job_file)
+        self.run_into_job(job, restart, self.args.careful)
+        job_project, job_file, job_module, job_lemma = job
+        try:
+            self.coq.run_stmt("Admitted.")
+        except Exception as e:
+            pass
+        # coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)

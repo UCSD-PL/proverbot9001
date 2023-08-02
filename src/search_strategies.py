@@ -352,6 +352,52 @@ def transformer_search(lemma_name: str,
                     args.max_attempts)
         solution = None
         pred_step = 1
+        '''
+        curr_prediction = predictions[args.attemptidx]
+        command_str = curr_prediction.prediction
+        ctxt = truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length)
+        thm = ctxt.prev_tactics[0].strip()
+        orig_command_str = command_str
+        try:
+            if args.withlemma == 1: # with helper lemma 
+                while coq.proof_context:
+                    coq.cancel_last()
+                cmds = command_str.split("(* Proving theorem using the lemmas. *)")
+                helperl = cmds[0]
+                proof = cmds[1]
+                coq.run_stmt(helperl)
+                coq.run_stmt("Admitted.")
+                coq.run_stmt(lemma_statement)
+                command_str = proof
+            proof_commands = coq_serapy.read_commands(command_str)
+            x = coq.finish_proof(proof_commands)
+            error = None
+        except (coq_serapy.SerapiException, AssertionError) as e:
+            error = e
+
+        filekey = predictor.prompt_type[0]
+        jsonid = filekey.index(".json")
+        new_file_path = filekey[:jsonid]
+        theorem_id = -1
+        if thm in predictor.gpt_dict:
+            theorem_id = predictor.gpt_dict[thm]["theorem_id"]
+        if (not coq.proof_context or completed_proof(coq)) and error == None:
+            solution = [TacticInteraction(command_str,ProofContext([], [], [], []))]
+            # write solution to json
+            odict = {"theorem" : thm, "prediction": orig_command_str, "status" : "<<SUCCESS>>"}
+        else:
+            # write error to json
+            odict = {"theorem" : thm, "prediction": orig_command_str, "status" : "<<ERROR>>"+str(error)}
+        if theorem_id != -1:
+            with open(new_file_path + "/" + str(theorem_id) + "_" + str(args.attemptidx) + ".json", 'w') as of:
+                json.dump(odict, of)
+        else:
+            print("NO THEOREM ID")
+            print(thm)
+            print(lemma_statement.strip())
+        print("END OF ATTEMPT")
+        '''
+        
         for i in range(len(predictions)):
             curr_prediction = predictions[i]
             command_str = curr_prediction.prediction
@@ -361,20 +407,29 @@ def transformer_search(lemma_name: str,
                 error = None
             except (coq_serapy.SerapiException, AssertionError) as e:
                 error = e
+                print("here is the error", e)
                 # undo, start again
                 # while coq.proof_context:
                 #    coq.cancel_last()
                 # coq.run_stmt(lemma_statement)
-            if not coq.proof_context or completed_proof(coq):
-                print("did good")
+            if (not coq.proof_context or completed_proof(coq)) and error == None:
+                print("success")
+                print("error is", error)
                 solution = [TacticInteraction(command_str,ProofContext([], [], [], []))]
                 break
             else:
+                print("try to undo")
                 while coq.proof_context:
                     coq.cancel_last()
+                #print("tactic history:", coq.tactic_history.getFullHistory())
+                #if len(coq.tactic_history.getFullHistory()) == 1:
+                #    coq.tactic_history = coq_serapy.TacticHistory()
+                #print("tactic history now:", coq.tactic_history.getFullHistory())
+                #if len(coq.tactic_history.getFullHistory()) == 0:
                 coq.run_stmt(lemma_statement)
             pred_step += 1
             print("END OF ATTEMPT")
+
         return SubSearchResult(solution, 0, pred_step)
 
     desc_name = lemma_name

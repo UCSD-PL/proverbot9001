@@ -1,5 +1,6 @@
 import numpy as np
 import torch
+import json
 
 from transformers import (
     CTRLLMHeadModel,
@@ -89,10 +90,11 @@ class TransformerPredictor(TacticPredictor):
                             num_beams : int, max_length : int, 
                             no_repeat_ngram_size: int,
                             repetition_penalty) -> None:
-        self.tokenizer = self.tokenizer_class.from_pretrained(model_name_or_path)
-        model = self.model_class.from_pretrained(model_name_or_path)
-        self._model = model
-        self._model.to(self.device)
+        if "readfile" not in decoding_type:
+            self.tokenizer = self.tokenizer_class.from_pretrained(model_name_or_path)
+            model = self.model_class.from_pretrained(model_name_or_path)
+            self._model = model
+            self._model.to(self.device)
         self.prompt_type = prompt_type
         self.decoding_type = decoding_type
         self.num_beams = num_beams
@@ -102,6 +104,11 @@ class TransformerPredictor(TacticPredictor):
         self.temperature= temperature
         self.top_k = top_k
         self.top_p = top_p
+        '''
+        self.gpt_dict = {}
+        with open("/home/efirst_umass_edu/work/proverbot9001/gpt_updated_responses.json", 'r') as gpt_dict_file:
+            self.gpt_dict = json.loads(gpt_dict_file.read())
+        '''
     def build_prompt(self, context: TacticContext) -> str:
         lemma_statement = context.prev_tactics[0]
         prompt = ""
@@ -121,6 +128,16 @@ class TransformerPredictor(TacticPredictor):
         return prompt
 
     def predictKTactics(self, context: TacticContext, k: int) -> List[Prediction]:
+        if "readfile" in self.decoding_type:
+            prompt_key = self.prompt_type[0]
+            lemma_statement = context.prev_tactics[0].strip()
+            if lemma_statement in self.gpt_dict:
+                predictions = self.gpt_dict[lemma_statement][prompt_key]
+                return [Prediction(s, 1.0) for s in predictions]
+            else:
+                predictions = ["Proof.\nQed."]*k
+                return [Prediction(s, 1.0) for s in predictions]
+
         prompt_text = self.build_prompt(context)
         print("PROMPT")
         print(prompt_text)
