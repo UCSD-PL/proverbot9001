@@ -104,7 +104,7 @@ def reinforce_jobs_worker(args: argparse.Namespace,
              (args.ending_epsilon - args.starting_epsilon))
 
         reinforce_task(args, worker, current_task_episode[0],
-                       worker_step, cur_epsilon, workerid)
+                       worker_step, cur_epsilon)
         recently_done_task_eps.append((task, episode))
         if worker_step % args.sync_target_every == 0:
             sync_distributed_networks(args, worker_step, workerid, worker)
@@ -125,15 +125,14 @@ def reinforce_jobs_worker(args: argparse.Namespace,
 
 def sync_done(args: argparse.Namespace,
               workerid: int,
-              recently_done_task_eps: List[Tuple[RLTask, int]]) -> None:
+              recently_done_task_eps: List[TaskEpisode]) -> None:
     with (args.state_dir / f"done-{workerid}.txt").open('a') as f:
         for task, episode in recently_done_task_eps:
             print(json.dumps((vars(task), episode)),
                   file=f, flush=True)
 
 def reinforce_task(args: argparse.Namespace, worker: rl.ReinforcementWorker,
-                   task: RLTask, step: int, cur_epsilon,
-                   workerid: int):
+                   task: RLTask, step: int, cur_epsilon):
     worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
     if step % args.train_every == 0:
         with print_time("Training", guard=args.print_timings):
