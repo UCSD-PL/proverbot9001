@@ -45,7 +45,7 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
 from models.tactic_predictor import TacticPredictor
 import coq_serapy as serapi_instance
 
-from util import eprint
+from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
@@ -55,8 +55,6 @@ import util
 from tqdm import tqdm
 from pathlib import Path
 import torch
-
-start_time = datetime.now()
 
 start_time = datetime.now()
 def main(arg_list: List[str]) -> None:
@@ -149,7 +147,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
     parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
-    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty"], default="certainty")
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
+    parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
@@ -167,6 +166,9 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--features-json", action='store_true')
     parser.add_argument("--search-prefix", type=str, default=None)
+    parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
+    parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--log-explored-states", type=Path, default=None)
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -229,7 +231,11 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with Worker(args, worker_idx, predictor) as worker:
+    if args.log_explored_states is not None:
+        with args.log_explored_states.open('w') as f:
+            pass
+
+    with Worker(args, worker_idx, predictor, switch_dict) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
@@ -252,29 +258,42 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
-                with proofs_file.open('r') as f:
-                    for idx, line in enumerate(f):
-                        try:
-                            (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
-                        except json.decoder.JSONDecodeError:
-                            print(f"On line {idx} in file {proofs_file}")
-                            raise
-                        assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
-                            f"doesn't match it's filename {filename}. {job_file}"
-                        loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
-                        if loaded_job in [job for job, sol in file_jobs]:
-                            eprint(f"In project {project_dict['project_name']} "
-                                   f"file {filename} "
-                                   f"found duplicate job {loaded_job}. "
-                                   f"Automatically removing it...")
-                            fixing_duplicates = True
-                        else:
-                            assert loaded_job not in already_done_jobs, \
-                              f"Already found job {loaded_job} in another file!"
-                            file_jobs.append((loaded_job, sol))
+                file_lines = None
+                backoff_amount = 0.001
+                while file_lines is None:
+                    try:
+                        with proofs_file.open('r') as f, FileLock(f, exclusive=False):
+                            file_lines = list(f)
+                    except FileNotFoundError:
+                        raise
+                    except OSError as e:
+                        eprint("Error reading proofs files "
+                               "(OSError, probably a temporary cluster filesystem problem). "
+                               f"Trying again in {backoff_amount} seconds.\n{e}")
+                        time.sleep(backoff_amount)
+                        backoff_amount *= 2
+                for idx, line in enumerate(file_lines):
+                    try:
+                        (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                    except json.decoder.JSONDecodeError:
+                        print(f"On line {idx} in file {proofs_file}")
+                        raise
+                    assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
+                        f"doesn't match it's filename {filename}. {job_file}"
+                    loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
+                    if loaded_job in [job for job, sol in file_jobs]:
+                        eprint(f"In project {project_dict['project_name']} "
+                               f"file {filename} "
+                               f"found duplicate job {loaded_job}. "
+                               f"Automatically removing it...")
+                        fixing_duplicates = True
+                    else:
+                        assert loaded_job not in already_done_jobs, \
+                          f"Already found job {loaded_job} in another file!"
+                        file_jobs.append((loaded_job, sol))
                 already_done_jobs.extend([job for job, sol in file_jobs])
                 if fixing_duplicates:
-                    with proofs_file.open('w') as f:
+                    with proofs_file.open('w') as f, FileLock(f):
                         for job, sol in file_jobs:
                             print(json.dumps((job, sol)), file=f)
             except FileNotFoundError:
@@ -318,13 +337,8 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
                        if job in all_jobs]
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
-                datestring = f.read().strip()
-                try:
-                    t = datetime.strptime(datestring, "%H:%M:%S.%f")
-                except ValueError:
-                    t = datetime.strptime(datestring, "%j day, %H:%M:%S.%f")
-                start_time = datetime.now() - timedelta(days=t.day, hours=t.hour,
-                                                        minutes=t.minute, seconds=t.second)
+                time_taken = util.read_time_taken(f.read())
+                start_time = datetime.now() - time_taken
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
@@ -399,7 +413,6 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
             for worker in workers:
                 worker.join()
-    write_time(args)
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:

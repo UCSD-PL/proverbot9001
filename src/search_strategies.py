@@ -23,7 +23,7 @@ import tokenizer
 from models.tactic_predictor import Prediction, TacticPredictor
 from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_results import TacticInteraction, SearchResult, SearchStatus
-from util import nostderr, unwrap, eprint, mybarfmt, copyArgs
+from util import nostderr, unwrap, eprint, mybarfmt, copyArgs, FileLock
 
 from value_estimator import Estimator
 import dataloader
@@ -179,6 +179,7 @@ class SearchGraph:
             node_handle.attr["style"] = "filled"
 
     def draw(self, filename: str) -> None:
+        Path(filename).parent.mkdir(parents=True, exist_ok=True)
         with nostderr():
             self.__graph.draw(filename, prog="dot")
 
@@ -257,11 +258,18 @@ def tryPrediction(args: argparse.Namespace,
     start_time = time.time()
     time_per_command = (coq.hammer_timeout + args.max_tactic_time
                         if coq.use_hammer else args.max_tactic_time)
+    if args.log_explored_states is not None:
+        with args.log_explored_states.open('a') as f, FileLock(f):
+            f.write(json.dumps(
+              {"Module/Section": coq.sm_prefix,
+               "Proof": coq_serapy.lemma_name_from_statement(
+                 coq.prev_tactics[0]),
+               "Tactics": coq.prev_tactics[1:] + [prediction]}) + "\n")
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
-    except (coq_serapy.TimeoutError, coq_serapy.ParseError,
-            coq_serapy.CoqExn, coq_serapy.OverflowError,
+    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
             coq_serapy.ParseError,
             RecursionError,
             coq_serapy.UnrecognizedError) as e:
@@ -360,7 +368,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-                    args.max_attempts)
+                    args.max_attempts,
+            blacklist=args.blacklisted_tactics)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
@@ -578,7 +587,7 @@ class BFSNode:
         def add_subgraph(root: "BFSNode") -> int:
             nonlocal graph
             nonlocal next_node_id
-            label=f"{root.prediction.prediction}\n{root.score:.2e}"
+            label=f"{root.prediction.prediction}\nS:{root.score:.2e};C:{root.prediction.certainty:.2e}"
             if root.color:
                 fillcolor = root.color
                 style="filled"
@@ -624,10 +633,12 @@ class BFSNode:
                    self.path())
 
     def path(self) -> List['BFSNode']:
-        if self.previous is None:
-            return [self]
-        else:
-            return self.previous.path() + [self]
+        curNode = self
+        curPath = [self]
+        while curNode.previous is not None:
+            curNode = curNode.previous
+            curPath.append(curNode)
+        return list(reversed(curPath))
 
     def traverse_to(self, coq: coq_serapy.SerapiInstance, initial_history_len: int) -> None:
         # Get both the current and target histories
@@ -737,7 +748,8 @@ def bfs_beam_proof_search(lemma_name: str,
                 predictions = predictor.predictKTactics(
                     truncate_tactic_context(full_context_before.as_tcontext(),
                                             args.max_term_length),
-                            args.max_attempts)
+                            args.max_attempts,
+                    blacklist=args.blacklisted_tactics)
                 for prediction in predictions:
                     if num_successful_predictions >= args.search_width:
                         break
@@ -874,8 +886,8 @@ def best_first_proof_search(lemma_name: str,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
-    if args.scoring_function == "pickled":
+    assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
@@ -913,7 +925,8 @@ def best_first_proof_search(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-            args.max_attempts)
+            args.max_attempts,
+            blacklist=args.blacklisted_tactics)
 
         for prediction in predictions:
             if num_successful_predictions >= args.search_width:
@@ -971,7 +984,7 @@ def best_first_proof_search(lemma_name: str,
             elif args.scoring_function == "norm-certainty":
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
             else:
-                assert args.scoring_function == "pickled"
+                assert args.scoring_function in ["pickled", "pickled-normcert"]
                 assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
                 for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
@@ -980,6 +993,15 @@ def best_first_proof_search(lemma_name: str,
                     except UnhandledExpr:
                         print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
+                if args.scoring_function == "pickled-normcert":
+                    normcert_score = prediction.certainty
+                    path_length = 1
+                    for node in next_node.node.path():
+                        normcert_score *= node.prediction.certainty
+                        path_length += 1
+                    normcert_score = max(normcert_score ** (1 / path_length), 0.001)
+                    assert normcert_score <= 1 and normcert_score > 0, normcert_score
+                    h_score /= normcert_score
             if args.search_type == "astar":
                 # Calculate the A* f_score
                 g_score = len(prediction_node.path())

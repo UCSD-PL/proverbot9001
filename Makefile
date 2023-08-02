@@ -32,7 +32,7 @@ CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
 all: scrape report
 
 setup:
-	./src/setup.sh && $(MAKE) publish-depv
+	./src/setup.sh
 
 data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 	cat $(CC_TRAIN_SCRAPES) > $@
@@ -52,6 +52,9 @@ report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
+.PHONY: dataloader
+dataloader:
+	(cd dataloader/dataloader-core && maturin develop -r)
 compcert-train: data/compcert-scrape.txt
 	(cd dataloader/dataloader-core && maturin develop -r )
 	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
@@ -105,11 +108,11 @@ publish:
 	$(MAKE) update-index
 
 publish-weights:
-	rsync -avzP $(WEIGHTSFILE) goto:proverbot9001-site/downloads/weights-`date -I`.dat
-	ssh goto cp proverbot9001-site/downloads/weights-`date -I`.dat proverbot9001-site/downloads/weights-latest.dat
+	rsync -avzP $(WEIGHTSFILE) goto:proverbot9001-site/downloads/weights-`git branch --show-current`-`date -I`.dat
+	ssh goto cp proverbot9001-site/downloads/weights-`git branch --show-current`-`date -I`.dat proverbot9001-site/downloads/weights-`git branch --show-current`-latest.dat
 
 download-weights:
-	curl -o data/polyarg-weights.dat proverbot9001.ucsd.edu/downloads/weights-latest.dat
+	curl -L -o data/polyarg-weights.dat https://proverbot9001.ucsd.edu/downloads/weights-`git branch --show-current`-latest.dat
 
 publish-depv:
 	opam info -f name,version menhir ocamlfind ppx_deriving ppx_import cmdliner core_kernel sexplib ppx_sexp_conv camlp5 | awk '{print; print ""}' > known-good-dependency-versions.md

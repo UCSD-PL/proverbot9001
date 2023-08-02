@@ -29,6 +29,8 @@ import sexpdata as sexp
 
 from itertools import chain, tee
 
+from numba import njit
+
 # import random as rand
 
 import json
@@ -152,7 +154,7 @@ class ProofState(Iterable):
           
         return ProofState(steps, children)
       except:
-        print(f"couldn't convert {x} to a proof state")
+        # print(f"couldn't convert {x} to a proof state")
         return None
     else:
       return None
@@ -246,8 +248,8 @@ class ILearner(ABC):
 
 class UnhandledExpr(Exception):
 
-  def __init__(self, e: Sexpr) -> None:
-    super().__init__(e)
+  def __init__(self, e: Sexpr, info: Optional[str] = None) -> None:
+    super().__init__(e, info)
 
 class NaiveMeanLearner(ILearner):
 
@@ -270,6 +272,30 @@ class NaiveMeanLearner(ILearner):
   @property
   def name(self):
     return "naive mean"
+
+class NaiveMedianLearner(ILearner):
+
+  _median: np.single
+
+  def __init__(self, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+    self._median: np.single = np.single(0.0)
+
+  def transform_xs(self, lemmas: Iterable[Lemma]):
+    return np.array([np.array([1.0]) for _ in lemmas])
+
+  def transform_ys(self, diffs: Iterable[int]):
+    return np.fromiter(diffs, np.single)
+
+  def train_transformed(self, xs: np.ndarray, ys: np.ndarray):
+    self._median = np.median(ys)
+
+  def predict_transformed(self, xs: np.ndarray):
+    return np.fromiter((self._median for _ in xs), np.single, count=len(xs))
+
+  @property
+  def name(self):
+    return "naive median"
 
 class LinRegressionLearner(ILearner):
 
@@ -393,7 +419,7 @@ class SVRIdentLength(ISVRLearner):
 
 # >>> import coq2vec
 # >>> vectorizer = coq2vec.CoqRNNVectorizer()
-# >>> vectorizer.load_weights("coq2vec/term_encoder.model")
+# >>> vectorizer.load_weights("coq2vec/encoder_model.dat")
 # >>> vectorizer.term_to_vector("forall x: nat, x = x")
 
 class SVRNNGoal(ISVRLearner):
@@ -401,7 +427,7 @@ class SVRNNGoal(ISVRLearner):
   _vectorizer: coq2vec.CoqTermRNNVectorizer
   _normalizer: StandardScaler
 
-  def __init__(self, encoder_weights_path : str = "term_encoder.model", *args, **kwargs) -> None:
+  def __init__(self, encoder_weights_path : str = "encoder_model.dat", *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
     self._vectorizer = coq2vec.CoqTermRNNVectorizer()
     self._normalizer = StandardScaler()
@@ -431,7 +457,7 @@ class SVRC2V(ISVRLearner):
 
   _vectorizer: coq2vec.CoqContextVectorizer
 
-  def __init__(self, encoder_weights_path : str = "term_encoder.model", *args, **kwargs) -> None:
+  def __init__(self, encoder_weights_path : str = "encoder_model.dat", *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
 
     goal_vectorizer = coq2vec.CoqTermRNNVectorizer()
@@ -454,9 +480,9 @@ class SVRC2V(ISVRLearner):
     return state
 
   def __setstate__(self, state):
-    term_encoder = coq2vec.CoqTermRNNVectorizer()
-    term_encoder.load_state(state["_vectorizer"])
-    state["_vectorizer"] = self._vectorizer = coq2vec.CoqContextVectorizer(term_encoder, 4)
+    vectorizer = coq2vec.CoqTermRNNVectorizer()
+    vectorizer.load_state(state["_vectorizer"])
+    state["_vectorizer"] = coq2vec.CoqContextVectorizer(vectorizer, 4)
     self.__dict__.update(state)
 
   def predict_obl(self, obl: coq2vec.Obligation) -> np.ndarray:
@@ -464,13 +490,25 @@ class SVRC2V(ISVRLearner):
 
     return self.predict_transformed(np.array([x]))
 
+class SVRCounts(ISVRLearner):
+
+  def __init__(self, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+
+  def transform_xs(self, lemmas: Iterable[Lemma]) -> np.ndarray:
+    return super().transform_xs(lemmas)
+
+  @property
+  def name(self):
+    return "SVR Counts"
+
 
 class SVRNNGoalIdentLength(ISVRLearner):
 
   _vectorizer: coq2vec.CoqTermRNNVectorizer
   _normalizer: StandardScaler
 
-  def __init__(self, encoder_weights_path: str ="term_encoder.model", *args, **kwargs) -> None:
+  def __init__(self, encoder_weights_path: str ="encoder_model.dat", *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
 
     self._vectorizer = coq2vec.CoqTermRNNVectorizer()
@@ -514,12 +552,14 @@ def make_ident_vector(lem: Lemma, idxs: dict[str, int], use_hyps : bool) -> list
   if use_hyps:
     idents = lemma_hyp_idents(lem)
   else:
-    idents = {x for x in lemma_ty_idents(lem)}
+    idents = lemma_ty_idents(lem)
   
   ret = [0.0] * len(idxs)
-  for ident in idents:
-    ret[idxs[ident]] = 1.0
+  for ident, value in idents.items():
+    ret[idxs[ident]] = float(value)
   return ret
+
+
 
 
 
@@ -761,7 +801,17 @@ def strip_toplevel(e: Sexpr) -> Optional[Sexpr]:
     case _ :
       return None
 
-def gather_idents(e: Sexpr) -> set[str]:
+def union_idents(l: Dict[str, int], r: Dict[str, int]) -> Dict[str, int]:
+  ret = dict(l)
+  for k, v in r.items():
+    if k in ret:
+      ret[k] += v
+    else:
+      ret[k] = v
+  
+  return ret
+
+def gather_idents(e: Sexpr) -> Dict[str, int]:
   match e:
     case [name, *args]:
       if name == Symbol("Ind"):
@@ -769,84 +819,91 @@ def gather_idents(e: Sexpr) -> set[str]:
       elif name == Symbol("Prod"):
         match e:
           case [_, nme_binding, typ, bod]:
-            return gather_idents(nme_binding[0]) | gather_idents(typ) | gather_idents(bod)
-          case _ : raise UnhandledExpr(e)
+            inter = union_idents(gather_idents(nme_binding[0]), gather_idents(typ))
+            return union_idents(inter, gather_idents(bod))
+          case _ : raise UnhandledExpr(e, "Prod")
       elif name == Symbol("Const"):
         match e:
           case [_, [inner, _]]: return gather_idents(inner)
-          case _ : raise UnhandledExpr(e)
+          case _ : raise UnhandledExpr(e, "Const")
       elif name == Symbol("App"):
         f = args[0]
         es = args[1]
         res = gather_idents(f)
         for inner in es:
-          res |= gather_idents(inner)
+          res = union_idents(res, gather_idents(inner))
         return res
       elif name == Symbol('binder_name'):
         # [Symbol('binder_name'), [Symbol('Name'), [Symbol('Id'), Symbol('notin')]]]
         if args == [Symbol('Anonymous')]:
-            return set()
+            return dict()
         inner = conv_id(args[0][1])
         if inner:
-          return {inner}
+          return {inner : 1}
         else:
-          return set()
+          return dict()
       elif name == Symbol("LetIn"):
         # let arg0 : arg1 = arg2 in arg3
-        return gather_idents(args[1]) | gather_idents(args[2]) | gather_idents(args[3])
+        return union_idents(gather_idents(args[1]), union_idents(gather_idents(args[2]), gather_idents(args[3])))
       elif name == Symbol("Lambda"):
         # \ arg0 : arg1 . arg2
-        return gather_idents(args[0][0]) | gather_idents(args[1]) | gather_idents(args[2])
+        return union_idents(gather_idents(args[0][0]), union_idents(gather_idents(args[1]), gather_idents(args[2])))
       elif name == Symbol("Fix"):
-        ret = set()
+        ret = dict()
         # fixpoints are complicated, see https://coq.github.io/doc/master/api/coq-core/Constr/index.html for the structure
         _, inner = args[0]
         binders, types, bodies = inner
         for nme, _ in binders:
-          ret |= gather_idents(nme)
-        for type in types:
-          ret |= gather_idents(type)
+          ret = union_idents(ret, gather_idents(nme))
+        for typ in types:
+          ret = union_idents(ret, gather_idents(typ))
         for body in bodies:
-          ret |= gather_idents(body)
+          ret = union_idents(ret, gather_idents(body))
         return ret
       elif name == Symbol("Rel") or name == Symbol("Var") or name == Symbol("Sort") or name == Symbol("MPbound"):
-        return set()
+        return dict()
       elif name == Symbol("Construct"):
         return gather_idents(args[0][0][0][0])
 
       elif name == Symbol("Case"):
 
-        base = gather_idents(args[0][0][1][0]) | gather_idents(args[1]) | gather_idents(args[2])
+        base = union_idents(gather_idents(args[0][0][1][0]), union_idents(gather_idents(args[1]), gather_idents(args[2])))
         for inner in args[3]:
-          base |= gather_idents(inner)
+          base = union_idents(base, gather_idents(inner))
         return base
       elif name == Symbol("MutInd"):
         pref = join_module(args[0])
         if pref:
-          return {f"{pref}.{conv_id(args[1])}"}
+          return {f"{pref}.{conv_id(args[1])}" : 1}
         else:
-          return set()
+          return dict()
 
       elif name == Symbol('Constant'):
         pref = join_module(args[0])
         if pref:
-          return {f"{pref}.{conv_id(args[1])}"}
+          return {f"{pref}.{conv_id(args[1])}" : 1}
         else:
-          return set()
+          return dict()
 
       elif name == Symbol('Evar'):
-          return set()
+        return dict()
       elif name == Symbol('Cast'):
-          return gather_idents(args[0]) | gather_idents(args[2])
+        return union_idents(gather_idents(args[0]), gather_idents(args[2]))
+      elif name == Symbol('Instance'):
+          # TODO
+        return dict()
+      elif args == [] and type(name) is list and len(name) > 0:
+        gather_idents(name[0])
       else:
         print("unrecognized symbol", name)
-        raise UnhandledExpr(e)
+        print("with args", args)
+        raise UnhandledExpr(e, "sexpr head")
         # out = set()
         # for arg in args:
         #   out |= gather_idents(arg)
         # return out
-    case int(_) | str(_): return set()
-    case _: raise UnhandledExpr(e)
+    case int(_) | str(_): return dict()
+    case _: raise UnhandledExpr(e, "Top level")
 
 def join_module(e: Sexpr) -> Optional[str]:
   match e:
@@ -858,7 +915,7 @@ def join_module(e: Sexpr) -> Optional[str]:
     case [name, *args] if name == Symbol("MPbound"):
       return None
     case _:
-      raise UnhandledExpr(e)
+      raise UnhandledExpr(e, "joint module")
   return None
 
 def conv_id(e: Sexpr) -> Optional[str]:
@@ -871,7 +928,7 @@ def conv_id(e: Sexpr) -> Optional[str]:
     case _ : return None
   return None
 
-def lemma_ty_idents(l: Lemma) -> set[str]:
+def lemma_ty_idents(l: Lemma) -> dict[str, int]:
   x = strip_toplevel(l.type)
   if x: return gather_idents(x)
   else: 
@@ -880,11 +937,11 @@ def lemma_ty_idents(l: Lemma) -> set[str]:
     print(type(l.type))
     assert False
 
-def lemma_hyp_idents(l: Lemma) -> set[str]:
-  ret = set()
+def lemma_hyp_idents(l: Lemma) -> dict[str, int]:
+  ret = dict()
   for hyp in l.hypos:
     x = strip_toplevel(hyp)
-    if x: ret |= gather_idents(x)
+    if x: ret = gather_idents(x)
     else: 
       print(f"couldn't handle hyp idents for {l.name}")
       print(hyp)
@@ -892,19 +949,141 @@ def lemma_hyp_idents(l: Lemma) -> set[str]:
       assert False
   return ret
 
+class SVCCategories:
+  
+  _should_CV: bool
+  _model : BaseEstimator
+
+  _svr_params : dict[Any, Any]
+
+  _upper_quantile : np.single
+  _lower_quantile : np.single
+
+  @property 
+  def svr_params(self):
+    return self._svr_params
+
+  def __init__(self, lower, upper, svr_params = None, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+    self._lower_quantile = lower
+    self._upper_quantile = upper
+    if svr_params:
+      self._svr_params = svr_params
+      self._model = make_pipeline(
+          StandardScaler()
+        , PCA(n_components=0.95)
+        , SVC(**svr_params, class_weight='balanced')
+      )
+      self._should_CV = False
+    else:
+      self._should_CV = True
+      self._svr_params = {}
+      ranges = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+      self._model = make_pipeline(
+          StandardScaler()
+        , PCA(n_components=0.95)
+        , GridSearchCV(
+            estimator=SVR()
+          , param_grid=[
+                {'C': ranges, 'gamma': ranges + ['scale'], 'kernel': ['rbf']},
+            ]
+          , n_jobs=-1
+          , verbose=3
+        )
+      )
+
+  def train(self, xs: np.ndarray, ys: np.ndarray):
+    self._upper_quantile = np.quantile(ys, self._upper_quantile)
+    self._lower_quantile = np.quantile(ys, self._lower_quantile)
+
+    ys_categories = self.categorize(ys)
+
+    self._model.fit(xs, ys_categories)
+
+  def predict(self, xs: np.ndarray) -> np.ndarray:
+    if self._should_CV:
+      print("cross validation params:")
+      print(self._model[-1].best_params_)
+    return self._model.predict(xs)
+
+  def categorize(self, ys: np.ndarray):
+    return np.fromiter(
+      (categorize_value(y, self._upper_quantile, self._lower_quantile) for y in ys),
+      np.single,
+      count=len(ys)
+    )
 
 
+class SVCCatBinary(SVCCategories):
 
-# self._model = make_pipeline(
-#       # StandardScaler(), 
+  def __init__(self, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
 
-#       # Nystroem(n_components=100),
-#       PCA(n_components=0.95),
-#       SGDClassifier(shuffle=False, verbose=True)
+  def train(self, xs: np.ndarray, ys: np.ndarray):
+    self._upper_quantile = np.single(np.inf)
+    self._lower_quantile = np.single(3.0)
 
-#       # KNeighborsClassifier(weights='distance', algorithm='brute', n_neighbors=3)
-#       # LinearSVC(max_iter=1000, C=C)
-#       # NuSVC(nu=C)
-#       # SVC(C=C, verbose=True)
-      
-#     )
+    ys_categories = self.categorize(ys)
+
+    self._model.fit(xs, ys_categories)
+
+@njit
+def categorize_value(v: np.single, upper: np.single, lower: np.single):
+  return \
+    1.0 if v <= lower else \
+    2.0 if v <= upper else \
+    3.0
+
+class SVCCatEnsemble:
+  
+  _model_lower : SVRC2V
+  _model_middle : SVRC2V
+  _model_upper : SVRC2V
+
+  _model_cat : SVCCategories
+
+
+  def __init__(self, svc_cat, lower_params, middle_params, upper_params, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+    self._model_cat = svc_cat
+    self._model_lower = SVRC2V(svr_params = lower_params)
+    self._model_middle = SVRC2V(svr_params = middle_params)
+    self._model_upper = SVRC2V(svr_params = upper_params)
+
+  def train(self, xs: np.ndarray, ys: np.ndarray):
+
+    ys_categories = self._model_cat.categorize(ys)
+
+    xs_low = np.fromiter((x_ for i, x in enumerate(xs) for x_ in x.flatten() if ys_categories[i] == 1.0), np.single)
+    xs_low = xs_low.reshape((-1, xs.shape[-1]))
+    ys_low = np.fromiter((x for i, x in enumerate(ys) if ys_categories[i] == 1.0), np.single)
+
+    self._model_lower.train_transformed(xs_low, ys_low)
+    xs_low = []
+    ys_low = []
+
+    xs_middle = np.fromiter((x_ for i, x in enumerate(xs) for x_ in x.flatten() if ys_categories[i] == 2.0), np.single)
+    xs_middle = xs_middle.reshape((-1, xs.shape[-1]))
+    ys_middle = np.fromiter((x for i, x in enumerate(ys) if ys_categories[i] == 2.0), np.single)
+
+    self._model_middle.train_transformed(xs_middle, ys_middle)
+    xs_middle = []
+    ys_middle = []
+
+    xs_upper = np.fromiter((x_ for i, x in enumerate(xs) for x_ in x.flatten() if ys_categories[i] == 3.0), np.single)
+    xs_upper = xs_upper.reshape((-1, xs.shape[-1]))
+    ys_upper = np.fromiter((x for i, x in enumerate(ys) if ys_categories[i] == 3.0), np.single)
+    self._model_upper.train_transformed(xs_upper, ys_upper)
+
+  # assumes that the input has been transformed by a c2v pass already
+  def predict(self, xs: np.ndarray):
+    return np.fromiter((
+      self._model_lower.predict_transformed(np.array([x]))[0] if self._model_cat.predict(np.array([x]))[0] == 1.0 else
+      self._model_middle.predict_transformed(np.array([x]))[0] if self._model_cat.predict(np.array([x]))[0] == 2.0 else 
+      self._model_upper.predict_transformed(np.array([x]))[0]
+      for x in xs
+    ), np.single, count=len(xs))
+
+  def predict_obl(self, obl: coq2vec.Obligation) -> np.ndarray:
+    xs = np.array([self._model_lower._vectorizer.obligation_to_vector(obl).numpy().flatten()])
+    return self.predict(xs)

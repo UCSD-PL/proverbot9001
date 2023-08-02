@@ -34,20 +34,21 @@ from shutil import copyfile
 from yattag import Doc
 from tqdm import tqdm
 
-from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
-import util
-
 from typing import (List, Tuple, Sequence, Dict, Callable,
                     Any, Iterable, Optional)
 
-from models.tactic_predictor import TacticPredictor
-import data
+from dataloader import scraped_from_file, ScrapedTactic, Obligation, ProofContext
 
+import coq_serapy
+import coq_serapy.contexts
+
+from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
 from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
-import coq_serapy
-from coq_serapy.contexts import ScrapedTactic, Obligation
+from models.tactic_predictor import TacticPredictor
+
 import multi_project_report
 
 index_css = ["report.css"]
@@ -107,8 +108,8 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
         for (sol_project, sol_filename, _, _), _ in file_solutions:
             assert sol_project == project_dict["project_name"], \
               (sol_project, project_dict["project_name"])
-            assert sol_filename == filename, \
-              (sol_filename, filename)
+            assert Path(sol_filename) == Path(filename), \
+              (Path(sol_filename), Path(filename))
         blocks = blocks_from_scrape_and_sols(
             source_file,
             [(lemma_stmt, module_name, sol)
@@ -118,7 +119,7 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
         write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
                              model_name, blocks)
         write_html(args, output_file_prefix.with_suffix(".html"),
-                   filename, blocks)
+                   Path(filename), blocks)
         write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
         stats.append(stats_from_blocks(blocks, str(filename)))
     produce_index(args, predictor,
@@ -130,8 +131,8 @@ def blocks_from_scrape_and_sols(
         lemma_statements_done: List[Tuple[str, str, SearchResult]]
         ) -> List[DocumentBlock]:
 
-    interactions = data.read_all_text_data(
-        src_filename.with_suffix(".v.scrape"))
+    interactions = scraped_from_file(
+        str(src_filename.with_suffix(".v.scrape")))
 
     def lookup(module: str, lemma_stmt: str) -> Optional[SearchResult]:
         for lstmt, lmod, lresult in lemma_statements_done:
@@ -211,13 +212,24 @@ def blocks_from_scrape_and_sols(
                     obl_num = 0
         if in_proof:
             yield yield_proof()
-        pass
+        else:
+            yield VernacBlock(vernac_cmds_batch)
     blocks = list(generate())
     return blocks
 
+def dObligation_to_native(obl: Obligation) -> coq_serapy.contexts.Obligation:
+    return coq_serapy.contexts.Obligation(obl.hypotheses, obl.goal)
+
+def dContext_to_native(context: ProofContext) -> coq_serapy.contexts.ProofContext:
+    return coq_serapy.contexts.ProofContext(
+        [dObligation_to_native(g) for g in context.fg_goals],
+        [dObligation_to_native(g) for g in context.bg_goals],
+        [dObligation_to_native(g) for g in context.shelved_goals],
+        [dObligation_to_native(g) for g in context.given_up_goals])
+
 
 def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
-    return TacticInteraction(s.tactic, s.context)
+    return TacticInteraction(s.tactic, dContext_to_native(s.context))
 
 
 def write_solution_vfile(args: argparse.Namespace, output_filename: Path,
@@ -329,7 +341,8 @@ def escape_quotes(term: str):
     return re.sub("\"", "\\\"", term)
 
 
-def subgoal_to_string(args: argparse.Namespace, sg: Obligation) -> str:
+def subgoal_to_string(args: argparse.Namespace,
+                      sg: coq_serapy.contexts.Obligation) -> str:
     return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
         "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"

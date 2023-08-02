@@ -173,16 +173,20 @@ class DummyFile:
 
 @contextlib.contextmanager
 def nostdout():
-    save_stdout = sys.stdout
-    sys.stdout = DummyFile()
-    yield
-    sys.stdout = save_stdout
+    try:
+        save_stdout = sys.stdout
+        sys.stdout = DummyFile()
+        yield
+    finally:
+        sys.stdout = save_stdout
 @contextlib.contextmanager
 def nostderr():
-    save_stderr = sys.stderr
-    sys.stderr = DummyFile()
-    yield
-    sys.stderr = save_stderr
+    try:
+        save_stderr = sys.stderr
+        sys.stderr = DummyFile()
+        yield
+    finally:
+        sys.stderr = save_stderr
 
 @contextlib.contextmanager
 def silent():
@@ -252,6 +256,15 @@ def print_time(msg : str, guard=True):
         yield
     finally:
         eprint("{:.2f}s".format(time.time() - start), guard=guard)
+
+@contextlib.contextmanager
+def print_time_precise(msg : str, guard=True):
+    start = time.time()
+    eprint(msg + "...", end="", guard=guard)
+    try:
+        yield
+    finally:
+        eprint("{:.5f}s".format(time.time() - start), guard=guard)
 
 mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
 
@@ -379,16 +392,15 @@ def safe_abbrev(filename: Path, all_files: List[Path]) -> str:
         return filename.stem
 
 class FileLock:
-    def __init__(self, file_handle):
+    def __init__(self, file_handle, exclusive=True):
         self.file_handle = file_handle
+        if exclusive:
+            self.lock_style = fcntl.LOCK_EX
+        else:
+            self.lock_style = fcntl.LOCK_SH
 
     def __enter__(self):
-        while True:
-            try:
-                fcntl.flock(self.file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError:
-               time.sleep(0.01)
+        fcntl.flock(self.file_handle, self.lock_style)
         return self
 
     def __exit__(self, type, value, traceback):

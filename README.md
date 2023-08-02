@@ -8,24 +8,40 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
 
 ## Prerequisites
 
-You'll need to install `git`, `opam`, `rustup`, `graphviz`, `libgraphviz-dev`,
-`python3.7`, `python3.7-dev` and `python3.7-pip` to run Proverbot.
+### MacOS
 
-Newer versions of python than 3.7 also work, as long as you also have
-their development headers and pip version.
+1. Check your python version with `python --version` in the
+   terminal. If your version is older than Python 3.7, or the python
+   command isn't found, install python through the python
+   [website](https://www.python.org/).
+2. Make sure pip, the python package manager, is available, by running
+   in your terminal: `python -m ensurepip`.
+3. Install Homebrew from their [website](https://brew.sh/).
+4. Install wget, git, opam, rustup, GNU awk, and graphviz through Homebrew:
+   `brew install wget git opam rustup-init gawk graphviz && rustup-init`
 
-If you're running Linux, all three can be generally found in your package repositories.
-If that Linux is ubuntu, you'll have to first run:
-```
-sudo apt install software-properties-common
-sudo add-apt-repository ppa:avsm/ppa
-sudo apt update
-```
-before you can install OPAM.
+### Linux
+1. Check your python version with `python --version` in the
+   terminal. If your version is older than Python 3.7, or the python
+   command isn't found, install python through your package manager.
+   1. On Ubuntu, that's:
+   ```
+   sudo apt install python3 python3-dev python3-pip
+   ```
+2. Make sure pip, the python package manager, is available, by running
+   in your terminal: `python -m ensurepip`.
+3. Install git, opam, rustup, and graphviz using your package manager.
+   1. On Ubuntu, that's:
+   ```
+   sudo apt install software-properties-common
+   sudo add-apt-repository ppa:avsm/ppa
+   sudo apt update
+   sudo apt install git opam rustup graphviz libgraphviz-dev
+   ```
 
-If you're running OS X, you can find these packages in Homebrew.
-
-If you're on Windows, follow:
+### Windows
+Windows support is more experimental, but you can try installing
+prereqs through:
 
 https://gitforwindows.org/
 
@@ -41,12 +57,22 @@ or use Windows Subsystem for Linux
 
 The first thing you'll need to do is clone the repository (download the code).
 
-I recommend that you do this over ssh. Open a terminal (windows users
-can use "Bash on Ubuntu on Windows"), move to the directory you want
-to work in, and run:
+### Cloning the repository (downloading the project)
+I recommend that you do this over ssh. To clone github projects using
+git@ urls (over ssh), you'll need to follow the instructions on [this
+github
+page](https://docs.github.com/en/authentication/connecting-to-github-with-ssh/generating-a-new-ssh-key-and-adding-it-to-the-ssh-agent). Then,
+open a terminal (windows users can use "Bash on Ubuntu on Windows"),
+move to the directory you want to work in, and run:
 
 ```
 git clone git@github.com:UCSD-PL/proverbot9001.git
+```
+
+Alternatively, you can clone over https without setting up your github
+keys, with this command:
+```
+git clone https://github.com/UCSD-PL/proverbot9001.git
 ```
 
 That should give you a new folder called `proverbot9001` with all the
@@ -56,7 +82,34 @@ code inside. Move into this new directory:
 cd proverbot9001
 ```
 
-And run this command to install the dependencies
+### Create a python virtual environment
+
+Next, you'll need to create a python virtual environment to work
+in. This is a good idea in general, but is also required for maturin
+to work properly.
+
+```
+python -m venv proverbot-env
+```
+
+Whenever you want to work with Proverbot from a new shell, you'll have
+to first activate this environment:
+
+```
+source proverbot-env/bin/activate
+```
+
+Also do that now.
+
+### Install python and rust dependencies
+
+On MacOS, you'll need to install pygraphviz differently, so do that
+now: ` pip install --global-option=build_ext
+--global-option="-I/usr/local/include/"
+--global-option="-L/usr/local/lib/" pygraphviz`
+
+Then, no matter your platform, run this command to install the
+dependencies:
 
 ```
 make setup
@@ -65,7 +118,18 @@ make setup
 this step will take a while, and might involve having to type `y` a
 few times.
 
-Once that's finished, you're ready to start running the tool!
+If this step fails, and part of the error message near the bottom says:
+```
+pygraphviz/graphviz_wrap.c:2711:10: fatal error: graphviz/cgraph.h: No such file or directory
+ 2711 | #include "graphviz/cgraph.h"
+      |          ^~~~~~~~~~~~~~~~~~~
+compilation terminated.
+error: command 'x86_64-linux-gnu-gcc' failed with exit status 1
+```
+then python needs help finding your graphviz installation. Check out this github issue: https://github.com/pygraphviz/pygraphviz/issues/155, and possibly this one: https://github.com/pypa/setuptools/issues/2740
+.
+
+### Download the pre-trained weights
 
 Running Proverbot9001 requires training on existing proof
 files. Training takes a while, and usually you need some pretty
@@ -75,6 +139,8 @@ pre-trained weights instead:
 ```
 make download-weights
 ```
+
+### Running the tool
 
 Now you can run Proverbot9001:
 

@@ -1,3 +1,4 @@
+wheel
 scikit-learn
 sexpdata
 torch

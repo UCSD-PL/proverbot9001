@@ -57,12 +57,45 @@ class Worker:
         self.switch_dict = switch_dict
         self.axioms_already_added = False
 
+    def enter_instance(self, filename: str = None) -> None:
+        if self.args.backend == 'auto':
+            coq_serapy.setup_opam_env()
+            version_string = subprocess.run(["sertop", "--version"],
+                                            stdout=subprocess.PIPE,
+                                            text=True, check=True).stdout
+            version_match = re.fullmatch(r"\d+\.(\d+).*", version_string,
+                                         flags=re.DOTALL)
+            assert version_match, f"Can't match version string \"{version_string}\""
+            minor_version = int(version_match.group(1))
+            assert minor_version >= 10, \
+                    "Versions of Coq before 8.10 are not supported! "\
+                    f"Currently installed coq is {version_string}"
+            if minor_version >= 16:
+                backend = 'lsp'
+            else:
+                backend = 'serapi'
+        else:
+            backend = self.args.backend
+
+        if backend == 'lsp':
+            if filename:
+                backend = coq_serapy.CoqLSPyInstance(
+                    "coq-lsp", set_env=self.args.set_switch, # concise=False,
+                    root_dir=str(self.args.prelude),
+                    verbosity=self.args.verbose, initialFilename=filename)
+            else:
+                backend = coq_serapy.CoqLSPyInstance(
+                    "coq-lsp", set_env=self.args.set_switch, # concise=False,
+                    root_dir=str(self.args.prelude),
+                    verbosity=self.args.verbose)
+        if backend == 'serapi':
+            backend = coq_serapy.CoqSeraPyInstance(
+                ["sertop"], root_dir=str(self.args.prelude))
+        self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
+                                       verbosity=self.args.verbose)
+
     def __enter__(self) -> 'Worker':
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
-                                    None, str(self.args.prelude),
-                                    use_hammer=self.args.use_hammer)
-        self.coq.quiet = True
-        self.coq.verbose = self.args.verbose
+        self.enter_instance()
         return self
     def __exit__(self, type, value, traceback) -> None:
         assert self.coq
@@ -82,14 +115,10 @@ class Worker:
                 return
         coq_serapy.set_switch(switch)
 
-    def restart_coq(self) -> None:
+    def restart_coq(self, filename: str = None) -> None:
         assert self.coq
         self.coq.kill()
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
-                                    None, str(self.args.prelude / self.cur_project),
-                                    use_hammer=self.args.use_hammer)
-        self.coq.quiet = True
-        self.coq.verbose = self.args.verbose
+        self.enter_instance(filename)
 
     def reset_file_state(self) -> None:
         self.last_program_statement = None
@@ -100,8 +129,7 @@ class Worker:
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
-        module_name = coq_serapy.get_module_from_filename(filename)
-        self.coq.run_stmt(f"Module {module_name}.")
+        self.coq.enter_file(filename)
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
         self.axioms_already_added = False
@@ -117,15 +145,17 @@ class Worker:
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
         if job_project != self.cur_project:
-            self.reset_file_state()
+            if self.cur_project is not None:
+                self.reset_file_state()
             self.cur_project = job_project
-            self.set_switch_from_proj()
-            self.restart_coq()
-            self.enter_file(job_file)
+            if self.args.set_switch:
+                self.set_switch_from_proj()
         # If the job is in a different file load the jobs file from scratch.
         if job_file != self.cur_file:
             if self.cur_file:
+                self.reset_file_state()
                 self.exit_cur_file()
+            self.restart_coq(job_file)
             self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job

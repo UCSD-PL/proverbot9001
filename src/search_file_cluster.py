@@ -29,9 +29,11 @@ import subprocess
 import signal
 import shutil
 import functools
+import re
 from pathlib import Path
 from datetime import datetime, timedelta
 from typing import List, NamedTuple, Dict, Any
+from threading import Thread
 
 from tqdm import tqdm
 
@@ -105,7 +107,7 @@ def main(arg_list: List[str]) -> None:
                     print(job)
             sys.exit(0)
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
-        dispatch_workers(args, arg_list)
+        dispatch_workers(args, min(args.num_workers, len(jobs) - len(solved_jobs)), arg_list)
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
             show_progress(args)
         cancel_workers(args)
@@ -119,6 +121,7 @@ def main(arg_list: List[str]) -> None:
             json.dump({k: format_arg_value(v) for k, v in vars(args).items()}, f)
         cur_dir = os.path.realpath(os.path.dirname(__file__))
 
+        output_files = []
         for project_dict in project_dicts:
             if len(project_dict["test_files"]) == 0:
                 continue
@@ -126,25 +129,26 @@ def main(arg_list: List[str]) -> None:
                 report_output_name = "report.out"
             else:
                 report_output_name = f"{project_dict['project_name']}-report.out"
+            full_output_filename = str(args.output_dir / args.workers_output_dir / report_output_name)
+            output_files.append(full_output_filename)
             command = [f"{cur_dir}/sbatch-retry.sh",
-                            "-o", str(args.output_dir / args.workers_output_dir
-                                      / report_output_name),
+                            "-o", full_output_filename,
                             "-t", str(args.worker_timeout),
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
                             "-p", project_dict['project_name']]
-            subprocess.run(command)
+            subprocess.run(command, stdout=subprocess.DEVNULL)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
-            show_report_progress(args.output_dir, project_dicts)
+            show_report_progress(args.output_dir, project_dicts, output_files)
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                         "-o", str(args.output_dir / args.workers_output_dir
                                   / "index-report.out"),
                         "-J", "proverbot9001-report-worker",
                         f"{cur_dir}/search_report.sh",
                         str(args.output_dir),
-                        "-i"])
+                        "-i"], stdout=subprocess.DEVNULL)
         print("Generating report index...")
         while True:
             indexes_generated = int(subprocess.check_output(
@@ -185,11 +189,18 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
     elif args.proofs_file:
         worker_args.append(f"--proofs-file={str(args.proofs_file)}")
     cur_dir = os.path.realpath(os.path.dirname(__file__))
+    num_job_workers = min(len(projfiles), args.num_workers-1)
     subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                     "-o", str(args.output_dir / args.workers_output_dir /
                               "file-scanner-%a.out"),
-                    f"--array=0-{args.num_workers-1}",
+                    f"--array=0-{num_job_workers}",
                     f"{cur_dir}/job_getting_worker.sh"] + worker_args)
+    threads = [Thread(target=follow_and_print, args=
+        (str(args.output_dir / args.workers_output_dir / f"file-scanner-{idx}.out"),))
+        for idx in range(num_job_workers)]
+    for t in threads:
+        t.daemon = True
+        t.start()
 
     with tqdm(desc="Getting jobs", total=len(projfiles), dynamic_ncols=True) as bar:
         num_files_scanned = 0
@@ -199,6 +210,7 @@ def get_all_jobs_cluster(args: argparse.Namespace) -> None:
             bar.update(new_files_scanned - num_files_scanned)
             num_files_scanned = new_files_scanned
             time.sleep(0.2)
+    close_follows = True
 
     os.rename(args.output_dir / "all_jobs.txt.partial",
               args.output_dir / "all_jobs.txt")
@@ -213,22 +225,23 @@ def setup_jobsstate(output_dir: Path, all_jobs: List[ReportJob],
             if job not in solved_jobs:
                 print(json.dumps(job), file=f)
         print("", end="", flush=True, file=f)
-def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
+def dispatch_workers(args: argparse.Namespace, num_workers: int, rest_args: List[str]) -> None:
     with (args.output_dir / "num_workers_dispatched.txt").open("w") as f:
-        print(args.num_workers, file=f)
+        print(num_workers, file=f)
     with (args.output_dir / "workers_scheduled.txt").open("w") as f:
         pass
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    num_workers_left = args.num_workers
+    num_workers_left = num_workers
     # For some reason it looks like the maximum job size array is 1001 for
     # slurm, so we're going to use batches of 1000
     while num_workers_left > 0:
+        worker_name = f"proverbot9001-worker-{args.output_dir}"
         num_dispatching_workers = min(num_workers_left, 1000)
         # If you have a different cluster management software, that still allows
         # dispatching jobs through the command line and uses a shared filesystem,
         # modify this line.
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
-                        "-J", "proverbot9001-worker",
+                        "-J", worker_name,
                         "-p", args.partition,
                         "-t", str(args.worker_timeout),
                         "--cpus-per-task", str(args.num_threads),
@@ -249,59 +262,127 @@ def interrupt_early(args: argparse.Namespace, *rest_args) -> None:
     cancel_workers(args)
     sys.exit()
 def cancel_workers(args: argparse.Namespace) -> None:
-    subprocess.run(["scancel -u $USER -n proverbot9001-worker"], shell=True)
+    worker_name = f"proverbot9001-worker-{args.output_dir}"
+    subprocess.run([f"scancel -u $USER -n {worker_name}"], shell=True)
 def interrupt_report_early(args: argparse.Namespace, *rest_args) -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-report-worker"], shell=True)
     sys.exit()
 
 def show_progress(args: argparse.Namespace) -> None:
-    num_jobs_done = len(get_already_done_jobs(args))
     with (args.output_dir / "all_jobs.txt").open('r') as f:
-        num_jobs_total = len([line for line in f])
+        all_jobs = [ReportJob(*json.loads(l)) for l in f]
     with (args.output_dir / "num_workers_dispatched.txt").open('r') as f:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
-        num_workers_scheduled = len([line for line in f])
-    num_workers_alive = int(subprocess.check_output(
-        f"squeue -u $USER -h -n proverbot9001-worker | wc -l", text=True, shell=True))
+        workers_scheduled = list(f)
+    jobs_done = get_already_done_jobs(args)
+    num_workers_alive = 0
+    crashed_workers: List[int] = []
 
-    with tqdm(desc="Jobs finished", total=num_jobs_total,
-              initial=num_jobs_done, dynamic_ncols=True) as bar, \
-         tqdm(desc="Workers scheduled", total=num_workers_total,
-              initial=num_workers_scheduled, dynamic_ncols=True) as wbar:
-        while num_jobs_done < num_jobs_total:
-            new_workers_alive = int(subprocess.check_output(
-                f"squeue -u $USER -h -n proverbot9001-worker | wc -l",
-                text=True, shell=True))
+    with tqdm(desc="Jobs finished", total=len(all_jobs), initial=len(jobs_done), dynamic_ncols=True) as bar, \
+         tqdm(desc="Workers scheduled", total=num_workers_total, initial=len(workers_scheduled), dynamic_ncols=True) as wbar:
+        while len(jobs_done) < len(all_jobs):
+            new_workers_alive = [int(wid) for wid in
+                                 subprocess.check_output(
+                                   f"squeue -r -u$USER -h -n proverbot9001-worker-{args.output_dir} -o%K",
+                                   shell=True, text=True).strip().split("\n")
+                                 if wid != ""]
             time.sleep(0.2)
-            new_jobs_done = len(get_already_done_jobs(args))
-            bar.update(new_jobs_done - num_jobs_done)
-            num_jobs_done = new_jobs_done
+            new_jobs_done = get_already_done_jobs(args)
+            bar.update(len(new_jobs_done) - len(jobs_done))
+            jobs_done = new_jobs_done
 
-            with (args.output_dir / "workers_scheduled.txt").open('r') as f:
-                new_workers_scheduled = len([line for line in f])
-            if new_workers_alive < num_workers_alive:
-                num_workers_alive = new_workers_alive
-                if num_workers_alive < (num_jobs_total - num_jobs_done):
-                    util.eprint(f"One of the workers crashed! "
-                                f"We have only {num_workers_alive} workers left alive, "
-                                f"but still {num_jobs_total - num_jobs_done} jobs left")
-            elif new_workers_alive > num_workers_alive:
-                num_workers_alive = new_workers_alive
-            if num_workers_alive == 0:
+            # Check for newly crashed workers
+            for worker_id in range(num_workers_total):
+                # Skip any living worker
+                if worker_id in new_workers_alive:
+                    continue
+                # Skip any worker for which we've already reported a crash
+                if worker_id in crashed_workers:
+                    continue
+                # Skip any worker that hasn't started yet, and get the jobs taken by workers that did.
+                try:
+                    with (args.output_dir / f"worker-{worker_id}-taken.txt").open('r') as f:
+                        taken_by_worker = [ReportJob(*json.loads(l)) for l in f]
+                except FileNotFoundError:
+                    continue
+                jobs_left_behind = 0
+                for job in all_jobs:
+                    if job not in jobs_done and job in taken_by_worker:
+                        jobs_left_behind += 1
+                if jobs_left_behind > 0:
+                    util.eprint(f"Worker {worker_id} crashed! Left behind {jobs_left_behind} unfinished jobs")
+                    crashed_workers.append(worker_id)
+            if len(new_workers_alive) == 0:
                 time.sleep(1)
-                num_jobs_done = len(get_already_done_jobs(args))
-                if num_jobs_done < num_jobs_total:
+                if len(jobs_done) < len(all_jobs):
                     util.eprint("All workers exited, but jobs aren't done!")
                     write_time(args)
                     sys.exit(1)
-            wbar.update(new_workers_scheduled - num_workers_scheduled)
-            num_workers_scheduled = new_workers_scheduled
+            with (args.output_dir / "workers_scheduled.txt").open('r') as f:
+                new_workers_scheduled = list(f)
+            wbar.update(len(new_workers_scheduled) - len(workers_scheduled))
+            workers_scheduled = new_workers_scheduled
 
-def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) -> None:
+def follow_and_print(filename: str) -> None:
+    global close_follows
+    close_follows = False
+    while not Path(filename).exists():
+        time.sleep(0.1)
+    with open(filename, 'r') as f:
+        while True:
+            line = f.readline()
+            if "UserWarning: TorchScript" in line or "warnings.warn" in line:
+                continue
+            if line.strip() != "":
+                print(line, end="")
+            if close_follows:
+                break
+            time.sleep(0.01)
+
+close_follows: bool
+
+def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report Files") -> None:
+    global close_follows
+    close_follows = False
+    progress = 0
+    set_total = False
+    while not Path(filename).exists():
+        time.sleep(0.1)
+    with open(filename, 'r') as f:
+        while True:
+            line = f.readline()
+            if "UserWarning: TorchScript" in line or "warnings.warn" in line:
+                continue
+            if bar_prompt + ":" in line:
+                new_progress = int(re.match(".*(\d+)/\d+", line).group(1))
+                if not set_total:
+                    total = int(re.match(".*\d+/(\d+)", line).group(1))
+                    bar.total = total
+                    bar.refresh()
+                    set_total = True
+                if new_progress > progress:
+                    bar.update(new_progress - progress)
+                    progress = new_progress
+                continue
+            if line.strip() != "":
+                bar.write(line, end="")
+            if close_follows:
+                break
+            time.sleep(0.01)
+
+def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]], output_files: List[str]) -> None:
     test_projects_total = len([d for d in project_dicts if len(d["test_files"]) > 0])
     num_projects_done = 0
     with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
+        bars = [tqdm(desc=(project_dict["project_name"]
+                     if len(project_dicts) > 1 else "Report") + " files")
+                for idx, (project_dict, _)
+                in enumerate(zip(project_dicts, output_files))]
+        threads = [Thread(target=follow_with_progress, args=(filename,bar)) for filename, bar in zip(output_files, bars)]
+        for t in threads:
+            t.daemon = True
+            t.start()
         while num_projects_done < test_projects_total:
             new_projects_done = int(subprocess.check_output(
                 f"find {report_dir} -wholename '*/index.html' | wc -l",
@@ -309,6 +390,9 @@ def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]]) 
             bar.update(new_projects_done - num_projects_done)
             num_projects_done = new_projects_done
             time.sleep(0.2)
+        for bar in bars:
+            bar.close()
+        close_follows = True
 
 if __name__ == "__main__":
     main(sys.argv[1:])
