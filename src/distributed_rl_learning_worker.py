@@ -43,12 +43,9 @@ def main():
 
     reinforce_jobs_worker(args, workerid)
 
-def reinforce_jobs_worker(args: argparse.Namespace,
-                          workerid: int) -> None:
-    worker, steps_already_done, random_state = \
-        possibly_resume_rworker(args, workerid)
-    random.setstate(random_state)
+TaskEpisode = Tuple[RLTask, int]
 
+def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
     assert args.tasks_file, "Can't do distributed rl without tasks right now."
     with open(args.tasks_file, 'r') as f:
         all_tasks = [RLTask(**json.loads(line)) for line in f]
@@ -63,6 +60,16 @@ def reinforce_jobs_worker(args: argparse.Namespace,
     else:
         task_episodes = [(task, episode) for task in all_tasks
                          for episode, task in list(enumerate([task] * args.num_episodes))]
+
+    return task_episodes
+
+def reinforce_jobs_worker(args: argparse.Namespace,
+                          workerid: int) -> None:
+    worker, steps_already_done, random_state = \
+        possibly_resume_rworker(args, workerid)
+    random.setstate(random_state)
+
+    task_episodes = get_all_task_episodes(args)
 
     for _ in range(steps_already_done):
         # Pytorch complains about pre-stepping the scheduler, but we
