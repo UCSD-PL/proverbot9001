@@ -6,7 +6,7 @@ import os
 import random
 import json
 import re
-from typing import List, Tuple, Any
+from typing import List, Tuple, Any, Optional, Set
 from pathlib import Path
 from glob import glob
 
@@ -78,17 +78,15 @@ def reinforce_jobs_worker(args: argparse.Namespace,
             worker.v_network.adjuster.step()
 
     worker_step = 1
-    recently_done_task_eps: List[Tuple[RLTask, int]] = []
+    recently_done_task_eps: List[TaskEpisode] = []
+    our_taken_task_eps: List[TaskEpisode] = []
     while True:
         with (args.state_dir / "taken.txt").open("r+") as f, FileLock(f):
             taken_task_episodes = [(RLTask(**task_dict), episode)
                                    for line in f
                                    for task_dict, episode in (json.loads(line),)]
-            current_task_episode = None
-            for task_episode in task_episodes:
-                if task_episode not in taken_task_episodes:
-                    current_task_episode = task_episode
-                    break
+            current_task_episode = get_next_task(task_episodes, taken_task_episodes,
+                                                 our_taken_task_eps)
             if current_task_episode is not None:
                 eprint(f"Starting task-episode {current_task_episode}")
                 task, episode = current_task_episode
@@ -98,6 +96,7 @@ def reinforce_jobs_worker(args: argparse.Namespace,
                 break
         with (args.state_dir / f"taken-{workerid}.txt").open('a') as f:
             print(json.dumps((vars(task), episode)), file=f, flush=True)
+        our_taken_task_eps.append(current_task_episode)
 
         cur_epsilon = args.starting_epsilon + \
             ((len(taken_task_episodes) / len(task_episodes)) *
@@ -210,6 +209,68 @@ def sync_distributed_networks(args: argparse.Namespace, step: int,
                               worker: rl.ReinforcementWorker) -> None:
     save_state(args, worker, step, workerid)
     load_latest_target_network(args, worker)
+
+def get_next_task(task_episodes: List[TaskEpisode],
+                  taken_task_episodes: List[TaskEpisode],
+                  our_taken_task_eps: List[TaskEpisode]) \
+                  -> Optional[TaskEpisode]:
+    # First pass: try to pick a task episode in a file that no other
+    # worker is working on.
+    task_eps_taken_by_others = [te for te in taken_task_episodes
+                             if te not in our_taken_task_eps]
+
+    # This relies on the invariant that if there is a task in the same
+    # file taken by another worker, and there are still other files to
+    # consider, the task will appear *before* the one we're
+    # considering at each step. This is because all workers use the
+    # same task picking algorithm, and they'll pick the earliest task
+    # they're allowed to. So, a later task can only be picked over an
+    # earlier one if it's in a different file, or there is only one
+    # file to pick from and it's from a different proof, or there's
+    # only one proof to pick from.
+    files_taken_by_others: Set[str] = set()
+    proofs_taken_by_others: Set[Tuple[str, str, str]] = set()
+    skipped_by_file: List[TaskEpisode] = []
+    for task, episode in task_episodes:
+        if (task, episode) in task_eps_taken_by_others:
+            # If it was already taken by another worker, mark that
+            # file for skipping this iteration (since the other worker
+            # can probably do it faster), and skip this task.
+            files_taken_by_others.add(task.src_file)
+            proofs_taken_by_others.add(task.to_proof_spec())
+            continue
+        if (task, episode) in our_taken_task_eps:
+            # If it wasn't taken by another worker, but it was already
+            # taken by us, skip it.
+            continue
+        if task.src_file in files_taken_by_others:
+            # If the task wasn't taken by anyone but it's in the same
+            # file another worker started working on, add it to a list
+            # for the second pass and skip it.
+            skipped_by_file.append((task, episode))
+            continue
+        # Otherwise, we've found a task that's not in a file taken by
+        # any other worker, and it's in the same file as our previous
+        # task if possible (assuming that tasks are in order by file).
+        return (task, episode)
+    # If we get to the end of this loop, it should mean that all files
+    # are being worked on by another worker. In that case, we'll allow
+    # ourselves to pick a task worked on by another worker, as long as
+    # it's not the same *proof* as another worker.
+    for task, episode in skipped_by_file:
+        # Since we only added task episodes to this list if they
+        # weren't alraedy taken, we can skip those checks.
+
+        # If the task episode was in a proof that someone else is
+        # already working on, skip it.
+        if task.to_proof_spec() in proofs_taken_by_others:
+            continue
+        return task, episode
+
+    # Otherwise, every proof is being worked on by another worker, so
+    # just finish this worker.
+    return None
+
 
 if __name__ == "__main__":
     main()

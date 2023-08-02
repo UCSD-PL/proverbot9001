@@ -67,9 +67,8 @@ class RLTask:
     @classmethod
     def from_job(cls, job: ReportJob) -> 'RLTask':
         return RLTask(job.filename, job.module_prefix, job.lemma_statment, [], [], -1, -1)
-
-    def to_job(self) -> ReportJob:
-        return ReportJob(".", self.src_file, self.module_prefix, self.proof_statement)
+    def to_proof_spec(self) -> Tuple[str, str, str]:
+        return self.src_file, self.module_prefix, self.proof_statement
 
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
