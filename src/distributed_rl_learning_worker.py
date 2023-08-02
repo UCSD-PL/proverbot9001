@@ -14,11 +14,13 @@ import torch
 
 sys.path.append(str(Path(os.getcwd()) / "src"))
 
+#pylint: disable=wrong-import-position
 from gen_rl_tasks import RLTask
 import rl
 from util import nostderr, FileLock, eprint, print_time
 from distributed_rl import (add_distrl_args_to_parser,
                             latest_worker_save)
+#pylint: enable=wrong-import-position
 
 def main():
     assert 'SLURM_ARRAY_TASK_ID' in os.environ
