@@ -17,7 +17,7 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 #pylint: disable=wrong-import-position
 from gen_rl_tasks import RLTask
 import rl
-from util import nostderr, FileLock, eprint, print_time
+from util import nostderr, FileLock, eprint, print_time, unwrap
 from distributed_rl import (add_distrl_args_to_parser,
                             latest_worker_save)
 #pylint: enable=wrong-import-position
@@ -198,7 +198,7 @@ def load_latest_target_network(args: argparse.Namespace,
         eprint("Skipping sync because the target network doesn't exist yet")
         return
     target_network_save_nums = [
-        int(re.match(r"common-target-network-(\d+).dat", path).group(1))
+        int(unwrap(re.match(r"common-target-network-(\d+).dat", path)).group(1))
         for path in target_networks]
     latest_target_network_path = str(
         args.state_dir / "weights" /
