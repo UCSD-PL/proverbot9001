@@ -82,15 +82,15 @@ def reinforce_jobs_worker(args: argparse.Namespace,
     our_taken_task_eps: List[TaskEpisode] = []
     while True:
         with (args.state_dir / "taken.txt").open("r+") as f, FileLock(f):
-            taken_task_episodes = [(RLTask(**task_dict), episode)
+            taken_task_episodes = [((RLTask(**task_dict), episode), taken_this_iter)
                                    for line in f
-                                   for task_dict, episode in (json.loads(line),)]
+                                   for (task_dict, episode), taken_this_iter in (json.loads(line),)]
             current_task_episode = get_next_task(task_episodes, taken_task_episodes,
                                                  our_taken_task_eps)
             if current_task_episode is not None:
                 eprint(f"Starting task-episode {current_task_episode}")
                 task, episode = current_task_episode
-                print(json.dumps((vars(task), episode)), file=f, flush=True)
+                print(json.dumps(((vars(task), episode), True)), file=f, flush=True)
             else:
                 eprint(f"Finished worker {workerid}")
                 break
@@ -211,13 +211,13 @@ def sync_distributed_networks(args: argparse.Namespace, step: int,
     load_latest_target_network(args, worker)
 
 def get_next_task(task_episodes: List[TaskEpisode],
-                  taken_task_episodes: List[TaskEpisode],
+                  taken_task_episodes: List[Tuple[TaskEpisode, bool]],
                   our_taken_task_eps: List[TaskEpisode]) \
                   -> Optional[TaskEpisode]:
     # First pass: try to pick a task episode in a file that no other
     # worker is working on.
-    task_eps_taken_by_others = [te for te in taken_task_episodes
-                             if te not in our_taken_task_eps]
+    task_eps_taken_by_others = [te for (te, this_iter) in taken_task_episodes
+                                if te not in our_taken_task_eps and this_iter]
 
     # This relies on the invariant that if there is a task in the same
     # file taken by another worker, and there are still other files to

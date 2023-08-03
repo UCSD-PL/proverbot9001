@@ -101,7 +101,7 @@ def setup_jobstate(args: argparse.Namespace) -> None:
                 print(json.dumps((vars(task), ep)), file=f, flush=True)
     with (args.state_dir / "taken.txt").open("w") as f:
         for task, ep in done_task_eps:
-            print(json.dumps((vars(task), ep)), file=f, flush=True)
+            print(json.dumps(((vars(task), ep), False)), file=f, flush=True)
 
     with (args.state_dir / "workers_scheduled.txt").open('w') as f:
         pass
