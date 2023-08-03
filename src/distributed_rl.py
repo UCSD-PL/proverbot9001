@@ -81,21 +81,23 @@ def setup_jobstate(args: argparse.Namespace) -> None:
 
     done_task_eps = []
     for workerid in range(args.num_workers):
+        worker_done_task_eps = []
         done_path = args.state_dir / f"done-{workerid}.txt"
         if not done_path.exists():
             with done_path.open("w"):
                 pass
         else:
             with done_path.open('r') as f:
-                done_task_eps += [(RLTask(**task_dict), episode)
-                                  for line in f
-                                  for task_dict, episode in (json.loads(line),)]
+                worker_done_task_eps = [(RLTask(**task_dict), episode)
+                                        for line in f
+                                        for task_dict, episode in (json.loads(line),)]
+            done_task_eps += worker_done_task_eps
         taken_path = args.state_dir / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
         progress_path = args.state_dir / f"progress-{workerid}.txt"
         with progress_path.open("w") as f:
-            for task, ep in done_task_eps:
+            for task, ep in worker_done_task_eps:
                 print(json.dumps((vars(task), ep)), file=f, flush=True)
     with (args.state_dir / "taken.txt").open("w") as f:
         for task, ep in done_task_eps:
