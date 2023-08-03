@@ -105,13 +105,13 @@ def reinforce_jobs_worker(args: argparse.Namespace,
         reinforce_task(args, worker, current_task_episode[0],
                        worker_step, cur_epsilon)
         recently_done_task_eps.append((task, episode))
+        with (args.state_dir / f"progress-{workerid}.txt").open('a') as f:
+            print(json.dumps((vars(task), episode)),
+                  file=f, flush=True)
         if worker_step % args.sync_target_every == 0:
             sync_distributed_networks(args, worker_step, workerid, worker)
             save_replay_buffer(args, worker, workerid)
 
-            with (args.state_dir / f"progress-{workerid}.txt").open('a') as f:
-                print(json.dumps((vars(task), episode)),
-                      file=f, flush=True)
             sync_done(args, workerid, recently_done_task_eps)
             recently_done_task_eps = []
 
