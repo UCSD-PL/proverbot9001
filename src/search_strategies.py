@@ -328,6 +328,40 @@ class TqdmSpy(tqdm):
         super().update(value)
 
 
+def prompting_search(lemma_name: str,
+                                lemma_statement: str,
+                                module_prefix: str,
+                                relevant_lemmas: List[str],
+                                coq: coq_serapy.SerapiInstance,
+                                output_dir: Path,
+                                args: argparse.Namespace,
+                                bar_idx: int,
+                                predictor: TacticPredictor) \
+                                -> SearchResult:
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                    args.features_json)
+    def search(current_path: List[LabeledNode],
+               subgoal_distance_stack: List[int],
+               extra_depth: int, steps_explored: int) -> SubSearchResult:
+        full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          unwrap(coq.proof_context))
+        # todo: get predictions
+        predictions = predictor.predictKTactics(
+            truncate_tactic_context(full_context_before.as_tcontext(),
+                                    args.max_term_length),
+                    args.max_attempts)
+        solution = None
+        pred_step = 1
+
+        return False
+    
+    '''
+        todo: implement new search strategy
+    '''
+    return False
+
+
 def transformer_search(lemma_name: str,
                                 lemma_statement: str,
                                 module_prefix: str,
@@ -421,11 +455,6 @@ def transformer_search(lemma_name: str,
                 print("try to undo")
                 while coq.proof_context:
                     coq.cancel_last()
-                #print("tactic history:", coq.tactic_history.getFullHistory())
-                #if len(coq.tactic_history.getFullHistory()) == 1:
-                #    coq.tactic_history = coq_serapy.TacticHistory()
-                #print("tactic history now:", coq.tactic_history.getFullHistory())
-                #if len(coq.tactic_history.getFullHistory()) == 0:
                 coq.run_stmt(lemma_statement)
             pred_step += 1
             print("END OF ATTEMPT")
@@ -439,10 +468,6 @@ def transformer_search(lemma_name: str,
     next_node = g.start_node
     
     command_list, _, total_steps = search([next_node], subgoals_stack_start, 0, 0)
-    # g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    #if args.features_json:
-    #    g.write_feat_json(f"{output_dir}/{module_prefix}"
-    #f"{lemma_name}.json")
     print("search returns")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps)

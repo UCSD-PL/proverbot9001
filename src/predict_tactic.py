@@ -49,6 +49,7 @@ from models import numeric_induction
 from models import features_polyarg_predictor
 from models import reinforced_features_polyarg
 from models import transformer_predictor
+from models import prompting_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -73,6 +74,7 @@ loadable_predictors = {
     "polyarg" : features_polyarg_predictor.FeaturesPolyargPredictor,
     "refpa": reinforced_features_polyarg.ReinforcedFeaturesPolyargPredictor,
     "transformer": transformer_predictor.TransformerPredictor,
+    "prompting": prompting_predictor.PromptingPredictor,
 }
 
 static_predictors = {

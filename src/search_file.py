@@ -150,7 +150,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'transformer-search'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'transformer-search', 'prompting-search'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty"], default="certainty")
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
