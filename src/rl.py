@@ -11,8 +11,7 @@ import math
 import pickle
 import sys
 import re
-from mpire import WorkerPool
-from multiprocessing import Process, Manager, Queue
+from multiprocessing import Process, Queue, set_start_method
 from pathlib import Path
 from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -408,16 +407,11 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             save_state(args, worker, step)
     if args.evaluate or args.evaluate_baseline:
         if args.test_file:
-            test_tasks = read_tasks_file(args, args.test_file, False)
-            evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                                    initial_replay_buffer = replay_buffer)
-            evaluate_results(args, evaluation_worker, test_tasks)
-        else:
-            # with WorkerPool(n_jobs = args.num_eval_workers, shared_variables = worker) as pool :
-            #     results = pool.map(evaluate_results, () )
+            evaluation_tasks = read_tasks_file(args, args.test_file, False)
+        else :
+            evaluation_tasks = tasks
+        dispatch_evaluation_workers(args, switch_dict, evaluation_tasks)
 
-            dispatch_evaluation_workers(args, predictor, worker.v_network, worker.target_v_network, switch_dict, worker.replay_buffer, tasks)
-            # evaluate_results(args, worker, tasks)
     if args.verifyvval:
         verify_vvals(args, worker, tasks)
 
@@ -437,10 +431,13 @@ class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
         super().__init__(term_encoder, max_num_hypotheses)
         self.obl_cache = OrderedDict()
         self.max_size = max_size #TODO: Add in arguments if desired
+
+
     def obligations_to_vectors_cached(self, obls: List[Obligation]) \
             -> torch.FloatTensor:
         encoded_obl_size = self.term_encoder.hidden_size * (self.max_num_hypotheses + 1)
 
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         cached_results = []
         for obl in obls:
             r = self.obl_cache.get(obl, None)
@@ -449,7 +446,7 @@ class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
             cached_results.append(r)
 
         encoded = run_network_with_cache(
-            lambda x: self.obligations_to_vectors(x).view(len(x), encoded_obl_size),
+            lambda x: self.obligations_to_vectors(x).to(device).view(len(x), encoded_obl_size),
             [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls],
             cached_results)
 
@@ -485,6 +482,8 @@ class VNetwork:
         num_hyps = 5
         assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
+
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         insize = term_encoder.hidden_size * (num_hyps + 1)
         self.network = nn.Sequential(
             nn.Linear(insize, 120),
@@ -493,6 +492,7 @@ class VNetwork:
             nn.ReLU(),
             nn.Linear(84, 1),
         )
+        self.network.to(device)
         self.optimizer = optim.RMSprop(self.network.parameters(), lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
@@ -819,14 +819,13 @@ def evaluate_proof(args: argparse.Namespace,
     return proof_succeeded
 
 
-def dispatch_evaluation_workers(args, predictor, v_network, target_network, switch_dict, replay_buffer, tasks) :
+def dispatch_evaluation_workers(args, switch_dict, tasks) :
     
     return_queue = Queue()
-    workers = [ ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                 initial_replay_buffer = replay_buffer) for _ in range(args.num_eval_workers) ]
+   
     processes = []
     for i in range(args.num_eval_workers) :
-        processes.append(Process(target = evaluation_worker, args = (args, workers[i], 
+        processes.append(Process(target = evaluation_worker, args = (args, switch_dict,
                                  tasks[len(tasks)*i//args.num_eval_workers : len(tasks)*(i+1)//args.num_eval_workers], return_queue)))
         processes[-1].start()
         print("Process", i, "started")
@@ -837,7 +836,7 @@ def dispatch_evaluation_workers(args, predictor, v_network, target_network, swit
     results = []
     while not return_queue.empty() :
         results.append(return_queue.get())
-        
+
     assert len(results) == args.num_eval_workers, "Here's the queue : " + str(results)
 
     proofs_completed = sum(results)
@@ -847,9 +846,24 @@ def dispatch_evaluation_workers(args, predictor, v_network, target_network, swit
     
 
 def evaluation_worker(args: argparse.Namespace,
-                     worker: ReinforcementWorker,
+                      switch_dict,
                      tasks: List[RLTask], return_queue) :
 
+    predictor = MemoizingPredictor(get_predictor(args))
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
+        torch.load(str(args.output_file), map_location=device)
+    random.setstate(random_state)
+    print(f"Resuming from existing weights of {steps_already_done} steps")
+    v_network = VNetwork(None, args.learning_rate,
+                            args.batch_step, args.lr_step)
+    target_network = VNetwork(None, args.learning_rate,
+                                args.batch_step, args.lr_step)
+    target_network.obligation_encoder = v_network.obligation_encoder
+    v_network.load_state(network_state)
+    target_network.load_state(tnetwork_state)
+    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                 initial_replay_buffer = replay_buffer)
     return_queue.put(evaluate_results(args, worker,tasks))
     return
     
@@ -988,6 +1002,7 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
         if output_list[i] is None:
             uncached_values.append(value)
             uncached_value_indices.append(i)
+
     if len(uncached_values) > 0:
         new_results = f(uncached_values)
         for idx, result in zip(uncached_value_indices, new_results):
@@ -1002,4 +1017,5 @@ def tactic_prefix_is_usable(tactic_prefix: List[str]):
 
 
 if __name__ == "__main__":
+    set_start_method('spawn')
     main()
