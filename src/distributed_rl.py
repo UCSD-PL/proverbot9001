@@ -98,10 +98,10 @@ def setup_jobstate(args: argparse.Namespace) -> None:
         progress_path = args.state_dir / f"progress-{workerid}.txt"
         with progress_path.open("w") as f:
             for task, ep in worker_done_task_eps:
-                print(json.dumps((vars(task), ep)), file=f, flush=True)
+                print(json.dumps((task.as_dict(), ep)), file=f, flush=True)
     with (args.state_dir / "taken.txt").open("w") as f:
         for task, ep in done_task_eps:
-            print(json.dumps(((vars(task), ep), False)), file=f, flush=True)
+            print(json.dumps(((task.as_dict(), ep), False)), file=f, flush=True)
 
     with (args.state_dir / "workers_scheduled.txt").open('w') as f:
         pass

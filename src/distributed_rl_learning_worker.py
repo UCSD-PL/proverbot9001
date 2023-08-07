@@ -90,12 +90,12 @@ def reinforce_jobs_worker(args: argparse.Namespace,
             if current_task_episode is not None:
                 eprint(f"Starting task-episode {current_task_episode}")
                 task, episode = current_task_episode
-                print(json.dumps(((vars(task), episode), True)), file=f, flush=True)
+                print(json.dumps(((task.as_dict(), episode), True)), file=f, flush=True)
             else:
                 eprint(f"Finished worker {workerid}")
                 break
         with (args.state_dir / f"taken-{workerid}.txt").open('a') as f:
-            print(json.dumps((vars(task), episode)), file=f, flush=True)
+            print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
         our_taken_task_eps.append(current_task_episode)
 
         cur_epsilon = args.starting_epsilon + \
@@ -106,7 +106,7 @@ def reinforce_jobs_worker(args: argparse.Namespace,
                        worker_step, cur_epsilon)
         recently_done_task_eps.append((task, episode))
         with (args.state_dir / f"progress-{workerid}.txt").open('a') as f:
-            print(json.dumps((vars(task), episode)),
+            print(json.dumps((task.as_dict(), episode)),
                   file=f, flush=True)
         if worker_step % args.sync_target_every == 0:
             sync_distributed_networks(args, worker_step, workerid, worker)
@@ -127,7 +127,7 @@ def sync_done(args: argparse.Namespace,
               recently_done_task_eps: List[TaskEpisode]) -> None:
     with (args.state_dir / f"done-{workerid}.txt").open('a') as f:
         for task, episode in recently_done_task_eps:
-            print(json.dumps((vars(task), episode)),
+            print(json.dumps((task.as_dict(), episode)),
                   file=f, flush=True)
 
 def reinforce_task(args: argparse.Namespace, worker: rl.ReinforcementWorker,
