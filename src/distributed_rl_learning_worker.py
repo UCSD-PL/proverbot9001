@@ -216,8 +216,9 @@ def get_next_task(task_episodes: List[TaskEpisode],
                   -> Optional[TaskEpisode]:
     # First pass: try to pick a task episode in a file that no other
     # worker is working on.
-    task_eps_taken_by_others = [te for (te, this_iter) in taken_task_episodes
-                                if te not in our_taken_task_eps and this_iter]
+    task_eps_taken_by_others = {te for (te, this_iter) in taken_task_episodes
+                                if te not in our_taken_task_eps and this_iter}
+    our_taken_task_eps = set(our_taken_task_eps)
 
     # This relies on the invariant that if there is a task in the same
     # file taken by another worker, and there are still other files to
