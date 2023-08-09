@@ -24,6 +24,8 @@ def main() -> None:
             if len([tac for tac in new_entry["orig_solution"] if tac == "{"]) != \
                len([tac for tac in new_entry["orig_solution"] if tac == "}"]):
                 continue
+            if new_entry["orig_solution"][0] == "{":
+                continue
             new_entry["target_length"] = len(new_entry["orig_solution"])
             with args.output_file.open('a') as f:
                 print(json.dumps(new_entry), file=f)
