@@ -78,7 +78,12 @@ def load_worker_weights(args: argparse.Namespace,
             args.state_dir / "weights" /
             f"worker-{workerid}-network-{save_num}.dat")
         eprint(f"Loading worker weights from {latest_worker_save_path}")
-        latest_worker_save = torch.load(latest_worker_save_path)
+        for i in range(3):
+            try:
+                latest_worker_save = torch.load(latest_worker_save_path)
+                break
+            except OSError:
+                eprint("Failed to load worker file because of stale handle, trying again")
         _replay_buffer, _step, (weights, _obl_encoder_state, _obl_enccoder_cache), \
             _random_state = latest_worker_save
         worker_weights.append(weights)

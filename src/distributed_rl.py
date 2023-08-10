@@ -11,7 +11,7 @@ import time
 import re
 import shutil
 from pathlib import Path
-from typing import List, Tuple, Optional
+from typing import List, Tuple, Optional, Dict
 from glob import glob
 
 from tqdm import tqdm
@@ -74,7 +74,8 @@ def setup_jobstate(args: argparse.Namespace) -> None:
     args.state_dir.mkdir(exist_ok=True)
     (args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
     (args.state_dir / "weights").mkdir(exist_ok=True)
-    taken_path = args.state_dir / "taken.txt"
+    (args.state_dir / "taken").mkdir(exist_ok=True)
+    taken_path = args.state_dir / "taken" / "taken-files.txt"
     if not taken_path.exists():
         with taken_path.open('w'):
             pass
@@ -92,16 +93,25 @@ def setup_jobstate(args: argparse.Namespace) -> None:
                                         for line in f
                                         for task_dict, episode in (json.loads(line),)]
             done_task_eps += worker_done_task_eps
-        taken_path = args.state_dir / f"taken-{workerid}.txt"
+        taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
         progress_path = args.state_dir / f"progress-{workerid}.txt"
         with progress_path.open("w") as f:
             for task, ep in worker_done_task_eps:
                 print(json.dumps((task.as_dict(), ep)), file=f, flush=True)
-    with (args.state_dir / "taken.txt").open("w") as f:
-        for task, ep in done_task_eps:
-            print(json.dumps(((task.as_dict(), ep), False)), file=f, flush=True)
+    file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
+    for task, ep in done_task_eps:
+        if task.src_file in file_taken_dict:
+            file_taken_dict[Path(task.src_file)].append((task, ep))
+        else:
+            file_taken_dict[Path(task.src_file)] = [(task, ep)]
+    for filename in get_all_files(args):
+        with (args.state_dir / "taken" /
+              (util.safe_abbrev(filename,
+                                file_taken_dict.keys()) + ".txt")).open("w") as f:
+            for task, ep in file_taken_dict.get(filename, []):
+                print(json.dumps(((task.as_dict(), ep), False)), file=f, flush=True)
 
     with (args.state_dir / "workers_scheduled.txt").open('w') as f:
         pass
@@ -143,6 +153,9 @@ def get_all_task_eps(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
             enumerate([all_tasks] * args.num_episodes)
             for task in all_tasks]
 
+def get_all_files(args: argparse.Namespace) -> List[Path]:
+    with open(args.tasks_file, 'r') as f:
+        return list({Path(json.loads(line)["src_file"]) for line in f})
 
 def show_progress(args: argparse.Namespace) -> None:
     all_task_eps = get_all_task_eps(args)
@@ -183,7 +196,7 @@ def show_progress(args: argparse.Namespace) -> None:
                 if worker_id in crashed_workers:
                     continue
                 # Get the jobs taken by workers.
-                with (args.state_dir / f"taken-{worker_id}.txt").open('r') as f:
+                with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
                     taken_by_worker = [(RLTask(**task_dict), episode)
                                        for l in f
                                        for task_dict, episode in (json.loads(l),)]
@@ -239,7 +252,7 @@ def get_task_eps_progress(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
 
     for workerid in range(args.num_workers):
-        with (args.state_dir / f"progress-{workerid}.txt").open('r') as f:
+        with (args.state_dir / f"progress-{workerid}.txt").open('r') as f, util.FileLock(f):
             worker_task_eps_done = [(RLTask(**task_dict), episode)
                                     for line in f
                                     for task_dict, episode in (json.loads(line),)]
