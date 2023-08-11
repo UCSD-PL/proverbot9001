@@ -249,7 +249,7 @@ def allocate_next_task(args: argparse.Namespace,
                 print(cur_file, file=f, flush=True)
         if cur_file is None:
             break
-        next_te_and_idx = allocate_next_task_from_file(
+        next_te_and_idx = allocate_next_task_from_file_with_retry(
           args,
           cur_file, all_files,
           file_all_tes_dict[cur_file],
@@ -264,21 +264,42 @@ def allocate_next_task(args: argparse.Namespace,
         return None
     # If we get here, then all files are already taken, so just loop through
     # them all and look for any tasks we can take.
-    for filename in file_all_tes_dict.keys():
-        for i in range(3):
-            try:
-                next_te_and_idx = allocate_next_task_from_file(args, filename,
-                                                               all_files,
-                                                               file_all_tes_dict[filename],
-                                                               file_our_taken_dict.get(filename, set()),
-                                                               None)
-                break
-            except json.decoder.JSONDecodeError:
-                eprint("Failed to decode, retrying")
-                if i == 2:
-                    raise
+    for filename in all_files:
+        next_te_and_idx = allocate_next_task_from_file_with_retry(
+          args,
+          filename, all_files,
+          file_all_tes_dict[filename],
+          file_our_taken_dict.get(filename, set()),
+          max_episode)
         if next_te_and_idx is not None:
             return next_te_and_idx
+        eprint(f"No tasks available to take in file {filename}",
+               guard=args.verbose >= 2)
+    return None
+
+def allocate_next_task_from_file_with_retry(
+      args: argparse.Namespace,
+      filename: Path,
+      all_files: List[Path],
+      file_task_episodes: List[Tuple[int, TaskEpisode]],
+      our_taken_task_episodes: Set[int],
+      max_episode: int,
+      num_retries: int = 3) \
+      -> Optional[Tuple[int, TaskEpisode]]:
+    # This is necessary because sometimes the NFS file system will give us
+    # garbage back like "^@^@^@^@^@^" when we're reading files that are
+    # being written.  By retrying we get the actual file contents when
+    # there's a problem like that.
+    for i in range(num_retries):
+        try:
+            return allocate_next_task_from_file(
+              args, filename, all_files,
+              file_task_episodes, our_taken_task_episodes,
+              max_episode)
+        except json.decoder.JSONDecodeError:
+            if i == num_retries - 1:
+                raise
+            eprint("Failed to decode, retrying", guard=args.verbose >= 1)
     return None
 def allocate_next_task_from_file(args: argparse.Namespace,
                                  filename: Path,
