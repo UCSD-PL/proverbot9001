@@ -162,7 +162,7 @@ def dispatch_syncing_worker(args: argparse.Namespace) -> None:
 
 def get_all_task_eps(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     with open(args.tasks_file, 'r') as f:
-        all_tasks = [RLTask(*json.loads(line)) for line in f]
+        all_tasks = [RLTask(**json.loads(line)) for line in f]
     return [(task, episode) for episode, tasks_lits in
             enumerate([all_tasks] * args.num_episodes)
             for task in all_tasks]
