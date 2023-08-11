@@ -31,7 +31,7 @@ def main():
     sync_worker_target_networks(args)
 
 def sync_worker_target_networks(args: argparse.Namespace) -> None:
-    retry_delay_secs = 1
+    retry_delay_secs = 0.5
     next_save_num = 0
     last_weights_versions: List[Tuple[int, int]] = []
     all_task_eps = get_all_task_eps(args)
