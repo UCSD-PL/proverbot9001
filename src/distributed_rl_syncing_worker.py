@@ -53,6 +53,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         torch.save(result_params, save_path + ".tmp")
         os.rename(save_path + ".tmp", save_path)
         delete_old_worker_weights(args, worker_weights_versions)
+        delete_old_common_weights(args)
         next_save_num += 1
         if len(task_eps_done) >= len(all_task_eps):
             break
@@ -89,6 +90,20 @@ def load_worker_weights(args: argparse.Namespace,
         worker_weights.append(weights)
 
     return worker_weights
+
+def delete_old_common_weights(args: argparse.Namespace) -> None:
+    common_network_paths= glob(f"common-target-network-*.dat",
+                                root_dir = str(args.state_dir / "weights"))
+    common_save_nums = [int(unwrap(re.match(rf"common-target-network-(\d+).dat",
+                                            path)).group(1))
+                        for path in common_network_paths]
+    latest_worker_save_num = max(common_save_nums)
+    for save_num in common_save_nums:
+        if save_num > latest_worker_save_num - args.keep_latest:
+            continue
+        old_save_path = (args.state_dir / "weights" /
+                         f"common-target-network-{save_num}.dat")
+        old_save_path.unlink()
 
 def delete_old_worker_weights(args: argparse.Namespace,
                               cur_versions: List[Tuple[int, int]]) -> None:

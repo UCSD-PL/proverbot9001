@@ -52,6 +52,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--partition", default="cpu")
     parser.add_argument("--mem", default="2G")
     parser.add_argument("--state_dir", default="drl_state", type=Path)
+    parser.add_argument("--keep-latest", default=3, type=int)
 
 def setup_jobstate(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "worker-*-network-*.dat"))) > 0
