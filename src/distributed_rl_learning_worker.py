@@ -126,11 +126,13 @@ def reinforce_jobs_worker(args: argparse.Namespace,
             print(json.dumps((task.as_dict(), episode)),
                   file=f, flush=True)
         if worker_step % args.sync_target_every == 0:
-            sync_distributed_networks(args, worker_step, workerid, worker)
-            save_replay_buffer(args, worker, workerid)
+            with print_time("Syncing", guard=args.print_timings):
+                sync_distributed_networks(args, worker_step, workerid, worker)
+                save_replay_buffer(args, worker, workerid)
 
-            sync_done(args, workerid, recently_done_task_eps)
-            recently_done_task_eps = []
+                sync_done(args, workerid, recently_done_task_eps)
+                assert len(recently_done_task_eps) == args.sync_target_every
+                recently_done_task_eps = []
 
         worker_step += 1
 
@@ -193,7 +195,7 @@ def possibly_resume_rworker(args: argparse.Namespace,
         steps_already_done = 0
         replay_buffer = None
         random_state = random.getstate()
-        with print_time("Building models"):
+        with print_time("Building models", guard=args.print_timings):
             v_network = rl.VNetwork(args.coq2vec_weights, args.learning_rate,
                                     args.batch_step, args.lr_step)
             target_network = rl.VNetwork(args.coq2vec_weights, args.learning_rate,
@@ -236,7 +238,8 @@ def allocate_next_task(args: argparse.Namespace,
                       -> Optional[Tuple[int, TaskEpisode]]:
     all_files = list(file_all_tes_dict.keys())
     while True:
-        with (args.state_dir / "taken" / "taken-files.txt").open("r+") as f, FileLock(f):
+        with (args.state_dir / "taken" / "taken-files.txt"
+              ).open("r+") as f, FileLock(f):
             taken_files: List[Path] = [Path(p.strip()) for p in f]
             cur_file: Optional[Path] = None
             for src_file in all_files:
@@ -259,9 +262,14 @@ def allocate_next_task(args: argparse.Namespace,
             our_files_taken.add(cur_file)
             return next_te_and_idx
         else:
+            eprint(f"Couldn't find an available task for file {cur_file}, "
+                   f"trying next file...",
+                   guard=args.verbose >= 2)
             files_finished_this_ep.add(cur_file)
     if max_episode < args.num_episodes - 1:
         return None
+    eprint("Ran out of task episodes in our files, "
+           "searching other taken files", guard=args.verbose >= 2)
     # If we get here, then all files are already taken, so just loop through
     # them all and look for any tasks we can take.
     for filename in all_files:
@@ -308,7 +316,6 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                                  our_taken_task_episodes: Set[int],
                                  max_episode: int) \
                                 -> Optional[Tuple[int, TaskEpisode]]:
-    ttaken_lock_start = time.time()
     filepath = args.state_dir / "taken" / (safe_abbrev(filename, all_files) + ".txt")
     with filepath.open("r+") as f, FileLock(f):
         # Loading the taken file

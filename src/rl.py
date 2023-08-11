@@ -231,10 +231,12 @@ class ReinforcementWorker:
             else:
                 eprint(f"Skipping a job because it can't be purely focused")
             return
-        file_worker = self._get_worker(job.filename)
+        with print_time("Getting worker", guard=self.args.print_timings):
+            file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
         try:
-            file_worker.run_into_task(job, tactic_prefix)
+            with print_time("Running into task", guard=self.args.print_timings):
+                file_worker.run_into_task(job, tactic_prefix)
             with print_time("Experiencing", guard=self.args.print_timings):
                 experience_proof(self.args,
                                  file_worker.coq,
