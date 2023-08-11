@@ -29,19 +29,20 @@ def main():
     args = parser.parse_args()
 
     setup_jobstate(args)
-    num_todo_tasks = len(get_all_task_eps(args)) - len(get_task_eps_done(args))
-    if num_todo_tasks == 0:
-        eprint("All jobs are done! Exiting")
+    task_eps_done = get_task_eps_done(args)
+    num_todo_proof_eps = \
+      len({(task.to_proof_spec(), episode)
+          for task, episode in get_all_task_eps(args)
+          if (task, episode) not in task_eps_done})
+    if num_todo_proof_eps == 0:
+        util.eprint("All jobs are done! Exiting")
         return
-    assert num_todo_tasks > 0, \
-        (num_todo_tasks, get_all_task_eps(args), 
-         get_task_eps_done(args))
-    args.num_workers = min(args.num_workers, num_todo_tasks)
-    dispatch_learning_workers(args, sys.argv[1:])
+    num_workers_actually_needed = min(args.num_workers, num_todo_proof_eps)
+    dispatch_learning_workers(args, num_workers_actually_needed, sys.argv[1:])
     dispatch_syncing_worker(args)
     with util.sighandler_context(signal.SIGINT,
                                  functools.partial(interrupt_early, args)):
-        show_progress(args)
+        show_progress(args, num_workers_actually_needed)
 
 def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--num-workers", default=32, type=int)
@@ -106,22 +107,35 @@ def setup_jobstate(args: argparse.Namespace) -> None:
             file_taken_dict[Path(task.src_file)].append((task, ep))
         else:
             file_taken_dict[Path(task.src_file)] = [(task, ep)]
-    for filename in get_all_files(args):
+    all_task_eps = get_all_task_eps(args)
+    task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
+    for fidx, filename in enumerate(get_all_files(args)):
         with (args.state_dir / "taken" /
               (util.safe_abbrev(filename,
                                 file_taken_dict.keys()) + ".txt")).open("w") as f:
-            for task, ep in file_taken_dict.get(filename, []):
-                print(json.dumps(((task.as_dict(), ep), False)), file=f, flush=True)
+            for tidx, task_ep in enumerate(file_taken_dict.get(filename, [])):
+                try:
+                    task_ep_idx = task_eps_idx_dict[task_ep]
+                except KeyError:
+                    util.eprint(f"File number {fidx}, task number {tidx}")
+                    task, ep = task_ep
+                    for dict_task, dict_ep in task_eps_idx_dict.keys():
+                        if task.to_proof_spec() == dict_task.to_proof_spec():
+                            util.eprint("There is a task with a matching proof spec!")
+                            break
+                    raise
+                print(json.dumps((task_ep_idx, False)), file=f, flush=True)
 
     with (args.state_dir / "workers_scheduled.txt").open('w') as f:
         pass
 
 
 def dispatch_learning_workers(args: argparse.Namespace,
+                              num_workers_to_dispatch: int,
                               rest_args: List[str]) -> None:
     with (args.state_dir / "workers_scheduled.txt").open('w'):
         pass
-    assert args.num_workers > 0, args.num_workers
+    assert num_workers_to_dispatch > 0, num_workers_to_dispatch
 
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     subprocess.run([f"{cur_dir}/sbatch-retry.sh",
@@ -131,7 +145,7 @@ def dispatch_learning_workers(args: argparse.Namespace,
                     "-o", str(args.state_dir / args.workers_output_dir
                               / "worker-%a.out"),
                     "--mem", args.mem,
-                    f"--array=0-{args.num_workers-1}",
+                    f"--array=0-{num_workers_to_dispatch-1}",
                     f"{cur_dir}/distributed_rl_learning_worker.py"] + rest_args,
                    check=False)
 
@@ -157,14 +171,14 @@ def get_all_files(args: argparse.Namespace) -> List[Path]:
     with open(args.tasks_file, 'r') as f:
         return list({Path(json.loads(line)["src_file"]) for line in f})
 
-def show_progress(args: argparse.Namespace) -> None:
+def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None:
     all_task_eps = get_all_task_eps(args)
     task_eps_done = get_task_eps_progress(args)
     scheduled_workers: List[int] = []
     crashed_workers: List[int] = []
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
               initial=len(task_eps_done), dynamic_ncols=True) as task_eps_bar, \
-         tqdm(desc="Learning workers scheduled", total=args.num_workers,
+         tqdm(desc="Learning workers scheduled", total=num_workers_dispatched,
               dynamic_ncols=True) as wbar:
         while len(task_eps_done) < len(all_task_eps):
             # Get the workers that are alive
