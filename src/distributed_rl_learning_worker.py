@@ -89,7 +89,7 @@ def reinforce_jobs_worker(args: argparse.Namespace,
     recently_done_task_eps: List[TaskEpisode] = []
     file_our_taken_dict: Dict[Path, Set[int]] = {}
     our_files_taken: Set[Path] = set()
-    max_episode: Optional[int] = 0
+    max_episode: int = 0
     files_finished_this_ep: Set[Path] = set()
     while True:
         next_task_and_idx = allocate_next_task(args,
@@ -97,11 +97,9 @@ def reinforce_jobs_worker(args: argparse.Namespace,
                                                our_files_taken, files_finished_this_ep,
                                                file_our_taken_dict, max_episode)
         if next_task_and_idx is None:
-            if max_episode is None:
+            if max_episode == args.num_episodes - 1:
                 eprint(f"Finished worker {workerid}")
                 break
-            elif max_episode == args.num_episodes - 1:
-                max_episode = None
             else:
                 assert max_episode < args.num_episodes - 1
                 max_episode += 1
@@ -234,7 +232,7 @@ def allocate_next_task(args: argparse.Namespace,
                        our_files_taken: Set[Path],
                        files_finished_this_ep: Set[Path],
                        file_our_taken_dict: Dict[Path, Set[int]],
-                       max_episode: Optional[int]) \
+                       max_episode: int) \
                       -> Optional[Tuple[int, TaskEpisode]]:
     all_files = list(file_all_tes_dict.keys())
     while True:
@@ -262,7 +260,7 @@ def allocate_next_task(args: argparse.Namespace,
             return next_te_and_idx
         else:
             files_finished_this_ep.add(cur_file)
-    if max_episode is not None:
+    if max_episode < args.num_episodes - 1:
         return None
     # If we get here, then all files are already taken, so just loop through
     # them all and look for any tasks we can take.
@@ -304,9 +302,10 @@ def allocate_next_task_from_file(args: argparse.Namespace,
             except json.decoder.JSONDecodeError:
                 eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
                 raise
+        # Searching the tasks for a good one to take
         proof_eps_taken_by_others: Set[Tuple[Tuple[str, str, str], int]] = set()
-        for idx, (task, episode) in enumerate(file_task_episodes):
-            if max_episode is not None and episode > max_episode:
+        for file_task_idx, (task_ep_idx, (task, episode)) in enumerate(file_task_episodes):
+            if episode > max_episode:
                 break
             if task_ep_idx in taken_by_others_this_iter:
                 proof_eps_taken_by_others.add((task.to_proof_spec(), episode))
@@ -314,6 +313,8 @@ def allocate_next_task_from_file(args: argparse.Namespace,
             if (task_ep_idx in taken_task_episodes
                 or (task.to_proof_spec(), episode) in proof_eps_taken_by_others):
                 continue
+            eprint(f"Found an appropriate task-episode after searching "
+                   f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
             print(json.dumps((task_ep_idx, True)), file=f)
             return task_ep_idx, (task, episode)
     return None
