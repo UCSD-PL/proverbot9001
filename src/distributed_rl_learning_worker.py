@@ -72,12 +72,12 @@ def reinforce_jobs_worker(args: argparse.Namespace,
     random.setstate(random_state)
 
     task_episodes = get_all_task_episodes(args)
-    file_all_tes_dict: Dict[Path, List[TaskEpisode]] = {}
-    for task, episode in task_episodes:
+    file_all_tes_dict: Dict[Path, List[Tuple[int, TaskEpisode]]] = {}
+    for task_ep_idx, (task, episode) in enumerate(task_episodes):
         if Path(task.src_file) in file_all_tes_dict:
-            file_all_tes_dict[Path(task.src_file)].append((task, episode))
+            file_all_tes_dict[Path(task.src_file)].append((task_ep_idx, (task, episode)))
         else:
-            file_all_tes_dict[Path(task.src_file)] = [(task, episode)]
+            file_all_tes_dict[Path(task.src_file)] = [(task_ep_idx, (task, episode))]
 
     for _ in range(steps_already_done):
         # Pytorch complains about pre-stepping the scheduler, but we
@@ -87,15 +87,16 @@ def reinforce_jobs_worker(args: argparse.Namespace,
 
     worker_step = 1
     recently_done_task_eps: List[TaskEpisode] = []
-    file_our_taken_dict: Dict[Path, Set[TaskEpisode]] = {}
+    file_our_taken_dict: Dict[Path, Set[int]] = {}
     our_files_taken: Set[Path] = set()
     max_episode: Optional[int] = 0
     files_finished_this_ep: Set[Path] = set()
     while True:
-        next_task = allocate_next_task(args, file_all_tes_dict,
-                                       our_files_taken, files_finished_this_ep,
-                                       file_our_taken_dict, max_episode)
-        if next_task is None:
+        next_task_and_idx = allocate_next_task(args,
+                                               file_all_tes_dict,
+                                               our_files_taken, files_finished_this_ep,
+                                               file_our_taken_dict, max_episode)
+        if next_task_and_idx is None:
             if max_episode is None:
                 eprint(f"Finished worker {workerid}")
                 break
@@ -106,14 +107,14 @@ def reinforce_jobs_worker(args: argparse.Namespace,
                 max_episode += 1
             files_finished_this_ep = set()
             continue
-        task, episode = next_task
+        next_task_idx, (task, episode) = next_task_and_idx
         with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
             print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
         src_path = Path(task.src_file)
         if src_path in file_our_taken_dict:
-            file_our_taken_dict[src_path].add(next_task)
+            file_our_taken_dict[src_path].add(next_task_idx)
         else:
-            file_our_taken_dict[src_path] = {next_task}
+            file_our_taken_dict[src_path] = {next_task_idx}
 
         cur_epsilon = args.starting_epsilon + \
             ((get_num_tasks_taken(args, list(file_all_tes_dict.keys()))
@@ -229,12 +230,12 @@ def sync_distributed_networks(args: argparse.Namespace, step: int,
     load_latest_target_network(args, worker)
 
 def allocate_next_task(args: argparse.Namespace,
-                       file_all_tes_dict: Dict[Path, List[TaskEpisode]],
+                       file_all_tes_dict: Dict[Path, List[Tuple[int, TaskEpisode]]],
                        our_files_taken: Set[Path],
                        files_finished_this_ep: Set[Path],
-                       file_our_taken_dict: Dict[Path, Set[TaskEpisode]],
+                       file_our_taken_dict: Dict[Path, Set[int]],
                        max_episode: Optional[int]) \
-                      -> Optional[TaskEpisode]:
+                      -> Optional[Tuple[int, TaskEpisode]]:
     all_files = list(file_all_tes_dict.keys())
     while True:
         with (args.state_dir / "taken" / "taken-files.txt").open("r+") as f, FileLock(f):
@@ -250,14 +251,15 @@ def allocate_next_task(args: argparse.Namespace,
                 print(cur_file, file=f, flush=True)
         if cur_file is None:
             break
-        next_te = allocate_next_task_from_file(args, cur_file,
-                                               all_files,
-                                               file_all_tes_dict[cur_file],
-                                               file_our_taken_dict.get(cur_file, set()),
-                                               max_episode)
-        if next_te is not None:
+        next_te_and_idx = allocate_next_task_from_file(
+          args,
+          cur_file, all_files,
+          file_all_tes_dict[cur_file],
+          file_our_taken_dict.get(cur_file, set()),
+          max_episode)
+        if next_te_and_idx is not None:
             our_files_taken.add(cur_file)
-            return next_te
+            return next_te_and_idx
         else:
             files_finished_this_ep.add(cur_file)
     if max_episode is not None:
@@ -267,38 +269,38 @@ def allocate_next_task(args: argparse.Namespace,
     for filename in file_all_tes_dict.keys():
         for i in range(3):
             try:
-                next_te = allocate_next_task_from_file(args, filename,
-                                                       all_files,
-                                                       file_all_tes_dict[filename],
-                                                       file_our_taken_dict.get(filename, set()),
-                                                       None)
+                next_te_and_idx = allocate_next_task_from_file(args, filename,
+                                                               all_files,
+                                                               file_all_tes_dict[filename],
+                                                               file_our_taken_dict.get(filename, set()),
+                                                               None)
                 break
             except json.decoder.JSONDecodeError:
                 eprint("Failed to decode, retrying")
                 if i == 2:
                     raise
-        if next_te is not None:
-            return next_te
+        if next_te_and_idx is not None:
+            return next_te_and_idx
     return None
 def allocate_next_task_from_file(args: argparse.Namespace,
                                  filename: Path,
                                  all_files: List[Path],
-                                 file_task_episodes: List[TaskEpisode],
-                                 our_taken_task_episodes: Set[TaskEpisode],
-                                 max_episode: Optional[int]) \
-                                -> Optional[TaskEpisode]:
+                                 file_task_episodes: List[Tuple[int, TaskEpisode]],
+                                 our_taken_task_episodes: Set[int],
+                                 max_episode: int) \
+                                -> Optional[Tuple[int, TaskEpisode]]:
     ttaken_lock_start = time.time()
     filepath = args.state_dir / "taken" / (safe_abbrev(filename, all_files) + ".txt")
     with filepath.open("r+") as f, FileLock(f):
-        taken_task_episodes: Set[TaskEpisode] = set()
-        taken_by_others_this_iter: Set[TaskEpisode] = set()
+        # Loading the taken file
+        taken_task_episodes: Set[int] = set()
+        taken_by_others_this_iter: Set[int] = set()
         for line_num, line in enumerate(f):
             try:
-                (task_dict, episode), taken_this_iter = json.loads(line)
-                task = RLTask(**task_dict)
-                taken_task_episodes.add((task, episode))
-                if (task, episode) not in our_taken_task_episodes and taken_this_iter:
-                    taken_by_others_this_iter.add((task, episode))
+                te_idx, taken_this_iter = json.loads(line)
+                taken_task_episodes.add(te_idx)
+                if te_idx not in our_taken_task_episodes and taken_this_iter:
+                    taken_by_others_this_iter.add(te_idx)
             except json.decoder.JSONDecodeError:
                 eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
                 raise
@@ -306,14 +308,14 @@ def allocate_next_task_from_file(args: argparse.Namespace,
         for idx, (task, episode) in enumerate(file_task_episodes):
             if max_episode is not None and episode > max_episode:
                 break
-            if (task, episode) in taken_by_others_this_iter:
+            if task_ep_idx in taken_by_others_this_iter:
                 proof_eps_taken_by_others.add((task.to_proof_spec(), episode))
                 continue
-            if ((task, episode) in taken_task_episodes
+            if (task_ep_idx in taken_task_episodes
                 or (task.to_proof_spec(), episode) in proof_eps_taken_by_others):
                 continue
-            print(json.dumps(((task.as_dict(), episode), True)), file=f)
-            return task, episode
+            print(json.dumps((task_ep_idx, True)), file=f)
+            return task_ep_idx, (task, episode)
     return None
 
 def get_num_tasks_taken(args: argparse.Namespace, all_files: List[Path]) -> int:
