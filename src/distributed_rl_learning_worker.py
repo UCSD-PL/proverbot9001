@@ -137,6 +137,8 @@ def reinforce_jobs_worker(args: argparse.Namespace,
 
         worker_step += 1
 
+    eprint("Saving state and replay buffer", guard=args.verbose >= 1)
+
     if steps_already_done < len(task_episodes):
         save_state(args, worker, worker_step, workerid)
         save_replay_buffer(args, worker, workerid)
