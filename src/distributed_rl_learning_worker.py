@@ -261,7 +261,7 @@ def allocate_next_task(args: argparse.Namespace,
                      and max_episode == args.num_episodes - 1)):
                     cur_file = src_file
                     break
-            if cur_file is not None:
+            if cur_file is not None and cur_file not in our_files_taken:
                 print(cur_file, file=f, flush=True)
         if cur_file is None:
             break
