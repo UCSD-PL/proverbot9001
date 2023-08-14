@@ -36,7 +36,7 @@ def main():
     add_distrl_args_to_parser(parser)
     args = parser.parse_args()
     with (args.state_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
-        print(workerid, file=f)
+        print(workerid, file=f, flush=True)
 
     if args.filenames[0].suffix == ".json":
         args.splits_file = args.filenames[0]
