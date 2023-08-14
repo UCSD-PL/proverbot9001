@@ -316,7 +316,7 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                                  our_taken_task_episodes: Set[int],
                                  max_episode: int) \
                                 -> Optional[Tuple[int, TaskEpisode]]:
-    filepath = args.state_dir / "taken" / (safe_abbrev(filename, all_files) + ".txt")
+    filepath = args.state_dir / "taken" / ("file-" + safe_abbrev(filename, all_files) + ".txt")
     with filepath.open("r+") as f, FileLock(f):
         # Loading the taken file
         taken_task_episodes: Set[int] = set()
@@ -351,7 +351,7 @@ def get_num_tasks_taken(args: argparse.Namespace, all_files: List[Path]) -> int:
     tasks_taken = 0
     for filename in all_files:
         with (args.state_dir / "taken" /
-              (safe_abbrev(filename, all_files) + ".txt")).open("r") as f:
+              ("file-" + safe_abbrev(filename, all_files) + ".txt")).open("r") as f:
             tasks_taken += sum(1 for _ in f)
     return tasks_taken
 

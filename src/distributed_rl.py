@@ -112,7 +112,7 @@ def setup_jobstate(args: argparse.Namespace) -> None:
     task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
     for fidx, filename in enumerate(get_all_files(args)):
         with (args.state_dir / "taken" /
-              (util.safe_abbrev(filename,
+              ("file-" + util.safe_abbrev(filename,
                                 file_taken_dict.keys()) + ".txt")).open("w") as f:
             for tidx, task_ep in enumerate(file_taken_dict.get(filename, [])):
                 try:
