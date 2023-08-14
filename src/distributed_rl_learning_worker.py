@@ -10,6 +10,7 @@ import time
 from typing import List, Tuple, Any, Optional, Set, Dict, Iterable
 from pathlib import Path
 from glob import glob
+from collections import Counter
 
 import torch
 
@@ -240,12 +241,22 @@ def allocate_next_task(args: argparse.Namespace,
     while True:
         with (args.state_dir / "taken" / "taken-files.txt"
               ).open("r+") as f, FileLock(f):
-            taken_files: List[Path] = [Path(p.strip()) for p in f]
+            taken_files: Counter[Path] = Counter(Path(p.strip()) for p in f)
+            if len(all_files) <= len(files_finished_this_ep):
+                assert max_episode == args.num_episodes - 1
+		 # This happens once we've hit the episode cap and checked every
+		 # file.
+                return None
+            least_taken_count: int = min(taken_files[filename] for filename in all_files
+                                         if filename not in files_finished_this_ep)
             cur_file: Optional[Path] = None
             for src_file in all_files:
-                if src_file not in taken_files or \
-                   (src_file in our_files_taken and
-                    src_file not in files_finished_this_ep):
+                if src_file in files_finished_this_ep:
+                    continue
+                if (src_file in our_files_taken or
+                    taken_files[src_file] == 0 or
+                    (taken_files[src_file] == least_taken_count
+                     and max_episode == args.num_episodes - 1)):
                     cur_file = src_file
                     break
             if cur_file is not None:
@@ -266,23 +277,10 @@ def allocate_next_task(args: argparse.Namespace,
                    f"trying next file...",
                    guard=args.verbose >= 2)
             files_finished_this_ep.add(cur_file)
-    if max_episode < args.num_episodes - 1:
-        return None
-    eprint("Ran out of task episodes in our files, "
-           "searching other taken files", guard=args.verbose >= 2)
-    # If we get here, then all files are already taken, so just loop through
-    # them all and look for any tasks we can take.
-    for filename in all_files:
-        next_te_and_idx = allocate_next_task_from_file_with_retry(
-          args,
-          filename, all_files,
-          file_all_tes_dict[filename],
-          file_our_taken_dict.get(filename, set()),
-          max_episode)
-        if next_te_and_idx is not None:
-            return next_te_and_idx
-        eprint(f"No tasks available to take in file {filename}",
-               guard=args.verbose >= 2)
+    assert max_episode < args.num_episodes - 1
+    # This is the case when we've exhausted all the tasks less than max_episode
+    # in the files we've taken, but max_episode isn't high enough to justify
+    # checking other files.
     return None
 
 def allocate_next_task_from_file_with_retry(
