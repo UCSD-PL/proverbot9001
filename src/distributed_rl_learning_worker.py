@@ -91,20 +91,24 @@ def reinforce_jobs_worker(args: argparse.Namespace,
     file_our_taken_dict: Dict[Path, Set[int]] = {}
     our_files_taken: Set[Path] = set()
     max_episode: int = 0
+    skip_taken_proofs: bool = True
     files_finished_this_ep: Set[Path] = set()
     while True:
         next_task_and_idx = allocate_next_task(args,
                                                file_all_tes_dict,
                                                our_files_taken, files_finished_this_ep,
-                                               file_our_taken_dict, max_episode)
+                                               file_our_taken_dict, max_episode, skip_taken_proofs)
         if next_task_and_idx is None:
+            files_finished_this_ep = set()
             if max_episode == args.num_episodes - 1:
+                if skip_taken_proofs:
+                    skip_taken_proofs = False
+                    continue
                 eprint(f"Finished worker {workerid}")
                 break
             else:
                 assert max_episode < args.num_episodes - 1
                 max_episode += 1
-            files_finished_this_ep = set()
             continue
         next_task_idx, (task, episode) = next_task_and_idx
         with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
@@ -237,7 +241,8 @@ def allocate_next_task(args: argparse.Namespace,
                        our_files_taken: Set[Path],
                        files_finished_this_ep: Set[Path],
                        file_our_taken_dict: Dict[Path, Set[int]],
-                       max_episode: int) \
+                       max_episode: int,
+                       skip_taken_proofs: bool) \
                       -> Optional[Tuple[int, TaskEpisode]]:
     all_files = list(file_all_tes_dict.keys())
     while True:
@@ -270,7 +275,7 @@ def allocate_next_task(args: argparse.Namespace,
           cur_file, all_files,
           file_all_tes_dict[cur_file],
           file_our_taken_dict.get(cur_file, set()),
-          max_episode)
+          max_episode, skip_taken_proofs)
         if next_te_and_idx is not None:
             our_files_taken.add(cur_file)
             return next_te_and_idx
@@ -292,6 +297,7 @@ def allocate_next_task_from_file_with_retry(
       file_task_episodes: List[Tuple[int, TaskEpisode]],
       our_taken_task_episodes: Set[int],
       max_episode: int,
+      skip_taken_proofs: bool,
       num_retries: int = 3) \
       -> Optional[Tuple[int, TaskEpisode]]:
     # This is necessary because sometimes the NFS file system will give us
@@ -303,7 +309,7 @@ def allocate_next_task_from_file_with_retry(
             return allocate_next_task_from_file(
               args, filename, all_files,
               file_task_episodes, our_taken_task_episodes,
-              max_episode)
+              max_episode, skip_taken_proofs)
         except json.decoder.JSONDecodeError:
             if i == num_retries - 1:
                 raise
@@ -314,7 +320,8 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                                  all_files: List[Path],
                                  file_task_episodes: List[Tuple[int, TaskEpisode]],
                                  our_taken_task_episodes: Set[int],
-                                 max_episode: int) \
+                                 max_episode: int,
+                                 skip_taken_proofs: bool) \
                                 -> Optional[Tuple[int, TaskEpisode]]:
     filepath = args.state_dir / "taken" / ("file-" + safe_abbrev(filename, all_files) + ".txt")
     with filepath.open("r+") as f, FileLock(f):
@@ -339,7 +346,8 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                 proof_eps_taken_by_others.add((task.to_proof_spec(), episode))
                 continue
             if (task_ep_idx in taken_task_episodes
-                or (task.to_proof_spec(), episode) in proof_eps_taken_by_others):
+                or (task.to_proof_spec(), episode) in proof_eps_taken_by_others
+                    and skip_taken_proofs):
                 continue
             eprint(f"Found an appropriate task-episode after searching "
                    f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
