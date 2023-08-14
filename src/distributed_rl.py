@@ -193,7 +193,7 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
             # done. This is because a worker might finish and stop
             # showing up in squeue before it's writes to the "done"
             # file are fully propagated.
-            time.sleep(0.2)
+            time.sleep(0.1)
             # Update the bar with the tasks that have been finished
             new_task_eps_done = get_task_eps_progress(args)
             task_eps_bar.update(len(new_task_eps_done) - len(task_eps_done))
