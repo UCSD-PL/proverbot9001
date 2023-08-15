@@ -1,0 +1,211 @@
+@ident already exists. (Axiom)	
+@ident already exists. (Definition)	
+@ident already exists. (Let)	
+@ident already exists. (Program Definition)	
+@ident already exists. (Theorem)	
+@ident already exists. (Variable)	
+Argument number ‘num’ is a trailing implicit so must be maximal	
+Argument of match does not evaluate to a term	
+Arguments of ring_simplify do not have all the same type	
+Attempt to save an incomplete proof	
+Automatically declaring ‘ident’ as template polymorphic	
+Bad lemma for decidability of equality	
+Bad magic number	
+Bad occurrence number of ‘qualid’	
+Bad relevance	
+Bad ring structure	
+Brackets do not support multi-goal selectors	
+Cannot build functional inversion principle	
+Cannot coerce ‘qualid’ to an evaluable reference	
+Cannot define graph for ‘ident’	
+Cannot define principle(s) for ‘ident’	
+Cannot find a declared ring structure for equality ‘term’	
+Cannot find a declared ring structure over ‘term’	
+Cannot find induction information on ‘qualid’	
+Cannot find inversion information for hypothesis ‘ident’	
+Cannot find library foo in loadpath	
+Cannot find the source class of ‘qualid’	
+Cannot handle mutually (co)inductive records	
+Cannot infer a term for this placeholder. (Casual use of implicit arguments)	
+Cannot infer a term for this placeholder. (refine)	
+Cannot interpret in ‘scope’ because ‘ident’ could not be found in the current environment	
+Cannot interpret this number as a value of type ‘type’	
+Cannot interpret this string as a value of type ‘type’	
+Cannot load qualid: no physical path bound to dirpath	
+Cannot move ‘ident’ after ‘ident’: it depends on ‘ident’	
+Cannot move ‘ident’ after ‘ident’: it occurs in the type of ‘ident’	
+Cannot recognize a boolean equality	
+Cannot recognize ‘class’ as a source class of ‘qualid’	
+Cannot solve the goal	
+Cannot use mutual definition with well-founded recursion or measure	
+Can’t find file ‘ident’ on loadpath	
+Compiled library ‘ident’.vo makes inconsistent assumptions over library qualid	
+Condition not satisfied	
+Debug mode not available in the IDE	
+Either there is a type incompatibility or the problem involves dependencies	
+Failed to progress	
+File not found on loadpath: ‘string’	
+Files processed by Load cannot leave open proofs	
+Found target class ... instead of ...	
+Funclass cannot be a source class	
+goal does not satisfy the expected preconditions	
+Goal is solvable by congruence but some arguments are missing. Try congruence with ‘term’…‘term’, replacing metavariables by arbitrary terms	
+Hypothesis ‘ident’ must contain at least one Function	
+I don’t know how to handle dependent equality	
+Ignored instance declaration for “‘ident’”: “‘term’” is not a class	
+Ill-formed recursive definition	
+In environment … the term: ‘term’ does not have type ‘type’. Actually, it has type ...	
+Incorrect number of tactics (expected N tactics, was given M)	
+Inductive ‘ident’ cannot be made template polymorphic	
+Invalid argument	
+Invalid backtrack	
+Load is not supported inside proofs	
+Loading of ML object file forbidden in a native Coq	
+Module/section ‘qualid’ not found	
+Nested proofs are not allowed unless you turn option Nested Proofs Allowed on	
+New coercion path ... is ambiguous with existing ...	
+No applicable tactic	
+No argument name ‘ident’	
+No discriminable equalities	
+No evars	
+No focused proof	
+No focused proof (No proof-editing in progress)	
+No focused proof to restart	
+No head constant to reduce	
+No matching clauses for match	
+No matching clauses for match goal	
+No primitive equality found	
+No product even after head-reduction	
+No progress made	
+No such assumption	
+No such binder	
+No such goal	
+No such goal (‘ident’)	
+No such goal (‘num’)	
+No such goal. (fail)	
+No such goal. (Goal selector)	
+No such goal. Focus next goal with bullet ‘bullet’	
+No such hypothesis	
+No such hypothesis in current goal	
+No such hypothesis: ‘ident’	
+No such label ‘ident’	
+Non exhaustive pattern matching	
+Non strictly positive occurrence of ‘ident’ in ‘type’	
+Not a context variable	
+Not a discriminable equality	
+Not a primitive equality	
+Not a projectable equality but a discriminable one	
+Not a proposition or a type	
+Not a valid ring equation	
+Not a variable or hypothesis	
+Not an evar	
+Not an exact proof	
+Not an inductive goal with 1 constructor	
+Not an inductive goal with 2 constructors	
+Not an inductive product	
+Not convertible	
+Not enough constructors	
+Not equal	
+Not equal (due to universes)	
+Not reducible	
+Not the right number of induction arguments	
+Not the right number of missing arguments	
+Nothing to do, it is an equality between convertible terms	
+Nothing to inject	
+Nothing to rewrite	
+omega can't solve this system	
+omega: Can't solve a goal with equality on type ...	
+omega: Can't solve a goal with non-linear products	
+omega: Can't solve a goal with proposition variables	
+omega: Not a quantifier-free goal	
+omega: Unrecognized atomic proposition: ...	
+omega: Unrecognized predicate or connective: ‘ident’	
+omega: Unrecognized proposition	
+Proof is not complete. (abstract)	
+Proof is not complete. (assert)	
+Records declared with the keyword Record or Structure cannot be recursive	
+Refine passed ill-formed term	
+Require is not allowed inside a module or a module type	
+Ring operation should be declared as a morphism	
+Signature components for label ‘ident’ do not match	
+SProp not allowed, you need to Set Allow StrictProp or to use the -allow-sprop command-line-flag	
+Stack overflow or segmentation fault happens when working with large numbers in ‘type’ (threshold may vary depending on your system limits and on the command executed)	
+Statement without assumptions	
+Syntax error: [prim:reference] expected after 'Notation' (in [vernac:command])	
+Syntax error: [prim:reference] expected after [prim:reference] (in [vernac:command])	
+Tactic Failure message (level ‘num’)	
+Tactic generated a subgoal identical to the original goal. This happens if ‘term’ does not occur in the goal	
+Tactic Notation ‘qualid’ is deprecated since ‘string’. ‘string’	
+Tactic ‘qualid’ is deprecated since ‘string’. ‘string’	
+Terms do not have convertible types	
+The 'abstract after' directive has no effect when the parsing function (‘ident’) targets an option type	
+The command has not failed!	
+The conclusion is not a substitutive equation	
+The conclusion of ‘type’ is not valid; it must be built from ‘ident’	
+The constructor ‘ident’ expects ‘num’ arguments	
+The elimination predicate term should be of arity ‘num’ (for non dependent case) or ‘num’ (for dependent case)	
+The file :n:`‘ident’.vo` contains library dirpath and not library dirpath’	
+The recursive argument must be specified	
+The reference is not unfoldable	
+The reference ‘ident’ was not found in the current environment	
+The reference ‘qualid’ was not found in the current environment	
+The term ‘term’ has type ‘type’ which should be Set, Prop or Type	
+The term ‘term’ has type ‘type’ while it is expected to have type ‘type’'	
+The variable ‘ident’ is already defined	
+The ‘num’ th argument of ‘ident’ must be ‘ident’ in ‘type’	
+The ‘term’ provided does not end with an equation	
+This is not the last opened module	
+This is not the last opened module type	
+This is not the last opened section	
+This object does not support universe names	
+This proof is focused, but cannot be unfocused this way	
+This tactic has more than one success	
+To avoid stack overflow, large numbers in ‘type’ are interpreted as applications of ‘ident’	
+Too few occurrences	
+Trying to mask the absolute name ‘qualid’!	
+Unable to apply	
+Unable to find an instance for the variables ‘ident’…‘ident’	
+Unable to infer a match predicate	
+Unable to satisfy the rewriting constraints	
+Unable to unify ... with ...	
+Unable to unify ‘term’ with ‘term’	
+Unbound context identifier ‘ident’	
+Undeclared universe ‘ident’	
+Unexpected non-option term ‘term’ while parsing a numeral notation	
+Unexpected non-option term ‘term’ while parsing a string notation	
+Unexpected term ‘term’ while parsing a numeral notation	
+Unexpected term ‘term’ while parsing a string notation	
+Universe inconsistency	
+Universe instance should have length ‘num’	
+Unknown inductive type	
+Variable ‘ident’ is already declared	
+When ‘term’ contains more than one non dependent product the tactic lapply only takes into account the first product	
+Wrong bullet ‘bullet’: Bullet ‘bullet’ is mandatory here	
+Wrong bullet ‘bullet’: Current bullet ‘bullet’ is not finished	
+‘class’ must be a transparent constant	
+‘ident’ cannot be defined	
+‘ident’ is already declared as a typeclass	
+‘ident’ is already used	
+‘ident’ is bound to a notation that does not denote a reference	
+‘ident’ is declared as a local axiom [local-declaration,scope]	
+‘ident’ is declared as a local definition [local-declaration,scope]	
+‘ident’ is not a local definition	
+‘ident’ is used in conclusion	
+‘ident’ is used in hypothesis ‘ident’	
+‘ident’ is used in the conclusion	
+‘ident’ is used in the hypothesis ‘ident’	
+‘ident’ should go from Byte.byte or (list Byte.byte) to ‘type’ or (option ‘type’)	
+‘ident’ should go from Decimal.int to ‘type’ or (option ‘type’). Instead of Decimal.int, the types Decimal.uint or Z or Int63.int or Decimal.decimal could be used (you may need to require BinNums or Decimal or Int63 first)	
+‘ident’ should go from ‘type’ to Byte.byte or (option Byte.byte) or (list Byte.byte) or (option (list Byte.byte))	
+‘ident’ should go from ‘type’ to Decimal.int or (option Decimal.int). Instead of Decimal.int, the types Decimal.uint or Z or Int63.int or Decimal.decimal could be used (you may need to require BinNums or Decimal or Int63 first)	
+‘ident’: no such entry	
+‘qualid’ does not occur	
+‘qualid’ does not respect the uniform inheritance condition	
+‘qualid’ is already a coercion	
+‘qualid’ is not a function	
+‘qualid’ is not a module	
+‘qualid’ is not an inductive type	
+‘qualid’ not a defined object	
+‘qualid’ not declared	
+‘term’ cannot be used as a hint	
+‘type’ is not an inductive type

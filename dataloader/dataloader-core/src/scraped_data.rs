@@ -56,6 +56,10 @@ pub struct ScrapedTactic {
     pub context: ProofContext,
     #[pyo3(get, set)]
     pub tactic: String,
+    #[pyo3(get, set)]
+    pub prev_tried_tactic: String,
+    #[pyo3(get, set)]
+    pub error: String,
 }
 
 impl ScrapedTactic {
@@ -65,7 +69,26 @@ impl ScrapedTactic {
             prev_tactics: self.prev_tactics.clone(),
             context: self.context.clone(),
             tactic: tactic,
+            prev_tried_tactic: self.prev_tried_tactic.clone(),
+            error: self.error.clone(),
         }
+    }
+    pub fn with_focused_obl(&self, fg_obl: Obligation) -> Self {
+	let mut fg_goals = vec![fg_obl];
+	fg_goals.extend(self.context.fg_goals.iter().skip(1).cloned());
+	ScrapedTactic {
+	    relevant_lemmas: self.relevant_lemmas.clone(),
+	    prev_tactics: self.prev_tactics.clone(),
+	    context: ProofContext {
+		fg_goals,
+		bg_goals: self.context.bg_goals.clone(),
+		shelved_goals: self.context.shelved_goals.clone(),
+		given_up_goals: self.context.given_up_goals.clone(),
+	    },
+	    tactic: self.tactic.clone(),
+        prev_tried_tactic: self.prev_tried_tactic.clone(),
+        error: self.error.clone()
+	}
     }
 }
 #[pyclass]

@@ -48,6 +48,7 @@ from models import copyarg_predictor
 from models import numeric_induction
 from models import features_polyarg_predictor
 from models import reinforced_features_polyarg
+from models import features_errors_predictor
 
 loadable_predictors = {
     'encdec' : encdecrnn_predictor.EncDecRNNPredictor,
@@ -71,6 +72,7 @@ loadable_predictors = {
     "copyarg" : copyarg_predictor.CopyArgPredictor,
     "polyarg" : features_polyarg_predictor.FeaturesPolyargPredictor,
     "refpa": reinforced_features_polyarg.ReinforcedFeaturesPolyargPredictor,
+    "errors" : features_errors_predictor.FeaturesErrorsPredictor,
 }
 
 static_predictors = {
@@ -101,6 +103,7 @@ trainable_modules : Dict[str, Callable[[List[str]], None]] = {
     "hypfeatures" : hypfeatures_predictor.main,
     "copyarg" : copyarg_predictor.main,
     "polyarg" : features_polyarg_predictor.main,
+    "errors" : features_errors_predictor.main,
 }
 
 def loadPredictorByName(predictor_type : str) -> TacticPredictor:
