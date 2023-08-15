@@ -6,8 +6,7 @@ import os
 import random
 import json
 import re
-import time
-from typing import List, Tuple, Any, Optional, Set, Dict, Iterable
+from typing import List, Tuple, Any, Optional, Set, Dict
 from pathlib import Path
 from glob import glob
 from collections import Counter
@@ -106,9 +105,8 @@ def reinforce_jobs_worker(args: argparse.Namespace,
                     continue
                 eprint(f"Finished worker {workerid}")
                 break
-            else:
-                assert max_episode < args.num_episodes - 1
-                max_episode += 1
+            assert max_episode < args.num_episodes - 1
+            max_episode += 1
             continue
         next_task_idx, (task, episode) = next_task_and_idx
         with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
@@ -279,11 +277,10 @@ def allocate_next_task(args: argparse.Namespace,
         if next_te_and_idx is not None:
             our_files_taken.add(cur_file)
             return next_te_and_idx
-        else:
-            eprint(f"Couldn't find an available task for file {cur_file}, "
-                   f"trying next file...",
-                   guard=args.verbose >= 2)
-            files_finished_this_ep.add(cur_file)
+        eprint(f"Couldn't find an available task for file {cur_file}, "
+               f"trying next file...",
+               guard=args.verbose >= 2)
+        files_finished_this_ep.add(cur_file)
     assert max_episode < args.num_episodes - 1
     # This is the case when we've exhausted all the tasks less than max_episode
     # in the files we've taken, but max_episode isn't high enough to justify
