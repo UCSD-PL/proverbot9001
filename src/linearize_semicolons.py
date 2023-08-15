@@ -35,7 +35,7 @@ from compcert_linearizer_failures import compcert_failures
 
 import coq_serapy as serapi_instance
 from coq_serapy import (AckError, CompletedError, CoqExn,
-                        BadResponse, CoqTimeoutError, ParseError,
+                        BadResponse, TimeoutError, ParseError,
                         NoSuchGoalError, CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
@@ -119,7 +119,7 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
                 linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
                                                            args.verbose, skip_nochange_tac))
                 yield from linearized_commands
-            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, CoqTimeoutError, NoSuchGoalError) as e:
+            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
                 if args.verbose:
                     eprint("Aborting current proof linearization!")
                     eprint("Proof of:\n{}\nin file {}".format(
@@ -555,7 +555,7 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
     except (CoqExn, BadResponse, AckError, CompletedError):
         eprint("In file {}".format(filename))
         raise
-    except serapi_instance.CoqTimeoutError:
+    except serapi_instance.TimeoutError:
         eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
 

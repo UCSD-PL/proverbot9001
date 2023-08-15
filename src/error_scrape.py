@@ -28,15 +28,19 @@ import contextlib
 import shutil
 import json
 import re
-import os.path
 
 import linearize_semicolons
 import coq_serapy as serapi_instance
 
-from util import eprint, mybarfmt
+from util import eprint, mybarfmt, unwrap
+
+from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context
+from models.tactic_predictor import Prediction, TacticPredictor
+from search_worker import get_predictor
 
 from typing import TextIO, List, Tuple, Optional
 from tqdm import tqdm
+from pathlib import Path
 
 
 def main():
@@ -51,6 +55,9 @@ def main():
                         action='store_const')
     parser.add_argument('--hardfail-scrape', action='store_true')
     parser.add_argument('--prelude', default=".")
+    parser.add_argument('--weightsfile', default=None, type=Path)
+    parser.add_argument("--max-term-length", type=int, default=256)
+    parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument('-v', '--verbose', action='count', default=0)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
@@ -66,31 +73,16 @@ def main():
     parser.add_argument("--linearizer-timeout", type=int,
                         default=(60 * 60))
     parser.add_argument("-s", "--switch", default=None, type=str)
-    parser.add_argument("--sertop-flags", default=None, type=str)
-    parser.add_argument("--text-encoding", default='utf-8', type=str)
-    parser.add_argument("--split", choices=["train", "test", "all"], default="all")
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
     # Set up the command which runs sertop.
     coqargs = ["sertop", "--implicit"]
-    if args.sertop_flags:
-        coqargs += args.sertop_flags.split()
-    if os.path.splitext(args.inputs[0])[1] == ".json":
-        with open(args.inputs[0]) as f:
-            file_jobs = [filename for project_dict in json.load(f)
-                         for filename in
-                         ((project_dict["test_files"] + project_dict["train_files"])
-                          if args.split == "all" else
-                          (project_dict["test_files"] if args.split == "test" else
-                           project_dict["train_files"]))]
-    else:
-        file_jobs = args.inputs
     tasks = [(idx % args.threads, filename) for (idx, filename)
-             in enumerate(file_jobs)]
+             in enumerate(args.inputs)]
     with multiprocessing.Pool(args.threads) as pool:
-        scrape_result_files = pool.map(
-            functools.partial(scrape_file, coqargs, args, file_jobs),
+        scrape_result_files = pool.imap_unordered(
+            functools.partial(scrape_file, coqargs, args),
             tasks)
         with (open(args.output, 'w') if args.output
               else contextlib.nullcontext(sys.stdout)) as out:
@@ -98,33 +90,24 @@ def main():
                                                      start=1):
                 if scrape_result_file is None:
                     eprint("Failed file {} of {}"
-                           .format(idx, len(file_jobs)))
+                           .format(idx, len(args.inputs)))
                 else:
                     if args.verbose:
                         eprint("Finished file {} of {}"
-                               .format(idx, len(file_jobs)))
+                               .format(idx, len(args.inputs)))
                     with open(scrape_result_file, 'r') as f:
                         for line in f:
                             out.write(line)
 
 
-def scrape_file(coqargs: List[str], args: argparse.Namespace, all_file_jobs: List[str],
+def scrape_file(coqargs: List[str], args: argparse.Namespace,
                 file_tuple: Tuple[int, str]) -> Optional[str]:
     sys.setrecursionlimit(4500)
+    predictor = get_predictor(args)
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
-
-    components = filename.split("/")
-    prelude = args.prelude
-    for component_idx in reversed(range(len(components) - 1)):
-        possible_project_path = os.path.join(*([args.prelude] +
-                                               components[:component_idx+1]))
-        if os.path.exists(os.path.join(possible_project_path, "_CoqProject")):
-             prelude = possible_project_path
-             break
-
-    result_file = full_filename + ".scrape"
-    temp_file = full_filename + ".scrape.partial"
+    result_file = full_filename + ".error.scrape"
+    temp_file = full_filename + ".error.scrape.partial"
     if args.cont:
         with contextlib.suppress(FileNotFoundError):
             with open(result_file, 'r') as f:
@@ -142,7 +125,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace, all_file_jobs: Lis
         with serapi_instance.SerapiContext(
                 coqargs,
                 serapi_instance.get_module_from_filename(filename),
-                prelude, args.relevant_lemmas == "hammer") as coq:
+                args.prelude, args.relevant_lemmas == "hammer") as coq:
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:
@@ -152,24 +135,23 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace, all_file_jobs: Lis
                                         desc="Scraping file", leave=False,
                                         dynamic_ncols=True,
                                         bar_format=mybarfmt):
-                        process_statement(args, coq, command, f)
-                    print(json.dumps("\"(* End of File *)\""), file=f)
+                        process_statement(args, coq, command, f, predictor)
                 shutil.move(temp_file, result_file)
                 return result_file
-            except serapi_instance.CoqTimeoutError:
+            except serapi_instance.TimeoutError:
                 eprint("Command in {} timed out.".format(filename))
                 return temp_file
     except Exception as e:
         eprint("FAILED: In file {}:".format(filename))
         eprint(e)
-        if args.hardfail or len(all_file_jobs) == 1 or args.hardfail_scrape:
+        if args.hardfail or len(args.inputs) == 1 or args.hardfail_scrape:
             raise e
     return None
 
 
 def process_statement(args: argparse.Namespace,
                       coq: serapi_instance.SerapiInstance, command: str,
-                      result_file: TextIO) -> None:
+                      result_file: TextIO, predictor: TacticPredictor) -> None:
     if coq.proof_context:
         prev_tactics = coq.prev_tactics
         context = coq.proof_context
@@ -182,11 +164,37 @@ def process_statement(args: argparse.Namespace,
             relevant_lemmas = coq.get_lemmas_about_head()
         else:
             assert False, args.relevant_lemmas
-
         result_file.write(json.dumps({"relevant_lemmas": relevant_lemmas,
                                       "prev_tactics": prev_tactics,
                                       "context": context.to_dict(),
-                                      "tactic": command}))
+                                      "tactic": command,
+                                      "prev_tried_tactic": prev_tactics[-1],
+                                      "error": "no_error"}))
+
+        full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          unwrap(coq.proof_context))
+        predictions = predictor.predictKTactics(
+            truncate_tactic_context(full_context_before.as_tcontext(),
+                                    args.max_term_length),
+                    args.max_attempts)
+
+        print(predictions)
+        for prediction in predictions:
+            try:
+                coq.run_stmt(prediction, timeout=600)
+                error = None
+            except Exception as e:
+                error = e
+            coq.cancel_last()
+            if error:
+                result_file.write(json.dumps({"relevant_lemmas": relevant_lemmas,
+                                      "prev_tactics": prev_tactics,
+                                      "context": context.to_dict(),
+                                      "tactic": command,
+                                      "prev_tried_tactic": prediction,
+                                      "error": error}))
+
     else:
         result_file.write(json.dumps(command))
     result_file.write("\n")
@@ -196,3 +204,4 @@ def process_statement(args: argparse.Namespace,
 
 if __name__ == "__main__":
     main()
+
