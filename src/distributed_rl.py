@@ -14,7 +14,7 @@ from pathlib import Path
 from typing import List, Tuple, Optional, Dict
 from glob import glob
 
-from tqdm import tqdm
+from tqdm import tqdm, trange
 
 from gen_rl_tasks import RLTask
 import rl
@@ -28,16 +28,10 @@ def main():
     add_distrl_args_to_parser(parser)
     args = parser.parse_args()
 
-    setup_jobstate(args)
-    task_eps_done = get_task_eps_done(args)
-    num_todo_proof_eps = \
-      len({(task.to_proof_spec(), episode)
-          for task, episode in get_all_task_eps(args)
-          if (task, episode) not in task_eps_done})
-    if num_todo_proof_eps == 0:
-        util.eprint("All jobs are done! Exiting")
-        return
-    num_workers_actually_needed = min(args.num_workers, num_todo_proof_eps)
+    task_eps_done = setup_jobstate(args)
+    all_task_eps = get_all_task_eps(args)
+    num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
+                                      args.num_workers)
     dispatch_learning_workers(args, num_workers_actually_needed, sys.argv[1:])
     dispatch_syncing_worker(args)
     with util.sighandler_context(signal.SIGINT,
@@ -54,7 +48,9 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state_dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
 
-def setup_jobstate(args: argparse.Namespace) -> None:
+# Returns the list of done tasks too because it can be slow to get them and we
+# need them to set up job state anyway.
+def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     resume_exists = len(glob(str(args.state_dir / "weights" / "worker-*-network-*.dat"))) > 0
     if args.resume == "ask" and resume_exists:
         print(f"Found existing worker weights in state dir {args.state_dir}. Resume?")
@@ -83,7 +79,7 @@ def setup_jobstate(args: argparse.Namespace) -> None:
             pass
 
     done_task_eps = []
-    for workerid in range(args.num_workers):
+    for workerid in trange(args.num_workers, desc="Loading done task episodes", leave=False):
         worker_done_task_eps = []
         done_path = args.state_dir / f"done-{workerid}.txt"
         if not done_path.exists():
@@ -103,14 +99,16 @@ def setup_jobstate(args: argparse.Namespace) -> None:
             for task, ep in worker_done_task_eps:
                 print(json.dumps((task.as_dict(), ep)), file=f, flush=True)
     file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
-    for task, ep in done_task_eps:
+    for task, ep in tqdm(done_task_eps, desc="Creating file taken dicts",
+                         disable=len(done_task_eps) < 500, leave=False):
         if task.src_file in file_taken_dict:
             file_taken_dict[Path(task.src_file)].append((task, ep))
         else:
             file_taken_dict[Path(task.src_file)] = [(task, ep)]
     all_task_eps = get_all_task_eps(args)
     task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
-    for fidx, filename in enumerate(get_all_files(args)):
+    for fidx, filename in enumerate(tqdm(get_all_files(args), desc="Writing file taken files",
+                                         disable=len(done_task_eps) < 500, leave=False)):
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
                                 file_taken_dict.keys()) + ".txt")).open("w") as f:
@@ -129,7 +127,7 @@ def setup_jobstate(args: argparse.Namespace) -> None:
 
     with (args.state_dir / "workers_scheduled.txt").open('w') as f:
         pass
-
+    return done_task_eps
 
 def dispatch_learning_workers(args: argparse.Namespace,
                               num_workers_to_dispatch: int,
@@ -255,7 +253,7 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
 def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
 
-    for workerid in range(args.num_workers):
+    for workerid in trange(args.num_workers, desc="Getting number of done tasks"):
         with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
             worker_task_eps_done = [(RLTask(**task_dict), episode)
                                     for line in f

@@ -21,7 +21,7 @@ import rl
 from util import (nostderr, FileLock, eprint,
                   print_time, unwrap, safe_abbrev)
 from distributed_rl import (add_distrl_args_to_parser,
-                            latest_worker_save)
+                            latest_worker_save, latest_worker_save_num)
 #pylint: enable=wrong-import-position
 
 def main():
@@ -85,7 +85,7 @@ def reinforce_jobs_worker(args: argparse.Namespace,
         with nostderr():
             worker.v_network.adjuster.step()
 
-    worker_step = 1
+    worker_step = get_initial_worker_step(args, workerid)
     recently_done_task_eps: List[TaskEpisode] = []
     file_our_taken_dict: Dict[Path, Set[int]] = {}
     our_files_taken: Set[Path] = set()
@@ -359,6 +359,9 @@ def get_num_tasks_taken(args: argparse.Namespace, all_files: List[Path]) -> int:
               ("file-" + safe_abbrev(filename, all_files) + ".txt")).open("r") as f:
             tasks_taken += sum(1 for _ in f)
     return tasks_taken
+
+def get_initial_worker_step(args: argparse.Namespace, workerid: int) -> int:
+    return latest_worker_save_num(args, workerid) * args.sync_target_every + 1
 
 if __name__ == "__main__":
     main()

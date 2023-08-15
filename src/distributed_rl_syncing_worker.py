@@ -32,7 +32,7 @@ def main():
 
 def sync_worker_target_networks(args: argparse.Namespace) -> None:
     retry_delay_secs = 0.5
-    next_save_num = 0
+    next_save_num = get_resumed_save_num(args) + 1
     last_weights_versions: List[Tuple[int, int]] = []
     all_task_eps = get_all_task_eps(args)
     task_eps_done = get_task_eps_done(args)
@@ -122,6 +122,16 @@ def delete_old_worker_weights(args: argparse.Namespace,
             old_save_path = (args.state_dir / "weights" /
                              f"worker-{workerid}-network-{save_num}.dat")
             old_save_path.unlink()
+def get_resumed_save_num(args: argparse.Namespace) -> int:
+    cwd = os.getcwd()
+    os.chdir(str(args.state_dir / "weights"))
+    common_networks = glob("common-target-network-*.dat")
+    os.chdir(cwd)
+
+    return max(int(unwrap(re.match(
+               rf"common-target-network-(\d+).dat",
+               path)).group(1))
+               for path in common_networks)
 
 if __name__ == "__main__":
     main()
