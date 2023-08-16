@@ -348,7 +348,7 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                 continue
             eprint(f"Found an appropriate task-episode after searching "
                    f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
-            print(json.dumps((task_ep_idx, True)), file=f)
+            print(json.dumps((task_ep_idx, True)), file=f, flush=True)
             return task_ep_idx, (task, episode)
     return None
 
