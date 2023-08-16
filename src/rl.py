@@ -485,6 +485,7 @@ class VNetwork:
             nn.Linear(120, 84),
             nn.ReLU(),
             nn.Linear(84, 1),
+            nn.Sigmoid(),
         )
         self.optimizer = optim.RMSprop(self.network.parameters(), lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
