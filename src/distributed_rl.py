@@ -48,9 +48,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state_dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
 
-# Returns the list of done tasks too because it can be slow to get them and we
-# need them to set up job state anyway.
-def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
+def check_resume(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "worker-*-network-*.dat"))) > 0
     if args.resume == "ask" and resume_exists:
         print(f"Found existing worker weights in state dir {args.state_dir}. Resume?")
@@ -69,6 +67,8 @@ def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
 
     if resume == "no" and resume_exists:
        shutil.rmtree(str(args.state_dir))
+
+def make_initial_filestructure(args: argparse.Namespace) -> None:
     args.state_dir.mkdir(exist_ok=True)
     (args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
     (args.state_dir / "weights").mkdir(exist_ok=True)
@@ -77,20 +77,28 @@ def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     if not taken_path.exists():
         with taken_path.open('w'):
             pass
+    with (args.state_dir / "workers_scheduled.txt").open('w'):
+        pass
 
-    done_task_eps = []
+def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTask, int]]]:
+    file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
     for workerid in trange(args.num_workers, desc="Loading done task episodes", leave=False):
-        worker_done_task_eps = []
         done_path = args.state_dir / f"done-{workerid}.txt"
         if not done_path.exists():
             with done_path.open("w"):
                 pass
+            worker_done_task_eps = []
         else:
             with done_path.open('r') as f:
                 worker_done_task_eps = [(RLTask(**task_dict), episode)
                                         for line in f
                                         for task_dict, episode in (json.loads(line),)]
-            done_task_eps += worker_done_task_eps
+            for task, ep in worker_done_task_eps:
+                if task.src_file in file_taken_dict:
+                    file_taken_dict[Path(task.src_file)].append((task, ep))
+                else:
+                    file_taken_dict[Path(task.src_file)] = [(task, ep)]
+
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
@@ -98,35 +106,46 @@ def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
         with progress_path.open("w") as f:
             for task, ep in worker_done_task_eps:
                 print(json.dumps((task.as_dict(), ep)), file=f, flush=True)
-    file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
-    for task, ep in tqdm(done_task_eps, desc="Creating file taken dicts",
-                         disable=len(done_task_eps) < 500, leave=False):
-        if task.src_file in file_taken_dict:
-            file_taken_dict[Path(task.src_file)].append((task, ep))
-        else:
-            file_taken_dict[Path(task.src_file)] = [(task, ep)]
+    return file_taken_dict
+
+def write_done_tasks_to_taken_files(args: argparse.Namespace,
+                                    file_done_task_eps: Dict[Path, List[Tuple[RLTask, int]]])\
+                                    -> None:
     all_task_eps = get_all_task_eps(args)
     task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
-    for fidx, filename in enumerate(tqdm(get_all_files(args), desc="Writing file taken files",
-                                         disable=len(done_task_eps) < 500, leave=False)):
+    all_files = get_all_files(args)
+    for fidx, filename in enumerate(tqdm(all_files,
+                                         desc="Writing file taken files", leave=False)):
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
-                                file_taken_dict.keys()) + ".txt")).open("w") as f:
-            for tidx, task_ep in enumerate(file_taken_dict.get(filename, [])):
+                                          all_files) + ".txt")).open("w") as f:
+            for tidx, task_ep in enumerate(file_done_task_eps.get(filename, [])):
                 try:
                     task_ep_idx = task_eps_idx_dict[task_ep]
                 except KeyError:
                     util.eprint(f"File number {fidx}, task number {tidx}")
-                    task, ep = task_ep
-                    for dict_task, dict_ep in task_eps_idx_dict.keys():
+                    task, _ep = task_ep
+                    for dict_task, _ in task_eps_idx_dict.keys():
                         if task.to_proof_spec() == dict_task.to_proof_spec():
                             util.eprint("There is a task with a matching proof spec!")
                             break
                     raise
                 print(json.dumps((task_ep_idx, False)), file=f, flush=True)
 
-    with (args.state_dir / "workers_scheduled.txt").open('w') as f:
-        pass
+# Returns the list of done tasks too because it can be slow to get them and we
+# need them to set up job state anyway.
+def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
+    check_resume(args)
+    make_initial_filestructure(args)
+
+    file_taken_dict = get_file_taken_tasks(args)
+
+    write_done_tasks_to_taken_files(args, file_taken_dict)
+
+    done_task_eps = []
+    for _filename, file_done_task_eps in file_taken_dict.items():
+        done_task_eps += file_done_task_eps
+
     return done_task_eps
 
 def dispatch_learning_workers(args: argparse.Namespace,
