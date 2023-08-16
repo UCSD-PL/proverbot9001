@@ -35,7 +35,6 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
     next_save_num = get_resumed_save_num(args) + 1
     last_weights_versions: List[Tuple[int, int]] = []
     all_task_eps = get_all_task_eps(args)
-    task_eps_done = get_task_eps_done(args)
     while True:
         task_eps_done = get_task_eps_done(args)
         worker_weights_versions = get_latest_worker_weights_versions(args)
