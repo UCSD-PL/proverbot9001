@@ -127,6 +127,8 @@ def get_resumed_save_num(args: argparse.Namespace) -> int:
     os.chdir(str(args.state_dir / "weights"))
     common_networks = glob("common-target-network-*.dat")
     os.chdir(cwd)
+    if len(common_networks) == 0:
+        return 0
 
     return max(int(unwrap(re.match(
                rf"common-target-network-(\d+).dat",
