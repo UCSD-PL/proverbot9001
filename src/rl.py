@@ -860,6 +860,8 @@ def verify_vvals(args: argparse.Namespace,
             continue
         vval_predicted = worker.estimate_starting_vval(task.to_job(), task.tactic_prefix)
         steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) / math.log(args.gamma)
+        eprint(f"Predicted vval {vval_predicted} ({steps_predicted} steps) vs "
+               f"{task.target_length} actual steps", guard=args.verbose >= 1)
         step_error = abs(steps_predicted - task.target_length)
         vval_err_sum += step_error
         if idx%100 == 0 :
