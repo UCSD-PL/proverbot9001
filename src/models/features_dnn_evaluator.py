@@ -34,7 +34,8 @@ from dataloader import (sample_context_features,
                         tmap_to_picklable, tmap_from_picklable, features_vocab_sizes,
                         DataloaderArgs)
 from dataloader import TokenMap as FeaturesTokenMap
-from util import maybe_cuda, eprint, print_time
+from util import eprint, print_time
+from torch_util import maybe_cuda
 
 from typing import (List, Tuple, Iterable, Sequence, Dict, Any, cast)
 import argparse

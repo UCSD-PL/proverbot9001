@@ -321,13 +321,13 @@ class FeaturesPolyargPredictor(
         arg_values = argparser.parse_args(args)
         torch.cuda.set_device(arg_values.gpu)
         util.cuda_device = f"cuda:{arg_values.gpu}"
-        with autograd.detect_anomaly():
-            save_states = self._optimize_model(arg_values)
+        #with autograd.detect_anomaly():
+        save_states = self._optimize_model(arg_values)
 
-            for metadata, state in save_states:
-                with open(arg_values.save_file, 'wb') as f:
-                    torch.save((self.shortname(),
-                                (arg_values, sys.argv, metadata, state)), f)
+        for metadata, state in save_states:
+            with open(arg_values.save_file, 'wb') as f:
+                torch.save((self.shortname(),
+                            (arg_values, sys.argv, metadata, state)), f)
 
     def predictKTactics_batch(self, contexts: List[TacticContext], k: int,
                               verbosity:int = 0,
@@ -379,9 +379,22 @@ class FeaturesPolyargPredictor(
                        context.hypotheses,
                        context.goal)
 
+        # word_features is now a tensor
+        # word_features: previous tactic, token at top of goal, token at tope of most relevant hype
+        # in features.rs in dataloader
+        word_features_tensor = LongTensor(word_features)
+        # word_features_tensor[:,0] = 0
+
+        word_features_mask = torch.cat((torch.ones(1, 1, dtype=torch.bool), torch.zeros(1, 2, dtype=torch.bool)), dim=1)
+        
+        masked_word_features = torch.where(
+            word_features_mask,
+            torch.full_like(word_features_tensor, 0),
+            word_features_tensor)
+
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width,
-            LongTensor(word_features), FloatTensor(vec_features),
+            masked_word_features, FloatTensor(vec_features),
             [encode_fpa_stem(extract_dataloader_args(self.training_args),
                              self.metadata, stem) for stem in blacklist])
 
@@ -611,7 +624,7 @@ class FeaturesPolyargPredictor(
         assert not torch.any(torch.isnan(vec_features))
         stem_distribution = model.stem_classifier(
             word_features, vec_features)
-        stem_distribution[:,blacklist_stem_indices] = -float("Inf")
+        #stem_distribution[:,blacklist_stem_indices] = -float("Inf")
         assert not torch.any(torch.isnan(stem_distribution))
         stem_probs, stem_idxs = stem_distribution.topk(k)
         assert stem_probs.size() == torch.Size([batch_size, k])
@@ -928,8 +941,19 @@ class FeaturesPolyargPredictor(
         goal_size = tokenized_goals_batch.size()[1]
         num_stem_poss = get_num_indices(metadata)[1]
         stem_width = min(arg_values.max_beam_width, num_stem_poss)
+        # zero out worde_features_batch, then vec_features_batch
+        # zero out only first value (vs entire batch)
+        # word_features_batch[:,0] = 0
+
+        word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
+        
+        masked_word_features = torch.where(
+            word_features_mask,
+            torch.full_like(word_features_batch, 0),
+            word_features_batch)
+
         stemDistributions, predictedProbs, predictedStemIdxs = \
-          self.predict_stems(model, stem_width, word_features_batch,
+          self.predict_stems(model, stem_width, masked_word_features,
                              vec_features_batch, [])
         stem_var = maybe_cuda(stem_idxs_batch)
         mergedStemIdxs = []

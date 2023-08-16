@@ -31,7 +31,8 @@ from dataloader import (goals_to_total_distances_tensors,
                         goal_enc_tokenize_goal,
                         GoalEncMetadata,
                         DataloaderArgs)
-from util import maybe_cuda, eprint, print_time
+from util import eprint, print_time
+from torch_util import maybe_cuda
 
 import argparse
 import torch

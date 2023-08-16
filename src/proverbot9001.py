@@ -37,7 +37,7 @@ import json
 from util import eprint, print_time
 from coq_serapy.contexts import strip_scraped_output
 from models.components import SimpleEmbedding
-import predict_tactic
+import predict_tactic 
 import evaluate_state
 import interactive_predictor
 from pathlib import Path
@@ -67,7 +67,7 @@ def train(args):
                         list(evaluate_state.trainable_modules.keys()))
     arg_values = parser.parse_args(args[:1])
     if arg_values.model in predict_tactic.trainable_modules.keys():
-        loadTrainablePredictor(arg_values.model)(args[1:])
+        predict_tactic.loadTrainablePredictor(arg_values.model)(args[1:])
     elif arg_values.model in evaluate_state.trainable_modules.keys():
         evaluate_state.trainable_modules[arg_values.model](args[1:])
     else:
