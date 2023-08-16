@@ -172,14 +172,14 @@ def get_all_files(args: argparse.Namespace) -> List[Path]:
 
 def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None:
     all_task_eps = get_all_task_eps(args)
-    task_eps_done = get_task_eps_progress(args)
+    num_task_eps_done = get_num_task_eps_progress(args)
     scheduled_workers: List[int] = []
     crashed_workers: List[int] = []
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
-              initial=len(task_eps_done), dynamic_ncols=True) as task_eps_bar, \
+              initial=num_task_eps_done, dynamic_ncols=True) as task_eps_bar, \
          tqdm(desc="Learning workers scheduled", total=num_workers_dispatched,
               dynamic_ncols=True) as wbar:
-        while len(task_eps_done) < len(all_task_eps):
+        while num_task_eps_done < len(all_task_eps):
             # Get the workers that are alive
             squeue_output = subprocess.check_output(
                 f"squeue -r -u$USER -h -n drl-worker-{args.output_file} -o%K",
@@ -193,9 +193,9 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
             # file are fully propagated.
             time.sleep(0.1)
             # Update the bar with the tasks that have been finished
-            new_task_eps_done = get_task_eps_progress(args)
-            task_eps_bar.update(len(new_task_eps_done) - len(task_eps_done))
-            task_eps_done = new_task_eps_done
+            new_num_task_eps_done = get_num_task_eps_progress(args)
+            task_eps_bar.update(new_num_task_eps_done - num_task_eps_done)
+            num_task_eps_done = new_num_task_eps_done
             # Update the workers scheduled bar with workers that have been newly scheduled
             with (args.state_dir / "workers_scheduled.txt").open('r') as f:
                 new_scheduled_workers = list(f)
@@ -229,7 +229,7 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
             # If all workers are dead, and we're not done with the
             # jobs, print a message and exit (we'll just exit if the
             # jobs are all done at the while condition)
-            if len(new_workers_alive) == 0 and len(task_eps_done) < len(all_task_eps):
+            if len(new_workers_alive) == 0 and num_task_eps_done < len(all_task_eps):
                 util.eprint("All workers exited, but jobs aren't done!")
                 cancel_workers(args)
                 sys.exit(1)
@@ -261,16 +261,13 @@ def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
             task_eps_done += worker_task_eps_done
     return task_eps_done
 
-def get_task_eps_progress(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
-    task_eps_done: List[Tuple[RLTask, int]] = []
+def get_num_task_eps_progress(args: argparse.Namespace) -> int:
+    num_task_eps_done = 0
 
     for workerid in range(args.num_workers):
-        with (args.state_dir / f"progress-{workerid}.txt").open('r') as f, util.FileLock(f):
-            worker_task_eps_done = [(RLTask(**task_dict), episode)
-                                    for line in f
-                                    for task_dict, episode in (json.loads(line),)]
-            task_eps_done += worker_task_eps_done
-    return task_eps_done
+        with (args.state_dir / f"progress-{workerid}.txt").open('r') as f:
+            num_task_eps_done += sum((1 for _ in f))
+    return num_task_eps_done
 
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
     cancel_workers(args)

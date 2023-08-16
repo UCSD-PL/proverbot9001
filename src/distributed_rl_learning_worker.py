@@ -126,7 +126,7 @@ def reinforce_jobs_worker(args: argparse.Namespace,
                        worker_step, cur_epsilon)
         recently_done_task_eps.append((task, episode))
         with (args.state_dir / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
-            print(json.dumps((task.as_dict(), episode)),
+            print(next_task_idx,
                   file=f, flush=True)
         if worker_step % args.sync_target_every == 0:
             with print_time("Syncing", guard=args.print_timings):
