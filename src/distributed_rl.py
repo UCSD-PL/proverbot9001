@@ -293,8 +293,10 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def cancel_workers(args: argparse.Namespace) -> None:
-    subprocess.run([f"scancel -u$USER -n drl-worker-{args.output_file}"], shell=True, check=True)
-    subprocess.run([f"scancel -u$USER -n drl-sync-worker-{args.output_file}"], shell=True, check=True)
+    subprocess.run([f"scancel -u$USER -n drl-worker-{args.output_file}"],
+                   shell=True, check=True)
+    subprocess.run([f"scancel -u$USER -n drl-sync-worker-{args.output_file}"],
+                   shell=True, check=True)
 
 if __name__ == "__main__":
     main()
