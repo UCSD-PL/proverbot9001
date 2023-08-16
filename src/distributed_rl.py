@@ -207,7 +207,14 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
             with (args.state_dir / "workers_scheduled.txt").open('r') as f:
                 new_scheduled_workers = list(f)
 
-            check_for_crashed_learners(args, crashed_workers)
+            num_workers_alive = check_for_crashed_learners(args, crashed_workers)
+            # If all workers are dead, and we're not done with the
+            # jobs, print a message and exit (we'll just exit if the
+            # jobs are all done at the while condition)
+            if num_workers_alive == 0 and num_task_eps_done < len(all_task_eps):
+                util.eprint("All workers exited, but jobs aren't done!")
+                cancel_workers(args)
+                sys.exit(1)
             check_for_syncing_worker(args)
 
             # Get the new scheduled workers, and update the worker
@@ -228,7 +235,7 @@ def check_for_syncing_worker(args: argparse.Namespace) -> None:
         cancel_workers(args)
         sys.exit(1)
 
-def check_for_crashed_learners(args: argparse.Namespace, crashed_workers: List[int]) -> None:
+def check_for_crashed_learners(args: argparse.Namespace, crashed_workers: List[int]) -> int:
     # Get the workers that are alive
     squeue_output = subprocess.check_output(
         f"squeue -r -u$USER -h -n drl-worker-{args.output_file} -o%K",
@@ -266,13 +273,7 @@ def check_for_crashed_learners(args: argparse.Namespace, crashed_workers: List[i
             util.eprint(f"Worker {worker_id} crashed! "
                         f"Left behind {task_eps_left_behind} task episodes")
             crashed_workers.append(worker_id)
-    # If all workers are dead, and we're not done with the
-    # jobs, print a message and exit (we'll just exit if the
-    # jobs are all done at the while condition)
-    if len(new_workers_alive) == 0 and num_task_eps_done < len(all_task_eps):
-        util.eprint("All workers exited, but jobs aren't done!")
-        cancel_workers(args)
-        sys.exit(1)
+    return len(new_workers_alive)
 
 def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
