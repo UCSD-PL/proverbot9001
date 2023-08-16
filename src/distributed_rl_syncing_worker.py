@@ -18,7 +18,7 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 import rl
 from util import eprint, unwrap
 from distributed_rl import (add_distrl_args_to_parser,
-                            get_all_task_eps, get_task_eps_done,
+                            get_all_task_eps, get_num_task_eps_done,
                             latest_worker_save_num)
 #pylint: enable=wrong-import-position
 
@@ -36,7 +36,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
     last_weights_versions: List[Tuple[int, int]] = []
     all_task_eps = get_all_task_eps(args)
     while True:
-        task_eps_done = get_task_eps_done(args)
+        num_task_eps_done = get_num_task_eps_done(args)
         worker_weights_versions = get_latest_worker_weights_versions(args)
         if worker_weights_versions == last_weights_versions:
             time.sleep(retry_delay_secs)
@@ -55,7 +55,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         delete_old_worker_weights(args, worker_weights_versions)
         delete_old_common_weights(args)
         next_save_num += 1
-        if len(task_eps_done) >= len(all_task_eps):
+        if num_task_eps_done >= len(all_task_eps):
             break
 
     eprint("Saving final weights and cleaning up")

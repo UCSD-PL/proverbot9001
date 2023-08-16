@@ -284,16 +284,6 @@ def get_num_task_eps_done(args: argparse.Namespace) -> int:
         with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
             num_task_eps_done += len(f.readlines())
     return num_task_eps_done
-def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
-    task_eps_done: List[Tuple[RLTask, int]] = []
-
-    for workerid in trange(args.num_workers, desc="Getting number of done tasks"):
-        with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
-            worker_task_eps_done = [(RLTask(**task_dict), episode)
-                                    for line in f
-                                    for task_dict, episode in (json.loads(line),)]
-            task_eps_done += worker_task_eps_done
-    return task_eps_done
 
 def get_num_task_eps_progress(args: argparse.Namespace) -> int:
     num_task_eps_done = 0
