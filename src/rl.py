@@ -562,6 +562,7 @@ def experience_proof(args: argparse.Namespace,
                      epsilon: float) -> None:
     path: List[ProofContext] = [coq.proof_context]
     initial_open_obligations = len(coq.proof_context.all_goals)
+    trace: List[str] = []
     for _step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
         if args.verbose >= 3:
@@ -607,6 +608,7 @@ def experience_proof(args: argparse.Namespace,
             if chosen_action is None:
                 break
         resulting_obls = execute_action(coq, chosen_action.prediction)
+        trace.append(chosen_action.prediction)
 
         eprint(f"Taking action {chosen_action}",
                guard=args.verbose >= 2)
@@ -618,6 +620,7 @@ def experience_proof(args: argparse.Namespace,
 
         current_open_obligations = len(coq.proof_context.all_goals)
         if current_open_obligations < initial_open_obligations:
+            eprint(f"Completed task with trace {trace}", guard=args.verbose >= 1)
             break
 
 def evaluate_actions(coq: coq_serapy.CoqAgent,
