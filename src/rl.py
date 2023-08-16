@@ -293,7 +293,7 @@ class ReinforcementWorker:
         resulting_state_val = math.prod(all_obl_scores).item()
 
         return resulting_state_val
-    
+
 
     def sync_networks(self) -> None:
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
@@ -796,7 +796,7 @@ def evaluate_proof(args: argparse.Namespace,
             best_action,best_score = None, float("-Inf")
             for action in actions :
                 if action_result(coq, path, action.prediction, args.verbose) :
-                    best_action, best_score = action, action.certainty 
+                    best_action, best_score = action, action.certainty
                     break
         else :
             action_scores = evaluate_actions(coq, v_network, path,
@@ -849,8 +849,8 @@ def verify_vvals(args: argparse.Namespace,
         vval_err_sum  = 0
         steps_already_done = 0
         jobs_skipped = 0
-    
-    
+
+
     for idx, task in enumerate(tqdm(tasks[steps_already_done:], desc="Tasks checked",
                                     initial=steps_already_done, total=len(tasks)),
                                     start=steps_already_done + 1):
