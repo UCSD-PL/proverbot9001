@@ -16,7 +16,7 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 
 #pylint: disable=wrong-import-position
 import rl
-from util import eprint, print_time, unwrap
+from util import eprint, unwrap
 from distributed_rl import (add_distrl_args_to_parser,
                             get_all_task_eps, get_task_eps_done,
                             latest_worker_save_num)
