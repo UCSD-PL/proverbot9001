@@ -625,6 +625,7 @@ class FeaturesPolyargPredictor(
         stem_distribution = model.stem_classifier(
             word_features, vec_features)
         #stem_distribution[:,blacklist_stem_indices] = -float("Inf")
+        stem_distribution.index_fill(1, maybe_cuda(torch.LongTensor(blacklist_stem_indices)), -float("Inf"))
         assert not torch.any(torch.isnan(stem_distribution))
         stem_probs, stem_idxs = stem_distribution.topk(k)
         assert stem_probs.size() == torch.Size([batch_size, k])
@@ -944,9 +945,23 @@ class FeaturesPolyargPredictor(
         # zero out worde_features_batch, then vec_features_batch
         # zero out only first value (vs entire batch)
         # word_features_batch[:,0] = 0
+        if arg_values.no_prev_tactic:
+            prev_tactic_mask = torch.ones(batch_size, 1, dtype=torch.bool)
+        else:
+            prev_tactic_mask = torch.zeros(batch_size, 1, dtype=torch.bool)
+        if arg_values.no_goal_head:
+            goal_head_mask = torch.ones(batch_size, 1, dtype=torch.bool)
+        else:
+            goal_head_mask = torch.zeros(batch_size, 1, dtype=torch.bool)
+        if arg_values.no_hyp_head:
+            hyp_head_mask = torch.ones(batch_size, 1, dtype=torch.bool)
+        else:
+            hyp_head_mask = torch.zeros(batch_size, 1, dtype=torch.bool)
+            
 
-        word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
-        
+        #word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
+        word_features_mask = torch.cat((prev_tactic_mask, goal_head_mask, hyp_head_mask), dim=1)
+            
         masked_word_features = torch.where(
             word_features_mask,
             torch.full_like(word_features_batch, 0),
@@ -955,6 +970,7 @@ class FeaturesPolyargPredictor(
         stemDistributions, predictedProbs, predictedStemIdxs = \
           self.predict_stems(model, stem_width, masked_word_features,
                              vec_features_batch, [])
+
         stem_var = maybe_cuda(stem_idxs_batch)
         mergedStemIdxs = []
         for stem_idx, predictedStemIdxList in zip(stem_idxs_batch, predictedStemIdxs):

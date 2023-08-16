@@ -90,6 +90,9 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                             action='store_false')
         parser.add_argument("--verbose", "-v", help="verbose output",
                             action='store_const', const=True, default=False)
+        parser.add_argument("--no-prev-tactic", action='store_true')
+        parser.add_argument("--no-goal-head", action='store_true')
+        parser.add_argument("--no-hyp-head", action='store_true')
         pass
 
     @abstractmethod
