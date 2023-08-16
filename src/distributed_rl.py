@@ -199,18 +199,6 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
          tqdm(desc="Learning workers scheduled", total=num_workers_dispatched,
               dynamic_ncols=True) as wbar:
         while num_task_eps_done < len(all_task_eps):
-            # Get the workers that are alive
-            squeue_output = subprocess.check_output(
-                f"squeue -r -u$USER -h -n drl-worker-{args.output_file} -o%K",
-                shell=True, text=True)
-            new_workers_alive = [int(wid) for wid in
-                                 squeue_output.strip().split("\n")
-                                 if wid != ""]
-            # Wait a bit between doing this and checking the tasks
-            # done. This is because a worker might finish and stop
-            # showing up in squeue before it's writes to the "done"
-            # file are fully propagated.
-            time.sleep(0.1)
             # Update the bar with the tasks that have been finished
             new_num_task_eps_done = get_num_task_eps_progress(args)
             task_eps_bar.update(new_num_task_eps_done - num_task_eps_done)
@@ -219,48 +207,8 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
             with (args.state_dir / "workers_scheduled.txt").open('r') as f:
                 new_scheduled_workers = list(f)
 
-            # Check for newly crashed workers
-            for worker_id in range(args.num_workers):
-                # Skip any living worker
-                if worker_id in new_workers_alive:
-                    continue
-                # Skip any worker for which we've already reported a crash
-                if worker_id in crashed_workers:
-                    continue
-                # Get the jobs taken by workers.
-                with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
-                    taken_by_worker = [(RLTask(**task_dict), episode)
-                                       for l in f
-                                       for task_dict, episode in (json.loads(l),)]
-                with (args.state_dir / f"done-{worker_id}.txt").open('r') as f:
-                    done_by_worker = [(RLTask(**task_dict), episode)
-                                      for l in f
-                                      for task_dict, episode in (json.loads(l),)]
-                task_eps_left_behind = 0
-                for task_ep in taken_by_worker:
-                    if task_ep not in done_by_worker:
-                        task_eps_left_behind += 1
-                if task_eps_left_behind > 0:
-                    util.eprint(f"Worker {worker_id} crashed! "
-                                f"Left behind {task_eps_left_behind} task episodes")
-                    crashed_workers.append(worker_id)
-
-            # If all workers are dead, and we're not done with the
-            # jobs, print a message and exit (we'll just exit if the
-            # jobs are all done at the while condition)
-            if len(new_workers_alive) == 0 and num_task_eps_done < len(all_task_eps):
-                util.eprint("All workers exited, but jobs aren't done!")
-                cancel_workers(args)
-                sys.exit(1)
-            # If the syncing worker dies, print a message and exit
-            squeue_output = subprocess.check_output(
-                f"squeue -r -u$USER -h -n drl-sync-worker-{args.output_file}",
-                shell=True, text=True)
-            if squeue_output.strip() == "":
-                util.eprint("Syncing worker died! Check the logs for more details. "
-                            "Exiting...")
-                cancel_workers(args)
-                sys.exit(1)
+            check_for_crashed_learners(args, crashed_workers)
+            check_for_syncing_worker(args)
 
             # Get the new scheduled workers, and update the worker
             # bar.
@@ -268,6 +216,63 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
                 new_scheduled_workers = list(f)
             wbar.update(len(new_scheduled_workers) - len(scheduled_workers))
             scheduled_workers = new_scheduled_workers
+
+def check_for_syncing_worker(args: argparse.Namespace) -> None:
+    # If the syncing worker dies, print a message and exit
+    squeue_output = subprocess.check_output(
+        f"squeue -r -u$USER -h -n drl-sync-worker-{args.output_file}",
+        shell=True, text=True)
+    if squeue_output.strip() == "":
+        util.eprint("Syncing worker died! Check the logs for more details. "
+                    "Exiting...")
+        cancel_workers(args)
+        sys.exit(1)
+
+def check_for_crashed_learners(args: argparse.Namespace, crashed_workers: List[int]) -> None:
+    # Get the workers that are alive
+    squeue_output = subprocess.check_output(
+        f"squeue -r -u$USER -h -n drl-worker-{args.output_file} -o%K",
+        shell=True, text=True)
+    new_workers_alive = [int(wid) for wid in
+                         squeue_output.strip().split("\n")
+                         if wid != ""]
+    # Wait a bit between doing this and checking the tasks
+    # done. This is because a worker might finish and stop
+    # showing up in squeue before it's writes to the "done"
+    # file are fully propagated.
+    time.sleep(0.1)
+    # Check for newly crashed workers
+    for worker_id in range(args.num_workers):
+        # Skip any living worker
+        if worker_id in new_workers_alive:
+            continue
+        # Skip any worker for which we've already reported a crash
+        if worker_id in crashed_workers:
+            continue
+        # Get the jobs taken by workers.
+        with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
+            taken_by_worker = [(RLTask(**task_dict), episode)
+                               for l in f
+                               for task_dict, episode in (json.loads(l),)]
+        with (args.state_dir / f"done-{worker_id}.txt").open('r') as f:
+            done_by_worker = [(RLTask(**task_dict), episode)
+                              for l in f
+                              for task_dict, episode in (json.loads(l),)]
+        task_eps_left_behind = 0
+        for task_ep in taken_by_worker:
+            if task_ep not in done_by_worker:
+                task_eps_left_behind += 1
+        if task_eps_left_behind > 0:
+            util.eprint(f"Worker {worker_id} crashed! "
+                        f"Left behind {task_eps_left_behind} task episodes")
+            crashed_workers.append(worker_id)
+    # If all workers are dead, and we're not done with the
+    # jobs, print a message and exit (we'll just exit if the
+    # jobs are all done at the while condition)
+    if len(new_workers_alive) == 0 and num_task_eps_done < len(all_task_eps):
+        util.eprint("All workers exited, but jobs aren't done!")
+        cancel_workers(args)
+        sys.exit(1)
 
 def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
