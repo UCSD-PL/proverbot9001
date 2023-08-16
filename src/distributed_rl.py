@@ -191,18 +191,20 @@ def get_all_files(args: argparse.Namespace) -> List[Path]:
 
 def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None:
     all_task_eps = get_all_task_eps(args)
-    num_task_eps_done = get_num_task_eps_progress(args)
+    num_task_eps_progress = get_num_task_eps_progress(args)
+    num_task_eps_done = 0
     scheduled_workers: List[int] = []
     crashed_workers: List[int] = []
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
-              initial=num_task_eps_done, dynamic_ncols=True) as task_eps_bar, \
+              initial=num_task_eps_progress, dynamic_ncols=True) as task_eps_bar, \
          tqdm(desc="Learning workers scheduled", total=num_workers_dispatched,
               dynamic_ncols=True) as wbar:
         while num_task_eps_done < len(all_task_eps):
+            num_task_eps_done = get_num_task_eps_done(args)
             # Update the bar with the tasks that have been finished
-            new_num_task_eps_done = get_num_task_eps_progress(args)
-            task_eps_bar.update(new_num_task_eps_done - num_task_eps_done)
-            num_task_eps_done = new_num_task_eps_done
+            new_num_task_eps_progress = get_num_task_eps_progress(args)
+            task_eps_bar.update(new_num_task_eps_progress - num_task_eps_progress)
+            num_task_eps_progress = new_num_task_eps_progress
             # Update the workers scheduled bar with workers that have been newly scheduled
             with (args.state_dir / "workers_scheduled.txt").open('r') as f:
                 new_scheduled_workers = list(f)
@@ -211,7 +213,7 @@ def show_progress(args: argparse.Namespace, num_workers_dispatched: int) -> None
             # If all workers are dead, and we're not done with the
             # jobs, print a message and exit (we'll just exit if the
             # jobs are all done at the while condition)
-            if num_workers_alive == 0 and num_task_eps_done < len(all_task_eps):
+            if num_workers_alive == 0 and num_task_eps_progress < len(all_task_eps):
                 util.eprint("All workers exited, but jobs aren't done!")
                 cancel_workers(args)
                 sys.exit(1)
@@ -275,6 +277,13 @@ def check_for_crashed_learners(args: argparse.Namespace, crashed_workers: List[i
             crashed_workers.append(worker_id)
     return len(new_workers_alive)
 
+def get_num_task_eps_done(args: argparse.Namespace) -> int:
+    num_task_eps_done: int = 0
+
+    for workerid in trange(args.num_workers, desc="Getting number of done tasks"):
+        with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
+            num_task_eps_done += len(f.readlines())
+    return num_task_eps_done
 def get_task_eps_done(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
     task_eps_done: List[Tuple[RLTask, int]] = []
 
