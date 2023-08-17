@@ -84,7 +84,7 @@ class RLTask:
         return ReportJob(".", self.src_file, self.module_prefix, self.proof_statement)
     @classmethod
     def from_job(cls, job: ReportJob) -> 'RLTask':
-        return RLTask(job.filename, job.module_prefix, job.lemma_statment, [], [], -1, -1)
+        return RLTask(job.filename, job.module_prefix, job.lemma_statement, -1, -1, [], [])
     def to_proof_spec(self) -> Tuple[str, str, str]:
         return self.src_file, self.module_prefix, self.proof_statement
     @property
