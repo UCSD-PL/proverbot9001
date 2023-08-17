@@ -10,9 +10,7 @@ import contextlib
 import math
 import pickle
 import sys
-import re
 from pathlib import Path
-from operator import itemgetter
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable)
 
@@ -27,12 +25,14 @@ with print_time("Importing torch"):
     from torch import optim
     import torch.optim.lr_scheduler as scheduler
 
+#pylint: disable=wrong-import-order
 from tqdm import tqdm
 
 import coq_serapy
 from coq_serapy.contexts import (FullContext, truncate_tactic_context,
                                  Obligation, TacticContext, ProofContext)
 import coq2vec
+#pylint: enable=wrong-import-order
 
 from gen_rl_tasks import RLTask
 

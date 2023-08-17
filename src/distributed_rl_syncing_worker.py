@@ -142,7 +142,7 @@ def get_resumed_save_num(args: argparse.Namespace) -> int:
         return 0
 
     return max(int(unwrap(re.match(
-               rf"common-target-network-(\d+).dat",
+               r"common-target-network-(\d+).dat",
                path)).group(1))
                for path in common_networks)
 
