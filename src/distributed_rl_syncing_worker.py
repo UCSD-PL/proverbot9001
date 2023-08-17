@@ -23,7 +23,6 @@ from distributed_rl import (add_distrl_args_to_parser,
 #pylint: enable=wrong-import-position
 
 def main():
-    print("running main?")
     parser = argparse.ArgumentParser()
     rl.add_args_to_parser(parser)
     add_distrl_args_to_parser(parser)
@@ -32,7 +31,6 @@ def main():
     sync_worker_target_networks(args)
 
 def sync_worker_target_networks(args: argparse.Namespace) -> None:
-    print("running sync worker")
     retry_delay_secs = 0.5
     next_save_num = get_resumed_save_num(args) + 1
     last_weights_versions: List[Tuple[int, int]] = []
@@ -59,7 +57,6 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         next_save_num += 1
         if num_task_eps_done >= len(all_task_eps):
             break
-    print("no reason to quit before this line")
     eprint("Saving final weights and cleaning up")
     os.rename(save_path, args.output_file)
 
