@@ -280,7 +280,7 @@ def check_for_crashed_learners(args: argparse.Namespace, crashed_workers: List[i
 def get_num_task_eps_done(args: argparse.Namespace) -> int:
     num_task_eps_done: int = 0
 
-    for workerid in trange(args.num_workers, desc="Getting number of done tasks"):
+    for workerid in range(args.num_workers):
         with (args.state_dir / f"done-{workerid}.txt").open('r') as f:
             num_task_eps_done += len(f.readlines())
     return num_task_eps_done
