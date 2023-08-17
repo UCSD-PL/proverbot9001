@@ -299,8 +299,14 @@ def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
 
 def latest_worker_save_num(args: argparse.Namespace,
                            workerid: int) -> Optional[int]:
-    worker_networks = glob(f"worker-{workerid}-network-*.dat",
-                           root_dir = str(args.state_dir / "weights"))
+    root_dir = str(args.state_dir / "weights")
+    current_working_directory = os.getcwd()
+    os.chdir(root_dir)
+    worker_networks = glob(f"worker-{workerid}-network-*.dat")
+    os.chdir(current_working_directory)
+    #worker_networks = glob(str(args.state_dir / "weights" / "worker-{workerid}-network-*.dat"),
+    #                       root_dir = str(args.state_dir / "weights"))
+
     if len(worker_networks) == 0:
         return None
     return max(int(util.unwrap(re.match(

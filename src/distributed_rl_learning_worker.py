@@ -214,8 +214,14 @@ def possibly_resume_rworker(args: argparse.Namespace,
 
 def load_latest_target_network(args: argparse.Namespace,
                                worker: rl.ReinforcementWorker) -> None:
-    target_networks = glob("common-target-network-*.dat",
-                           root_dir = str(args.state_dir / "weights"))
+    root_dir = str(args.state_dir / "weights")
+    current_working_directory = os.getcwd()
+    os.chdir(root_dir)
+    target_networks = glob("common-target-network-*.dat")
+    os.chdir(current_working_directory)
+    
+    #target_networks = glob("common-target-network-*.dat",
+    #                       root_dir = str(args.state_dir / "weights"))
     if len(target_networks) == 0:
         eprint("Skipping sync because the target network doesn't exist yet")
         return
@@ -326,14 +332,15 @@ def allocate_next_task_from_file(args: argparse.Namespace,
         taken_task_episodes: Set[int] = set()
         taken_by_others_this_iter: Set[int] = set()
         for line_num, line in enumerate(f):
-            try:
-                te_idx, taken_this_iter = json.loads(line)
-                taken_task_episodes.add(te_idx)
-                if te_idx not in our_taken_task_episodes and taken_this_iter:
-                    taken_by_others_this_iter.add(te_idx)
-            except json.decoder.JSONDecodeError:
-                eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
-                raise
+            if not (line.strip() == ""):
+                try:
+                    te_idx, taken_this_iter = json.loads(line)
+                    taken_task_episodes.add(te_idx)
+                    if te_idx not in our_taken_task_episodes and taken_this_iter:
+                        taken_by_others_this_iter.add(te_idx)
+                except json.decoder.JSONDecodeError:
+                    eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
+                    raise
         # Searching the tasks for a good one to take
         proof_eps_taken_by_others: Set[Tuple[Tuple[str, str, str], int]] = set()
         for file_task_idx, (task_ep_idx, (task, episode)) in enumerate(file_task_episodes):

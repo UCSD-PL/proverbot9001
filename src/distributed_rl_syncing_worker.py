@@ -23,6 +23,7 @@ from distributed_rl import (add_distrl_args_to_parser,
 #pylint: enable=wrong-import-position
 
 def main():
+    print("running main?")
     parser = argparse.ArgumentParser()
     rl.add_args_to_parser(parser)
     add_distrl_args_to_parser(parser)
@@ -31,6 +32,7 @@ def main():
     sync_worker_target_networks(args)
 
 def sync_worker_target_networks(args: argparse.Namespace) -> None:
+    print("running sync worker")
     retry_delay_secs = 0.5
     next_save_num = get_resumed_save_num(args) + 1
     last_weights_versions: List[Tuple[int, int]] = []
@@ -57,7 +59,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         next_save_num += 1
         if num_task_eps_done >= len(all_task_eps):
             break
-
+    print("no reason to quit before this line")
     eprint("Saving final weights and cleaning up")
     os.rename(save_path, args.output_file)
 
@@ -92,8 +94,15 @@ def load_worker_weights(args: argparse.Namespace,
     return worker_weights
 
 def delete_old_common_weights(args: argparse.Namespace) -> None:
-    common_network_paths= glob(f"common-target-network-*.dat",
-                                root_dir = str(args.state_dir / "weights"))
+    current_working_directory = os.getcwd()
+    root_dir = str(args.state_dir / "weights")
+    os.chdir(root_dir)
+    
+    common_network_paths= glob(f"common-target-network-*.dat")
+    os.chdir(current_working_directory)
+
+    #common_network_paths= glob(f"common-target-network-*.dat",
+    #                            root_dir = str(args.state_dir / "weights"))
     common_save_nums = [int(unwrap(re.match(rf"common-target-network-(\d+).dat",
                                             path)).group(1))
                         for path in common_network_paths]
@@ -110,8 +119,14 @@ def delete_old_worker_weights(args: argparse.Namespace,
     for workerid, latest_save_num in cur_versions:
         if latest_save_num == 1:
             continue
-        worker_network_paths = glob(f"worker-{workerid}-network-*.dat",
-                                    root_dir = str(args.state_dir / "weights"))
+        current_working_directory = os.getcwd()
+        root_dir = str(args.state_dir / "weights")
+        os.chdir(root_dir)
+        
+        worker_network_paths= glob(f"worker-{workerid}-network-*.dat")
+        os.chdir(current_working_directory)
+        #worker_network_paths = glob(f"worker-{workerid}-network-*.dat",
+        #                            root_dir = str(args.state_dir / "weights"))
         worker_save_nums = [int(unwrap(re.match(rf"worker-{workerid}-network-(\d+).dat",
                                                 path)).group(1))
                             for path in worker_network_paths]
