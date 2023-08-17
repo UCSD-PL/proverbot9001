@@ -368,7 +368,7 @@ def get_num_tasks_taken(args: argparse.Namespace, all_files: List[Path]) -> int:
     return tasks_taken
 
 def get_initial_worker_step(args: argparse.Namespace, workerid: int) -> int:
-    return latest_worker_save_num(args, workerid) * args.sync_target_every + 1
+    return (latest_worker_save_num(args, workerid) or 0) * args.sync_target_every + 1
 
 if __name__ == "__main__":
     main()
