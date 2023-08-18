@@ -277,7 +277,7 @@ def allocate_next_task(args: argparse.Namespace,
               ).open("r+") as f, FileLock(f):
             taken_files: Counter[Path] = Counter(Path(p.strip()) for p in f)
             if len(all_files) <= len(files_finished_this_ep):
-                assert max_episode == args.num_episodes - 1
+                assert max_episode == args.num_episodes - 1 or len(all_files) == 1
 		 # This happens once we've hit the episode cap and checked every
 		 # file.
                 return None
