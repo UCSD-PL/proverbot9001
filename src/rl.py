@@ -227,10 +227,11 @@ class ReinforcementWorker:
                           epsilon: float, restart: bool = True) -> Optional[int]:
         if not tactic_prefix_is_usable(tactic_prefix):
             if self.args.verbose >= 2:
-                eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
+                eprint(f"Skipping job {job} with prefix {tactic_prefix} "
+                       "because it can't purely focused")
             else:
-                eprint(f"Skipping a job because it can't be purely focused")
-            return
+                eprint("Skipping a job because it can't be purely focused")
+            return None
         with print_time("Getting worker", guard=self.args.print_timings):
             file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
@@ -238,19 +239,20 @@ class ReinforcementWorker:
             with print_time("Running into task", guard=self.args.print_timings):
                 file_worker.run_into_task(job, tactic_prefix)
             with print_time("Experiencing", guard=self.args.print_timings):
-                experience_proof(self.args,
-                                 file_worker.coq,
-                                 self.predictor, self.v_network,
-                                 self.replay_buffer, epsilon)
+                return experience_proof(self.args,
+                                        file_worker.coq,
+                                        self.predictor, self.v_network,
+                                        self.replay_buffer,
+                                        epsilon)
         except coq_serapy.CoqAnomaly:
             eprint("Encountered Coq anomaly.")
             file_worker.restart_coq()
             file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
             if restart:
-                self.run_job_reinforce(job, tactic_prefix, epsilon, restart=False)
-            else:
-                eprint("Encountered anomaly without restart, closing current job")
+                return self.run_job_reinforce(job, tactic_prefix, epsilon, restart=False)
+            eprint("Encountered anomaly without restart, closing current job")
+        return None
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
         file_worker = self._get_worker(job.filename)
@@ -273,7 +275,8 @@ class ReinforcementWorker:
             eprint(f"Failed to solve proof {proof_name}")
         return success
 
-    def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) -> float :
+    def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str],
+                               restart: bool = True) -> float :
         file_worker = self._get_worker(job.filename)
         try:
             file_worker.run_into_task(job, tactic_prefix)
@@ -283,8 +286,7 @@ class ReinforcementWorker:
                 file_worker.reset_file_state()
                 file_worker.enter_file(job.filename)
                 return self.estimate_starting_vval(job, tactic_prefix, restart=False)
-            else:
-                raise
+            raise
 
         context: List[Optional[ProofContext]] = file_worker.coq.proof_context
         assert context is not None
@@ -571,7 +573,7 @@ def experience_proof(args: argparse.Namespace,
     path: List[ProofContext] = [coq.proof_context]
     initial_open_obligations = len(coq.proof_context.all_goals)
     trace: List[str] = []
-    for _step in range(args.steps_per_episode):
+    for step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)

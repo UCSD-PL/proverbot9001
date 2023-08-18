@@ -94,10 +94,11 @@ def reinforce_jobs_worker(args: argparse.Namespace,
     skip_taken_proofs: bool = True
     files_finished_this_ep: Set[Path] = set()
     while True:
-        next_task_and_idx = allocate_next_task(args,
-                                               file_all_tes_dict,
-                                               our_files_taken, files_finished_this_ep,
-                                               file_our_taken_dict, max_episode, skip_taken_proofs)
+        next_task_and_idx = allocate_next_task(
+            args,
+            file_all_tes_dict,
+            our_files_taken, files_finished_this_ep,
+            file_our_taken_dict, max_episode, skip_taken_proofs)
         if next_task_and_idx is None:
             files_finished_this_ep = set()
             if max_episode == args.num_episodes - 1:

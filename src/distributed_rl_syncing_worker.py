@@ -38,10 +38,8 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
     next_save_num = get_resumed_save_num(args) + 1
     last_weights_versions: List[Tuple[int, int]] = []
     all_task_eps = get_all_task_eps(args)
-    while True:
-        num_task_eps_done = get_num_task_eps_done(args)
-        if num_task_eps_done >= len(all_task_eps):
-            break
+    num_task_eps_done = get_num_task_eps_done(args)
+    while num_task_eps_done < len(all_task_eps):
         worker_weights_versions = get_latest_worker_weights_versions(args)
         if worker_weights_versions == last_weights_versions:
             time.sleep(retry_delay_secs)
@@ -113,7 +111,7 @@ def load_worker_weights(args: argparse.Namespace,
             args.state_dir / "weights" /
             f"worker-{workerid}-network-{save_num}.dat")
         eprint(f"Loading worker weights from {latest_worker_save_path}")
-        for i in range(3):
+        for _ in range(3):
             try:
                 latest_worker_save = torch.load(latest_worker_save_path)
                 break
