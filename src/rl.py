@@ -224,7 +224,7 @@ class ReinforcementWorker:
                         self.replay_buffer)
 
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
-                          epsilon: float, restart: bool = True) -> None:
+                          epsilon: float, restart: bool = True) -> Optional[int]:
         if not tactic_prefix_is_usable(tactic_prefix):
             if self.args.verbose >= 2:
                 eprint(f"Skipping job {job} with prefix {tactic_prefix} because it can't purely focused")
