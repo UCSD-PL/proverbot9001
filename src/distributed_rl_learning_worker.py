@@ -123,8 +123,9 @@ def reinforce_jobs_worker(args: argparse.Namespace,
               / len(task_episodes)) *
              (args.ending_epsilon - args.starting_epsilon))
 
-        reinforce_task(args, worker, task,
-                       worker_step, cur_epsilon)
+        found_length = reinforce_task(args, worker, task,
+                                      worker_step, cur_epsilon)
+        update_shorter_proofs_dict(args, list(file_our_taken_dict.keys()), task, found_length)
         recently_done_task_eps.append((task, episode))
         with (args.state_dir / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
             print(next_task_idx,
@@ -155,12 +156,33 @@ def sync_done(args: argparse.Namespace,
             print(json.dumps((task.as_dict(), episode)),
                   file=f, flush=True)
 
+def update_shorter_proofs_dict(args: argparse.Namespace,
+                               all_files: List[Path],
+                               task: RLTask,
+                               solution_length: Optional[int]) -> None:
+    if solution_length and solution_length < task.target_length:
+        with (args.state_dir / "shorter_proofs" /
+              (safe_abbrev(Path(task.src_file), all_files)
+               + ".json")).open("r+") as f, FileLock(f):
+            shorter_proofs_dict = {RLTask(**task_dict): shorter_length
+                                   for l in f
+                                   for task_dict, shorter_length in (json.loads(l),)}
+            if task in shorter_proofs_dict and \
+               shorter_proofs_dict[task] <= solution_length:
+                return
+            shorter_proofs_dict[task] = solution_length
+            f.truncate()
+            for task, shorter_length in shorter_proofs_dict.items():
+                entry_string = json.dumps((task.as_dict(), shorter_length))
+                print(entry_string, file=f)
+
 def reinforce_task(args: argparse.Namespace, worker: rl.ReinforcementWorker,
-                   task: RLTask, step: int, cur_epsilon):
-    worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
+                   task: RLTask, step: int, cur_epsilon) -> Optional[int]:
+    found_length = worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
     if step % args.train_every == 0:
         with print_time("Training", guard=args.print_timings):
             worker.train()
+    return found_length
 
 def save_replay_buffer(args: argparse.Namespace,
                        worker: rl.ReinforcementWorker,

@@ -80,6 +80,15 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
     with (args.state_dir / "workers_scheduled.txt").open('w'):
         pass
 
+    (args.state_dir / "shorter_proofs").mkdir(exist_ok=True)
+    all_files = get_all_files(args)
+    for filename in all_files:
+        shorter_path = (args.state_dir / "shorter_proofs" /
+                        (util.safe_abbrev(filename, all_files) + ".json"))
+        if not shorter_path.exists():
+            with shorter_path.open('w') as f:
+                pass
+
 def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTask, int]]]:
     file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
     for workerid in trange(args.num_workers, desc="Loading done task episodes", leave=False):

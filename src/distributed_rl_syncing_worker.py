@@ -5,8 +5,10 @@ import sys
 import os
 import time
 import re
+import json
 from pathlib import Path
-from typing import List, Tuple
+from typing import List, Tuple, Dict, Any
+from collections import OrderedDict
 
 from glob import glob
 
@@ -16,10 +18,11 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 
 #pylint: disable=wrong-import-position
 import rl
-from util import eprint, unwrap
+from util import eprint, unwrap, safe_abbrev, FileLock
+from gen_rl_tasks import RLTask
 from distributed_rl import (add_distrl_args_to_parser,
                             get_all_task_eps, get_num_task_eps_done,
-                            latest_worker_save_num)
+                            latest_worker_save_num, get_all_files)
 #pylint: enable=wrong-import-position
 
 def main():
@@ -37,6 +40,8 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
     all_task_eps = get_all_task_eps(args)
     while True:
         num_task_eps_done = get_num_task_eps_done(args)
+        if num_task_eps_done >= len(all_task_eps):
+            break
         worker_weights_versions = get_latest_worker_weights_versions(args)
         if worker_weights_versions == last_weights_versions:
             time.sleep(retry_delay_secs)
@@ -48,17 +53,47 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
                                       in worker_weights)) / len(worker_weights)
         eprint(f"Saving weights with versions {worker_weights_versions} "
                f"to save num {next_save_num}")
-        save_path = str(args.state_dir / "weights" /
-                        f"common-target-network-{next_save_num}.dat")
-        torch.save(result_params, save_path + ".tmp")
-        os.rename(save_path + ".tmp", save_path)
+        save_common_network(args, next_save_num, result_params)
         delete_old_worker_weights(args, worker_weights_versions)
         delete_old_common_weights(args)
         next_save_num += 1
-        if num_task_eps_done >= len(all_task_eps):
-            break
     eprint("Saving final weights and cleaning up")
-    os.rename(save_path, args.output_file)
+    build_final_save(args, next_save_num - 1, len(all_task_eps))
+
+def build_final_save(args: argparse.Namespace, last_save_num: int,
+                     num_steps_done: int) -> None:
+    save_path = str(args.state_dir / "weights" /
+                    f"common-target-network-{last_save_num}.dat")
+    common_network_weights_dict = torch.load(save_path)
+    obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
+    v_network_state = (common_network_weights_dict, obl_encoder_state, OrderedDict())
+    assert len(v_network_state) == 3
+    with args.output_file.open('wb') as f:
+        torch.save((False, None,
+                    num_steps_done,
+                    v_network_state, v_network_state,
+                    get_shorter_proofs_dict(args),
+                    None), f)
+
+def get_shorter_proofs_dict(args: argparse.Namespace) -> Dict[RLTask, int]:
+    dict_entries = []
+    all_files = get_all_files(args)
+    for filename in all_files:
+        shorter_proofs_path = (args.state_dir / "shorter_proofs" /
+                               (safe_abbrev(filename, all_files) + ".json"))
+        with shorter_proofs_path.open("r") as f, FileLock(f):
+            dict_entries += [(RLTask(**task_dict), shorter_length)
+                             for l in f for task_dict, shorter_length in (json.loads(l),)]
+
+    return dict(dict_entries)
+
+
+def save_common_network(args: argparse.Namespace, save_num: int,
+                        result_params: Dict[str, Any]) -> None:
+    save_path = str(args.state_dir / "weights" /
+                    f"common-target-network-{save_num}.dat")
+    torch.save(result_params, save_path + ".tmp")
+    os.rename(save_path + ".tmp", save_path)
 
 def get_latest_worker_weights_versions(args: argparse.Namespace) \
         -> List[Tuple[int, int]]:

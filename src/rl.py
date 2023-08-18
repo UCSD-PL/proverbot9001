@@ -12,7 +12,7 @@ import pickle
 import sys
 from pathlib import Path
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
-                    Sequence, TypeVar, Callable)
+                    Sequence, TypeVar, Callable, OrderedDict)
 
 from collections import OrderedDict
 
@@ -311,7 +311,7 @@ def switch_dict_from_args(args: argparse.Namespace) -> Dict[str, str]:
         return None
 
 def possibly_resume_rworker(args: argparse.Namespace) \
-        -> Tuple[ReinforcementWorker, int, Any]:
+        -> Tuple[bool, ReinforcementWorker, int, Any, Dict[RLTask, int]]:
     # predictor = get_predictor(args)
     # predictor = DummyPredictor()
     predictor = MemoizingPredictor(get_predictor(args))
@@ -332,10 +332,11 @@ def possibly_resume_rworker(args: argparse.Namespace) \
 
     if resume == "yes":
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-        replay_buffer, steps_already_done, network_state, \
-          tnetwork_state, random_state = \
+        is_singlethreaded, replay_buffer, steps_already_done, network_state, \
+          tnetwork_state, shorter_proofs_dict, random_state = \
             torch.load(str(args.output_file), map_location=device)
-        random.setstate(random_state)
+        if is_singlethreaded:
+            random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
                              args.batch_step, args.lr_step)
@@ -351,6 +352,7 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         steps_already_done = 0
         replay_buffer = None
         random_state = random.getstate()
+        shorter_proofs_dict = {}
         with print_time("Building models"):
             v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                                  args.batch_step, args.lr_step)
@@ -361,14 +363,15 @@ def possibly_resume_rworker(args: argparse.Namespace) \
     worker = ReinforcementWorker(args, predictor, v_network, target_network,
                                  switch_dict_from_args(args),
                                  initial_replay_buffer = replay_buffer)
-    return worker, steps_already_done, random_state
+    return is_singlethreaded, worker, steps_already_done, random_state, shorter_proofs_dict
 
 def reinforce_jobs(args: argparse.Namespace) -> None:
     eprint("Starting reinforce_jobs")
 
-    worker, steps_already_done, random_state = \
+    is_singlethreaded, worker, steps_already_done, random_state, shorter_proofs_dict = \
         possibly_resume_rworker(args)
-    random.setstate(random_state)
+    if is_singlethreaded:
+        random.setstate(random_state)
 
     if args.tasks_file:
         tasks = read_tasks_file(args, args.tasks_file, args.curriculum)
@@ -380,9 +383,13 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     else:
         task_episodes = [task_ep for task in tasks for task_ep in [task] * args.num_episodes]
 
-    for step in range(steps_already_done):
-        with nostderr():
-            worker.v_network.adjuster.step()
+    if not is_singlethreaded:
+        assert steps_already_done >= len(task_episodes), (steps_already_done, len(task_episodes))
+
+    if is_singlethreaded:
+        for step in range(steps_already_done):
+            with nostderr():
+                worker.v_network.adjuster.step()
 
     for step, task in enumerate(tqdm(task_episodes[steps_already_done:],
                                      initial=steps_already_done,
@@ -390,19 +397,21 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
                                      start=steps_already_done+1):
         cur_epsilon = args.starting_epsilon + ((step / len(task_episodes)) *
                                                (args.ending_epsilon - args.starting_epsilon))
-        worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
+        sol_length = worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
+        if sol_length and sol_length < shorter_proofs_dict.get(task, task.target_length):
+            shorter_proofs_dict[task] = sol_length
         if (step + 1) % args.train_every == 0:
             if os.path.isfile("vvalverify.dat") :
                 os.remove('vvalverify.dat')
             with print_time("Training", guard=args.print_timings):
                 worker.train()
         if (step + 1) % args.save_every == 0:
-            save_state(args, worker, step + 1)
+            save_state(args, worker, shorter_proofs_dict, step + 1)
         if (step + 1) % args.sync_target_every == 0:
             worker.sync_networks()
     if steps_already_done < len(task_episodes):
         with print_time("Saving"):
-            save_state(args, worker, step)
+            save_state(args, worker, shorter_proofs_dict, step)
     if args.evaluate or args.evaluate_baseline:
         if args.test_file:
             test_tasks = read_tasks_file(args, args.test_file, False)
@@ -412,7 +421,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         else:
             evaluate_results(args, worker, tasks)
     if args.verifyvval:
-        verify_vvals(args, worker, tasks)
+        verify_vvals(args, worker, tasks, shorter_proofs_dict)
 
 def read_tasks_file(args: argparse.Namespace, task_file: str, curriculum: bool):
     tasks = []
@@ -423,7 +432,7 @@ def read_tasks_file(args: argparse.Namespace, task_file: str, curriculum: bool):
     return tasks
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
-    obl_cache: Dict[Obligation, torch.FloatTensor]
+    obl_cache: OrderedDict[Obligation, torch.FloatTensor]
     max_size: int
     def __init__(self, term_encoder: 'coq2vec.CoqTermRNNVectorizer',
             max_num_hypotheses: int, max_size: int=5000) -> None:
@@ -554,12 +563,13 @@ class VNetwork:
         self.steps_trained += 1
         self.total_loss += loss
         return loss
+
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
                      v_network: VNetwork,
                      replay_buffer: 'ReplayBuffer',
-                     epsilon: float) -> None:
+                     epsilon: float) -> Optional[int]:
     path: List[ProofContext] = [coq.proof_context]
     initial_open_obligations = len(coq.proof_context.all_goals)
     trace: List[str] = []
@@ -621,7 +631,8 @@ def experience_proof(args: argparse.Namespace,
         current_open_obligations = len(coq.proof_context.all_goals)
         if current_open_obligations < initial_open_obligations:
             eprint(f"Completed task with trace {trace}", guard=args.verbose >= 1)
-            break
+            return step+1
+    return None
 
 def evaluate_actions(coq: coq_serapy.CoqAgent,
                      v_network: VNetwork, path: List[ProofContext],
@@ -765,11 +776,14 @@ class DummyPredictor(TacticPredictor):
         raise NotImplementedError()
 
 def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
+               shorter_proofs_dict: Dict[RLTask, int],
                step: int) -> None:
     with args.output_file.open('wb') as f:
-        torch.save((worker.replay_buffer, step,
+        torch.save((True,
+                    worker.replay_buffer, step,
                     worker.v_network.get_state(),
                     worker.target_v_network.get_state(),
+                    shorter_proofs_dict,
                     random.getstate()), f)
 
 def evaluate_proof(args: argparse.Namespace,
@@ -830,7 +844,8 @@ def evaluate_results(args: argparse.Namespace,
 
 def verify_vvals(args: argparse.Namespace,
                  worker: ReinforcementWorker,
-                 tasks: List[RLTask]) -> None:
+                 tasks: List[RLTask],
+                 shorter_proofs_dict: Dict[RLTask, int]) -> None:
     print("Verifying VVals")
     resumepath = Path("vvalverify.dat")
     if args.resume == "ask" and resumepath.exists():
@@ -854,6 +869,7 @@ def verify_vvals(args: argparse.Namespace,
     for idx, task in enumerate(tqdm(tasks[steps_already_done:], desc="Tasks checked",
                                     initial=steps_already_done, total=len(tasks)),
                                     start=steps_already_done + 1):
+        target_steps = shorter_proofs_dict.get(task, task.target_length)
         if not tactic_prefix_is_usable(task.tactic_prefix):
             eprint(f"Skipping job {task} with prefix {task.tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
@@ -861,8 +877,8 @@ def verify_vvals(args: argparse.Namespace,
         vval_predicted = worker.estimate_starting_vval(task.to_job(), task.tactic_prefix)
         steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) / math.log(args.gamma)
         eprint(f"Predicted vval {vval_predicted} ({steps_predicted} steps) vs "
-               f"{task.target_length} actual steps", guard=args.verbose >= 1)
-        step_error = abs(steps_predicted - task.target_length)
+               f"{target_steps} actual steps", guard=args.verbose >= 1)
+        step_error = abs(steps_predicted - target_steps)
         vval_err_sum += step_error
         if idx%100 == 0 :
             with open('vvalverify.dat','wb') as f :
