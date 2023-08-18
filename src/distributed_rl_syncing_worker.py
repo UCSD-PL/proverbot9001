@@ -129,18 +129,17 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
     current_working_directory = os.getcwd()
     root_dir = str(args.state_dir / "weights")
     os.chdir(root_dir)
-    
-    common_network_paths= glob(f"common-target-network-*.dat")
+    common_network_paths= glob("common-target-network-*.dat")
     os.chdir(current_working_directory)
 
     #common_network_paths= glob(f"common-target-network-*.dat",
     #                            root_dir = str(args.state_dir / "weights"))
-    common_save_nums = [int(unwrap(re.match(rf"common-target-network-(\d+).dat",
+    common_save_nums = [int(unwrap(re.match(r"common-target-network-(\d+).dat",
                                             path)).group(1))
                         for path in common_network_paths]
-    latest_worker_save_num = max(common_save_nums)
+    latest_common_save_num = max(common_save_nums)
     for save_num in common_save_nums:
-        if save_num > latest_worker_save_num - args.keep_latest:
+        if save_num > latest_common_save_num - args.keep_latest:
             continue
         old_save_path = (args.state_dir / "weights" /
                          f"common-target-network-{save_num}.dat")
@@ -154,7 +153,7 @@ def delete_old_worker_weights(args: argparse.Namespace,
         current_working_directory = os.getcwd()
         root_dir = str(args.state_dir / "weights")
         os.chdir(root_dir)
-        
+
         worker_network_paths= glob(f"worker-{workerid}-network-*.dat")
         os.chdir(current_working_directory)
         #worker_network_paths = glob(f"worker-{workerid}-network-*.dat",

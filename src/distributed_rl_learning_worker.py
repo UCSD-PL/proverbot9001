@@ -242,7 +242,7 @@ def load_latest_target_network(args: argparse.Namespace,
     os.chdir(root_dir)
     target_networks = glob("common-target-network-*.dat")
     os.chdir(current_working_directory)
-    
+
     #target_networks = glob("common-target-network-*.dat",
     #                       root_dir = str(args.state_dir / "weights"))
     if len(target_networks) == 0:
