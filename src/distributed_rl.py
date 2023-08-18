@@ -65,7 +65,7 @@ def check_resume(args: argparse.Namespace) -> None:
     else:
         resume = args.resume
 
-    if resume == "no" and resume_exists:
+    if resume == "no":
         shutil.rmtree(str(args.state_dir))
 
 def make_initial_filestructure(args: argparse.Namespace) -> None:

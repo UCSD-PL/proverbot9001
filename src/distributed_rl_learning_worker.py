@@ -21,7 +21,8 @@ import rl
 from util import (nostderr, FileLock, eprint,
                   print_time, unwrap, safe_abbrev)
 from distributed_rl import (add_distrl_args_to_parser,
-                            latest_worker_save, latest_worker_save_num)
+                            latest_worker_save, latest_worker_save_num,
+                            get_all_files)
 #pylint: enable=wrong-import-position
 
 def main():
