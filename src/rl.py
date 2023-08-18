@@ -374,7 +374,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         random.setstate(random_state)
 
     if args.tasks_file:
-        tasks = read_tasks_file(args, args.tasks_file, args.curriculum)
+        tasks = read_tasks_file(args.tasks_file, args.curriculum)
     else:
         tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
 
@@ -414,16 +414,14 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             save_state(args, worker, shorter_proofs_dict, step)
     if args.evaluate or args.evaluate_baseline:
         if args.test_file:
-            test_tasks = read_tasks_file(args, args.test_file, False)
-            evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                                    initial_replay_buffer = replay_buffer)
-            evaluate_results(args, evaluation_worker, test_tasks)
+            test_tasks = read_tasks_file(args.test_file, False)
+            evaluate_results(args, worker, test_tasks)
         else:
             evaluate_results(args, worker, tasks)
     if args.verifyvval:
         verify_vvals(args, worker, tasks, shorter_proofs_dict)
 
-def read_tasks_file(args: argparse.Namespace, task_file: str, curriculum: bool):
+def read_tasks_file(task_file: str, curriculum: bool):
     tasks = []
     with open(task_file, "r") as f:
         tasks = [RLTask(**json.loads(line)) for line in f]
