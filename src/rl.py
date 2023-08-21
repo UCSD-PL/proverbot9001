@@ -83,7 +83,7 @@ def main():
     parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--sync-target-every",
                         help="Sync target network to v network every <n> episodes",
-                        default=10, type=int)
+                        default=-1, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
@@ -352,7 +352,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             evaluate_results(args, evaluation_worker, test_jobs)
             #TODO: does evaluation save? do we need to implement "steps already done"?
         else:
-            evaluate_results(args, worker, jobs)
+            raise ValueError("No Test File Specified")
+            # evaluate_results(args, worker, jobs)
 
 def get_job_and_prefix_from_task_file(task_file, args):
     jobs = []
@@ -945,7 +946,10 @@ def tuning(args) -> None:
                 switch_dict = None
         else:
             switch_dict = None
-        # predictor = get_predictor(args)
+        if args.test_file:
+            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
+        else:
+            raise ValueError("No Test File Specified")
         predictor = MemoizingPredictor(get_predictor(args))
         # predictor = DummyPredictor()
         # if args.resume == "ask" and args.output_file.exists():
@@ -1011,7 +1015,12 @@ def tuning(args) -> None:
         # if steps_already_done < len(tasks):
         #     save_state(args, worker, step)
         # if args.evaluate:
-        proofs_solved = evaluate_results(args, worker, jobs)
+
+        evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
+                                        initial_replay_buffer = replay_buffer)
+        proofs_solved = evaluate_results(args, evaluation_worker, test_jobs)
+            #TODO: does evaluation save? do we need to implement "steps already done"?
+
         session.report({"score":proofs_solved})
 
 
@@ -1033,4 +1042,3 @@ def tuning(args) -> None:
 
 if __name__ == "__main__":
     main()
-| objective_ec91c_00024 | TERMINATED | 130.126.139.102:2809163 |      26.9291 |                  43 | 0.959228 |     0.00605964  |  0.879865 |         0.261549   |                  99 |      1 |          83.2639 |      43 
