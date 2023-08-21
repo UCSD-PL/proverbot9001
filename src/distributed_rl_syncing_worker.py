@@ -14,6 +14,8 @@ from glob import glob
 
 import torch
 
+from coq_serapy.contexts import Obligation
+
 sys.path.append(str(Path(os.getcwd()) / "src"))
 
 #pylint: disable=wrong-import-position
@@ -65,7 +67,8 @@ def build_final_save(args: argparse.Namespace, last_save_num: int,
                     f"common-target-network-{last_save_num}.dat")
     common_network_weights_dict = torch.load(save_path)
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
-    v_network_state = (common_network_weights_dict, obl_encoder_state, OrderedDict())
+    v_network_state: Tuple[dict, Any, OrderedDict[Obligation, torch.FloatTensor]] = \
+                           (common_network_weights_dict, obl_encoder_state, OrderedDict())
     assert len(v_network_state) == 3
     with args.output_file.open('wb') as f:
         torch.save((False, None,
