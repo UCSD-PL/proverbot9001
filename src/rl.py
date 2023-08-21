@@ -362,6 +362,7 @@ def possibly_resume_rworker(args: argparse.Namespace) \
                                  args.batch_step, args.lr_step)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
+        is_singlethreaded = True
     worker = ReinforcementWorker(args, predictor, v_network, target_network,
                                  switch_dict_from_args(args),
                                  initial_replay_buffer = replay_buffer)
