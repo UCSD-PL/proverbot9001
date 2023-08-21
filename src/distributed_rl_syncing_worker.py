@@ -55,6 +55,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
         delete_old_worker_weights(args, worker_weights_versions)
         delete_old_common_weights(args)
         next_save_num += 1
+        num_task_eps_done = get_num_task_eps_done(args)
     eprint("Saving final weights and cleaning up")
     build_final_save(args, next_save_num - 1, len(all_task_eps))
 
