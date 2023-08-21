@@ -111,6 +111,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--verifyvval",action="store_true")
+    parser.add_argument("--verifyv-every", type=int, default=None)
     return parser
 
 
@@ -412,6 +413,8 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             save_state(args, worker, shorter_proofs_dict, step + 1)
         if (step + 1) % args.sync_target_every == 0:
             worker.sync_networks()
+        if args.verifyv_every is not None and (step + 1) % args.verifyv_every == 0:
+            verify_vvals(args, worker, [task], shorter_proofs_dict)
     if steps_already_done < len(task_episodes):
         with print_time("Saving"):
             save_state(args, worker, shorter_proofs_dict, step)
@@ -422,6 +425,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         else:
             evaluate_results(args, worker, tasks)
     if args.verifyvval:
+        print("Verifying VVals")
         verify_vvals(args, worker, tasks, shorter_proofs_dict)
 
 def read_tasks_file(task_file: str, curriculum: bool):
@@ -868,7 +872,8 @@ def verify_vvals(args: argparse.Namespace,
 
 
     for idx, task in enumerate(tqdm(tasks[steps_already_done:], desc="Tasks checked",
-                                    initial=steps_already_done, total=len(tasks)),
+                                    initial=steps_already_done, total=len(tasks),
+                                    disable=len(tasks) < 25),
                                     start=steps_already_done + 1):
         target_steps = shorter_proofs_dict.get(task, task.target_length)
         if not tactic_prefix_is_usable(task.tactic_prefix):
