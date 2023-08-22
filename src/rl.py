@@ -851,7 +851,6 @@ def verify_vvals(args: argparse.Namespace,
                  worker: ReinforcementWorker,
                  tasks: List[RLTask],
                  shorter_proofs_dict: Dict[RLTask, int]) -> None:
-    print("Verifying VVals")
     resumepath = Path("vvalverify.dat")
     if args.resume == "ask" and resumepath.exists():
         print(f"Found vval verification in progress at {str(resumepath)}. Resume?")
