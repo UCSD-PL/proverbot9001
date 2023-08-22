@@ -112,6 +112,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--verifyvval",action="store_true")
     parser.add_argument("--verifyv-every", type=int, default=None)
+    parser.add_argument("--verifyv-steps", action="store_true")
     return parser
 
 
@@ -276,6 +277,12 @@ class ReinforcementWorker:
             eprint(f"Failed to solve proof {proof_name}")
         return success
 
+    def check_vval_steps_task(self, task: RLTask) -> None:
+        file_worker = self._get_worker(task.src_file)
+        file_worker.run_into_task(task.to_job(), task.tactic_prefix)
+        check_vval_steps(self.args, file_worker.coq, self.predictor, self.v_network)
+
+
     def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str],
                                restart: bool = True) -> float :
         file_worker = self._get_worker(job.filename)
@@ -424,7 +431,11 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             evaluate_results(args, worker, test_tasks)
         else:
             evaluate_results(args, worker, tasks)
-    if args.verifyvval:
+    if args.verifyv_steps:
+        for idx, task in enumerate(tasks):
+            eprint(f"Task {idx}:")
+            worker.check_vval_steps_task(task)
+    elif args.verifyvval:
         print("Verifying VVals")
         verify_vvals(args, worker, tasks, shorter_proofs_dict)
 
@@ -678,6 +689,27 @@ def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
         return None
     return context_after
 
+def execute_action_trace(coq: coq_serapy.CoqAgent,
+                         action: str) -> List[str]:
+    coq.run_stmt(action)
+    trace = [action]
+
+    subgoals_closed = 0
+    if len(unwrap(coq.proof_context).fg_goals) == 0 and \
+       len(unwrap(coq.proof_context).shelved_goals) > 0: # type: ignore
+        coq.run_stmt("Unshelve.")
+    while len(unwrap(coq.proof_context).fg_goals) == 0 \
+            and not completed_proof(coq):
+        coq.run_stmt("}")
+        trace.append("}")
+        subgoals_closed += 1
+    if coq.count_fg_goals() > 1 or \
+       (coq.count_fg_goals() > 0 and subgoals_closed > 0):
+        coq.run_stmt("{")
+        trace.append("{")
+    return trace
+
+
 def execute_action(coq: coq_serapy.CoqAgent,
                    action: str) -> List[Obligation]:
 
@@ -790,6 +822,71 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
                     worker.target_v_network.get_state(),
                     shorter_proofs_dict,
                     random.getstate()), f)
+
+def path_obl_length(path: List[Union[ProofContext, str]]) -> None:
+    bracket_depth = 0
+    cur_length = 0
+    for context_or_bracket in path:
+        if isinstance(context_or_bracket, str):
+            bracket = context_or_bracket
+            if bracket == "{":
+                bracket_depth += 1
+            if bracket == "}":
+                if bracket_depth == 0:
+                    return cur_length
+                bracket_depth -= 1
+        else:
+            cur_length += 1
+    eprint(f"Length of trace {path} is {cur_length}")
+    return cur_length
+
+def print_path_vval_errors(args: argparse.Namespace,
+                           v_network: VNetwork,
+                           path: List[Union[ProofContext, str]]) -> None:
+    for step_idx, context in enumerate(path):
+        if isinstance(context, str):
+            continue
+        target_steps = path_obl_length(path[step_idx:])
+        assert len(context.fg_goals) == 1, len(context.fg_goals)
+        vval_predicted = v_network(context.fg_goals[0])
+        steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) \
+            / math.log(args.gamma)
+        print(f"At obligation: {coq_serapy.summarizeObligation(context.fg_goals[0])}")
+        print(f"Predicted vval {vval_predicted} ({steps_predicted} steps) vs "
+               f"{target_steps} actual steps")
+        step_error = abs(steps_predicted - target_steps)
+        print(f"Step error: {step_error}")
+
+def check_vval_steps(args: argparse.Namespace,
+                     coq: coq_serapy.CoqAgent,
+                     predictor: TacticPredictor,
+                     v_network: VNetwork) -> None:
+    path: List[Union[ProofContext, str]] = [coq.proof_context]
+    trace = list(path)
+    initial_open_obligations = len(coq.proof_context.all_goals)
+    for _step in range(args.steps_per_episode):
+        actions = predictor.predictKTactics(
+            truncate_tactic_context(FullContext(
+                coq.local_lemmas[:-1],
+                coq.prev_tactics,
+                unwrap(coq.proof_context)).as_tcontext(),
+                                    30),
+            args.num_predictions,
+            blacklist=args.blacklisted_tactics)
+        action_scores = evaluate_actions(coq, v_network, path,
+                                         [action.prediction for action in actions],
+                                         args.verbose)
+        best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
+        if best_score == -float("Inf"):
+            break
+        action_trace = execute_action_trace(coq, best_action.prediction)
+        current_open_obligations = len(coq.proof_context.all_goals)
+        if current_open_obligations < initial_open_obligations:
+            break
+        trace += action_trace
+        trace.append(coq.proof_context)
+        path.append(coq.proof_context)
+    print_path_vval_errors(args, v_network, trace)
 
 def evaluate_proof(args: argparse.Namespace,
                    coq: coq_serapy.CoqAgent,
