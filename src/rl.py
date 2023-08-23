@@ -838,7 +838,6 @@ def path_obl_length(path: List[Union[ProofContext, str]]) -> None:
                 bracket_depth -= 1
         else:
             cur_length += 1
-    eprint(f"Length of trace {path} is {cur_length}")
     return cur_length
 
 def print_path_vval_errors(args: argparse.Namespace,
