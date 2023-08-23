@@ -221,9 +221,13 @@ class ReinforcementWorker:
 
         return self.file_workers[filename][0]
 
-    def train(self) -> None:
-        train_v_network(self.args, self.v_network, self.target_v_network,
-                        self.replay_buffer)
+    def train(self, step: int) -> None:
+        for batch_idx in range(self.args.batches_per_proof):
+            train_v_network(self.args, self.v_network, self.target_v_network,
+                            self.replay_buffer)
+            if (step * self.args.batches_per_proof + batch_idx) % \
+               self.args.sync_target_every == 0:
+                self.sync_networks()
 
     def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
                           epsilon: float, restart: bool = True) -> Optional[int]:
@@ -415,11 +419,9 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             if os.path.isfile("vvalverify.dat") :
                 os.remove('vvalverify.dat')
             with print_time("Training", guard=args.print_timings):
-                worker.train()
+                worker.train(step)
         if (step + 1) % args.save_every == 0:
             save_state(args, worker, shorter_proofs_dict, step + 1)
-        if (step + 1) % args.sync_target_every == 0:
-            worker.sync_networks()
         if args.verifyv_every is not None and (step + 1) % args.verifyv_every == 0:
             verify_vvals(args, worker, [task], shorter_proofs_dict)
     if steps_already_done < len(task_episodes):
@@ -734,7 +736,6 @@ def train_v_network(args: argparse.Namespace,
                     v_network: VNetwork,
                     target_network: VNetwork,
                     replay_buffer: 'ReplayBuffer'):
-    for _batch_idx in range(args.batches_per_proof):
         samples = replay_buffer.sample(args.batch_size)
         if samples is None:
             return
