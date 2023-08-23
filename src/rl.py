@@ -8,8 +8,18 @@ import contextlib
 import math
 from pathlib import Path
 from operator import itemgetter
-from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
-                    Sequence, TypeVar, Callable)
+from typing import (
+    List,
+    Optional,
+    Dict,
+    Tuple,
+    Union,
+    Any,
+    Set,
+    Sequence,
+    TypeVar,
+    Callable,
+)
 
 from util import unwrap, eprint, print_time, nostderr
 
@@ -19,13 +29,18 @@ with print_time("Importing torch"):
     import torch.nn.functional as F
     from torch import optim
     import torch.optim.lr_scheduler as scheduler
-    from models.tactic_predictor import (TacticPredictor, Prediction)
+    from models.tactic_predictor import TacticPredictor, Prediction
 
 from tqdm import tqdm
 
 import coq_serapy
-from coq_serapy.contexts import (FullContext, truncate_tactic_context,
-                                 Obligation, TacticContext, ProofContext)
+from coq_serapy.contexts import (
+    FullContext,
+    truncate_tactic_context,
+    Obligation,
+    TacticContext,
+    ProofContext,
+)
 import coq2vec
 
 with print_time("Importing search code"):
@@ -38,33 +53,40 @@ from ray import tune, air
 from ray.air import session
 from ray.tune.search.optuna import OptunaSearch
 
+
 def main():
     eprint("Starting main")
     parser = argparse.ArgumentParser(
         description="Train a state estimator using reinforcement learning"
-        "to complete proofs using Proverbot9001.")
+        "to complete proofs using Proverbot9001."
+    )
     parser.add_argument("--prelude", default=".", type=Path)
-    parser.add_argument("--output", "-o", dest="output_file",
-                        help="output data folder name",
-                        default="data/rl_weights.dat",
-                        type=Path)
-    parser.add_argument("--verbose", "-v", help="verbose output",
-                        action="count", default=0)
-    parser.add_argument("--progress", "-P", help="show progress of files",
-                        action='store_true')
-    parser.add_argument("--print-timings", "-t", action='store_true')
-    parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
+    parser.add_argument(
+        "--output",
+        "-o",
+        dest="output_file",
+        help="output data folder name",
+        default="data/rl_weights.dat",
+        type=Path,
+    )
+    parser.add_argument(
+        "--verbose", "-v", help="verbose output", action="count", default=0
+    )
+    parser.add_argument(
+        "--progress", "-P", help="show progress of files", action="store_true"
+    )
+    parser.add_argument("--print-timings", "-t", action="store_true")
+    parser.add_argument("--no-set-switch", dest="set_switch", action="store_false")
     parser.add_argument("--include-proof-relevant", action="store_true")
-    parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
-    parser.add_argument('filenames', help="proof file name (*.v)",
-                        nargs='+', type=Path)
+    parser.add_argument("--backend", choices=["serapi", "lsp", "auto"], default="auto")
+    parser.add_argument("filenames", help="proof file name (*.v)", nargs="+", type=Path)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
     parser.add_argument("--tasks-file", default=None)
     parser.add_argument("--test-file", default=None)
     parser.add_argument("--no-interleave", dest="interleave", action="store_false")
-    parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
+    parser.add_argument("--supervised-weights", type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
     parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
@@ -81,22 +103,41 @@ def main():
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--train-every", default=1, type=int)
     parser.add_argument("--print-loss-every", default=None, type=int)
-    parser.add_argument("--sync-target-every",
-                        help="Sync target network to v network every <n> episodes",
-                        default=-1, type=int)
-    parser.add_argument("--allow-partial-batches", action='store_true')
-    parser.add_argument("--blacklist-tactic", action="append",
-                        dest="blacklisted_tactics")
+    parser.add_argument(
+        "--sync-target-every",
+        help="Sync target network to v network every <n> episodes",
+        default=-1,
+        type=int,
+    )
+    parser.add_argument("--allow-partial-batches", action="store_true")
+    parser.add_argument(
+        "--blacklist-tactic", action="append", dest="blacklisted_tactics"
+    )
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
-    parser.add_argument("--curriculum",action="store_true")
-    parser.add_argument("--hyperparameter_search",action="store_true")
-    args,_ = parser.parse_known_args()
+    parser.add_argument("--curriculum", action="store_true")
+    parser.add_argument("--hyperparameter_search", action="store_true")
+    args, _ = parser.parse_known_args()
     if args.hyperparameter_search:
-        parser.add_argument("--num-trails",default=20,type=int,help="Number of trails for hyperparameter search")
-        parser.add_argument("--num-cpus",default=1,type=int,help="Number of CPUs available for a hyperparameter search")
-        parser.add_argument("--num-gpus",default=1,type=int,help="Number of GPUs available for a hyperparameter search")
+        parser.add_argument(
+            "--num-trails",
+            default=20,
+            type=int,
+            help="Number of trails for hyperparameter search",
+        )
+        parser.add_argument(
+            "--num-cpus",
+            default=1,
+            type=int,
+            help="Number of CPUs available for a hyperparameter search",
+        )
+        parser.add_argument(
+            "--num-gpus",
+            default=1,
+            type=int,
+            help="Number of GPUs available for a hyperparameter search",
+        )
         args = parser.parse_args()
     if args.filenames[0].suffix == ".json":
         args.splits_file = args.filenames[0]
@@ -108,6 +149,7 @@ def main():
     else:
         result = reinforce_jobs(args)
 
+
 class FileReinforcementWorker(Worker):
     def finish_proof(self) -> None:
         assert self.coq
@@ -116,13 +158,21 @@ class FileReinforcementWorker(Worker):
         ending_cmd = self.remaining_commands.pop(0)
         coq_serapy.admit_proof(self.coq, self.coq.prev_tactics[0], ending_cmd)
 
-    def run_into_task(self, job: ReportJob, tactic_prefix: List[str],
-                      restart_anomaly: bool = True, careful: bool = False) -> None:
+    def run_into_task(
+        self,
+        job: ReportJob,
+        tactic_prefix: List[str],
+        restart_anomaly: bool = True,
+        careful: bool = False,
+    ) -> None:
         assert self.coq
-        if job.project_dir != self.cur_project or job.filename != self.cur_file \
-           or job.module_prefix != self.coq.sm_prefix \
-               or self.coq.proof_context is None \
-               or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
+        if (
+            job.project_dir != self.cur_project
+            or job.filename != self.cur_file
+            or job.module_prefix != self.coq.sm_prefix
+            or self.coq.proof_context is None
+            or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip()
+        ):
             if self.coq.proof_context is not None:
                 self.finish_proof()
             with print_time("Running into job", guard=self.args.print_timings):
@@ -136,8 +186,11 @@ class FileReinforcementWorker(Worker):
                 cur_path = self.coq.tactic_history.getFullHistory()[1:]
                 # this is needed because commands that are just comments don't
                 # show up in the history (because cancelling skips them).
-                target_path = [tac for tac in tactic_prefix
-                               if coq_serapy.kill_comments(tac).strip() != ""]
+                target_path = [
+                    tac
+                    for tac in tactic_prefix
+                    if coq_serapy.kill_comments(tac).strip() != ""
+                ]
                 common_prefix_len = 0
                 for item1, item2 in zip(cur_path, target_path):
                     if item1.strip() != item2.strip():
@@ -145,14 +198,16 @@ class FileReinforcementWorker(Worker):
                     common_prefix_len += 1
                 # Heuristically assume that cancelling a command is about
                 # 1/20th as expensive as running one.
-                if len(target_path) < \
-                        (len(cur_path) - common_prefix_len) * 0.05 + \
-                        (len(target_path) - common_prefix_len):
-                    eprint(f"Decided to abort because the target path is only {len(target_path)} tactics long, "
-                           f"but the common prefix is only {common_prefix_len} tactics long, "
-                           f"so we would have to cancel {len(cur_path) - common_prefix_len} tactics "
-                           f"and rerun {len(target_path) - common_prefix_len} tactics.",
-                           guard=self.args.verbose >= 1)
+                if len(target_path) < (len(cur_path) - common_prefix_len) * 0.05 + (
+                    len(target_path) - common_prefix_len
+                ):
+                    eprint(
+                        f"Decided to abort because the target path is only {len(target_path)} tactics long, "
+                        f"but the common prefix is only {common_prefix_len} tactics long, "
+                        f"so we would have to cancel {len(cur_path) - common_prefix_len} tactics "
+                        f"and rerun {len(target_path) - common_prefix_len} tactics.",
+                        guard=self.args.verbose >= 1,
+                    )
                     self.coq.run_stmt("Abort.")
                     self.coq.run_stmt(job.lemma_statement)
                     for cmd in target_path:
@@ -164,20 +219,25 @@ class FileReinforcementWorker(Worker):
                         self.coq.run_stmt_noupdate(cmd)
                 self.coq.update_state()
 
+
 class ReinforcementWorker:
-    v_network: 'VNetwork'
-    target_v_network: 'VNetwork'
-    replay_buffer: 'ReplayBuffer'
+    v_network: "VNetwork"
+    target_v_network: "VNetwork"
+    replay_buffer: "ReplayBuffer"
     verbosity: int
     predictor: TacticPredictor
     last_worker_idx: int
     file_workers: Dict[str, Tuple[FileReinforcementWorker, int]]
-    def __init__(self, args: argparse.Namespace,
-                 predictor: TacticPredictor,
-                 v_network: 'VNetwork',
-                 target_network: 'VNetwork',
-                 switch_dict: Optional[Dict[str, str]] = None,
-                 initial_replay_buffer: Optional['ReplayBuffer'] = None) -> None:
+
+    def __init__(
+        self,
+        args: argparse.Namespace,
+        predictor: TacticPredictor,
+        v_network: "VNetwork",
+        target_network: "VNetwork",
+        switch_dict: Optional[Dict[str, str]] = None,
+        initial_replay_buffer: Optional["ReplayBuffer"] = None,
+    ) -> None:
         self.args = args
         self.v_network = v_network
         self.target_v_network = target_network
@@ -186,10 +246,12 @@ class ReinforcementWorker:
         if initial_replay_buffer:
             self.replay_buffer = initial_replay_buffer
         else:
-            self.replay_buffer = ReplayBuffer(args.window_size,
-                                              args.allow_partial_batches)
+            self.replay_buffer = ReplayBuffer(
+                args.window_size, args.allow_partial_batches
+            )
         self.verbosity = args.verbose
         self.file_workers = {}
+
     def _get_worker(self, filename: str) -> FileReinforcementWorker:
         if filename not in self.file_workers:
             args_copy = argparse.Namespace(**vars(self.args))
@@ -214,35 +276,47 @@ class ReinforcementWorker:
         return self.file_workers[filename][0]
 
     def train(self) -> None:
-        train_v_network(self.args, self.v_network, self.target_v_network,
-                        self.replay_buffer)
+        train_v_network(
+            self.args, self.v_network, self.target_v_network, self.replay_buffer
+        )
 
-    def run_job_reinforce(self, job: ReportJob, tactic_prefix: List[str],
-                          epsilon: float, restart: bool = True) -> None:
+    def run_job_reinforce(
+        self,
+        job: ReportJob,
+        tactic_prefix: List[str],
+        epsilon: float,
+        restart: bool = True,
+    ) -> None:
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
         try:
             with print_time("Experiencing", guard=self.args.print_timings):
-                experience_proof(self.args,
-                                 file_worker.coq,
-                                 self.predictor, self.v_network,
-                                 self.replay_buffer, epsilon)
+                experience_proof(
+                    self.args,
+                    file_worker.coq,
+                    self.predictor,
+                    self.v_network,
+                    self.replay_buffer,
+                    epsilon,
+                )
         except coq_serapy.CoqAnomaly:
             eprint("Encountered Coq anomaly. Closing current job.")
             file_worker.restart_coq()
             file_worker.reset_file_state()
             file_worker.enter_file(job.filename)
 
-    def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
-            -> bool:
+    def evaluate_job(
+        self, job: ReportJob, tactic_prefix: List[str], restart: bool = True
+    ) -> bool:
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
         file_worker.run_into_task(job, tactic_prefix)
         success = False
         try:
-            success = evaluate_proof(self.args, file_worker.coq, self.predictor,
-                                     self.v_network)
+            success = evaluate_proof(
+                self.args, file_worker.coq, self.predictor, self.v_network
+            )
         except coq_serapy.CoqAnomaly:
             file_worker.restart_coq()
             file_worker.enter_file(job.filename)
@@ -254,17 +328,20 @@ class ReinforcementWorker:
         return success
 
     def sync_networks(self) -> None:
-        self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
+        self.target_v_network.network.load_state_dict(
+            self.v_network.network.state_dict()
+        )
 
 
 def reinforce_jobs(args: argparse.Namespace) -> None:
     eprint("Starting reinforce_jobs")
     if args.splits_file:
-        with args.splits_file.open('r') as f:
+        with args.splits_file.open("r") as f:
             project_dicts = json.loads(f.read())
         if any("switch" in item for item in project_dicts):
-            switch_dict = {item["project_name"]: item["switch"]
-                           for item in project_dicts}
+            switch_dict = {
+                item["project_name"]: item["switch"] for item in project_dicts
+            }
         else:
             switch_dict = None
     else:
@@ -280,20 +357,26 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         else:
             args.resume = "no"
     elif not args.output_file.exists():
-        assert args.resume != "yes", \
-                "Can't resume because output file " \
-                f"{args.output_file} doesn't already exist."
+        assert args.resume != "yes", (
+            "Can't resume because output file "
+            f"{args.output_file} doesn't already exist."
+        )
         args.resume = "no"
 
     if args.resume == "yes":
-        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
-            torch.load(str(args.output_file))
+        (
+            replay_buffer,
+            steps_already_done,
+            network_state,
+            tnetwork_state,
+            random_state,
+        ) = torch.load(str(args.output_file))
         random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
-        v_network = VNetwork(None, args.learning_rate,
-                             args.batch_step, args.lr_step)
-        target_network = VNetwork(None, args.learning_rate,
-                                  args.batch_step, args.lr_step)
+        v_network = VNetwork(None, args.learning_rate, args.batch_step, args.lr_step)
+        target_network = VNetwork(
+            None, args.learning_rate, args.batch_step, args.lr_step
+        )
         # This ensures that the target and obligation will share a cache for coq2vec encodings
         target_network.obligation_encoder = v_network.obligation_encoder
         v_network.load_state(network_state)
@@ -304,10 +387,12 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         steps_already_done = 0
         replay_buffer = None
         with print_time("Building models"):
-            v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                 args.batch_step, args.lr_step)
-            target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                 args.batch_step, args.lr_step)
+            v_network = VNetwork(
+                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
+            )
+            target_network = VNetwork(
+                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
+            )
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
 
@@ -316,8 +401,14 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     else:
         jobs = [(job, []) for job in get_all_jobs(args)]
 
-    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                 initial_replay_buffer = replay_buffer)
+    worker = ReinforcementWorker(
+        args,
+        predictor,
+        v_network,
+        target_network,
+        switch_dict,
+        initial_replay_buffer=replay_buffer,
+    )
     if args.interleave:
         tasks = jobs * args.num_episodes
     else:
@@ -327,12 +418,13 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
         with nostderr():
             worker.v_network.adjuster.step()
 
-    for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
-                                                          initial=steps_already_done,
-                                                          total=len(tasks)),
-                                           start=steps_already_done+1):
-        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
-                                               (args.ending_epsilon - args.starting_epsilon))
+    for step, (job, task_tactic_prefix) in enumerate(
+        tqdm(tasks[steps_already_done:], initial=steps_already_done, total=len(tasks)),
+        start=steps_already_done + 1,
+    ):
+        cur_epsilon = args.starting_epsilon + (
+            (step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon)
+        )
         worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
         if (step + 1) % args.train_every == 0:
             with print_time("Training", guard=args.print_timings):
@@ -347,47 +439,61 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     if args.evaluate:
         if args.test_file:
             test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
-            evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                         initial_replay_buffer = replay_buffer)
+            evaluation_worker = ReinforcementWorker(
+                args,
+                predictor,
+                v_network,
+                target_network,
+                switch_dict,
+                initial_replay_buffer=replay_buffer,
+            )
             evaluate_results(args, evaluation_worker, test_jobs)
-            #TODO: does evaluation save? do we need to implement "steps already done"?
         else:
             raise ValueError("No Test File Specified")
-            # evaluate_results(args, worker, jobs)
+
 
 def get_job_and_prefix_from_task_file(task_file, args):
     jobs = []
     with open(task_file, "r") as f:
         readjobs = [json.loads(line) for line in f]
     if args.curriculum:
-        readjobs = sorted(readjobs, key=itemgetter('target_length'), reverse=False) #TODO: do we need curriculum for testing?
+        readjobs = sorted(readjobs, key=itemgetter("target_length"), reverse=False)
     for task in readjobs:
-        task_job = ReportJob(project_dir=".", filename=task['src_file'], module_prefix=task['module_prefix'],
-                lemma_statement=task['proof_statement'])
-        jobs.append((task_job, task['tactic_prefix']))
+        task_job = ReportJob(
+            project_dir=".",
+            filename=task["src_file"],
+            module_prefix=task["module_prefix"],
+            lemma_statement=task["proof_statement"],
+        )
+        jobs.append((task_job, task["tactic_prefix"]))
     return jobs
-
 
 
 class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
     obl_cache: Dict[Obligation, torch.FloatTensor]
-    def __init__(self, term_encoder: 'coq2vec.CoqTermRNNVectorizer',
-                 max_num_hypotheses: int) -> None:
+
+    def __init__(
+        self, term_encoder: "coq2vec.CoqTermRNNVectorizer", max_num_hypotheses: int
+    ) -> None:
         super().__init__(term_encoder, max_num_hypotheses)
         self.obl_cache = {}
-    def obligations_to_vectors_cached(self, obls: List[Obligation]) \
-            -> torch.FloatTensor:
+
+    def obligations_to_vectors_cached(
+        self, obls: List[Obligation]
+    ) -> torch.FloatTensor:
         encoded_obl_size = self.term_encoder.hidden_size * (self.max_num_hypotheses + 1)
         encoded = run_network_with_cache(
             lambda x: self.obligations_to_vectors(x).view(len(x), encoded_obl_size),
             [coq2vec.Obligation(list(obl.hypotheses), obl.goal) for obl in obls],
-            [self.obl_cache.get(obl, None) for obl in obls])
+            [self.obl_cache.get(obl, None) for obl in obls],
+        )
         # for row, obl in zip(encoded, obls):
         #     assert obl not in self.obl_cache or (self.obl_cache[obl] == row).all(), \
         #         (self.obl_cache[obl] == row)
         for row, obl in zip(encoded, obls):
             self.obl_cache[obl] = row
         return encoded
+
 
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
@@ -400,9 +506,11 @@ class VNetwork:
 
     def get_state(self) -> Any:
         assert self.obligation_encoder is not None
-        return (self.network.state_dict(),
-                self.obligation_encoder.term_encoder.get_state(),
-                self.obligation_encoder.obl_cache)
+        return (
+            self.network.state_dict(),
+            self.obligation_encoder.term_encoder.get_state(),
+            self.obligation_encoder.obl_cache,
+        )
 
     def _load_encoder_state(self, encoder_state: Any) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
@@ -419,8 +527,7 @@ class VNetwork:
             nn.Linear(84, 1),
         )
         self.optimizer = optim.RMSprop(self.network.parameters(), lr=self.learning_rate)
-        self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
-                                         self.lr_step)
+        self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step, self.lr_step)
 
     def load_state(self, state: Any) -> None:
         # This case exists for compatibility with older resume files that
@@ -435,9 +542,13 @@ class VNetwork:
             self.obligation_encoder.obl_cache = obl_cache
         self.network.load_state_dict(network_state)
 
-
-    def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
-                 batch_step: int, lr_step: float) -> None:
+    def __init__(
+        self,
+        coq2vec_weights: Optional[Path],
+        learning_rate: float,
+        batch_step: int,
+        lr_step: float,
+    ) -> None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.batch_step = batch_step
         self.lr_step = lr_step
@@ -452,8 +563,9 @@ class VNetwork:
             self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
-        assert self.obligation_encoder, \
-            "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
+        assert (
+            self.obligation_encoder
+        ), "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         if isinstance(obls, Obligation):
             obls = [obls]
         else:
@@ -461,17 +573,17 @@ class VNetwork:
             if len(obls) == 0:
                 return torch.tensor([])
 
-        encoded = self.obligation_encoder.\
-            obligations_to_vectors_cached(obls)
+        encoded = self.obligation_encoder.obligations_to_vectors_cached(obls)
         scores = self.network(encoded).view(len(obls))
         return scores
 
-    def train(self, inputs: List[Obligation],
-              target_outputs: List[float],
-              verbosity: int = 0) -> float:
+    def train(
+        self, inputs: List[Obligation], target_outputs: List[float], verbosity: int = 0
+    ) -> float:
         del verbosity
-        assert self.obligation_encoder, \
-            "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
+        assert (
+            self.obligation_encoder
+        ), "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         # with print_time("Training", guard=verbosity >= 1):
         actual = self(inputs)
         target = torch.FloatTensor(target_outputs)
@@ -485,12 +597,16 @@ class VNetwork:
         self.steps_trained += 1
         self.total_loss += loss
         return loss
-def experience_proof(args: argparse.Namespace,
-                     coq: coq_serapy.CoqAgent,
-                     predictor: TacticPredictor,
-                     v_network: VNetwork,
-                     replay_buffer: 'ReplayBuffer',
-                     epsilon: float) -> None:
+
+
+def experience_proof(
+    args: argparse.Namespace,
+    coq: coq_serapy.CoqAgent,
+    predictor: TacticPredictor,
+    v_network: VNetwork,
+    replay_buffer: "ReplayBuffer",
+    epsilon: float,
+) -> None:
     path: List[ProofContext] = [coq.proof_context]
     initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
@@ -498,21 +614,27 @@ def experience_proof(args: argparse.Namespace,
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)
         actions = predictor.predictKTactics(
-            truncate_tactic_context(FullContext(coq.local_lemmas[:-1],
-                                                coq.prev_tactics,
-                                                unwrap(coq.proof_context)).as_tcontext(),
-                                    30),
+            truncate_tactic_context(
+                FullContext(
+                    coq.local_lemmas[:-1], coq.prev_tactics, unwrap(coq.proof_context)
+                ).as_tcontext(),
+                30,
+            ),
             args.num_predictions,
-            blacklist=args.blacklisted_tactics)
-        eprint(f"Using predictions {[action.prediction for action in actions]}",
-               guard=args.verbose >= 3)
+            blacklist=args.blacklisted_tactics,
+        )
+        eprint(
+            f"Using predictions {[action.prediction for action in actions]}",
+            guard=args.verbose >= 3,
+        )
         if random.random() < epsilon:
             eprint("Using best-scoring action", guard=args.verbose >= 3)
             action_scores = evaluate_actions(
-                coq, v_network, path,
-                [action.prediction for action in actions])
-            chosen_action, chosen_score = max(zip(actions, action_scores),
-                                              key=lambda p: p[1])
+                coq, v_network, path, [action.prediction for action in actions]
+            )
+            chosen_action, chosen_score = max(
+                zip(actions, action_scores), key=lambda p: p[1]
+            )
             if chosen_score == -float("Inf"):
                 break
         else:
@@ -523,43 +645,60 @@ def experience_proof(args: argparse.Namespace,
                     coq.run_stmt(action.prediction)
                     resulting_context = coq.proof_context
                     coq.cancel_last_noupdate()
-                    if any(coq_serapy.contextSurjective(resulting_context, path_context)
-                           for path_context in path):
+                    if any(
+                        coq_serapy.contextSurjective(resulting_context, path_context)
+                        for path_context in path
+                    ):
                         continue
                     chosen_action = action
                     break
-                except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
-                        coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
-                        coq_serapy.ParseError,
-                        RecursionError,
-                        coq_serapy.UnrecognizedError) as e:
+                except (
+                    coq_serapy.CoqTimeoutError,
+                    coq_serapy.ParseError,
+                    coq_serapy.CoqExn,
+                    coq_serapy.CoqOverflowError,
+                    coq_serapy.ParseError,
+                    RecursionError,
+                    coq_serapy.UnrecognizedError,
+                ) as e:
                     eprint(f"Action produced error {e}", guard=args.verbose >= 3)
                     pass
             if chosen_action is None:
                 break
         resulting_obls = execute_action(coq, chosen_action.prediction)
 
-        eprint(f"Taking action {chosen_action}",
-               guard=args.verbose >= 2)
+        eprint(f"Taking action {chosen_action}", guard=args.verbose >= 2)
 
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)
-        replay_buffer.add_transition((before_obl, chosen_action.prediction, resulting_obls))
+        replay_buffer.add_transition(
+            (before_obl, chosen_action.prediction, resulting_obls)
+        )
         path.append(coq.proof_context)
 
         current_open_obligations = len(coq.proof_context.all_goals)
         if current_open_obligations < initial_open_obligations:
             break
 
-def evaluate_actions(coq: coq_serapy.CoqAgent,
-                     v_network: VNetwork, path: List[ProofContext],
-                     actions: List[str], verbosity: int = 0) -> List[float]:
-    resulting_contexts: List[Optional[ProofContext]] = \
-        [action_result(coq, path, action, verbosity) for action in actions]
-    num_output_obls: List[Optional[int]] = [len(context.fg_goals) if context else None
-                                            for context in resulting_contexts]
-    all_obls = [obl for context in resulting_contexts
-                for obl in (context.fg_goals if context else [])]
+
+def evaluate_actions(
+    coq: coq_serapy.CoqAgent,
+    v_network: VNetwork,
+    path: List[ProofContext],
+    actions: List[str],
+    verbosity: int = 0,
+) -> List[float]:
+    resulting_contexts: List[Optional[ProofContext]] = [
+        action_result(coq, path, action, verbosity) for action in actions
+    ]
+    num_output_obls: List[Optional[int]] = [
+        len(context.fg_goals) if context else None for context in resulting_contexts
+    ]
+    all_obls = [
+        obl
+        for context in resulting_contexts
+        for obl in (context.fg_goals if context else [])
+    ]
     all_obl_scores = v_network(all_obls)
     resulting_action_scores = []
     cur_obl_idx = 0
@@ -567,65 +706,79 @@ def evaluate_actions(coq: coq_serapy.CoqAgent,
         if num_obls is None:
             resulting_action_scores.append(float("-Inf"))
         else:
-            resulting_action_scores.append(math.prod(
-                all_obl_scores[cur_obl_idx:cur_obl_idx+num_obls]))
+            resulting_action_scores.append(
+                math.prod(all_obl_scores[cur_obl_idx : cur_obl_idx + num_obls])
+            )
             cur_obl_idx += num_obls
     return resulting_action_scores
 
-def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
-                  action: str, verbosity: int = 0) -> Optional[ProofContext]:
+
+def action_result(
+    coq: coq_serapy.CoqAgent, path: List[ProofContext], action: str, verbosity: int = 0
+) -> Optional[ProofContext]:
     try:
         coq.run_stmt(action)
-    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
-            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
-            coq_serapy.ParseError,
-            RecursionError,
-            coq_serapy.UnrecognizedError) as e:
+    except (
+        coq_serapy.CoqTimeoutError,
+        coq_serapy.ParseError,
+        coq_serapy.CoqExn,
+        coq_serapy.CoqOverflowError,
+        coq_serapy.ParseError,
+        RecursionError,
+        coq_serapy.UnrecognizedError,
+    ) as e:
         eprint(f"Action produced error {e}", guard=verbosity >= 3)
         return None
     context_after = coq.proof_context
     coq.cancel_last_noupdate()
-    if any(coq_serapy.contextSurjective(context_after, path_context)
-           for path_context in path):
+    if any(
+        coq_serapy.contextSurjective(context_after, path_context)
+        for path_context in path
+    ):
         return None
     return context_after
 
-def execute_action(coq: coq_serapy.CoqAgent,
-                   action: str) -> List[Obligation]:
 
+def execute_action(coq: coq_serapy.CoqAgent, action: str) -> List[Obligation]:
     coq.run_stmt(action)
     resulting_obls = unwrap(coq.proof_context).fg_goals
 
     subgoals_closed = 0
-    if len(unwrap(coq.proof_context).fg_goals) == 0 and \
-       len(unwrap(coq.proof_context).shelved_goals) > 0: # type: ignore
+    if (
+        len(unwrap(coq.proof_context).fg_goals) == 0
+        and len(unwrap(coq.proof_context).shelved_goals) > 0
+    ):  # type: ignore
         coq.run_stmt("Unshelve.")
-    while len(unwrap(coq.proof_context).fg_goals) == 0 \
-            and not completed_proof(coq):
+    while len(unwrap(coq.proof_context).fg_goals) == 0 and not completed_proof(coq):
         coq.run_stmt("}")
         subgoals_closed += 1
-    if coq.count_fg_goals() > 1 or \
-       (coq.count_fg_goals() > 0 and subgoals_closed > 0):
+    if coq.count_fg_goals() > 1 or (coq.count_fg_goals() > 0 and subgoals_closed > 0):
         coq.run_stmt("{")
 
     return resulting_obls
 
-def train_v_network(args: argparse.Namespace,
-                    v_network: VNetwork,
-                    target_network: VNetwork,
-                    replay_buffer: 'ReplayBuffer'):
+
+def train_v_network(
+    args: argparse.Namespace,
+    v_network: VNetwork,
+    target_network: VNetwork,
+    replay_buffer: "ReplayBuffer",
+):
     for _batch_idx in range(args.batches_per_proof):
         samples = replay_buffer.sample(args.batch_size)
         if samples is None:
             return
         inputs = [start_obl for start_obl, action_records in samples]
-        num_resulting_obls = [[len(resulting_obls)
-                               for action, resulting_obls in action_records]
-                              for starting_obl, action_records in samples]
-        all_obls = [obl
-                    for starting_obl, action_records in samples
-                    for action, resulting_obls in action_records
-                    for obl in resulting_obls]
+        num_resulting_obls = [
+            [len(resulting_obls) for action, resulting_obls in action_records]
+            for starting_obl, action_records in samples
+        ]
+        all_obls = [
+            obl
+            for starting_obl, action_records in samples
+            for action, resulting_obls in action_records
+            for obl in resulting_obls
+        ]
         with torch.no_grad():
             all_obl_scores = target_network(all_obls)
         outputs = []
@@ -633,101 +786,140 @@ def train_v_network(args: argparse.Namespace,
         for resulting_obl_lens in num_resulting_obls:
             action_outputs = []
             for num_obls in resulting_obl_lens:
-                selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
-                action_outputs.append(args.gamma * math.prod(
-                    selected_obl_scores))
+                selected_obl_scores = all_obl_scores[cur_row : cur_row + num_obls]
+                action_outputs.append(args.gamma * math.prod(selected_obl_scores))
                 cur_row += num_obls
             outputs.append(max(action_outputs))
         v_network.train(inputs, outputs, verbosity=args.verbose)
-        if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
+        if (
+            args.print_loss_every
+            and (v_network.steps_trained + 1) % args.print_loss_every == 0
+        ):
             avg_loss = v_network.total_loss / args.print_loss_every
             v_network.total_loss = torch.tensor(0.0)
-            print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
+            print(
+                f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}"
+            )
+
 
 class MemoizingPredictor(TacticPredictor):
     underlying_predictor: TacticPredictor
     cache: Dict[Tuple[TacticContext, int, Optional[Sequence[str]]], List[Prediction]]
+
     def __init__(self, underlying_predictor: TacticPredictor) -> None:
         self.underlying_predictor = underlying_predictor
         self.cache = {}
+
     def getOptions(self) -> List[Tuple[str, str]]:
         raise NotImplementedError()
-    def predictKTactics(self, in_data : TacticContext, k : int,
-                        blacklist: Optional[List[str]] = None) \
-        -> List[Prediction]:
+
+    def predictKTactics(
+        self, in_data: TacticContext, k: int, blacklist: Optional[List[str]] = None
+    ) -> List[Prediction]:
         if in_data in self.cache:
             return self.cache[(in_data, k, tuple(blacklist) if blacklist else None)]
         predictions = self.underlying_predictor.predictKTactics(in_data, k, blacklist)
         self.cache[(in_data, k, tuple(blacklist) if blacklist else None)] = predictions
         return predictions
-    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
-        Tuple[List[Prediction], float]:
+
+    def predictKTacticsWithLoss(
+        self, in_data: TacticContext, k: int, correct: str
+    ) -> Tuple[List[Prediction], float]:
         raise NotImplementedError()
-    def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[TacticContext],
-                                      k : int, correct : List[str]) -> \
-                                      Tuple[List[List[Prediction]], float]:
+
+    def predictKTacticsWithLoss_batch(
+        self, in_data: List[TacticContext], k: int, correct: List[str]
+    ) -> Tuple[List[List[Prediction]], float]:
         raise NotImplementedError()
+
 
 class DummyPredictor(TacticPredictor):
     def __init__(self) -> None:
         pass
+
     def getOptions(self) -> List[Tuple[str, str]]:
         raise NotImplementedError()
 
-    def predictKTactics(self, in_data : TacticContext, k : int,
-                        blacklist: Optional[List[str]] = None) \
-        -> List[Prediction]:
+    def predictKTactics(
+        self, in_data: TacticContext, k: int, blacklist: Optional[List[str]] = None
+    ) -> List[Prediction]:
         del blacklist
         del in_data
         del k
-        return [Prediction("intro.", 0.25), Prediction("apply conj.", 0.25),
-                Prediction("reflexivity.", 0.25), Prediction("simpl.", 0.25)]
-    def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
-        Tuple[List[Prediction], float]:
-        raise NotImplementedError()
-    def predictKTacticsWithLoss_batch(self,
-                                      in_data : List[TacticContext],
-                                      k : int, correct : List[str]) -> \
-                                      Tuple[List[List[Prediction]], float]:
+        return [
+            Prediction("intro.", 0.25),
+            Prediction("apply conj.", 0.25),
+            Prediction("reflexivity.", 0.25),
+            Prediction("simpl.", 0.25),
+        ]
+
+    def predictKTacticsWithLoss(
+        self, in_data: TacticContext, k: int, correct: str
+    ) -> Tuple[List[Prediction], float]:
         raise NotImplementedError()
 
-def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
-               step: int) -> None:
-    with args.output_file.open('wb') as f:
-        torch.save((worker.replay_buffer, step,
-                    worker.v_network.get_state(),
-                    worker.target_v_network.get_state(),
-                    random.getstate()), f)
+    def predictKTacticsWithLoss_batch(
+        self, in_data: List[TacticContext], k: int, correct: List[str]
+    ) -> Tuple[List[List[Prediction]], float]:
+        raise NotImplementedError()
 
-def evaluate_proof(args: argparse.Namespace,
-                   coq: coq_serapy.CoqAgent,
-                   predictor: TacticPredictor,
-                   v_network: VNetwork) -> bool:
+
+def save_state(
+    args: argparse.Namespace, worker: ReinforcementWorker, step: int
+) -> None:
+    with args.output_file.open("wb") as f:
+        torch.save(
+            (
+                worker.replay_buffer,
+                step,
+                worker.v_network.get_state(),
+                worker.target_v_network.get_state(),
+                random.getstate(),
+            ),
+            f,
+        )
+
+
+def evaluate_proof(
+    args: argparse.Namespace,
+    coq: coq_serapy.CoqAgent,
+    predictor: TacticPredictor,
+    v_network: VNetwork,
+) -> bool:
     path: List[ProofContext] = [coq.proof_context]
     proof_succeeded = False
     initial_open_obligations = len(coq.proof_context.all_goals)
     for _step in range(args.steps_per_episode):
         actions = predictor.predictKTactics(
-            truncate_tactic_context(FullContext(
-                coq.local_lemmas[:-1],
-                coq.prev_tactics,
-                unwrap(coq.proof_context)).as_tcontext(),
-                                    30),
+            truncate_tactic_context(
+                FullContext(
+                    coq.local_lemmas[:-1], coq.prev_tactics, unwrap(coq.proof_context)
+                ).as_tcontext(),
+                30,
+            ),
             args.num_predictions,
-            blacklist=args.blacklisted_tactics)
+            blacklist=args.blacklisted_tactics,
+        )
         if args.verbose >= 1:
             coq_serapy.summarizeContext(coq.proof_context)
-        eprint(f"Trying predictions {[action.prediction for action in actions]}",
-               guard=args.verbose >= 2)
-        action_scores = evaluate_actions(coq, v_network, path,
-                                         [action.prediction for action in actions],
-                                         args.verbose)
+        eprint(
+            f"Trying predictions {[action.prediction for action in actions]}",
+            guard=args.verbose >= 2,
+        )
+        action_scores = evaluate_actions(
+            coq,
+            v_network,
+            path,
+            [action.prediction for action in actions],
+            args.verbose,
+        )
         best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
         if best_score == -float("Inf"):
             break
-        eprint(f"Taking action {best_action} with estimated value {best_score}",
-               guard=args.verbose >= 1)
+        eprint(
+            f"Taking action {best_action} with estimated value {best_score}",
+            guard=args.verbose >= 1,
+        )
         execute_action(coq, best_action.prediction)
         path.append(coq.proof_context)
         current_open_obligations = len(coq.proof_context.all_goals)
@@ -737,33 +929,38 @@ def evaluate_proof(args: argparse.Namespace,
     return proof_succeeded
 
 
-def evaluate_results(args: argparse.Namespace,
-                     worker: ReinforcementWorker,
-                     jobs: List[tuple]) -> None:
+def evaluate_results(
+    args: argparse.Namespace, worker: ReinforcementWorker, jobs: List[tuple]
+) -> None:
     proofs_completed = 0
     for job, tactic_prefix in jobs:
         if worker.evaluate_job(job, tactic_prefix):
             proofs_completed += 1
-    print(f"{proofs_completed} out of {len(jobs)} "
-          f"tasks successfully proven "
-          f"({stringified_percent(proofs_completed, len(jobs))}%)")
+    print(
+        f"{proofs_completed} out of {len(jobs)} "
+        f"tasks successfully proven "
+        f"({stringified_percent(proofs_completed, len(jobs))}%)"
+    )
     return proofs_completed
 
-def stringified_percent(total : float, outof : float) -> str:
+
+def stringified_percent(total: float, outof: float) -> str:
     if outof == 0:
         return "NaN"
     return f"{(total * 100 / outof):10.2f}"
 
+
 Transition = Tuple[str, Sequence[Obligation]]
 FullTransition = Tuple[Obligation, str, List[Obligation]]
+
 
 class ReplayBuffer:
     _contents: Dict[Obligation, Tuple[int, Set[Transition]]]
     window_size: int
     window_end_position: int
     allow_partial_batches: int
-    def __init__(self, window_size: int,
-                 allow_partial_batches: bool) -> None:
+
+    def __init__(self, window_size: int, allow_partial_batches: bool) -> None:
         self.window_size = window_size
         self.window_end_position = 0
         self.allow_partial_batches = allow_partial_batches
@@ -786,11 +983,12 @@ class ReplayBuffer:
         from_obl = transition[0]
         action = transition[1]
         to_obls = tuple(transition[2])
-        self._contents[from_obl] = \
-            (self.window_end_position,
-             {(action, to_obls)} |
-             self._contents.get(from_obl, (0, set()))[1])
+        self._contents[from_obl] = (
+            self.window_end_position,
+            {(action, to_obls)} | self._contents.get(from_obl, (0, set()))[1],
+        )
         self.window_end_position += 1
+
 
 # NOT THREAD SAFE
 @contextlib.contextmanager
@@ -801,13 +999,14 @@ def log_time(msg: str) -> None:
     finally:
         time_taken = time.time() - start
         try:
-            with open("timings.json", 'r') as f:
+            with open("timings.json", "r") as f:
                 timings = json.load(f)
         except FileNotFoundError:
             timings = {}
         timings[msg] = time_taken + timings.get(msg, 0.0)
-        with open("timings.json", 'w') as f:
+        with open("timings.json", "w") as f:
             json.dump(timings, f)
+
 
 # This function takes a function which can run on multiple inputs in
 # batch, a list of input values, and a list containing outputs for
@@ -815,11 +1014,14 @@ def log_time(msg: str) -> None:
 # that don't have an output, and puts combines their outputs with the
 # given output list to create a non-None output value for every input,
 # efficiently.
-T = TypeVar('T')
-def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
-                           values: List[T],
-                           cached_outputs: List[Optional[torch.FloatTensor]]) \
-                           -> torch.FloatTensor:
+T = TypeVar("T")
+
+
+def run_network_with_cache(
+    f: Callable[[List[T]], torch.FloatTensor],
+    values: List[T],
+    cached_outputs: List[Optional[torch.FloatTensor]],
+) -> torch.FloatTensor:
     assert len(values) == len(cached_outputs)
     output_list: List[Optional[torch.FloatTensor]] = list(cached_outputs)
     uncached_values: List[T] = []
@@ -835,113 +1037,31 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
     return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
 
 
-
-
-
-
-
-def reinforce_jobs(args: argparse.Namespace) -> None:
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-        if any("switch" in item for item in project_dicts):
-            switch_dict = {item["project_name"]: item["switch"]
-                           for item in project_dicts}
-        else:
-            switch_dict = None
-    else:
-        switch_dict = None
-    # predictor = get_predictor(args)
-    predictor = MemoizingPredictor(get_predictor(args))
-    # predictor = DummyPredictor()
-    if args.resume == "ask" and args.output_file.exists():
-        print(f"Found existing weights at {args.output_file}. Resume?")
-        response = input("[Y/n] ")
-        if response.lower() not in ["no", "n"]:
-            args.resume = "yes"
-        else:
-            args.resume = "no"
-    elif not args.output_file.exists():
-        args.resume = "no"
-
-    if args.resume == "yes":
-        replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
-            torch.load(str(args.output_file))
-        random.setstate(random_state)
-        print(f"Resuming from existing weights of {steps_already_done} steps")
-        v_network = VNetwork(None, args.learning_rate,
-                             args.batch_step, args.lr_step)
-        target_network = VNetwork(None, args.learning_rate,
-                                  args.batch_step, args.lr_step)
-        v_network.load_state(network_state)
-        target_network.load_state(tnetwork_state)
-
-    else:
-        assert args.resume == "no"
-        steps_already_done = 0
-        replay_buffer = None
-        v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                             args.batch_step, args.lr_step)
-        target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                             args.batch_step, args.lr_step)
-
-    if args.tasks_file:
-        taskhandler = Taskhandler()
-        taskhandler.configure({"curriculum"  : True})
-        jobs = taskhandler.get_jobs(args.tasks_file)
-
-    else:
-        jobs = [(job, []) for job in get_all_jobs(args)]
-
-    worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                 initial_replay_buffer = replay_buffer)
-    if args.interleave:
-        tasks = jobs * args.num_episodes
-    else:
-        tasks = [task for job in jobs for task in [job] * args.num_episodes]
-
-    for step in range(steps_already_done):
-        with nostderr():
-            worker.v_network.adjuster.step()
-
-    for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
-                                                          initial=steps_already_done,
-                                                          total=len(tasks)),
-                                           start=steps_already_done+1):
-        cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
-                                               (args.ending_epsilon - args.starting_epsilon))
-        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
-        if (step + 1) % args.train_every == 0:
-            worker.train()
-        if (step + 1) % args.save_every == 0:
-            save_state(args, worker, step + 1)
-        if (step + 1) % args.sync_target_every == 0:
-            worker.sync_networks()
-    if steps_already_done < len(tasks):
-        save_state(args, worker, step)
-    if args.evaluate:
-        proofs_solved = evaluate_results(args, worker, jobs)
-    return proofs_solved
-
-
-
-
-
 def tuning(args) -> None:
-    
-    def objective(config,args):
-        setattr(args,'gamma',config['gamma'])
-        setattr(args,'starting_epsilon',config['starting_epsilon'])
-        setattr(args,'batch_step',config['batch_step'])
-        setattr(args,'lr_step',config['lr_step'])
-        setattr(args,'batches_per_proof',config['batches_per_proof'])
-        setattr(args,'sync_target_every',config['sync_target_every'])
+    """
+    This function is used for tuning hyperparameters with Ray Tune.
+    """
+
+    def objective(config, args):
+        """
+        This function is passed to Ray Tune to optimize hyperparameters.
+        config: A dictionary of hyperparameters to optimize from ray tune.
+        args: The arguments passed to the main function.
+        """
+
+        setattr(args, "gamma", config["gamma"])
+        setattr(args, "starting_epsilon", config["starting_epsilon"])
+        setattr(args, "batch_step", config["batch_step"])
+        setattr(args, "lr_step", config["lr_step"])
+        setattr(args, "batches_per_proof", config["batches_per_proof"])
+        setattr(args, "sync_target_every", config["sync_target_every"])
         if args.splits_file:
-            with args.splits_file.open('r') as f:
+            with args.splits_file.open("r") as f:
                 project_dicts = json.loads(f.read())
             if any("switch" in item for item in project_dicts):
-                switch_dict = {item["project_name"]: item["switch"]
-                            for item in project_dicts}
+                switch_dict = {
+                    item["project_name"]: item["switch"] for item in project_dicts
+                }
             else:
                 switch_dict = None
         else:
@@ -951,26 +1071,23 @@ def tuning(args) -> None:
         else:
             raise ValueError("No Test File Specified")
         predictor = MemoizingPredictor(get_predictor(args))
-        # predictor = DummyPredictor()
-        # if args.resume == "ask" and args.output_file.exists():
-        #     print(f"Found existing weights at {args.output_file}. Resume?")
-        #     response = input("[Y/n] ")
-        #     if response.lower() not in ["no", "n"]:
-        #         args.resume = "yes"
-        #     else:
         args.resume = "no"
-        # elif not args.output_file.exists():
-        #     args.resume = "no"
-
         if args.resume == "yes":
-            replay_buffer, steps_already_done, network_state, tnetwork_state, random_state = \
-                torch.load(str(args.output_file))
+            (
+                replay_buffer,
+                steps_already_done,
+                network_state,
+                tnetwork_state,
+                random_state,
+            ) = torch.load(str(args.output_file))
             random.setstate(random_state)
             print(f"Resuming from existing weights of {steps_already_done} steps")
-            v_network = VNetwork(None, args.learning_rate,
-                                args.batch_step, args.lr_step)
-            target_network = VNetwork(None, args.learning_rate,
-                                    args.batch_step, args.lr_step)
+            v_network = VNetwork(
+                None, args.learning_rate, args.batch_step, args.lr_step
+            )
+            target_network = VNetwork(
+                None, args.learning_rate, args.batch_step, args.lr_step
+            )
             v_network.load_state(network_state)
             target_network.load_state(tnetwork_state)
 
@@ -978,18 +1095,26 @@ def tuning(args) -> None:
             assert args.resume == "no"
             steps_already_done = 0
             replay_buffer = None
-            v_network = VNetwork(args.coq2vec_weights,  args.learning_rate,
-                                args.batch_step, args.lr_step)
-            target_network = VNetwork(args.coq2vec_weights,  args.learning_rate,
-                                args.batch_step, args.lr_step)
+            v_network = VNetwork(
+                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
+            )
+            target_network = VNetwork(
+                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
+            )
 
             if args.tasks_file:
                 jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
             else:
                 jobs = [(job, []) for job in get_all_jobs(args)]
 
-        worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                    initial_replay_buffer = replay_buffer)
+        worker = ReinforcementWorker(
+            args,
+            predictor,
+            v_network,
+            target_network,
+            switch_dict,
+            initial_replay_buffer=replay_buffer,
+        )
         if args.interleave:
             tasks = jobs * args.num_episodes
         else:
@@ -999,46 +1124,55 @@ def tuning(args) -> None:
             with nostderr():
                 worker.v_network.adjuster.step()
 
-        for step, (job, task_tactic_prefix) in enumerate(tqdm(tasks[steps_already_done:],
-                                                            initial=steps_already_done,
-                                                            total=len(tasks)),
-                                            start=steps_already_done+1):
-            cur_epsilon = args.starting_epsilon + ((step / len(tasks)) *
-                                                (args.ending_epsilon - args.starting_epsilon))
+        for step, (job, task_tactic_prefix) in enumerate(
+            tqdm(
+                tasks[steps_already_done:], initial=steps_already_done, total=len(tasks)
+            ),
+            start=steps_already_done + 1,
+        ):
+            cur_epsilon = args.starting_epsilon + (
+                (step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon)
+            )
             worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
             if (step + 1) % args.train_every == 0:
                 worker.train()
-            # if (step + 1) % args.save_every == 0:
-            #     save_state(args, worker, step + 1)
             if (step + 1) % args.sync_target_every == 0:
                 worker.sync_networks()
-        # if steps_already_done < len(tasks):
-        #     save_state(args, worker, step)
-        # if args.evaluate:
 
-        evaluation_worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict,
-                                        initial_replay_buffer = replay_buffer)
-        proofs_solved = evaluate_results(args, evaluation_worker, test_jobs)
-            #TODO: does evaluation save? do we need to implement "steps already done"?
+        evaluation_worker = ReinforcementWorker(
+            args,
+            predictor,
+            v_network,
+            target_network,
+            switch_dict,
+            initial_replay_buffer=replay_buffer,
+        )
+        proofs_solved = evaluate_results(args, evaluation_worker, test_jobs) # Evaluate on test set
 
-        session.report({"score":proofs_solved})
-
-
+        session.report(
+            {"score": proofs_solved}
+        )  # report the metric you want to optimize - currently is proofs solved.
     search_space = {
-        "learning_rate":tune.loguniform(1e-4,1e-2), #tune.grid_search([1e-4,2.5e-4,1e-3]),
-        "gamma": tune.uniform(0.1,0.99),  #([0.95,0.9]),
-        "starting_epsilon":tune.uniform(0,1),#([0,1]),
-        "batch_step":tune.randint(1,30),#([25,30]),
-        "lr_step":tune.uniform(0.8,1),#([0.8,1]),
-        "batches_per_proof":tune.randint(10,50),
-        "sync_target_every":tune.randint(1,250),
-    }
-    tuner = tune.Tuner(tune.with_resources(
-                         tune.with_parameters(objective,args=args), {"cpu": args.num_cpus, "gpu": args.num_gpus}),param_space=search_space,tune_config=tune.TuneConfig(num_samples=args.num_trails))
-                        
+        "learning_rate": tune.loguniform(1e-4, 1e-2),
+        "gamma": tune.uniform(0.1, 0.99),
+        "starting_epsilon": tune.uniform(0, 1),
+        "batch_step": tune.randint(1, 30),
+        "lr_step": tune.uniform(0.8, 1),
+        "batches_per_proof": tune.randint(10, 50),
+        "sync_target_every": tune.randint(1, 250),
+    } # Define the search space for hyperparameters
+    tuner = tune.Tuner(
+        tune.with_resources(
+            tune.with_parameters(objective, args=args),
+            {"cpu": args.num_cpus, "gpu": args.num_gpus},
+        ),
+        param_space=search_space,
+        tune_config=tune.TuneConfig(num_samples=args.num_trails),
+    )
+
     results = tuner.fit()
-    print(results.get_best_result(metric="score", mode="max").config)
-    
+    print(results.get_best_result(metric="score", mode="max").config) # Print the best hyperparameters
+
 
 if __name__ == "__main__":
     main()
