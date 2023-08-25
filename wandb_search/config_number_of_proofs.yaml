@@ -1,0 +1,53 @@
+program: ../src/rl_tuning_wandb.py
+method: bayes
+name: seach_number_of_proofs
+metric:
+  goal: maximize
+  name: score #weighted_score #score
+parameters:
+  learning_rate: 
+    distribution: log_uniform
+    min: 1e-4
+    max: 1e-2
+  gamma: 
+    distribution: uniform
+    min: 0.1
+    max: 0.999
+  starting_epsilon:
+    distribution: uniform
+    min: 0
+    max: 1
+  batch_step:
+    distribution: int_uniform
+    min: 1
+    max: 30
+  lr_step:
+    distribution: uniform
+    min: 0.8
+    max: 1
+  batches_per_proof:
+    distribution: int_uniform
+    min: 10
+    max: 50
+  sync_target_every:
+    distribution: int_uniform
+    min: 1
+    max: 250
+
+
+command:
+  - ${env}
+  - python
+  - ${program}
+  - "--supervised-weights=/home/shizhuo2_illinois_edu/proverbot9001/data/polyarg-weights-develop.dat"
+  - "--coq2vec-weights=/home/shizhuo2_illinois_edu/proverbot9001/data/term2vec-weights-59.dat"
+  - "/home/shizhuo2_illinois_edu/proverbot9001/compcert_projs_splits.json"
+  - "--tasks-file=/home/shizhuo2_illinois_edu/proverbot-dat/rl_train_jobs_len5_wid5-hyperpara-train-curriculum.json" 
+  - "--prelude=/home/shizhuo2_illinois_edu/proverbot9001/CompCert" 
+  - "--backend=serapi" 
+  - "--allow-partial-batches"
+  - "-n1" 
+  - "-o /home/shizhuo2_illinois_edu/proverbot9001/data/rl_weights-compcert-5.dat" 
+  - "-s7" 
+  - "--test-file=/home/shizhuo2_illinois_edu/proverbot-dat/rl_train_jobs_len5_wid5-hyperpara-test.json"
+  - ${args}
