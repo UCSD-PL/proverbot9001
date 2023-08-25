@@ -182,7 +182,7 @@ def reinforce_task(args: argparse.Namespace, worker: rl.ReinforcementWorker,
     found_length = worker.run_job_reinforce(task.to_job(), task.tactic_prefix, cur_epsilon)
     if step % args.train_every == 0:
         with print_time("Training", guard=args.print_timings):
-            worker.train()
+            worker.train(step)
     return found_length
 
 def save_replay_buffer(args: argparse.Namespace,
