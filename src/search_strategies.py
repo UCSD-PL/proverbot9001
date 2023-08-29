@@ -358,7 +358,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
         full_context_before = FullContext(relevant_lemmas,
                                           coq.prev_tactics,
                                           unwrap(coq.proof_context))
-        predictions = predictor.predictKTactics(
+        predictions = predictor.predictKTactics(args,
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
             args.max_attempts,

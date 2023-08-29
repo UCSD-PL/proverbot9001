@@ -360,7 +360,7 @@ class FeaturesPolyargPredictor(
         #             (batch_pred, single_pred)
         return predictions
 
-    def getAllPredictionIdxs(self, context: TacticContext,
+    def getAllPredictionIdxs(self, arg_values: Namespace, context: TacticContext,
                              blacklist: List[str]) -> List[Tuple[float, int, int]]:
         assert self.training_args
         assert self._model
@@ -383,18 +383,45 @@ class FeaturesPolyargPredictor(
         # word_features: previous tactic, token at top of goal, token at tope of most relevant hype
         # in features.rs in dataloader
         word_features_tensor = LongTensor(word_features)
+        vec_features_tensor = FloatTensor(vec_features)
         # word_features_tensor[:,0] = 0
+        if arg_values.no_prev_tactic:
+            prev_tactic_mask = torch.ones(1, 1, dtype=torch.bool)
+        else:
+            prev_tactic_mask = torch.zeros(1, 1, dtype=torch.bool)
+        if arg_values.no_goal_head:
+            goal_head_mask = torch.ones(1, 1, dtype=torch.bool)
+        else:
+            goal_head_mask = torch.zeros(1, 1, dtype=torch.bool)
+        if arg_values.no_hyp_head:
+            hyp_head_mask = torch.ones(1, 1, dtype=torch.bool)
+        else:
+            hyp_head_mask = torch.zeros(1, 1, dtype=torch.bool)
+        if arg_values.no_hyp_scores:
+            hyp_score_mask = torch.ones(1, 1, dtype=torch.bool)
+        else:
+            hyp_score_mask = torch.zeros(1, 1, dtype=torch.bool)
 
-        word_features_mask = torch.cat((torch.ones(1, 1, dtype=torch.bool), torch.zeros(1, 2, dtype=torch.bool)), dim=1)
-        
+        #word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
+        word_features_mask = torch.cat((prev_tactic_mask, goal_head_mask, hyp_head_mask), dim=1)
+            
         masked_word_features = torch.where(
             word_features_mask,
             torch.full_like(word_features_tensor, 0),
             word_features_tensor)
 
+        vec_features_mask = hyp_score_mask
+            
+        masked_vec_features = torch.where(
+            vec_features_mask,
+            torch.full_like(vec_features_tensor, 0),
+            vec_features_tensor)
+
+        #word_features_mask = torch.cat((torch.ones(1, 1, dtype=torch.bool), torch.zeros(1, 2, dtype=torch.bool)), dim=1)
+        
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width,
-            masked_word_features, FloatTensor(vec_features),
+            masked_word_features, masked_vec_features,
             [encode_fpa_stem(extract_dataloader_args(self.training_args),
                              self.metadata, stem) for stem in blacklist])
 
@@ -512,7 +539,7 @@ class FeaturesPolyargPredictor(
 
         return predictions
 
-    def predictKTactics(self, context: TacticContext, k: int,
+    def predictKTactics(self, arg_values: Namespace, context: TacticContext, k: int,
                         blacklist: Optional[List[str]] = None) -> List[Prediction]:
         assert self.training_args
         assert self._model
@@ -525,7 +552,7 @@ class FeaturesPolyargPredictor(
                     "Item {stem} in blacklist isn't a tactic stem!"
 
         with torch.no_grad():
-            all_predictions = self.getAllPredictionIdxs(context, blacklist)
+            all_predictions = self.getAllPredictionIdxs(arg_values, context, blacklist)
 
         predictions = self.decodeNonDuplicatePredictions(
             context, all_predictions, k)
@@ -709,9 +736,9 @@ class FeaturesPolyargPredictor(
         predicted_arg_idxs = arg_idxs % num_probs_per_stem
         return prediction_probs[0], predicted_stem_idxs, predicted_arg_idxs[0]
 
-    def predictKTacticsWithLoss(self, in_data: TacticContext, k: int, correct: str) -> \
+    def predictKTacticsWithLoss(self, arg_values: Namespace, in_data: TacticContext, k: int, correct: str) -> \
             Tuple[List[Prediction], float]:
-        return self.predictKTactics(in_data, k), 0
+        return self.predictKTactics(arg_values, in_data, k), 0
 
     def predictKTacticsWithLoss_batch(self,
                                       in_datas: List[TacticContext],
@@ -957,7 +984,10 @@ class FeaturesPolyargPredictor(
             hyp_head_mask = torch.ones(batch_size, 1, dtype=torch.bool)
         else:
             hyp_head_mask = torch.zeros(batch_size, 1, dtype=torch.bool)
-            
+        if arg_values.no_hyp_scores:
+            hyp_score_mask = torch.ones(batch_size, 1, dtype=torch.bool)
+        else:
+            hyp_score_mask = torch.zeros(batch_size, 1, dtype=torch.bool)
 
         #word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
         word_features_mask = torch.cat((prev_tactic_mask, goal_head_mask, hyp_head_mask), dim=1)
@@ -967,9 +997,16 @@ class FeaturesPolyargPredictor(
             torch.full_like(word_features_batch, 0),
             word_features_batch)
 
+        vec_features_mask = hyp_score_mask
+            
+        masked_vec_features = torch.where(
+            vec_features_mask,
+            torch.full_like(vec_features_batch, 0),
+            vec_features_batch)
+
         stemDistributions, predictedProbs, predictedStemIdxs = \
           self.predict_stems(model, stem_width, masked_word_features,
-                             vec_features_batch, [])
+                             masked_vec_features, [])
 
         stem_var = maybe_cuda(stem_idxs_batch)
         mergedStemIdxs = []

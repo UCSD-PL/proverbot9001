@@ -93,6 +93,7 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
         parser.add_argument("--no-prev-tactic", action='store_true')
         parser.add_argument("--no-goal-head", action='store_true')
         parser.add_argument("--no-hyp-head", action='store_true')
+        parser.add_argument("--no-hyp-scores", action='store_true')
         pass
 
     @abstractmethod

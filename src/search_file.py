@@ -51,6 +51,7 @@ from predict_tactic import static_predictors
 from search_results import SearchResult
 from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, project_dicts_from_args
 import util
+import torch_util
 
 from tqdm import tqdm
 from pathlib import Path
@@ -62,10 +63,10 @@ def main(arg_list: List[str]) -> None:
     sys.setrecursionlimit(100000)
 
     args, _, parser = parse_arguments(arg_list)
-    # util.use_cuda = False
+    # torch_util.use_cuda = False
     # with util.silent():
 
-    if not args.gpus and util.use_cuda:
+    if not args.gpus and torch_util.use_cuda:
         torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
@@ -168,6 +169,10 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-prefix", type=str, default=None)
     parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--no-prev-tactic", action='store_true')
+    parser.add_argument("--no-goal-head", action='store_true')
+    parser.add_argument("--no-hyp-head", action='store_true')
+    parser.add_argument("--no-hyp-scores", action='store_true')
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -214,8 +219,8 @@ def search_file_worker(args: argparse.Namespace,
 
     predictor = get_predictor(args)
 
-    # util.use_cuda = False
-    if util.use_cuda:
+    # torch_util.use_cuda = False
+    if torch_util.use_cuda:
         torch.cuda.set_device(device) # type: ignore
     util.cuda_device = device
 
@@ -253,7 +258,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
-                with proofs_file.open('r') as f, FileLock(f, exclusive=False):
+                with proofs_file.open('r') as f, FileLock(f, exclusive=True):
                     for idx, line in enumerate(f):
                         try:
                             (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
@@ -365,7 +370,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
         num_threads = min(args.num_threads,
                           len(todo_jobs))
-        if util.use_cuda:
+        if torch_util.use_cuda:
             if args.gpus:
                 gpu_list = args.gpus.split(",")
             else:
