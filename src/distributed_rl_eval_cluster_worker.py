@@ -6,14 +6,15 @@ import os
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable)
 
-from util import eprint, FileLock
+from util import (nostderr, FileLock, eprint,
+                  print_time, unwrap, safe_abbrev)
 from pathlib import Path
 from search_worker import get_predictor
 from search_file import get_all_jobs
 from gen_rl_tasks import RLTask
-from rl import ReinforcementWorker, MemoizingPredictor, switch_dict_from_args, VNetwork, ReplayBuffer
-from distributed_rl_learning_worker import TaskEpisode, get_all_task_episodes, allocate_next_task_from_file_with_retry
-
+from rl import ReinforcementWorker, MemoizingPredictor, switch_dict_from_args, VNetwork, ReplayBuffer, tactic_prefix_is_usable
+from distributed_rl_learning_worker import TaskEpisode, get_all_task_episodes
+from collections import Counter
 
 def main():
     eprint("Starting main")
@@ -66,11 +67,10 @@ def main():
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
-    parser.add_argument("--num-eval-workers", type=int, default=5)
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
-    parser.add_argument("--state_dir", default="drl_state/eval", type=Path)
+    parser.add_argument("--state_dir", default="drl_state", type=Path)
     
     
     args = parser.parse_args()
@@ -86,11 +86,6 @@ def main():
 
     workerid = int(os.environ['SLURM_ARRAY_TASK_ID'])
     jobid = int(os.environ['SLURM_ARRAY_JOB_ID'])
-    # workerid = 1
-    with (args.state_dir / "taken.txt").open("w") as f:
-        pass
-
-
     eprint(f"Starting worker {workerid}")
     evaluation_worker(args,workerid,jobid)
     eprint(f"Finished worker {workerid}")
@@ -127,32 +122,25 @@ def evaluation_worker(args: argparse.Namespace, workerid, jobid) :
     recently_done_task_eps: List[TaskEpisode] = []
     file_our_taken_dict: Dict[Path, Set[int]] = {}
     our_files_taken: Set[Path] = set()
-    max_episode: int = 0
     files_finished_this_ep: Set[Path] = set()
+    skip_taken_proofs: bool = True
     while True :
-        with (args.state_dir / f"taken.txt").open("r+") as f, FileLock(f):
-            taken_task_episodes = [((RLTask(**task_dict), episode), taken_this_iter)
-                                   for line in f
-                                   for (task_dict, episode), taken_this_iter in (json.loads(line),)]
-            # current_task_episode = get_next_task(task_episodes, taken_task_episodes,
-            #                                      our_taken_task_eps)
-            next_task_and_idx = allocate_next_task(args,
+        next_task_and_idx = allocate_next_task(args,
                                                file_all_tes_dict,
                                                our_files_taken, files_finished_this_ep,
-                                               file_our_taken_dict, max_episode)
-            if next_task_and_idx is None:
-                if max_episode == args.num_episodes - 1:
-                    eprint(f"Finished worker {workerid}")
-                    break
-                else:
-                    assert max_episode < args.num_episodes - 1
-                    max_episode += 1
-                files_finished_this_ep = set()
+                                               file_our_taken_dict, skip_taken_proofs)
+        if next_task_and_idx is None:
+            files_finished_this_ep = set()
+            if skip_taken_proofs:
+                skip_taken_proofs = False
                 continue
-            
+            eprint(f"Finished worker {workerid}")
+            break
 
-        next_task_idx, (task, episode) = next_task_and_idx
-        with (args.state_dir / f"taken-{workerid}.txt").open('a') as f:
+        
+
+        next_task_idx, task = next_task_and_idx
+        with (args.state_dir / "eval" / "taken" / f"taken-{workerid}.txt").open('a') as f:
             print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
         src_path = Path(task.src_file)
         if src_path in file_our_taken_dict:
@@ -160,18 +148,142 @@ def evaluation_worker(args: argparse.Namespace, workerid, jobid) :
         else:
             file_our_taken_dict[src_path] = {next_task_idx}
 
-
-        if worker.evaluate_job(task.to_job(), task.tactic_prefix):
-            with (args.state_dir / f"finished-{workerid}.txt").open('a') as f:
-                print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
+        
+        if not tactic_prefix_is_usable(task.tactic_prefix):
+            if args.verbose >= 2:
+                eprint(f"Skipping job {task} with prefix {task.tactic_prefix} "
+                       "because it can't purely focused")
+            else:
+                eprint("Skipping a job because it can't be purely focused")
+        else :
+            if worker.evaluate_job(task.to_job(), task.tactic_prefix):
+                with (args.state_dir / "eval"/ f"finished-{workerid}.txt").open('a') as f:
+                    print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
+            
         
         recently_done_task_eps.append((task, episode))
+        with (args.state_dir / "eval" / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
+            print(json.dumps((task.as_dict(), episode)),
+                  file=f, flush=True)
+        
 
     return
     
 
 
 
+
+def allocate_next_task(args: argparse.Namespace,
+                       file_all_tasks_dict: Dict[Path, List[Tuple[int, RLTask]]], # changed from file_all_te _dict
+                       our_files_taken: Set[Path],
+                       files_finished_this_ep: Set[Path],
+                       file_our_taken_dict: Dict[Path, Set[int]],
+                       skip_taken_proofs: bool) \
+                      -> Optional[Tuple[int, RLTask]]:
+    all_files = list(file_all_tasks_dict.keys())
+    while True:
+        with (args.state_dir / "eval" / "taken" / "taken-files.txt"
+              ).open("r+") as f, FileLock(f):
+            taken_files: Counter[Path] = Counter(Path(p.strip()) for p in f)
+            if len(all_files) <= len(files_finished_this_ep):
+		 # This happens once we've hit the episode cap and checked every
+		 # file.
+                return None
+            least_taken_count: int = min(taken_files[filename] for filename in all_files
+                                         if filename not in files_finished_this_ep)
+            cur_file: Optional[Path] = None
+            for src_file in all_files:
+                if src_file in files_finished_this_ep:
+                    continue
+                if (src_file in our_files_taken or
+                    taken_files[src_file] == 0 or
+                    (taken_files[src_file] == least_taken_count)):
+                    cur_file = src_file
+                    break
+            if cur_file is not None and cur_file not in our_files_taken:
+                print(cur_file, file=f, flush=True)
+        if cur_file is None:
+            break
+        next_task_and_idx = allocate_next_task_from_file_with_retry(
+          args,
+          cur_file, all_files,
+          file_all_tasks_dict[cur_file],
+          file_our_taken_dict.get(cur_file, set()),
+          skip_taken_proofs)
+        if next_task_and_idx is not None:
+            our_files_taken.add(cur_file)
+            return next_task_and_idx
+        else:
+            eprint(f"Couldn't find an available task for file {cur_file}, "
+                   f"trying next file...",
+                   guard=args.verbose >= 2)
+            files_finished_this_ep.add(cur_file)
+    return None
+
+
+
+def allocate_next_task_from_file_with_retry(
+      args: argparse.Namespace,
+      filename: Path,
+      all_files: List[Path],
+      file_task_episodes: List[Tuple[int, RLTask]],
+      our_taken_task_episodes: Set[int],
+      skip_taken_proofs: bool,
+      num_retries: int = 3) \
+      -> Optional[Tuple[int, RLTask]]:
+    # This is necessary because sometimes the NFS file system will give us
+    # garbage back like "^@^@^@^@^@^" when we're reading files that are
+    # being written.  By retrying we get the actual file contents when
+    # there's a problem like that.
+    for i in range(num_retries):
+        try:
+            return allocate_next_task_from_file(
+              args, filename, all_files,
+              file_task_episodes, our_taken_task_episodes,
+              skip_taken_proofs)
+        except json.decoder.JSONDecodeError:
+            if i == num_retries - 1:
+                raise
+            eprint("Failed to decode, retrying", guard=args.verbose >= 1)
+    return None
+
+
+def allocate_next_task_from_file(args: argparse.Namespace,
+                                 filename: Path,
+                                 all_files: List[Path],
+                                 file_tasks: List[Tuple[int, RLTask]],
+                                 our_taken_tasks: Set[int],
+                                 skip_taken_proofs: bool) \
+                                -> Optional[Tuple[int, RLTask]]:
+    filepath = args.state_dir / "eval" / "taken" / ("file-" + safe_abbrev(filename, all_files) + ".txt")
+    with filepath.open("r+") as f, FileLock(f):
+        # Loading the taken file
+        taken_task_episodes: Set[int] = set()
+        taken_by_others_this_iter: Set[int] = set()
+        for line_num, line in enumerate(f):
+            try:
+                task_idx, taken_this_iter = json.loads(line)
+                taken_task_episodes.add(task_idx)
+                if task_idx not in our_taken_tasks and taken_this_iter:
+                    taken_by_others_this_iter.add(task_idx)
+            except json.decoder.JSONDecodeError:
+                eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
+                raise
+        # Searching the tasks for a good one to take
+        proof_eps_taken_by_others: Set[Tuple[Tuple[str, str, str], int]] = set()
+        for file_task_idx, (task_idx, (task, episode)) in enumerate(file_tasks):
+            if task_idx in taken_by_others_this_iter:
+                proof_eps_taken_by_others.add((task.to_proof_spec(), episode))
+                continue
+            if (task_idx in taken_task_episodes
+                or (task.to_proof_spec(), episode) in proof_eps_taken_by_others
+                    and skip_taken_proofs):
+                continue
+            eprint(f"Found an appropriate task-episode after searching "
+                   f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
+            print(json.dumps((task_idx, True)), file=f)
+            return task_idx, task
+    return None
 
 
 if __name__ == "__main__" :
