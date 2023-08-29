@@ -13,7 +13,7 @@ fi
 git submodule init && git submodule update
 
 # Sync opam state to local. If you're not running on the swarm cluster at UMass Amherst, you can remove this line
-rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
+# rsync -av --delete $HOME/.opam.dir/ /tmp/${USER}_dot_opam | tqdm --desc="Reading shared opam state" > /dev/null
 
 # Create the 8.10 switch
 opam switch create coq-8.10 4.07.1
@@ -93,4 +93,4 @@ git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
 
 # Finally, sync the opam state back to global. If you're not running on the swarm cluster at UMass Amherst, you can remove this line.
-rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null
+# rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null
