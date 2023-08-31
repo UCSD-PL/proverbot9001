@@ -1,5 +1,5 @@
 #!/usr/bin/env python
-impory ray
+import ray
 import argparse
 import json
 import random
@@ -20,9 +20,9 @@ from typing import (
     TypeVar,
     Callable,
 )
-
+import os
 from util import unwrap, eprint, print_time, nostderr
-
+import subprocess
 with print_time("Importing torch"):
     import torch
     from torch import nn
@@ -52,6 +52,33 @@ from util import unwrap, eprint, print_time, nostderr
 from ray import tune, air
 from ray.air import session
 from ray.tune.search.optuna import OptunaSearch
+import csv
+import time
+import fcntl
+
+def write_to_csv(file_path, data):
+    with open(file_path, 'a') as file:
+        csv_writer = csv.writer(file)
+        if csv_file.tell() == 0:
+            header = ["gamma", "starting_epsilon", "batch_step", "lr_step", "batches_per_proof", "sync_target_every","proofs_solved"]
+            csv_writer.writerow(header)
+        csv_writer.writerow(data)
+
+def write_to_csv_worker(csv_file_path,line_to_write):
+    while True:
+        try:
+            with open(csv_file_path, 'a') as file:
+                fcntl.flock(file, fcntl.LOCK_EX | fcntl.LOCK_NB)  # Acquire an exclusive lock
+
+                write_to_csv(csv_file_path, line_to_write)
+
+                fcntl.flock(file, fcntl.LOCK_UN)  # Release the lock
+
+                print("Line written to CSV.")
+                break
+        except BlockingIOError:
+            print("Another program is writing to the CSV. Waiting...")
+            time.sleep(1)  # Wait for a while before trying again
 
 
 def main():
@@ -62,11 +89,8 @@ def main():
     )
     parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument(
-        "--output",
+        "--output_file",
         "-o",
-        dest="output_file",
-        help="output data folder name",
-        default="data/rl_weights.dat",
         type=Path,
     )
     parser.add_argument(
@@ -75,79 +99,79 @@ def main():
     parser.add_argument(
         "--progress", "-P", help="show progress of files", action="store_true"
     )
-    parser.add_argument("--print-timings", "-t", action="store_true")
-    parser.add_argument("--no-set-switch", dest="set_switch", action="store_false")
-    parser.add_argument("--include-proof-relevant", action="store_true")
+    parser.add_argument("--print_timings", "-t", action="store_true")
+    parser.add_argument("--set_switch",  action="store_true")
+    parser.add_argument("--include_proof_relevant", action="store_true")
     parser.add_argument("--backend", choices=["serapi", "lsp", "auto"], default="auto")
-    parser.add_argument("filenames", help="proof file name (*.v)", nargs="+", type=Path)
+    parser.add_argument("--filenames", help="proof file name (*.v)", nargs="+", type=Path)
+    parser.add_argument("--splits_file",type=str)
+     # changed --filenames into splitfile for hyperparameter tuning purposes
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
-    proofsGroup.add_argument("--proofs-file", default=None)
-    parser.add_argument("--tasks-file", default=None)
-    parser.add_argument("--test-file", default=None)
-    parser.add_argument("--no-interleave", dest="interleave", action="store_false")
-    parser.add_argument("--supervised-weights", type=Path, dest="weightsfile")
-    parser.add_argument("--coq2vec-weights", type=Path)
-    parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
+    proofsGroup.add_argument("--proofs_file", default=None)
+    parser.add_argument("--tasks_file", default=None)
+    parser.add_argument("--test_file", default=None)
+    parser.add_argument("--interleave",  action="store_true")
+    parser.add_argument("--weightsfile", type=Path)
+    parser.add_argument("--coq2vec_weights", type=Path)
+    parser.add_argument("--max_sertop_workers", default=16, type=int)
+    parser.add_argument("-l", "--learning_rate", default=2.5e-4, type=float)
     parser.add_argument("-g", "--gamma", default=0.9, type=float)
-    parser.add_argument("--starting-epsilon", default=0, type=float)
-    parser.add_argument("--ending-epsilon", default=1.0, type=float)
-    parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
-    parser.add_argument("-n", "--num-episodes", default=1, type=int)
-    parser.add_argument("-b", "--batch-size", default=64, type=int)
-    parser.add_argument("-w", "--window-size", default=2560)
-    parser.add_argument("-p", "--num-predictions", default=5, type=int)
-    parser.add_argument("--batch-step", default=25, type=int)
-    parser.add_argument("--lr-step", default=0.8, type=float)
-    parser.add_argument("--batches-per-proof", default=1, type=int)
-    parser.add_argument("--train-every", default=1, type=int)
-    parser.add_argument("--print-loss-every", default=None, type=int)
+    parser.add_argument("--starting_epsilon", default=0, type=float)
+    parser.add_argument("--ending_epsilon", default=1.0, type=float)
+    parser.add_argument("-s", "--steps_per_episode", default=16, type=int)
+    parser.add_argument("-n", "--num_episodes", default=1, type=int)
+    parser.add_argument("-b", "--batch_size", default=64, type=int)
+    parser.add_argument("-w", "--window_size", default=2560,type=int)
+    parser.add_argument("-p", "--num_predictions", default=5, type=int)
+    parser.add_argument("--batch_step", default=25, type=int)
+    parser.add_argument("--lr_step", default=0.8, type=float)
+    parser.add_argument("--batches_per_proof", default=1, type=int)
+    parser.add_argument("--train_every", default=1, type=int)
+    parser.add_argument("--print_loss_every", default=None, type=int)
     parser.add_argument(
-        "--sync-target-every",
+        "--sync_target_every",
         help="Sync target network to v network every <n> episodes",
         default=-1,
         type=int,
     )
-    parser.add_argument("--allow-partial-batches", action="store_true")
+    parser.add_argument("--allow_partial_batches", action="store_true")
     parser.add_argument(
-        "--blacklist-tactic", action="append", dest="blacklisted_tactics"
+        "--blacklisted_tactics", action="append"
     )
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
-    parser.add_argument("--save-every", type=int, default=20)
+    parser.add_argument("--save_every", type=int, default=20)
     parser.add_argument("--evaluate", action="store_true")
     parser.add_argument("--curriculum", action="store_true")
-    parser.add_argument("--hyperparameter_search", action="store_true")
-    args, _ = parser.parse_known_args()
-    if args.hyperparameter_search:
-        parser.add_argument(
-            "--num-trails",
-            default=20,
-            type=int,
-            help="Number of trails for hyperparameter search",
-        )
-        parser.add_argument(
-            "--num-cpus",
-            default=1,
-            type=int,
-            help="Number of CPUs available for a hyperparameter search",
-        )
-        parser.add_argument(
-            "--num-gpus",
-            default=0,
-            type=int,
-            help="Number of GPUs available for a hyperparameter search",
-        )
-        args = parser.parse_args()
-    if args.filenames[0].suffix == ".json":
-        args.splits_file = args.filenames[0]
-        args.filenames = None
-    else:
-        args.splits_file = None
-    if args.hyperparameter_search:
-        tuning(args)
-    else:
-        result = reinforce_jobs(args)
+    parser.add_argument("--log_root", type=Path, default=Path("logs"))
+    parser.add_argument("--result_root", type=Path, default=Path("result"))
+    parser.add_argument("--exp_name", type=Path, default=Path("search"))
+
+    parser.add_argument(
+        "--num_trails",
+        default=50,
+        type=int,
+        help="Number of trails for hyperparameter search",
+    )
+    parser.add_argument(
+        "--num_cpus",
+        default=1,
+        type=int,
+        help="Number of CPUs available for a hyperparameter search",
+    )
+    parser.add_argument(
+        "--num_gpus",
+        default=1,
+        type=int,
+        help="Number of GPUs available for a hyperparameter search",
+    )
+    args = parser.parse_args()
+    # if args.filenames[0].suffix == ".json":
+    #     args.splits_file = args.filenames[0]
+    #     args.filenames = None
+    # else:
+    args.splits_file = None
+    run_train_test_loop(args)
 
 
 class FileReinforcementWorker(Worker):
@@ -333,123 +357,6 @@ class ReinforcementWorker:
         )
 
 
-def reinforce_jobs(args: argparse.Namespace) -> None:
-    eprint("Starting reinforce_jobs")
-    if args.splits_file:
-        with args.splits_file.open("r") as f:
-            project_dicts = json.loads(f.read())
-        if any("switch" in item for item in project_dicts):
-            switch_dict = {
-                item["project_name"]: item["switch"] for item in project_dicts
-            }
-        else:
-            switch_dict = None
-    else:
-        switch_dict = None
-    # predictor = get_predictor(args)
-    predictor = MemoizingPredictor(get_predictor(args))
-    # predictor = DummyPredictor()
-    if args.resume == "ask" and args.output_file.exists():
-        print(f"Found existing weights at {args.output_file}. Resume?")
-        response = input("[Y/n] ")
-        if response.lower() not in ["no", "n"]:
-            args.resume = "yes"
-        else:
-            args.resume = "no"
-    elif not args.output_file.exists():
-        assert args.resume != "yes", (
-            "Can't resume because output file "
-            f"{args.output_file} doesn't already exist."
-        )
-        args.resume = "no"
-
-    if args.resume == "yes":
-        (
-            replay_buffer,
-            steps_already_done,
-            network_state,
-            tnetwork_state,
-            random_state,
-        ) = torch.load(str(args.output_file))
-        random.setstate(random_state)
-        print(f"Resuming from existing weights of {steps_already_done} steps")
-        v_network = VNetwork(None, args.learning_rate, args.batch_step, args.lr_step)
-        target_network = VNetwork(
-            None, args.learning_rate, args.batch_step, args.lr_step
-        )
-        # This ensures that the target and obligation will share a cache for coq2vec encodings
-        target_network.obligation_encoder = v_network.obligation_encoder
-        v_network.load_state(network_state)
-        target_network.load_state(tnetwork_state)
-
-    else:
-        assert args.resume == "no"
-        steps_already_done = 0
-        replay_buffer = None
-        with print_time("Building models"):
-            v_network = VNetwork(
-                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
-            )
-            target_network = VNetwork(
-                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
-            )
-            # This ensures that the target and obligation will share a cache for coq2vec encodings
-            target_network.obligation_encoder = v_network.obligation_encoder
-
-    if args.tasks_file:
-        jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
-    else:
-        jobs = [(job, []) for job in get_all_jobs(args)]
-
-    worker = ReinforcementWorker(
-        args,
-        predictor,
-        v_network,
-        target_network,
-        switch_dict,
-        initial_replay_buffer=replay_buffer,
-    )
-    if args.interleave:
-        tasks = jobs * args.num_episodes
-    else:
-        tasks = [task for job in jobs for task in [job] * args.num_episodes]
-
-    for step in range(steps_already_done):
-        with nostderr():
-            worker.v_network.adjuster.step()
-
-    for step, (job, task_tactic_prefix) in enumerate(
-        tqdm(tasks[steps_already_done:], initial=steps_already_done, total=len(tasks)),
-        start=steps_already_done + 1,
-    ):
-        cur_epsilon = args.starting_epsilon + (
-            (step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon)
-        )
-        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
-        if (step + 1) % args.train_every == 0:
-            with print_time("Training", guard=args.print_timings):
-                worker.train()
-        if (step + 1) % args.save_every == 0:
-            save_state(args, worker, step + 1)
-        if (step + 1) % args.sync_target_every == 0:
-            worker.sync_networks()
-    if steps_already_done < len(tasks):
-        with print_time("Saving"):
-            save_state(args, worker, step)
-    if args.evaluate:
-        if args.test_file:
-            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
-            evaluation_worker = ReinforcementWorker(
-                args,
-                predictor,
-                v_network,
-                target_network,
-                switch_dict,
-                initial_replay_buffer=replay_buffer,
-            )
-            evaluate_results(args, evaluation_worker, test_jobs)
-        else:
-            raise ValueError("No Test File Specified")
 
 
 def get_job_and_prefix_from_task_file(task_file, args):
@@ -1037,143 +944,119 @@ def run_network_with_cache(
     return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
 
 
-def tuning(args) -> None:
+def run_train_test_loop(args):
     """
-    This function is used for tuning hyperparameters with Ray Tune.
+    This function is passed to Ray Tune to optimize hyperparameters.
+    config: A dictionary of hyperparameters to optimize from ray tune.
+    args: The arguments passed to the main function.
     """
-
-    def objective(config, args):
-        """
-        This function is passed to Ray Tune to optimize hyperparameters.
-        config: A dictionary of hyperparameters to optimize from ray tune.
-        args: The arguments passed to the main function.
-        """
-
-        setattr(args, "gamma", config["gamma"])
-        setattr(args, "starting_epsilon", config["starting_epsilon"])
-        setattr(args, "batch_step", config["batch_step"])
-        setattr(args, "lr_step", config["lr_step"])
-        setattr(args, "batches_per_proof", config["batches_per_proof"])
-        setattr(args, "sync_target_every", config["sync_target_every"])
-        if args.splits_file:
-            with args.splits_file.open("r") as f:
-                project_dicts = json.loads(f.read())
-            if any("switch" in item for item in project_dicts):
-                switch_dict = {
-                    item["project_name"]: item["switch"] for item in project_dicts
-                }
-            else:
-                switch_dict = None
+    if args.splits_file:
+        with args.splits_file.open("r") as f:
+            project_dicts = json.loads(f.read())
+        if any("switch" in item for item in project_dicts):
+            switch_dict = {
+                item["project_name"]: item["switch"] for item in project_dicts
+            }
         else:
             switch_dict = None
-        if args.test_file:
-            test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
-        else:
-            raise ValueError("No Test File Specified")
-        predictor = MemoizingPredictor(get_predictor(args))
-        args.resume = "no"
-        if args.resume == "yes":
-            (
-                replay_buffer,
-                steps_already_done,
-                network_state,
-                tnetwork_state,
-                random_state,
-            ) = torch.load(str(args.output_file))
-            random.setstate(random_state)
-            print(f"Resuming from existing weights of {steps_already_done} steps")
-            v_network = VNetwork(
-                None, args.learning_rate, args.batch_step, args.lr_step
-            )
-            target_network = VNetwork(
-                None, args.learning_rate, args.batch_step, args.lr_step
-            )
-            v_network.load_state(network_state)
-            target_network.load_state(tnetwork_state)
-
-        else:
-            assert args.resume == "no"
-            steps_already_done = 0
-            replay_buffer = None
-            v_network = VNetwork(
-                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
-            )
-            target_network = VNetwork(
-                args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
-            )
-
-            if args.tasks_file:
-                jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
-            else:
-                jobs = [(job, []) for job in get_all_jobs(args)]
-
-        worker = ReinforcementWorker(
-            args,
-            predictor,
-            v_network,
-            target_network,
-            switch_dict,
-            initial_replay_buffer=replay_buffer,
+    else:
+        switch_dict = None
+    if args.test_file:
+        test_jobs = get_job_and_prefix_from_task_file(args.test_file, args)
+    else:
+        raise ValueError("No Test File Specified")
+    predictor = MemoizingPredictor(get_predictor(args))
+    args.resume = "no"
+    if args.resume == "yes":
+        (
+            replay_buffer,
+            steps_already_done,
+            network_state,
+            tnetwork_state,
+            random_state,
+        ) = torch.load(str(args.output_file))
+        random.setstate(random_state)
+        print(f"Resuming from existing weights of {steps_already_done} steps")
+        v_network = VNetwork(
+            None, args.learning_rate, args.batch_step, args.lr_step
         )
-        if args.interleave:
-            tasks = jobs * args.num_episodes
-        else:
-            tasks = [task for job in jobs for task in [job] * args.num_episodes]
-
-        for step in range(steps_already_done):
-            with nostderr():
-                worker.v_network.adjuster.step()
-
-        for step, (job, task_tactic_prefix) in enumerate(
-            tqdm(
-                tasks[steps_already_done:], initial=steps_already_done, total=len(tasks)
-            ),
-            start=steps_already_done + 1,
-        ):
-            cur_epsilon = args.starting_epsilon + (
-                (step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon)
-            )
-            worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
-            if (step + 1) % args.train_every == 0:
-                worker.train()
-            if (step + 1) % args.sync_target_every == 0:
-                worker.sync_networks()
-
-        evaluation_worker = ReinforcementWorker(
-            args,
-            predictor,
-            v_network,
-            target_network,
-            switch_dict,
-            initial_replay_buffer=replay_buffer,
+        target_network = VNetwork(
+            None, args.learning_rate, args.batch_step, args.lr_step
         )
-        proofs_solved = evaluate_results(args, evaluation_worker, test_jobs) # Evaluate on test set
+        v_network.load_state(network_state)
+        target_network.load_state(tnetwork_state)
 
-        session.report(
-            {"score": proofs_solved}
-        )  # report the metric you want to optimize - currently is proofs solved.
-    search_space = {
-        "learning_rate": tune.loguniform(1e-4, 1e-2),
-        "gamma": tune.uniform(0.1, 0.99),
-        "starting_epsilon": tune.uniform(0, 1),
-        "batch_step": tune.randint(1, 30),
-        "lr_step": tune.uniform(0.8, 1),
-        "batches_per_proof": tune.randint(10, 50),
-        "sync_target_every": tune.randint(1, 250),
-    } # Define the search space for hyperparameters
-    tuner = tune.Tuner(
-        tune.with_resources(
-            tune.with_parameters(objective, args=args),
-            {"cpu": args.num_cpus, "gpu": args.num_gpus},
-        ),
-        param_space=search_space,
-        tune_config=tune.TuneConfig(num_samples=args.num_trails),
+    else:
+        assert args.resume == "no"
+        steps_already_done = 0
+        replay_buffer = None
+        v_network = VNetwork(
+            args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
+        )
+        target_network = VNetwork(
+            args.coq2vec_weights, args.learning_rate, args.batch_step, args.lr_step
+        )
+
+        if args.tasks_file:
+            jobs = get_job_and_prefix_from_task_file(args.tasks_file, args)
+        else:
+            jobs = [(job, []) for job in get_all_jobs(args)]
+
+    worker = ReinforcementWorker(
+        args,
+        predictor,
+        v_network,
+        target_network,
+        switch_dict,
+        initial_replay_buffer=replay_buffer,
     )
+    if args.interleave:
+        tasks = jobs * args.num_episodes
+    else:
+        tasks = [task for job in jobs for task in [job] * args.num_episodes]
 
-    results = tuner.fit()
-    print(results.get_best_result(metric="score", mode="max").config) # Print the best hyperparameters
+    for step in range(steps_already_done):
+        with nostderr():
+            worker.v_network.adjuster.step()
 
+    for step, (job, task_tactic_prefix) in enumerate(
+        tqdm(
+            tasks[steps_already_done:], initial=steps_already_done, total=len(tasks)
+        ),
+        start=steps_already_done + 1,
+    ):
+        cur_epsilon = args.starting_epsilon + (
+            (step / len(tasks)) * (args.ending_epsilon - args.starting_epsilon)
+        )
+        worker.run_job_reinforce(job, task_tactic_prefix, cur_epsilon)
+        if (step + 1) % args.train_every == 0:
+            worker.train()
+        if (step + 1) % args.sync_target_every == 0:
+            worker.sync_networks()
 
+    evaluation_worker = ReinforcementWorker(
+        args,
+        predictor,
+        v_network,
+        target_network,
+        switch_dict,
+        initial_replay_buffer=replay_buffer,
+    )
+    proofs_solved = evaluate_results(args, evaluation_worker, test_jobs) # Evaluate on test set
+    values_to_write = [
+        args.gamma,
+        args.starting_epsilon,
+        args.batch_step,
+        args.lr_step,
+        args.batches_per_proof,
+        args.sync_target_every,
+        proofs_solved
+    ]
+    csv_file_path = args.result_root/args.exp_name/"results.csv"
+    write_to_csv_worker(csv_file_path,values_to_write)
+    session.report(
+        {"score": -1}
+    )  # report the metric you want to optimize - currently is proofs solved.
+    
 if __name__ == "__main__":
-    ray.init()
     main()

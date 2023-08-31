@@ -54,11 +54,19 @@ with print_time("Importing search code"):
     from search_strategies import completed_proof
 
 from util import unwrap, eprint, print_time, nostderr
-from ray import tune, air
-from ray.air import session
-from ray.tune.search.optuna import OptunaSearch
+# from ray import tune, air
+# from ray.air import session
+# from ray.tune.search.optuna import OptunaSearch
 import os
 os.environ["WANDB_DIR"] = os.path.abspath("/work/pi_brun_umass_edu/dylan/")
+os.environ["WANDB__SERVICE_WAIT"] = "300"
+os.environ["WANDB_SILENT"] = 'true'
+os.environ["WANDB_CONSOLE"] = "off"
+os.environ['WANDB_MODE'] = 'offline'
+import logging
+loggers = [logging.getLogger(name) for name in logging.root.manager.loggerDict]
+for logger in loggers:
+	logger.setLevel(logging.WARN)
 def main():
     eprint("Starting main")
     parser = argparse.ArgumentParser(
