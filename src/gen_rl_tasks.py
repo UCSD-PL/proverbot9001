@@ -332,9 +332,10 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
             if len([tac for tac in task_solution if tac == "{"]) != \
                len([tac for tac in task_solution if tac == "}"]):
                 continue
-            tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
-                                task_prefix, task_solution, sol_tac_length,
-                                largest_prediction_rank))
+            tasks.append(RLTask(job.filename, job.module_prefix,
+                                job.lemma_statement, sol_tac_length,
+                                largest_prediction_rank, task_prefix,
+                                task_solution))
     return tasks
 
 if __name__ == "__main__":
