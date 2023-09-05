@@ -159,7 +159,7 @@ def evaluation_worker(args: argparse.Namespace, workerid, jobid) :
             if worker.evaluate_job(task.to_job(), task.tactic_prefix):
                 with (args.state_dir / "eval"/ f"finished-{workerid}.txt").open('a') as f:
                     print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
-            
+        
         
         recently_done_task_eps.append((task, episode))
         with (args.state_dir / "eval" / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
@@ -281,7 +281,7 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                 continue
             eprint(f"Found an appropriate task-episode after searching "
                    f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
-            print(json.dumps((task_idx, True)), file=f)
+            print(json.dumps((task_idx, True)), file=f, flush=True)
             return task_idx, task
     return None
 

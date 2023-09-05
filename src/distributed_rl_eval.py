@@ -8,7 +8,8 @@ import subprocess
 import time
 import util
 import shutil
-
+import signal
+import sys
 
 from gen_rl_tasks import RLTask
 
@@ -19,6 +20,15 @@ from pathlib import Path
 from glob import glob
 from typing import List, Tuple, Optional, Dict, Set
 from tqdm import tqdm
+
+UNIQUE_ID = uuid.uuid4()
+
+def signal_handler(sig, frame):
+    print('\nProcess Interrupted, Cancelling all Workers')
+    result = subprocess.run(f'scancel --name Rl_eval_{UNIQUE_ID}', shell=True, capture_output=True, text = True)
+    print(result.stdout)
+    sys.exit(0)
+
 
 
 def main() :
@@ -78,17 +88,17 @@ def main() :
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--workers-output-dir", default=Path("output"), type=Path)
     parser.add_argument("--num-eval-workers", default=1, type=int)
-    
+    parser.add_argument("--train-time", type=str, default="00:20:00")
     args = parser.parse_args()
-    
-    evaluate(args)
+    signal.signal(signal.SIGINT, signal_handler)
+    evaluate(args, UNIQUE_ID)
 
 
 
-def evaluate(args) :
+def evaluate(args, unique_id = uuid.uuid4()) :
     setup_eval_jobstate(args)
     print(f"Deploying {args.num_eval_workers} workers")
-    unique_id = uuid.uuid4()
+    
 
     if args.tasks_file :
         task_file_arg = f"--tasks-file {str(args.tasks_file)}"
@@ -108,28 +118,51 @@ def evaluate(args) :
     else :
         verbosity_arg = ""
     
+    if args.set_switch :
+        setswitchargs = ""
+    else :
+        setswitchargs = "--no-set-switch"
     
+    if args.include_proof_relevant :
+        proofrelevantargs = "--include-proof-relevant"
+    else :
+        proofrelevantargs = ""
+    
+    if args.blacklisted_tactics:
+        blacklistedtacticsarg = " ".join( [ f"--blacklisted-tactic {tactic}" for tactic in args.blacklisted_tactics] )
+    else :
+        blacklistedtacticsarg = ""
+
+
     output_arg = f"-o {str(args.output_file)}"
     prelude_arg = f"--prelude {str(args.prelude)}"
     backend_arg = f"--backend {args.backend}"
     supervised_weights_arg = f"--supervised-weights {str(args.weightsfile)}"
     coq2vecweightsarg = f"--coq2vec-weights {str(args.coq2vec_weights)}"
+    predictionarg = f"-p {args.num_predictions}"
+    gammaarg = f"-g {args.gamma}"
+    maxsertopworkersarg = f"--max-sertop-workers {args.max_sertop_workers}"
+    windowsizeargs = f"--window-size {args.window_size}"
 
 
     with open("submit/submit_multi_eval_jobs.sh","w") as f:
         submit_script = f"""#!/bin/bash
 #
 #SBATCH --job-name=Rl_eval_{unique_id}
+#SBATCH -p gpu
 #SBATCH --gpus=1
 #SBATCH --mem=8G
 #SBATCH -o {args.state_dir}/eval/slurm-%A_%a_out.txt
 #SBATCH -e {args.state_dir}/eval/slurm-%A_%a_err.txt
 #SBATCH --array=1-{args.num_eval_workers}
+#SBATCH --time={args.train_time}
 
 
 module add opam/2.1.2
 python -u src/distributed_rl_eval_cluster_worker.py {supervised_weights_arg} {coq2vecweightsarg} \
-    compcert_projs_splits.json {prelude_arg} {backend_arg} {output_arg} {task_file_arg} {evaluate_arg} {verbosity_arg}
+    compcert_projs_splits.json {prelude_arg} {backend_arg} {output_arg} {task_file_arg} {evaluate_arg} \
+     {verbosity_arg} {predictionarg} {gammaarg} {setswitchargs} {proofrelevantargs} {maxsertopworkersarg} \
+     {windowsizeargs} {blacklistedtacticsarg}
 """
         f.write(submit_script)
     subprocess.run(f'sbatch submit/submit_multi_eval_jobs.sh', shell=True)
@@ -150,7 +183,7 @@ def track_progress(args) :
         while True :
             new_jobs_done = 0
             for workeridx in range(1, args.num_eval_workers + 1) :
-                with (args.state_dir / "eval" /"taken" / f"taken-{workeridx}.txt").open("r+") as f, FileLock(f):
+                with (args.state_dir / "eval" / f"progress-{workeridx}.txt").open("r+") as f, FileLock(f):
                     new_jobs_done += sum(1 for _ in f)
 
             
@@ -164,7 +197,7 @@ def track_progress(args) :
     
 
 def check_success(args) :
-    with Path(args.tasks_file).open("r+") as f, FileLock(f):
+    with Path(args.tasks_file).open("r") as f, FileLock(f):
         total_num_jobs = sum(1 for _ in f)
     total_num_jobs_successful = 0
     for workerid in range(1, args.num_eval_workers + 1) :
@@ -200,6 +233,9 @@ def setup_eval_jobstate(args: argparse.Namespace) -> None:
             pass
         progress_path = args.state_dir / "eval" / f"progress-{workerid}.txt"
         with progress_path.open("w") as f:
+            pass
+        finished_path = args.state_dir / "eval" / f"finished-{workerid}.txt"
+        with finished_path.open("w") as f:
             pass
 
    
