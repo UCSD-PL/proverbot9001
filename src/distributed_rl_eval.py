@@ -21,15 +21,6 @@ from glob import glob
 from typing import List, Tuple, Optional, Dict, Set
 from tqdm import tqdm
 
-UNIQUE_ID = uuid.uuid4()
-
-def signal_handler(sig, frame):
-    print('\nProcess Interrupted, Cancelling all Workers')
-    result = subprocess.run(f'scancel --name Rl_eval_{UNIQUE_ID}', shell=True, capture_output=True, text = True)
-    print(result.stdout)
-    sys.exit(0)
-
-
 
 def main() :
     eprint("Starting main")
@@ -82,20 +73,30 @@ def main() :
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
+    parser.add_argument("--eval-resume", action="store_true")
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--workers-output-dir", default=Path("output"), type=Path)
     parser.add_argument("--num-eval-workers", default=1, type=int)
-    parser.add_argument("--train-time", type=str, default="00:20:00")
+    parser.add_argument("--worker-alive-time", type=str, default="00:20:00")
     args = parser.parse_args()
-    signal.signal(signal.SIGINT, signal_handler)
-    evaluate(args, UNIQUE_ID)
+    
+    evaluate(args)
 
 
 
 def evaluate(args, unique_id = uuid.uuid4()) :
+
+    def signal_handler(sig, frame):
+        print('\nProcess Interrupted, Cancelling all Workers')
+        result = subprocess.run(f'scancel --name Rl_eval_{unique_id}', shell=True, capture_output=True, text = True)
+        print(result.stdout)
+        sys.exit(0)
+
+    signal.signal(signal.SIGINT, signal_handler)
+
     setup_eval_jobstate(args)
     print(f"Deploying {args.num_eval_workers} workers")
     
@@ -155,7 +156,7 @@ def evaluate(args, unique_id = uuid.uuid4()) :
 #SBATCH -o {args.state_dir}/eval/slurm-%A_%a_out.txt
 #SBATCH -e {args.state_dir}/eval/slurm-%A_%a_err.txt
 #SBATCH --array=1-{args.num_eval_workers}
-#SBATCH --time={args.train_time}
+#SBATCH --time={args.worker_alive_time}
 
 
 module add opam/2.1.2
@@ -181,6 +182,7 @@ def track_progress(args) :
     with tqdm(desc="Jobs finished", total=total_num_jobs, initial=0, dynamic_ncols=True,position=0,leave=True) as bar :
         jobs_done = 0
         while True :
+            time.sleep(0.1)
             new_jobs_done = 0
             for workeridx in range(1, args.num_eval_workers + 1) :
                 with (args.state_dir / "eval" / f"progress-{workeridx}.txt").open("r+") as f, FileLock(f):
@@ -193,7 +195,7 @@ def track_progress(args) :
 
             if jobs_done == total_num_jobs :
                 break
-        time.sleep(3)
+        
     
 
 def check_success(args) :
@@ -213,8 +215,10 @@ def cancel_workers(args, unique_id) :
 
 def setup_eval_jobstate(args: argparse.Namespace) -> None:
 
-    if (args.state_dir / "eval").exists() :
-        shutil.rmtree(str(args.state_dir) + "/eval")
+    if not args.eval_resume :
+        if (args.state_dir / "eval").exists() :
+            shutil.rmtree(str(args.state_dir) + "/eval")
+            
     (args.state_dir).mkdir(exist_ok=True)
     (args.state_dir/ "eval").mkdir(exist_ok=True)
     (args.state_dir / "eval" / args.workers_output_dir).mkdir(exist_ok=True)
@@ -224,26 +228,70 @@ def setup_eval_jobstate(args: argparse.Namespace) -> None:
         with taken_path.open('w'):
             pass
 
+    # for workerid in range(1, args.num_eval_workers + 1):
+    #     done_path = args.state_dir / "eval" / f"done-{workerid}.txt"
+    #     with done_path.open("w"):
+    #         pass
+    #     taken_path = args.state_dir / "eval" / "taken" / f"taken-{workerid}.txt"
+    #     with taken_path.open("w") as f:
+    #         pass
+    #     progress_path = args.state_dir / "eval" / f"progress-{workerid}.txt"
+    #     with progress_path.open("w") as f:
+    #         pass
+    #     finished_path = args.state_dir / "eval" / f"finished-{workerid}.txt"
+    #     with finished_path.open("w") as f:
+    #         pass
+
+   
+    # for fidx, filename in enumerate(get_all_files(args)):
+    #     with (args.state_dir / "eval" /  "taken" /
+    #           ("file-" + util.safe_abbrev(filename,
+    #                             []) + ".txt")).open("w") as f:
+    #         pass
+
+
+    done_tasks = []
     for workerid in range(1, args.num_eval_workers + 1):
-        done_path = args.state_dir / "eval" / f"done-{workerid}.txt"
-        with done_path.open("w"):
-            pass
+        worker_done_tasks = []
+        progress_path = args.state_dir / "eval" / f"progress-{workerid}.txt"
+        if not progress_path.exists():
+            with progress_path.open("w"):
+                pass
+        else:
+            with progress_path.open('r') as f:
+                worker_done_tasks = [RLTask(**task_dict)
+                                        for line in f
+                                        for task_dict in (json.loads(line),)]
+            done_tasks += worker_done_tasks
         taken_path = args.state_dir / "eval" / "taken" / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
-        progress_path = args.state_dir / "eval" / f"progress-{workerid}.txt"
-        with progress_path.open("w") as f:
-            pass
-        finished_path = args.state_dir / "eval" / f"finished-{workerid}.txt"
-        with finished_path.open("w") as f:
-            pass
-
-   
+    
+    file_taken_dict: Dict[Path, List[RLTask]] = {}
+    for task in done_tasks:
+        if task.src_file in file_taken_dict:
+            file_taken_dict[Path(task.src_file)].append(task)
+        else:
+            file_taken_dict[Path(task.src_file)] = [task]
+    all_tasks = get_all_tasks(args)
+    tasks_idx_dict = {task : idx for idx, task in enumerate(all_tasks)}
     for fidx, filename in enumerate(get_all_files(args)):
-        with (args.state_dir / "eval" /  "taken" /
+        with (args.state_dir / "eval" / "taken" /
               ("file-" + util.safe_abbrev(filename,
-                                []) + ".txt")).open("w") as f:
-            pass
+                                file_taken_dict.keys()) + ".txt")).open("w") as f:
+            for tidx, task in enumerate(file_taken_dict.get(filename, [])):
+                try:
+                    task_idx = tasks_idx_dict[task]
+                except KeyError:
+                    util.eprint(f"File number {fidx}, task number {tidx}")
+                    for dict_task, dict_ep in tasks_idx_dict.keys():
+                        if task.to_proof_spec() == dict_task.to_proof_spec():
+                            util.eprint("There is a task with a matching proof spec!")
+                            break
+                    raise
+                print(json.dumps((task_idx, False)), file=f, flush=True)
+
+
     with (args.state_dir / "eval" / "workers_scheduled.txt").open('w') as f:
         pass
 
