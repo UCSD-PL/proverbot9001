@@ -261,6 +261,13 @@ class ReinforcementWorker:
         return None
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
             -> bool:
+        if not tactic_prefix_is_usable(tactic_prefix):
+            if self.args.verbose >= 2:
+                eprint(f"Skipping job {job} with prefix {tactic_prefix} "
+                       "because it can't purely focused")
+            else:
+                eprint("Skipping a job because it can't be purely focused")
+            return None
         file_worker = self._get_worker(job.filename)
         assert file_worker.coq is not None
         success = False
