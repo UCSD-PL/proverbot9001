@@ -14,7 +14,6 @@ from pathlib import Path
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable, OrderedDict)
 
-from collections import OrderedDict
 
 from util import unwrap, eprint, print_time, nostderr
 
