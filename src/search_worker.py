@@ -289,11 +289,6 @@ class Worker:
                 ending_command = cmd
                 break
         assert ending_command
-        # Check if the original proof used any section local variables
-        # which would change its type, and add a "Proof using"
-        # declaration that sets the correct type. This also sets up a
-        # table of lemma dependencies for recursive use of section
-        # variables.
         proof_relevant = ending_command.strip() == "Defined." or \
             bool(re.match(r"\s*Derive", lemma_statement)) or \
             bool(re.match(r"\s*Let", lemma_statement)) or \
