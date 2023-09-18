@@ -364,6 +364,9 @@ def possibly_resume_rworker(args: argparse.Namespace) \
                                   args.batch_step, args.lr_step)
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
+        v_network.network.to(device)
+        target_network.network.to(device)
+        
         # This ensures that the target and obligation will share a cache for coq2vec encodings
         target_network.obligation_encoder = v_network.obligation_encoder
 
@@ -540,7 +543,7 @@ class VNetwork:
 
     def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
                  batch_step: int, lr_step: float) -> None:
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.batch_step = batch_step
         self.lr_step = lr_step
         self.learning_rate = learning_rate
@@ -549,9 +552,9 @@ class VNetwork:
         # Steps trained only counts from the last resume! Don't use
         # for anything more essential than printing.
         self.steps_trained = 0
-        self.total_loss = torch.tensor(0.0)
+        self.total_loss = torch.tensor(0.0).to(self.device)
         if coq2vec_weights is not None:
-            self._load_encoder_state(torch.load(coq2vec_weights, map_location=device))
+            self._load_encoder_state(torch.load(coq2vec_weights, map_location=self.device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
         assert self.obligation_encoder, \
@@ -576,7 +579,7 @@ class VNetwork:
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         # with print_time("Training", guard=verbosity >= 1):
         actual = self(inputs)
-        target = torch.FloatTensor(target_outputs)
+        target = torch.FloatTensor(target_outputs).to(self.device)
         loss = F.mse_loss(actual, target)
         self.optimizer.zero_grad()
         loss.backward()
@@ -765,10 +768,11 @@ def train_v_network(args: argparse.Namespace,
                     selected_obl_scores))
                 cur_row += num_obls
             outputs.append(max(action_outputs))
+
         v_network.train(inputs, outputs, verbosity=args.verbose)
         if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
             avg_loss = v_network.total_loss / args.print_loss_every
-            v_network.total_loss = torch.tensor(0.0)
+            v_network.total_loss = torch.tensor(0.0).to(self.device)
             print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class MemoizingPredictor(TacticPredictor):
@@ -1069,6 +1073,7 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
                            cached_outputs: List[Optional[torch.FloatTensor]]) \
                            -> torch.FloatTensor:
     assert len(values) == len(cached_outputs)
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     output_list: List[Optional[torch.FloatTensor]] = list(cached_outputs)
     uncached_values: List[T] = []
     uncached_value_indices: List[int] = []
@@ -1077,9 +1082,11 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
             uncached_values.append(value)
             uncached_value_indices.append(i)
     if len(uncached_values) > 0:
-        new_results = f(uncached_values)
+        new_results = f(uncached_values).to(device)
+
         for idx, result in zip(uncached_value_indices, new_results):
             output_list[idx] = result
+    
     return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
 
 def tactic_prefix_is_usable(tactic_prefix: List[str]):
