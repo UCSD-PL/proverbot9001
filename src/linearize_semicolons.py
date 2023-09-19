@@ -618,7 +618,7 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
     except AttributeError:
         ignore_lin_hash = False
 
-    with lin_path.open(mode='r') as f:
+    with lin_path.open(mode='r', encoding='utf-8') as f:
         first_line = f.readline().strip()
         if ignore_lin_hash or hash_file(filename) == first_line:
             return serapi_instance.read_commands(f.read())
