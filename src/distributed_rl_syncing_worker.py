@@ -36,7 +36,7 @@ def main():
     sync_worker_target_networks(args)
 
 def sync_worker_target_networks(args: argparse.Namespace) -> None:
-    retry_delay_secs = 0.5
+    retry_delay_secs = 0.002
     next_save_num = get_resumed_save_num(args) + 1
     last_weights_versions: List[Tuple[int, int]] = []
     all_task_eps = get_all_task_eps(args)
@@ -44,9 +44,11 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
     while num_task_eps_done < len(all_task_eps):
         worker_weights_versions = get_latest_worker_weights_versions(args)
         if worker_weights_versions == last_weights_versions:
+            eprint(f"Waiting because latest weights versions {worker_weights_versions} haven't changed")
             time.sleep(retry_delay_secs)
             continue
         worker_weights = load_worker_weights(args, worker_weights_versions)
+        last_weights_versions = worker_weights_versions
         result_params = {}
         for key in worker_weights[0]:
             result_params[key] = sum((weights_dict[key] for weights_dict
@@ -64,7 +66,7 @@ def sync_worker_target_networks(args: argparse.Namespace) -> None:
 def build_final_save(args: argparse.Namespace, last_save_num: int,
                      num_steps_done: int) -> None:
     save_path = str(args.state_dir / "weights" /
-                    f"common-target-network-{last_save_num}.dat")
+                    f"common-q-network-{last_save_num}.dat")
     common_network_weights_dict = torch.load(save_path)
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
     v_network_state: Tuple[dict, Any, OrderedDict[Obligation, torch.FloatTensor]] = \
@@ -93,7 +95,7 @@ def get_shorter_proofs_dict(args: argparse.Namespace) -> Dict[RLTask, int]:
 def save_common_network(args: argparse.Namespace, save_num: int,
                         result_params: Dict[str, Any]) -> None:
     save_path = str(args.state_dir / "weights" /
-                    f"common-target-network-{save_num}.dat")
+                    f"common-q-network-{save_num}.dat")
     torch.save(result_params, save_path + ".tmp")
     os.rename(save_path + ".tmp", save_path)
 
@@ -121,8 +123,7 @@ def load_worker_weights(args: argparse.Namespace,
                 break
             except OSError:
                 eprint("Failed to load worker file because of stale handle, trying again")
-        _replay_buffer, _step, (weights, _obl_encoder_state, _obl_enccoder_cache), \
-            _random_state = latest_worker_save
+        weights = latest_worker_save
         worker_weights.append(weights)
 
     return worker_weights
@@ -131,12 +132,12 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
     current_working_directory = os.getcwd()
     root_dir = str(args.state_dir / "weights")
     os.chdir(root_dir)
-    common_network_paths= glob("common-target-network-*.dat")
+    common_network_paths= glob("common-q-network-*.dat")
     os.chdir(current_working_directory)
 
     #common_network_paths= glob(f"common-target-network-*.dat",
     #                            root_dir = str(args.state_dir / "weights"))
-    common_save_nums = [int(unwrap(re.match(r"common-target-network-(\d+).dat",
+    common_save_nums = [int(unwrap(re.match(r"common-q-network-(\d+).dat",
                                             path)).group(1))
                         for path in common_network_paths]
     latest_common_save_num = max(common_save_nums)
@@ -144,7 +145,7 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
         if save_num > latest_common_save_num - args.keep_latest:
             continue
         old_save_path = (args.state_dir / "weights" /
-                         f"common-target-network-{save_num}.dat")
+                         f"common-q-network-{save_num}.dat")
         old_save_path.unlink()
 
 def delete_old_worker_weights(args: argparse.Namespace,
@@ -172,13 +173,13 @@ def delete_old_worker_weights(args: argparse.Namespace,
 def get_resumed_save_num(args: argparse.Namespace) -> int:
     cwd = os.getcwd()
     os.chdir(str(args.state_dir / "weights"))
-    common_networks = glob("common-target-network-*.dat")
+    common_networks = glob("common-q-network-*.dat")
     os.chdir(cwd)
     if len(common_networks) == 0:
         return 0
 
     return max(int(unwrap(re.match(
-               r"common-target-network-(\d+).dat",
+               r"common-q-network-(\d+).dat",
                path)).group(1))
                for path in common_networks)
 

@@ -34,26 +34,30 @@ from util import FileLock, eprint, safe_abbrev, print_time, unwrap
 def main() -> None:
   parser = argparse.ArgumentParser()
   parser.add_argument("filenames", nargs="+", type=Path)
+  parser.add_argument("--prelude", type=Path, default=".")
   parser.add_argument("--tasks-file", type=Path)
-  parser.add_argument("--state-dir", type=Path)
+  parser.add_argument("--state-dir", type=Path, default="drl_state")
   parser.add_argument("--curriculum", action='store_true')
   parser.add_argument("--no-interleave", action='store_false', dest='interleave')
   parser.add_argument("--starting-epsilon", default=0, type=float)
   parser.add_argument("--ending-epsilon", default=1.0, type=float)
+  parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
   parser.add_argument("-s", "--steps-per-episode", type=int)
   parser.add_argument("-n", "--num-episodes", type=int)
   parser.add_argument("-p", "--num_predictions", type=int)
   parser.add_argument("--blacklist-tactic", action="append",
                       dest="blacklisted_tactics")
+  parser.add_argument("--backend", choices=["serapi", "lsp", "auto"],
+                      default='auto')
+  parser.add_argument("--max-sertop-workers", type=int, default=16)
   parser.add_argument("--coq2vec-weights", type=Path)
+  parser.add_argument("--supervised-weights", type=Path, dest="weightsfile")
   parser.add_argument("-v", "--verbose", action='count', default=0)
-  parser.add_argument("-H", "--host")
-  parser.add_argument("-P", "--port", type=int)
-  parser.add_argument("--num-actors", type=int)
+  parser.add_argument("-t", "--print-timings", action='store_true')
+  parser.add_argument("-w", "--workerid", required=True)
   args = parser.parse_args()
 
-  assert 'SLURM_ARRAY_TASK_ID' in os.environ
-  workerid = int(os.environ['SLURM_ARRAY_TASK_ID'])
+  workerid = args.workerid
   
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)
@@ -65,12 +69,12 @@ def main() -> None:
     args.splits_file = None
 
   reinforcement_act(args, workerid)
+  eprint("Done, exiting")
+  sys.exit(0)
 
 def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
   learning_connection = LearningServerConnection(
-    args.coq2vec_weights, args.host, args.port, 
-    args.num_actors, workerid)
-  eprint("Established connection")
+    args.coq2vec_weights)
   task_eps = drl.get_all_task_episodes(args)
   actor = initialize_actor(args)
   task_state = TaskState(task_eps)
@@ -89,6 +93,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     for prestate, action, poststates in samples:
       learning_connection.encode_and_send_sample(prestate, action, poststates)
     mark_task_done(args, workerid, next_task_ep)
+    load_latest_q_network(args, actor.v_network)
 
 class RLActor:
   args: argparse.Namespace
@@ -160,23 +165,18 @@ def task_eps_as_dict(task_episodes: List[TaskEpisode]) \
 
 class LearningServerConnection:
   obligation_encoder: coq2vec.CoqContextVectorizer
-  def __init__(self, coq2vec_weights: Path, hostname: str, port: int,
-               num_actors: int, workerid: int, backend='gloo') -> None:
+  def __init__(self, coq2vec_weights: Path, backend='mpi') -> None:
     term_encoder = coq2vec.CoqTermRNNVectorizer()
     device = "cuda" if torch.cuda.is_available() else "cpu"
     term_encoder.load_state(torch.load(str(coq2vec_weights), map_location=device))
     num_hyps = 5
     self.obligation_encoder = rl.CachedObligationEncoder(term_encoder, num_hyps)
-    os.environ["MASTER_ADDR"] = hostname
-    os.environ["MASTER_PORT"] = str(port)
-    eprint(f"Trying to init with hostname {hostname} and port {port}")
-    dist.init_process_group(backend, rank=workerid+1, world_size=num_actors + 1)
-    eprint(f"Initialized")
+    dist.init_process_group(backend)
+    eprint(f"Connection Initialized")
     pass
   def send_sample(self, pre_state_encoded: torch.FloatTensor,
                   action_encoded: int,
                   post_state_encodeds: List[torch.FloatTensor]) -> None:
-    eprint("Calilng send sample")
     dist.send(tensor=pre_state_encoded, tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([action_encoded]), tag=1, dst=0)
     dist.send(tensor=torch.LongTensor([len(post_state_encodeds)]), tag=2, dst=0)
@@ -219,7 +219,7 @@ class TaskState:
   def file_task_state(self, filename: Path) -> FileTaskState:
     return FileTaskState(self.all_files(), filename,
                          self.file_all_tes_dict[filename],
-                         self.file_our_taken_dict[filename],
+                         self.file_our_taken_dict.get(filename, set()),
                          self.cur_episode, self.skip_taken_proofs)
 
 def allocate_next_task(args: argparse.Namespace, workerid: int,
@@ -415,8 +415,9 @@ def get_num_tasks_taken(args: argparse.Namespace, all_files: List[Path]) -> int:
 
 def mark_task_done(args: argparse.Namespace, workerid: int,
                    done_task_ep: TaskEpisode) -> None:
-  with (args.state_dir / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
-    print(done_task_ep, file=f, flush=True)
+  with (args.state_dir / f"done-{workerid}.txt").open('a') as f, FileLock(f):
+    task, ep = done_task_ep
+    print(json.dumps((task.as_dict(), ep)), file=f, flush=True)
 
 def update_shorter_proofs_dict(args: argparse.Namespace,
                                all_files: List[Path],
@@ -439,8 +440,8 @@ def update_shorter_proofs_dict(args: argparse.Namespace,
 def initialize_actor(args: argparse.Namespace) \
     -> RLActor: 
   predictor = rl.MemoizingPredictor(get_predictor(args))
-  network = rl.VNetwork(args.coq2vec_weights, args.learning_rate,
-                        args.batch_step, args.lr_step)
+  network = rl.VNetwork(args.coq2vec_weights, 0.0,
+                        1, 1)
   load_latest_q_network(args, network)
   return RLActor(args, predictor, network)
 
@@ -460,10 +461,9 @@ def load_latest_q_network(args: argparse.Namespace, v_network: rl.VNetwork) -> N
   latest_q_network_path = str(
     args.state_dir / "weights" /
     f"common-q-network-{newest_index}.dat")
-  eprint(f"Loading initial q network from {latest_q_network_path}")
+  eprint(f"Loading latest q network from {latest_q_network_path}")
   q_network_state = torch.load(latest_q_network_path)
   v_network.network.load_state_dict(q_network_state)
-  return 
 
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
@@ -471,7 +471,7 @@ def experience_proof(args: argparse.Namespace,
                      v_network: rl.VNetwork,
                      epsilon: float) \
       -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
-  path: List[ProofContext] = coq.proof_context
+  path: List[ProofContext] = [coq.proof_context]
   initial_open_obligations = len(coq.proof_context.all_goals)
   samples: List[Tuple[Obligation, str, List[Obligation]]] = []
 
@@ -522,9 +522,10 @@ def experience_proof(args: argparse.Namespace,
            guard=args.verbose >= 2)
     if args.verbose >= 3:
       coq_serapy.summarizeContext(coq.proof_context)
+    path.append(coq.proof_context)
     samples.append((before_obl, chosen_action.prediction, resuting_obls))
     if len(coq.proof_context.all_goals) < initial_open_obligations:
-      eprint(f"Completed task with trace {sample[1] for sample in samples}")
+      eprint(f"Completed task with trace {[sample[1] for sample in samples]}")
       return True, samples
   return False, samples
 if __name__ == "__main__":

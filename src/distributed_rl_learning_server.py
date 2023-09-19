@@ -9,10 +9,12 @@ import sys
 import random
 import math
 import subprocess
+from glob import glob
 
 from threading import Thread, Lock, Event
 from pathlib import Path
 from typing import List, Set, Optional, Dict, Tuple, Sequence
+from socket import gethostname
 
 import torch
 from torch import nn
@@ -20,31 +22,29 @@ import torch.nn.functional as F
 from torch import optim
 import torch.distributed as dist
 
-#pylint: disable=wrong-import-position
+# pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
 from rl import model_setup
 from util import eprint
-#pylint: enable=wrong-import-position
+# pylint: enable=wrong-import-position
 
 def main() -> None:
   parser = argparse.ArgumentParser()
+  parser.add_argument("--state-dir", type=Path, default="drl_state")
   parser.add_argument("-e", "--encoding-size", type=int, required=True)
-  parser.add_argument("-n", "--num-actors", required=True, type=int)
-  parser.add_argument("-p", "--port", default=9000, type=int)
   parser.add_argument("-l", "--learning-rate", default=5e-6, type=float)
+  parser.add_argument("-b", "--batch-size", default=64, type=int)
+  parser.add_argument("-g", "--gamma", default=0.9, type=float)
   parser.add_argument("--allow-partial-batches", action='store_true')
   parser.add_argument("--window-size", type=int, default=2560)
   parser.add_argument("--train-every", type=int, default=8)
+  parser.add_argument("--sync-target-every", type=int, default=32)
   args = parser.parse_args()
 
   serve_parameters(args)
 
-def serve_parameters(args: argparse.Namespace, backend='gloo') -> None:
-  hostname = subprocess.run("hostname", text=True, capture_output=True).stdout.strip()
-  os.environ['MASTER_ADDR'] = hostname
-  os.environ['MASTER_PORT'] = str(args.port)
-  eprint(f"Trying to establish connection with host {hostname} and port {args.port}")
-  dist.init_process_group(backend, rank=0, world_size = args.num_actors + 1)
+def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
+  dist.init_process_group(backend)
   eprint(f"Connection established")
   v_network: nn.Module = model_setup(args.encoding_size)
   target_network: nn.Module = model_setup(args.encoding_size)
@@ -59,12 +59,20 @@ def serve_parameters(args: argparse.Namespace, backend='gloo') -> None:
   buffer_thread.start()
 
   steps_last_trained = 0
+  steps_last_synced = 0
+  common_network_version = 0
 
   while signal_change.wait():
     signal_change.clear()
-    if replay_buffer.buffer_steps - steps_last_trained > args.train_every:
+    if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
       steps_last_trained = replay_buffer.buffer_steps
       train(args, v_network, target_network, optimizer, replay_buffer)
+      send_new_weights(args, v_network, common_network_version)
+      common_network_version += 1
+    if replay_buffer.buffer_steps - steps_last_synced >= args.sync_target_every:
+      eprint("Syncing target network")
+      steps_last_synced = replay_buffer.buffer_steps
+      target_network.load_state_dict(v_network.state_dict())
 
 def train(args: argparse.Namespace, v_model: nn.Module,
           target_model: nn.Module,
@@ -73,7 +81,9 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   samples = replay_buffer.sample(args.batch_size)
   if samples is None:
     return
-  inputs = [start_obl for start_obl, _action_records in samples]
+  eprint(f"Got {len(samples)} samples to train")
+  inputs = torch.cat([start_obl.view(1, args.encoding_size)
+                      for start_obl, _action_records in samples], dim=0)
   num_resulting_obls = [[len(resulting_obls)
                          for _action, resulting_obls in action_records]
                         for _start_obl, action_records in samples]
@@ -81,7 +91,10 @@ def train(args: argparse.Namespace, v_model: nn.Module,
                         for _action, resulting_obls in action_records
                         for obl in resulting_obls]
   with torch.no_grad():
-    all_obl_scores = target_model(all_resulting_obls)
+    all_obls_tensor = torch.cat([obl.view(1, args.encoding_size) for obl in
+                                 all_resulting_obls], dim=0)
+    eprint(all_obls_tensor)
+    all_obl_scores = target_model(all_obls_tensor)
   outputs = []
   cur_row = 0
   for resulting_obl_lens in num_resulting_obls:
@@ -91,12 +104,13 @@ def train(args: argparse.Namespace, v_model: nn.Module,
       action_outputs.append(args.gamma * math.prod(selected_obl_scores))
       cur_row += num_obls
     outputs.append(max(action_outputs))
-    actual_values = v_model(inputs)
-    target_values = torch.FloatTensor(outputs)
-    loss = F.mse_loss(actual_values, target_values)
-    optimizer.zero_grad()
-    loss.backward()
-    optimizer.step()
+  actual_values = v_model(inputs).view(len(samples))
+  target_values = torch.FloatTensor(outputs)
+  loss = F.mse_loss(actual_values, target_values)
+  eprint(f"Loss: {loss}")
+  optimizer.zero_grad()
+  loss.backward()
+  optimizer.step()
 
 class BufferPopulatingThread(Thread):
   replay_buffer: EncodedReplayBuffer
@@ -106,11 +120,12 @@ class BufferPopulatingThread(Thread):
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
     self.encoding_size = encoding_size
+    super().__init__()
     pass
   def run(self) -> None:
     while True:
       newest_prestate_sample: torch.FloatTensor = \
-        torch.zeros(self.encoding_size, dtype=float) #type: ignore
+        torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
       sending_worker = dist.recv(tensor=newest_prestate_sample, tag=0)
       newest_action_sample = torch.zeros(1, dtype=int)
       dist.recv(tensor=newest_action_sample, src=sending_worker, tag=1)
@@ -119,7 +134,7 @@ class BufferPopulatingThread(Thread):
       post_states = []
       for _ in range(number_of_poststates.item()):
         newest_poststate_sample: torch.FloatTensor = \
-          torch.zeros(self.encoding_size, dtype=float) #type: ignore
+          torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
         dist.recv(tensor=newest_poststate_sample, src=sending_worker, tag=3)
         post_states.append(newest_poststate_sample)
       self.replay_buffer.add_transition(
@@ -145,6 +160,8 @@ class EncodedReplayBuffer:
     self.window_end_position = 0
     self.allow_partial_batches = allow_partial_batches
     self._contents = {}
+    self.lock = Lock()
+    self.buffer_steps = 0
 
   def sample(self, batch_size: int) -> \
         Optional[List[Tuple[EObligation, Set[ETransition]]]]:
@@ -171,10 +188,28 @@ class EncodedReplayBuffer:
          self._contents.get(from_obl, (0, set()))[1])
       self.window_end_position += 1
 
-def handle_grad_update(model: nn.Module, optimizer: optim.Optimizer, gradients_dict: dict) -> None:
-  for k, g in gradients_dict.items():
-    model.get_parameter(k).grad = g
-  optimizer.step()
+def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
+  save_path = str(args.state_dir / "weights" / f"common-q-network-{version}.dat")
+  torch.save(v_network.state_dict(), save_path + ".tmp")
+  os.rename(save_path + ".tmp", save_path)
+  delete_old_common_weights(args)
+
+def delete_old_common_weights(args: argparse.Namespace) -> None:
+  cwd = os.getcwd()
+  root_dir = str(args.state_dir / "weights")
+  os.chdir(root_dir)
+  common_network_paths = glob("common-q-network-*.dat")
+  os.chdir(cwd)
+
+  common_save_nums = [int(unwrap(re.match(r"common-q-network-(\d+).dat", path)).group(1))
+                      for path in common_network_paths]
+  latest_common_save_num = max(common_save_nums)
+  for save_num in common_save_nums:
+    if save_num > latest_common_save_num - args.keep_latest:
+      continue
+    old_save_path = (args.state_dir / "weights" /
+                     f"common-q-network-{save_num}.dat")
+    old_save_path.unlink()
 
 if __name__ == "__main__":
   main()

@@ -1,8 +1,6 @@
 wheel
 scikit-learn
 sexpdata
-torch
-torchvision
 yattag
 pampy
 pygraphviz

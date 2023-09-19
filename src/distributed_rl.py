@@ -11,7 +11,7 @@ import time
 import re
 import shutil
 from pathlib import Path
-from typing import List, Tuple, Optional, Dict
+from typing import List, Tuple, Optional, Dict, Any, OrderedDict
 from glob import glob
 
 from tqdm import tqdm, trange
@@ -33,31 +33,35 @@ def main() -> None:
     all_task_eps = get_all_task_episodes(args)
     num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
                                       args.num_actors)
-    hostname = dispatch_learning_server(args)
-    dispatch_actors(args, num_workers_actually_needed, sys.argv[1:], hostname)
+    dispatch_learner_and_actors(args, num_workers_actually_needed)
     with util.sighandler_context(signal.SIGINT,
                                  functools.partial(interrupt_early, args)):
         show_progress(args, num_workers_actually_needed)
+    cancel_workers(args)
+    build_final_save(args, len(all_task_eps))
 
     if args.verifyvval:
         cur_dir = os.path.realpath(os.path.dirname(__file__))
-        subprocess.run([f"srun",
-                        "--pty",
-                        "-J", "drl-verify-worker",
-                        "-p", "cpu",
-                        "python",
-                        f"{cur_dir}/rl.py",
-                        "--supervised-weights", args.weightsfile,
-                        "--coq2vec-weights", args.coq2vec_weights,
-                        "--tasks-file", args.tasks_file,
-                        "--prelude", args.prelude,
-                        "-o", args.output_file,
-                        "--gamma", str(args.gamma),
-                        "-n", "0",
-                        "--resume", "yes",
-                        "--verifyvval",
-                        ] +
-                        args.filenames)
+        args = ([f"srun",
+                 "--pty",
+                 "-J", "drl-verify-worker",
+                 "-p", "cpu",
+                 "python",
+                 f"{cur_dir}/rl.py",
+                 "--supervised-weights", str(args.weightsfile),
+                 "--coq2vec-weights", str(args.coq2vec_weights),
+                 "--tasks-file", str(args.tasks_file),
+                 "--prelude", str(args.prelude),
+                 "-o", str(args.output_file),
+                 "--gamma", str(args.gamma),
+                 "-n", "0",
+                 "--resume", "yes",
+                 "--verifyvval",
+                 ] +
+                 [str(p) for p in args.filenames])
+        args_string = " ".join(args)
+        util.eprint(f"Running as \"{args_string}\"")
+        subprocess.run(args)
 
 def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--num-actors", default=32, type=int)
@@ -69,10 +73,9 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--mem", default="2G")
     parser.add_argument("--state_dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
-    parser.add_argument("--port", default=9000)
 
 def check_resume(args: argparse.Namespace) -> None:
-    resume_exists = len(glob(str(args.state_dir / "weights" / "worker-*-network-*.dat"))) > 0
+    resume_exists = len(glob(str(args.state_dir / "weights" / "common-q-network-*.dat"))) > 0
     if args.resume == "ask" and resume_exists:
         print(f"Found existing worker weights in state dir {args.state_dir}. Resume?")
         response = input("[Y/n] ")
@@ -126,7 +129,7 @@ def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTa
                                         for line in f
                                         for task_dict, episode in (json.loads(line),)]
             for task, ep in worker_done_task_eps:
-                if task.src_file in file_taken_dict:
+                if Path(task.src_file) in file_taken_dict:
                     file_taken_dict[Path(task.src_file)].append((task, ep))
                 else:
                     file_taken_dict[Path(task.src_file)] = [(task, ep)]
@@ -134,10 +137,6 @@ def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTa
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
-        progress_path = args.state_dir / f"progress-{workerid}.txt"
-        with progress_path.open("w") as f:
-            for task, ep in worker_done_task_eps:
-                print(json.dumps((task.as_dict(), ep)), file=f, flush=True)
     return file_taken_dict
 
 def write_done_tasks_to_taken_files(args: argparse.Namespace,
@@ -180,82 +179,68 @@ def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
 
     return done_task_eps
 
-def dispatch_actors(args: argparse.Namespace,
-                    num_actors_to_dispatch: int,
-                    rest_args: List[str],
-                    server_hostname: str) -> None:
+def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
     with (args.state_dir / "workers_scheduled.txt").open('w'):
         pass
-    assert num_actors_to_dispatch > 0, num_actors_to_dispatch
-
-    cur_dir = os.path.realpath(os.path.dirname(__file__))
-    subprocess.run([f"{cur_dir}/sbatch-retry.sh",
-                    "-J", f"drl-actor-{args.output_file}",
-                    "-p", args.partition,
-                    "-t", str(args.worker_timeout),
-                    "-o", str(args.state_dir / args.workers_output_dir
-                              / "actor-%a.out"),
-                    "--mem", args.mem,
-                    f"--array=0-{num_actors_to_dispatch-1}",
-                    f"{cur_dir}/distributed_rl_acting_worker.py",
-                    "--tasks-file", args.tasks_file,
-                    "--state-dir", args.state_dir,
-                    "-s", str(args.steps_per_episode),
-                    "-n", str(args.num_episodes),
-                    "-p", str(args.num_predictions),
-                    "--coq2vec-weights", str(args.coq2vec_weights),
-                    "--starting-epsilon", str(args.starting_epsilon),
-                    "--ending-epsilon", str(args.ending_epsilon),
-                    "-H", server_hostname,
-                    "-P", str(args.port),
-                    "--num-actors", str(args.num_actors),
-                    ] + (["--curriculum"] if args.curriculum else [])
-                   + (["--no-interleave"] if not args.interleave else [])
-                   + ["--blacklist-tactic={tactic}" for tactic
-                      in args.blacklisted_tactics]
-                   + (["-" + "v"*args.verbose] if args.verbose > 0 else [])
-                   + args.filenames,
-                   check=False)
-
-def dispatch_learning_server(args: argparse.Namespace) -> str:
+    assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     hidden_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
     num_hyps = 5
     encoding_size = hidden_size * (num_hyps + 1)
     server_jobname = f"drl-learner-{args.output_file}"
-    subprocess.run([f"{cur_dir}/sbatch-retry.sh",
-                    "-J", server_jobname,
-                    "-p", args.learning_partition,
-                    "-t", str(args.worker_timeout),
-                    "-o", str(args.state_dir / args.workers_output_dir / "learner.out"),
-                    "--mem", args.mem,
-                    f"{cur_dir}/distributed_rl_learning_server.py",
-                    "-e", str(encoding_size),
-                    "-n", str(args.num_actors),
-                    "-p", str(args.port),
-                    "-l", str(args.learning_rate),
-                    "--window-size", str(args.window_size),
-                    "--train-every", str(args.train_every)]
-                   + (["--allow-partial-batches"] if args.allow_partial_batches 
-                      else []),
-                   check=False)
-    while not is_server_running(server_jobname):
-        time.sleep(0.2)
+    actor_jobname = f"drl-actor-{args.output_file}"
 
-    return server_node_string(server_jobname)
-
-def is_server_running(jobname: str) -> bool:
-  status_string = subprocess.check_output(
-    f"squeue -u$USER -h -n {jobname} -o %t",
-    shell=True, text=True)
-  if status_string.strip() == "R":
-    return True
-  return False
-
-def server_node_string(jobname: str) -> str:
-  return subprocess.check_output(
-    f"squeue -u$USER -h -n {jobname} -o %N",
-    shell=True, text=True).strip()
+    actor_job_args = (["-J", actor_jobname,
+                   "-p", args.partition,
+                   "-t", str(args.worker_timeout),
+                   "--mem", args.mem,
+                   "--kill-on-bad-exit"])
+    actor_script_args = ([
+                   "python", f"{cur_dir}/distributed_rl_acting_worker.py",
+                   "--prelude", str(args.prelude),
+                   "--tasks-file", str(args.tasks_file),
+                   "--state-dir", str(args.state_dir),
+                   "-s", str(args.steps_per_episode),
+                   "-n", str(args.num_episodes),
+                   "-p", str(args.num_predictions),
+                   "--coq2vec-weights", str(args.coq2vec_weights),
+                   "--supervised-weights", str(args.weightsfile),
+                   "--starting-epsilon", str(args.starting_epsilon),
+                   "--ending-epsilon", str(args.ending_epsilon),
+                   "--backend", args.backend,
+                   ] + (["--curriculum"] if args.curriculum else []) +
+                   (["--no-interleave"] if not args.interleave else []) + 
+                   ["--blacklist-tactic={tactic}" for tactic
+                    in args.blacklisted_tactics] +
+                   (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
+                   (["-t"] if args.print_timings else []) +
+                   [str(f) for f in args.filenames])
+    learner_args = (["-J", server_jobname,
+                     "-p", args.learning_partition,
+                     "-t", str(args.worker_timeout),
+                     "-o", str(args.state_dir / args.workers_output_dir / "learner.out"),
+                     "--mem", args.mem,
+                     "--gres=gpu:1",
+                     "--kill-on-bad-exit",
+                     "python", f"{cur_dir}/distributed_rl_learning_server.py",
+                     "--state-dir", str(args.state_dir),
+                     "-e", str(encoding_size),
+                     "-l", str(args.learning_rate),
+                     "-b", str(args.batch_size),
+                     "-g", str(args.gamma),
+                     "--window-size", str(args.window_size),
+                     "--train-every", str(args.train_every),
+                   ] + (["--allow-partial-batches"] if args.allow_partial_batches 
+                      else []))
+    total_args = ["srun"] + learner_args
+    for workerid in range(num_actors):
+        total_args += ([":"] + actor_job_args +
+                       ["-o", str(args.state_dir / args.workers_output_dir
+                             / f"actor-{workerid}.out")] +
+                       actor_script_args + ["-w", str(workerid)])
+    args_string = " ".join(total_args)
+    util.eprint(f"Dispatching as args {args_string}")
+    subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
 def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
@@ -282,7 +267,7 @@ def get_all_files(args: argparse.Namespace) -> List[Path]:
 
 def show_progress(args: argparse.Namespace, num_actors_dispatched: int) -> None:
     all_task_eps = get_all_task_episodes(args)
-    num_task_eps_progress = get_num_task_eps_progress(args)
+    num_task_eps_progress = get_num_task_eps_done(args)
     num_task_eps_done = 0
     scheduled_actors: List[int] = []
     crashed_actors: List[int] = []
@@ -293,7 +278,7 @@ def show_progress(args: argparse.Namespace, num_actors_dispatched: int) -> None:
         while num_task_eps_done < len(all_task_eps):
             num_task_eps_done = get_num_task_eps_done(args)
             # Update the bar with the tasks that have been finished
-            new_num_task_eps_progress = get_num_task_eps_progress(args)
+            new_num_task_eps_progress = get_num_task_eps_done(args)
             task_eps_bar.update(new_num_task_eps_progress - num_task_eps_progress)
             num_task_eps_progress = new_num_task_eps_progress
             # Update the actors scheduled bar with actors that have been newly scheduled
@@ -332,9 +317,11 @@ def check_for_crashed_actors(args: argparse.Namespace,
                              crashed_actors: List[int]) -> int:
     # Get the workers that are alive
     squeue_output = subprocess.check_output(
-        f"squeue -r -u$USER -h -n drl-actor-{args.output_file} -o%K",
+        f"squeue -r -u$USER -h -n drl-actor-{args.output_file} -OHetJobOffset",
         shell=True, text=True)
-    new_workers_alive = [int(wid) for wid in
+    normal_squeue_output = subprocess.check_output("squeue -u$USER",
+                                                   shell=True, text=True)
+    new_workers_alive = [int(wid) - 1 for wid in
                          squeue_output.strip().split("\n")
                          if wid != ""]
     # Wait a bit between doing this and checking the tasks
@@ -350,6 +337,8 @@ def check_for_crashed_actors(args: argparse.Namespace,
         # Skip any worker for which we've already reported a crash
         if worker_id in crashed_actors:
             continue
+        util.eprint(f"Worker id {worker_id} isn't in {new_workers_alive}")
+        util.eprint(f"squeue output was {normal_squeue_output}")
         # Get the jobs taken by workers.
         with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
             taken_by_worker = [(RLTask(**task_dict), episode)
@@ -367,7 +356,7 @@ def check_for_crashed_actors(args: argparse.Namespace,
             util.eprint(f"Worker {worker_id} crashed! "
                         f"Left behind {task_eps_left_behind} task episodes")
             crashed_actors.append(worker_id)
-    return len(new_workers_alive)
+    return len(new_workers_alive) - len(crashed_actors)
 
 def get_num_task_eps_done(args: argparse.Namespace) -> int:
     num_task_eps_done: int = 0
@@ -377,18 +366,29 @@ def get_num_task_eps_done(args: argparse.Namespace) -> int:
             num_task_eps_done += len(f.readlines())
     return num_task_eps_done
 
-def get_num_task_eps_progress(args: argparse.Namespace) -> int:
-    num_task_eps_done = 0
-
-    for workerid in range(args.num_actors):
-        with (args.state_dir / f"progress-{workerid}.txt").open('r') as f:
-            num_task_eps_done += sum((1 for _ in f))
-    return num_task_eps_done
-
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
     cancel_workers(args)
     sys.exit(0)
 
+def latest_common_save_num(args: argparse.Namespace) -> Optional[int]:
+    root_dir = str(args.state_dir / "weights")
+    cwd = os.getcwd()
+    os.chdir(root_dir)
+    worker_networks = glob("common-q-network-*.dat")
+    os.chdir(cwd)
+    if len(worker_networks) == 0:
+        return None
+    return max(int(util.unwrap(re.match(
+             r"common-q-network-(\d+).dat",
+             path)).group(1))
+            for path in worker_networks)
+
+def latest_common_save(args: argparse.Namespace) -> Optional[Path]:
+    latest_save_num = latest_common_save_num(args)
+    if latest_save_num is None:
+        return None
+    return (args.state_dir / "weights" /
+            f"common-q-network-{latest_save_num}.dat")
 def latest_worker_save_num(args: argparse.Namespace,
                            workerid: int) -> Optional[int]:
     root_dir = str(args.state_dir / "weights")
@@ -415,10 +415,34 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def cancel_workers(args: argparse.Namespace) -> None:
-    subprocess.run([f"scancel -u$USER -n drl-actor-{args.output_file}"],
+    subprocess.run([f"scancel -u$USER -n drl-actor-{args.output_file} -n drl-learner-{args.output_file}"],
                    shell=True, check=True)
-    subprocess.run([f"scancel -u$USER -n drl-learner-{args.output_file}"],
-                   shell=True, check=True)
+
+def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
+    save_path = latest_common_save(args)
+    assert save_path is not None, \
+      "We've reached the end of training, but no common weights are found " \
+      "in the weights directory!"
+    common_network_weights_dict = torch.load(str(save_path))
+    obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
+    v_network_state: Tuple[dict, Any, OrderedDict[Any, torch.FloatTensor]] = \
+                           (common_network_weights_dict, obl_encoder_state, OrderedDict())
+    with args.output_file.open('wb') as f:
+        torch.save((False, None,
+                    steps_done, v_network_state, v_network_state,
+                    get_shorter_proofs_dict(args), None), f)
+
+def get_shorter_proofs_dict(args: argparse.Namespace) -> Dict[RLTask, int]:
+    dict_entries = []
+    all_files = get_all_files(args)
+    for filename in all_files:
+        shorter_proofs_path = (args.state_dir / "shorter_proofs" /
+                               (util.safe_abbrev(filename, all_files) + ".json"))
+        with shorter_proofs_path.open("r") as f, util.FileLock(f):
+            dict_entries += [(RLTask(**task_dict), shorter_length)
+                             for l in f for task_dict, shorter_length in (json.loads(l),)]
+
+    return dict(dict_entries)
 
 if __name__ == "__main__":
     main()
