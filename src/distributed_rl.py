@@ -42,7 +42,7 @@ def main() -> None:
 
     if args.verifyvval:
         cur_dir = os.path.realpath(os.path.dirname(__file__))
-        args = ([f"srun",
+        verify_args = ([f"srun",
                  "--pty",
                  "-J", "drl-verify-worker",
                  "-p", "cpu",
@@ -59,9 +59,9 @@ def main() -> None:
                  "--verifyvval",
                  ] +
                  [str(p) for p in args.filenames])
-        args_string = " ".join(args)
+        args_string = " ".join(verify_args)
         util.eprint(f"Running as \"{args_string}\"")
-        subprocess.run(args)
+        subprocess.run(verify_args)
 
 def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--num-actors", default=32, type=int)
