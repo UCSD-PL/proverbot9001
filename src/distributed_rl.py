@@ -230,6 +230,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "-g", str(args.gamma),
                      "--window-size", str(args.window_size),
                      "--train-every", str(args.train_every),
+                     "--sync-target-every", str(args.sync_target_every),
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches 
                       else []))
     total_args = ["srun"] + learner_args
