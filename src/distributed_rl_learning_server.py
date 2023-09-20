@@ -40,6 +40,7 @@ def main() -> None:
   parser.add_argument("--window-size", type=int, default=2560)
   parser.add_argument("--train-every", type=int, default=8)
   parser.add_argument("--sync-target-every", type=int, default=32)
+  parser.add_argument("--keep-latest", default=3, type=int)
   args = parser.parse_args()
 
   serve_parameters(args)
