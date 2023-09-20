@@ -75,7 +75,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--keep-latest", default=3, type=int)
 
 def check_resume(args: argparse.Namespace) -> None:
-    resume_exists = len(glob(str(args.state_dir / "weights" / "common-q-network-*.dat"))) > 0
+    resume_exists = len(glob(str(args.state_dir / "weights" / "common-v-network-*.dat"))) > 0
     if args.resume == "ask" and resume_exists:
         print(f"Found existing worker weights in state dir {args.state_dir}. Resume?")
         response = input("[Y/n] ")
@@ -374,12 +374,12 @@ def latest_common_save_num(args: argparse.Namespace) -> Optional[int]:
     root_dir = str(args.state_dir / "weights")
     cwd = os.getcwd()
     os.chdir(root_dir)
-    worker_networks = glob("common-q-network-*.dat")
+    worker_networks = glob("common-v-network-*.dat")
     os.chdir(cwd)
     if len(worker_networks) == 0:
         return None
     return max(int(util.unwrap(re.match(
-             r"common-q-network-(\d+).dat",
+             r"common-v-network-(\d+).dat",
              path)).group(1))
             for path in worker_networks)
 
@@ -388,7 +388,7 @@ def latest_common_save(args: argparse.Namespace) -> Optional[Path]:
     if latest_save_num is None:
         return None
     return (args.state_dir / "weights" /
-            f"common-q-network-{latest_save_num}.dat")
+            f"common-v-network-{latest_save_num}.dat")
 def latest_worker_save_num(args: argparse.Namespace,
                            workerid: int) -> Optional[int]:
     root_dir = str(args.state_dir / "weights")

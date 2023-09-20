@@ -190,7 +190,7 @@ class EncodedReplayBuffer:
       self.window_end_position += 1
 
 def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
-  save_path = str(args.state_dir / "weights" / f"common-q-network-{version}.dat")
+  save_path = str(args.state_dir / "weights" / f"common-v-network-{version}.dat")
   torch.save(v_network.state_dict(), save_path + ".tmp")
   os.rename(save_path + ".tmp", save_path)
   delete_old_common_weights(args)
@@ -199,17 +199,17 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
   cwd = os.getcwd()
   root_dir = str(args.state_dir / "weights")
   os.chdir(root_dir)
-  common_network_paths = glob("common-q-network-*.dat")
+  common_network_paths = glob("common-v-network-*.dat")
   os.chdir(cwd)
 
-  common_save_nums = [int(unwrap(re.match(r"common-q-network-(\d+).dat", path)).group(1))
+  common_save_nums = [int(unwrap(re.match(r"common-v-network-(\d+).dat", path)).group(1))
                       for path in common_network_paths]
   latest_common_save_num = max(common_save_nums)
   for save_num in common_save_nums:
     if save_num > latest_common_save_num - args.keep_latest:
       continue
     old_save_path = (args.state_dir / "weights" /
-                     f"common-q-network-{save_num}.dat")
+                     f"common-v-network-{save_num}.dat")
     old_save_path.unlink()
 
 if __name__ == "__main__":

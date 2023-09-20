@@ -449,18 +449,18 @@ def load_latest_q_network(args: argparse.Namespace, v_network: rl.VNetwork) -> N
   root_dir = str(args.state_dir / "weights")
   current_working_directory = os.getcwd()
   os.chdir(root_dir)
-  q_networks = glob("common-q-network-*.dat")
+  q_networks = glob("common-v-network-*.dat")
   os.chdir(current_working_directory)
 
   if len(q_networks) == 0:
     return
   q_network_save_nums = [
-      int(unwrap(re.match(r"common-q-network-(\d+).dat", path)).group(1))
+      int(unwrap(re.match(r"common-v-network-(\d+).dat", path)).group(1))
       for path in q_networks]
   newest_index = max(q_network_save_nums)
   latest_q_network_path = str(
     args.state_dir / "weights" /
-    f"common-q-network-{newest_index}.dat")
+    f"common-v-network-{newest_index}.dat")
   eprint(f"Loading latest q network from {latest_q_network_path}")
   q_network_state = torch.load(latest_q_network_path)
   v_network.network.load_state_dict(q_network_state)
