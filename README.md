@@ -52,7 +52,19 @@ https://graphviz.gitlab.io/_pages/Download/Download_windows.html
 https://www.python.org/downloads/windows/
 
 or use Windows Subsystem for Linux
-
+### Setting up environments for distributed RL on Unity
+1. ```modules load openmpi/4.1.3+cuda11.6.2```
+2. ```git clone --recursive git@github.com:pytorch/pytorch.git```
+3. ```If using conda: `conda install cmake ninja```
+4.
+```cd pytorch
+pip install -r requirements.txt
+pip install mkl mkl-include
+pip install pytorch magma-cuda117
+git submodule sync && git submodule update --init --recursive
+```
+5. If using conda: ```export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}```
+6. ```CMAKE_C_COMPILER=$(which mpicc) CMAKE_CXX_COMPILER=$(which mpicxx) python setup.py develop```
 ## Getting Started with RL4Proof
 ```
 git submodule init CompCert && git submodule update
