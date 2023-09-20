@@ -9,6 +9,7 @@ import sys
 import random
 import math
 import subprocess
+import re
 from glob import glob
 
 from threading import Thread, Lock, Event
@@ -25,7 +26,7 @@ import torch.distributed as dist
 # pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
 from rl import model_setup
-from util import eprint
+from util import eprint, unwrap
 # pylint: enable=wrong-import-position
 
 def main() -> None:
