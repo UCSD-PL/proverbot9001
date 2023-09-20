@@ -65,6 +65,7 @@ git submodule sync && git submodule update --init --recursive
 ```
 5. If using conda: ```export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}```
 6. ```CMAKE_C_COMPILER=$(which mpicc) CMAKE_CXX_COMPILER=$(which mpicxx) python setup.py develop```
+7. **Important** make sure you run ```module load opam/2.1.2 graphviz/2.49.0+py3.8.12 openmpi/4.1.3+cuda11.6.2``` before each run. 
 ## Getting Started with RL4Proof
 ```
 git submodule init CompCert && git submodule update
