@@ -171,8 +171,9 @@ class LearningServerConnection:
     term_encoder.load_state(torch.load(str(coq2vec_weights), map_location=device))
     num_hyps = 5
     self.obligation_encoder = rl.CachedObligationEncoder(term_encoder, num_hyps)
+    eprint("Establishing connection")
     dist.init_process_group(backend)
-    eprint(f"Connection Initialized")
+    eprint("Connection Initialized")
     pass
   def send_sample(self, pre_state_encoded: torch.FloatTensor,
                   action_encoded: int,

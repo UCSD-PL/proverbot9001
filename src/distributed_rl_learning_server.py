@@ -46,8 +46,9 @@ def main() -> None:
   serve_parameters(args)
 
 def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
+  eprint("Establishing connection")
   dist.init_process_group(backend)
-  eprint(f"Connection established")
+  eprint("Connection established")
   v_network: nn.Module = model_setup(args.encoding_size)
   target_network: nn.Module = model_setup(args.encoding_size)
   target_network.load_state_dict(v_network.state_dict())

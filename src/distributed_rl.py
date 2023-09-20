@@ -241,7 +241,6 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                              / f"actor-{workerid}.out")] +
                        actor_script_args + ["-w", str(workerid)])
     args_string = " ".join(total_args)
-    util.eprint(f"Dispatching as args {args_string}")
     subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
