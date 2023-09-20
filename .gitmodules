@@ -168,6 +168,7 @@
 [submodule "CompCert"]
 	path = CompCert
 	url = https://github.com/AbsInt/CompCert.git
+        ignore = dirty
 [submodule "coq-projects/smc"]
 	path = coq-projects/smc
 	url = https://github.com/dsksh/coq-smc.git

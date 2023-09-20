@@ -102,7 +102,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         default=10, type=int)
     parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append",
-                        dest="blacklisted_tactics")
+                        dest="blacklisted_tactics", default=[])
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--save-every", type=int, default=20)
     evalGroup = parser.add_mutually_exclusive_group()
@@ -136,7 +136,7 @@ class FileReinforcementWorker(Worker):
                 self.run_into_job(job, restart_anomaly, careful)
             with print_time("Running task prefix", guard=self.args.print_timings):
                 for statement in tactic_prefix:
-                    self.coq.run_stmt_noupdate(statement)
+                    self.coq.run_stmt(statement)
                 self.coq.update_state()
         else:
             with print_time("Traversing to tactic prefix", self.args.print_timings):
@@ -515,14 +515,7 @@ class VNetwork:
         assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
-        self.network = nn.Sequential(
-            nn.Linear(insize, 120),
-            nn.ReLU(),
-            nn.Linear(120, 84),
-            nn.ReLU(),
-            nn.Linear(84, 1),
-            nn.Sigmoid(),
-        ).to(self.device)
+        self.network = model_setup(insize).to(self.device)
         self.optimizer = optim.RMSprop(self.network.parameters(), lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
@@ -539,6 +532,7 @@ class VNetwork:
             self._load_encoder_state(encoder_state)
             self.obligation_encoder.obl_cache = obl_cache
         self.network.load_state_dict(network_state)
+        self.network.to(self.device)
 
 
     def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
@@ -1077,13 +1071,13 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
     output_list: List[Optional[torch.FloatTensor]] = list(cached_outputs)
     uncached_values: List[T] = []
     uncached_value_indices: List[int] = []
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     for i, value in enumerate(values):
         if output_list[i] is None:
             uncached_values.append(value)
             uncached_value_indices.append(i)
     if len(uncached_values) > 0:
         new_results = f(uncached_values).to(device)
-
         for idx, result in zip(uncached_value_indices, new_results):
             output_list[idx] = result
     
@@ -1095,6 +1089,15 @@ def tactic_prefix_is_usable(tactic_prefix: List[str]):
             return False
     return True
 
+def model_setup(insize: int) -> nn.Module:
+    return nn.Sequential(
+        nn.Linear(insize, 120),
+        nn.ReLU(),
+        nn.Linear(120, 84),
+        nn.ReLU(),
+        nn.Linear(84, 1),
+        nn.Sigmoid(),
+    )
 
 if __name__ == "__main__":
     main()

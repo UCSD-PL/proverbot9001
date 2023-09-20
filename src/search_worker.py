@@ -294,7 +294,7 @@ class Worker:
             bool(re.match(r"\s*Let", lemma_statement)) or \
             bool(re.match(r"\s*Equations", lemma_statement)) or \
             bool(re.match(r"\s*Next\s+Obligation", lemma_statement)) or \
-            bool(re.match(r".*\s+with\s+.*", lemma_statement)) or \
+            bool(re.match(r".*\s+with\s+.*", lemma_statement, flags=re.DOTALL)) or \
             careful
         if proof_relevant:
             while len(self.coq.prev_tactics) > 1:
