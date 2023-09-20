@@ -41,6 +41,7 @@ def main() -> None:
   parser.add_argument("--train-every", type=int, default=8)
   parser.add_argument("--sync-target-every", type=int, default=32)
   parser.add_argument("--keep-latest", default=3, type=int)
+  parser.add_argument("--sync-workers-every", type=int, default=16)
   args = parser.parse_args()
 
   serve_parameters(args)
@@ -62,7 +63,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   buffer_thread.start()
 
   steps_last_trained = 0
-  steps_last_synced = 0
+  steps_last_synced_target = 0
+  steps_last_synced_workers = 0
   common_network_version = 0
 
   while signal_change.wait():
@@ -70,12 +72,14 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
       steps_last_trained = replay_buffer.buffer_steps
       train(args, v_network, target_network, optimizer, replay_buffer)
+    if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
+      eprint("Syncing target network")
+      steps_last_synced_target = replay_buffer.buffer_steps
+      target_network.load_state_dict(v_network.state_dict())
+    if replay_buffer.buffer_steps - steps_last_synced_workers >= args.sync_workers_every:
+      steps_last_synced_workers = replay_buffer.buffer_steps
       send_new_weights(args, v_network, common_network_version)
       common_network_version += 1
-    if replay_buffer.buffer_steps - steps_last_synced >= args.sync_target_every:
-      eprint("Syncing target network")
-      steps_last_synced = replay_buffer.buffer_steps
-      target_network.load_state_dict(v_network.state_dict())
 
 def train(args: argparse.Namespace, v_model: nn.Module,
           target_model: nn.Module,
