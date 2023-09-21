@@ -17,7 +17,7 @@ from distributed_rl_learning_worker import TaskEpisode, get_all_task_episodes
 from distributed_rl_eval import get_all_tasks
 from collections import Counter
 
-def main():
+def main() -> None:
     eprint("Starting main")
     parser = argparse.ArgumentParser(
         description="Evaluation worker - The rl agent"
@@ -75,7 +75,7 @@ def main():
 
 
 
-def evaluation_worker(args: argparse.Namespace, workerid, jobid) :
+def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> None:
             
     tasks = get_all_tasks(args)
     file_all_ts_dict: Dict[Path, List[Tuple[int, RLTask]]] = {}

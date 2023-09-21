@@ -78,9 +78,9 @@ def main():
 
 
 
-def evaluate(args, unique_id = uuid.uuid4()) :
+def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> None:
 
-    def signal_handler(sig, frame):
+    def signal_handler(sig, frame) -> None:
         print('\nProcess Interrupted, Cancelling all Workers')
         result = subprocess.run(f'scancel --name Rl_eval_{unique_id}', shell=True, capture_output=True, text = True)
         print(result.stdout)
@@ -195,7 +195,7 @@ def check_success(args: argparse.Namespace, total_num_jobs: int) -> None:
     print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
 
 
-def cancel_workers(args, unique_id) :
+def cancel_workers(args: argparse.Namespace, unique_id: uuid.UUID) -> None:
     os.system(f"scancel -n RL_eval_{unique_id}")
 
 
@@ -285,7 +285,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
 
 
 
-def get_all_tasks(args) :    
+def get_all_tasks(args: argparse.Namespace) -> List[RLTask]:
     if args.tasks_file:
         with open(args.tasks_file, 'r') as f:
             all_tasks = [RLTask(**json.loads(line)) for line in f]
