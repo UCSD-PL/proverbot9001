@@ -23,7 +23,7 @@ def main():
         description="Evaluation worker - The rl agent"
         "to complete proofs using Proverbot9001.")
     parser.add_argument("--prelude", default=".", type=Path)
-    parser.add_argument("--output", "-o", dest="output_file",
+    parser.add_argument("--rl-weights", "-r",
                         help="output data folder name",
                         default="data/rl_weights.dat",
                         type=Path)
@@ -41,37 +41,18 @@ def main():
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
     parser.add_argument("--tasks-file", default=None)
-    parser.add_argument("--test-file", default=None)
-    parser.add_argument("--no-interleave", dest="interleave", action="store_false")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
-    parser.add_argument("-g", "--gamma", default=0.9, type=float)
-    parser.add_argument("--starting-epsilon", default=0, type=float)
-    parser.add_argument("--ending-epsilon", default=1.0, type=float)
-    parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
-    parser.add_argument("-n", "--num-episodes", default=1, type=int)
-    parser.add_argument("-b", "--batch-size", default=64, type=int)
-    parser.add_argument("-w", "--window-size", default=2560)
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
-    parser.add_argument("--batch-step", default=25, type=int)
-    parser.add_argument("--lr-step", default=0.8, type=float)
-    parser.add_argument("--batches-per-proof", default=1, type=int)
-    parser.add_argument("--train-every", default=1, type=int)
-    parser.add_argument("--print-loss-every", default=None, type=int)
-    parser.add_argument("--curriculum",action="store_true")
-    parser.add_argument("--sync-target-every",
-                        help="Sync target network to v network every <n> episodes",
-                        default=10, type=int)
-    parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
+    parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
-    parser.add_argument("--state_dir", default="drl_state", type=Path)
+    parser.add_argument("--state_dir", default="drl_eval_state", type=Path)
     
     
     args = parser.parse_args()
@@ -108,15 +89,21 @@ def evaluation_worker(args: argparse.Namespace, workerid, jobid) :
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     is_distributed, replay_buffer, steps_already_done, \
       network_state, tnetwork_state, shorter_proofs_dict, random_state = \
-        torch.load(str(args.output_file), map_location=device)
-    random.setstate(random_state)
-    v_network = VNetwork(None, args.learning_rate,
-                            args.batch_step, args.lr_step)
-    target_network = VNetwork(None, args.learning_rate,
-                                args.batch_step, args.lr_step)
+        torch.load(str(args.rl_weights), map_location=device)
+    if random_state is not None:
+        random.setstate(random_state)
+    # Giving dummy values for learning rate, batch step, and lr step because we
+    # won't be training this network, so it won't matter.
+    v_network = VNetwork(None, 0.0, 1, 1.0)
+    target_network = VNetwork(None, 0.0, 1, 1.0)
     target_network.obligation_encoder = v_network.obligation_encoder
     v_network.load_state(network_state)
     target_network.load_state(tnetwork_state)
+    # rl.py expects these arguments for reinforcement workers, when replay
+    # buffer is None (which it is for loading from distributed training), but
+    # since we're not going to use it at all we can pass a dummy value
+    args.window_size = 0
+    args.allow_partial_batches = False
     worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict_from_args(args),
                                  initial_replay_buffer = replay_buffer)
     

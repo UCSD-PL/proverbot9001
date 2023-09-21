@@ -30,7 +30,7 @@ def main():
         description="Evaluation worker - The rl agent"
         "to complete proofs using Proverbot9001.")
     parser.add_argument("--prelude", default=".", type=Path)
-    parser.add_argument("--output", "-o", dest="output_file",
+    parser.add_argument("--rl-weights", "-r",
                         help="output data folder name",
                         default="data/rl_weights.dat",
                         type=Path)
@@ -48,41 +48,24 @@ def main():
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
     parser.add_argument("--tasks-file", default=None)
-    parser.add_argument("--test-file", default=None)
-    parser.add_argument("--no-interleave", dest="interleave", action="store_false")
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-l", "--learning-rate", default=2.5e-4, type=float)
-    parser.add_argument("-g", "--gamma", default=0.9, type=float)
-    parser.add_argument("--starting-epsilon", default=0, type=float)
-    parser.add_argument("--ending-epsilon", default=1.0, type=float)
-    parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
-    parser.add_argument("-n", "--num-episodes", default=1, type=int)
-    parser.add_argument("-b", "--batch-size", default=64, type=int)
-    parser.add_argument("-w", "--window-size", default=2560)
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
-    parser.add_argument("--batch-step", default=25, type=int)
-    parser.add_argument("--lr-step", default=0.8, type=float)
-    parser.add_argument("--batches-per-proof", default=1, type=int)
-    parser.add_argument("--train-every", default=1, type=int)
-    parser.add_argument("--print-loss-every", default=None, type=int)
-    parser.add_argument("--curriculum",action="store_true")
-    parser.add_argument("--sync-target-every",
-                        help="Sync target network to v network every <n> episodes",
-                        default=10, type=int)
-    parser.add_argument("--allow-partial-batches", action='store_true')
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
+    parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
     parser.add_argument("--eval-resume", action="store_true")
     evalGroup = parser.add_mutually_exclusive_group(required=True)
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
-    parser.add_argument("--state-dir", default="drl_state", type=Path)
+    parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
     parser.add_argument("--workers-output-dir", default=Path("output"), type=Path)
     parser.add_argument("--num-eval-workers", default=1, type=int)
     parser.add_argument("--worker-alive-time", type=str, default="00:20:00")
+    parser.add_argument("--partition", default="cpu")
+    parser.add_argument("--mem", default="4G")
     args = parser.parse_args()
     
     if args.filenames[0].suffix == ".json":
@@ -105,57 +88,59 @@ def evaluate(args, unique_id = uuid.uuid4()) :
 
     signal.signal(signal.SIGINT, signal_handler)
 
-    setup_eval_jobstate(args)
-    print(f"Deploying {args.num_eval_workers} workers")
+    all_tasks = get_all_tasks(args)
+    num_tasks_done = setup_eval_jobstate(args)
+    num_workers_actually_needed = min(len(all_tasks) - num_tasks_done,
+                                      args.num_eval_workers)
+    print(f"Deploying {num_workers_actually_needed} workers")
     
 
-    if args.tasks_file :
-        task_file_arg = f"--tasks-file {str(args.tasks_file)}"
-    else :
-        task_file_arg = ""
-    
-    if args.evaluate :
-        evaluate_arg = "--evaluate"
-    elif args.evaluate_baseline :
-        evaluate_arg = "--evaluate-baseline"
-    
-    if args.verbose>0 :
-        verbosity_arg = "-"+"v"*args.verbose
-    else :
-        verbosity_arg = ""
-    
-    if args.set_switch :
-        setswitchargs = ""
-    else :
-        setswitchargs = "--no-set-switch"
-    
-    if args.include_proof_relevant :
-        proofrelevantargs = "--include-proof-relevant"
-    else :
-        proofrelevantargs = ""
-    
-    if args.blacklisted_tactics:
-        blacklistedtacticsarg = " ".join( [ f"--blacklisted-tactic {tactic}" for tactic in args.blacklisted_tactics] )
-    else :
-        blacklistedtacticsarg = ""
+    if num_workers_actually_needed > 0:
+        if args.tasks_file :
+            task_file_arg = f"--tasks-file {str(args.tasks_file)}"
+        else :
+            task_file_arg = ""
 
+        if args.evaluate :
+            evaluate_arg = "--evaluate"
+        elif args.evaluate_baseline :
+            evaluate_arg = "--evaluate-baseline"
 
-    output_arg = f"-o {str(args.output_file)}"
-    prelude_arg = f"--prelude {str(args.prelude)}"
-    backend_arg = f"--backend {args.backend}"
-    if args.weightsfile:
-        supervised_weights_arg = f"--supervised-weights {str(args.weightsfile)}"
-    else:
-        supervised_weights_arg = ""
-    coq2vecweightsarg = f"--coq2vec-weights {str(args.coq2vec_weights)}"
-    predictionarg = f"-p {args.num_predictions}"
-    gammaarg = f"-g {args.gamma}"
-    maxsertopworkersarg = f"--max-sertop-workers {args.max_sertop_workers}"
-    windowsizeargs = f"--window-size {args.window_size}"
+        if args.verbose>0 :
+            verbosity_arg = "-"+"v"*args.verbose
+        else :
+            verbosity_arg = ""
 
+        if args.set_switch :
+            setswitchargs = ""
+        else :
+            setswitchargs = "--no-set-switch"
 
-    with open("submit/submit_multi_eval_jobs.sh","w") as f:
-        submit_script = f"""#!/bin/bash
+        if args.include_proof_relevant :
+            proofrelevantargs = "--include-proof-relevant"
+        else :
+            proofrelevantargs = ""
+
+        if args.blacklisted_tactics:
+            blacklistedtacticsarg = " ".join( [ f"--blacklisted-tactic {tactic}" for tactic in args.blacklisted_tactics] )
+        else :
+            blacklistedtacticsarg = ""
+    
+    
+        output_arg = f"-r {args.rl_weights}"
+        prelude_arg = f"--prelude {str(args.prelude)}"
+        backend_arg = f"--backend {args.backend}"
+        if args.weightsfile:
+            supervised_weights_arg = f"--supervised-weights {str(args.weightsfile)}"
+        else:
+            supervised_weights_arg = ""
+        coq2vecweightsarg = f"--coq2vec-weights {str(args.coq2vec_weights)}"
+        predictionarg = f"-p {args.num_predictions}"
+        maxsertopworkersarg = f"--max-sertop-workers {args.max_sertop_workers}"
+    
+    
+        with open("submit/submit_multi_eval_jobs.sh","w") as f:
+            submit_script = f"""#!/bin/bash
 #
 #SBATCH --job-name=Rl_eval_{unique_id}
 #SBATCH -p gpu
@@ -170,23 +155,20 @@ def evaluate(args, unique_id = uuid.uuid4()) :
 module add opam/2.1.2
 python -u src/distributed_rl_eval_cluster_worker.py {supervised_weights_arg} {coq2vecweightsarg} \
     compcert_projs_splits.json {prelude_arg} {backend_arg} {output_arg} {task_file_arg} {evaluate_arg} \
-     {verbosity_arg} {predictionarg} {gammaarg} {setswitchargs} {proofrelevantargs} {maxsertopworkersarg} \
-     {windowsizeargs} {blacklistedtacticsarg}
+     {verbosity_arg} {predictionarg} {setswitchargs} {proofrelevantargs} {maxsertopworkersarg} \
+     {blacklistedtacticsarg} -s {args.steps_per_episode}
 """
-        f.write(submit_script)
-    subprocess.run(f'sbatch submit/submit_multi_eval_jobs.sh', shell=True)
-    track_progress(args)
+            f.write(submit_script)
+        subprocess.run(f'sbatch submit/submit_multi_eval_jobs.sh', shell=True)
+        track_progress(args, len(all_tasks))
 
-    print("Finished Evaluation")
-    check_success(args)
-
-
+        print("Finished Evaluation")
+    check_success(args, len(all_tasks))
 
 
-def track_progress(args) :
-    total_num_jobs = len(get_all_tasks(args))
+def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
     
-    with tqdm(desc="Jobs finished", total=total_num_jobs, initial=0, dynamic_ncols=True,position=0,leave=True) as bar :
+    with tqdm(desc="Jobs finished", total=total_num_tasks, initial=0, dynamic_ncols=True,position=0,leave=True) as bar :
         jobs_done = 0
         while True :
             time.sleep(0.1)
@@ -200,14 +182,12 @@ def track_progress(args) :
             
             jobs_done = new_jobs_done
 
-            if jobs_done == total_num_jobs :
+            if jobs_done == total_num_tasks :
                 break
         
     
 
-def check_success(args) :
-    with Path(args.tasks_file).open("r") as f, FileLock(f):
-        total_num_jobs = sum(1 for _ in f)
+def check_success(args: argparse.Namespace, total_num_jobs: int) -> None:
     total_num_jobs_successful = 0
     for workerid in range(1, args.num_eval_workers + 1) :
         with (args.state_dir / "eval" / f"finished-{workerid}.txt").open('r') as f, FileLock(f):
@@ -220,7 +200,7 @@ def cancel_workers(args, unique_id) :
 
 
 
-def setup_eval_jobstate(args: argparse.Namespace) -> None:
+def setup_eval_jobstate(args: argparse.Namespace) -> int:
 
     if not args.eval_resume :
         if (args.state_dir / "eval").exists() :
@@ -301,6 +281,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> None:
 
     with (args.state_dir / "eval" / "workers_scheduled.txt").open('w') as f:
         pass
+    return len(done_tasks)
 
 
 
