@@ -208,6 +208,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    "--supervised-weights", str(args.weightsfile),
                    "--starting-epsilon", str(args.starting_epsilon),
                    "--ending-epsilon", str(args.ending_epsilon),
+                   "--smoothing-factor", str(args.smoothing_factor),
                    "--backend", args.backend,
                    ] + (["--curriculum"] if args.curriculum else []) +
                    (["--no-interleave"] if not args.interleave else []) + 

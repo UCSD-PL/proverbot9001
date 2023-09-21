@@ -87,6 +87,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-g", "--gamma", default=0.9, type=float)
     parser.add_argument("--starting-epsilon", default=0, type=float)
     parser.add_argument("--ending-epsilon", default=1.0, type=float)
+    parser.add_argument("--smoothing-factor", default=4.0, type=float)
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
     parser.add_argument("-n", "--num-episodes", default=1, type=int)
     parser.add_argument("-b", "--batch-size", default=64, type=int)
@@ -617,9 +618,13 @@ def experience_proof(args: argparse.Namespace,
             if chosen_score == -float("Inf"):
                 break
         else:
-            eprint("Using random action", guard=args.verbose >= 3)
+            eprint("Using action sampled based on supervised certainties",
+                   guard=args.verbose >= 3)
             chosen_action = None
-            for action in random.sample(actions, k=len(actions)):
+            action_list = randomly_order_by_scores(
+              actions,
+              lambda a: a.certainty ** ( 1 / args.smoothing_factor ))
+            for action in action_list:
                 try:
                     coq.run_stmt(action.prediction)
                     resulting_context = coq.proof_context
@@ -1098,6 +1103,30 @@ def model_setup(insize: int) -> nn.Module:
         nn.Linear(84, 1),
         nn.Sigmoid(),
     )
+
+def sample_distribution(distribution: List[float]) -> int:
+    rval = random.random()
+    for idx, prob in enumerate(distribution):
+        if rval <= prob:
+            return idx
+        rval -= prob
+    assert False, "This shouldn't happen I think"
+
+def softmax_scores(scores: List[float]) -> List[float]:
+    exps = [math.exp(score) for score in scores]
+    exp_sum = sum(exps)
+    return [exp / exp_sum for exp in exps]
+
+def randomly_order_by_scores(xs: List[T], scorer: Callable[[T], float]) -> List[T]:
+    result = []
+    xs_left = list(xs)
+    scores_left = [scorer(x) for x in xs]
+    for i in range(len(xs)):
+        next_el_idx = sample_distribution(softmax_scores(scores_left))
+        result.append(xs_left[next_el_idx])
+        del xs_left[next_el_idx]
+        del scores_left[next_el_idx]
+    return result
 
 if __name__ == "__main__":
     main()

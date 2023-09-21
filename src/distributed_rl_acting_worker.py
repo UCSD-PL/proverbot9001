@@ -41,6 +41,7 @@ def main() -> None:
   parser.add_argument("--no-interleave", action='store_false', dest='interleave')
   parser.add_argument("--starting-epsilon", default=0, type=float)
   parser.add_argument("--ending-epsilon", default=1.0, type=float)
+  parser.add_argument("--smoothing-factor", default=4.0, type=float)
   parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
   parser.add_argument("-s", "--steps-per-episode", type=int)
   parser.add_argument("-n", "--num-episodes", type=int)
