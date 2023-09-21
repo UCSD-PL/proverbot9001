@@ -143,10 +143,9 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
             submit_script = f"""#!/bin/bash
 #
 #SBATCH --job-name=Rl_eval_{unique_id}
-#SBATCH -o {args.state_dir}/eval/slurm-%A_%a_out.txt
-#SBATCH -e {args.state_dir}/eval/slurm-%A_%a_err.txt
 #SBATCH -p {args.partition}
 #SBATCH --mem={args.mem}
+#SBATCH -o {args.state_dir}/worker-%a_output.txt
 #SBATCH --array=1-{num_workers_actually_needed}
 #SBATCH --time={args.worker_alive_time}
 
@@ -173,7 +172,7 @@ def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
             time.sleep(0.1)
             new_jobs_done = 0
             for workeridx in range(1, args.num_eval_workers + 1) :
-                with (args.state_dir / "eval" / f"progress-{workeridx}.txt").open("r+") as f, FileLock(f):
+                with (args.state_dir / f"progress-{workeridx}.txt").open("r+") as f:
                     new_jobs_done += sum(1 for _ in f)
 
             
@@ -189,7 +188,7 @@ def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
 def check_success(args: argparse.Namespace, total_num_jobs: int) -> None:
     total_num_jobs_successful = 0
     for workerid in range(1, args.num_eval_workers + 1) :
-        with (args.state_dir / "eval" / f"finished-{workerid}.txt").open('r') as f, FileLock(f):
+        with (args.state_dir / f"finished-{workerid}.txt").open('r') as f, FileLock(f):
                 total_num_jobs_successful += sum(1 for _ in f)
     print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
 
@@ -202,14 +201,13 @@ def cancel_workers(args: argparse.Namespace, unique_id: uuid.UUID) -> None:
 def setup_eval_jobstate(args: argparse.Namespace) -> int:
 
     if not args.eval_resume :
-        if (args.state_dir / "eval").exists() :
-            shutil.rmtree(str(args.state_dir) + "/eval")
+        if (args.state_dir).exists() :
+            shutil.rmtree(str(args.state_dir))
             
     (args.state_dir).mkdir(exist_ok=True)
-    (args.state_dir/ "eval").mkdir(exist_ok=True)
-    (args.state_dir / "eval" / args.workers_output_dir).mkdir(exist_ok=True)
-    (args.state_dir / "eval" / "taken").mkdir(exist_ok=True)
-    taken_path = args.state_dir / "eval" / "taken" / "taken-files.txt"
+    (args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
+    (args.state_dir / "taken").mkdir(exist_ok=True)
+    taken_path = args.state_dir / "taken" / "taken-files.txt"
     if not taken_path.exists():
         with taken_path.open('w'):
             pass
@@ -239,7 +237,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
     done_tasks = []
     for workerid in range(1, args.num_eval_workers + 1):
         worker_done_tasks = []
-        progress_path = args.state_dir / "eval" / f"progress-{workerid}.txt"
+        progress_path = args.state_dir / f"progress-{workerid}.txt"
         if not progress_path.exists():
             with progress_path.open("w"):
                 pass
@@ -249,7 +247,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
                                         for line in f
                                         for task_dict in (json.loads(line),)]
             done_tasks += worker_done_tasks
-        taken_path = args.state_dir / "eval" / "taken" / f"taken-{workerid}.txt"
+        taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
     
@@ -262,7 +260,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
     all_tasks = get_all_tasks(args)
     tasks_idx_dict = {task : idx for idx, task in enumerate(all_tasks)}
     for fidx, filename in enumerate(get_all_files(args)):
-        with (args.state_dir / "eval" / "taken" /
+        with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
                                 file_taken_dict.keys()) + ".txt")).open("w") as f:
             for tidx, task in enumerate(file_taken_dict.get(filename, [])):
@@ -278,7 +276,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
                 print(json.dumps((task_idx, False)), file=f, flush=True)
 
 
-    with (args.state_dir / "eval" / "workers_scheduled.txt").open('w') as f:
+    with (args.state_dir / "workers_scheduled.txt").open('w') as f:
         pass
     return len(done_tasks)
 

@@ -131,7 +131,7 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
         
 
         next_task_idx, task = next_task_and_idx
-        with (args.state_dir / "eval" / "taken" / f"taken-{workerid}.txt").open('a') as f:
+        with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
             print(json.dumps(task.as_dict()), file=f, flush=True)
         src_path = Path(task.src_file)
         if src_path in file_our_taken_dict:
@@ -148,12 +148,12 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
                 eprint("Skipping a job because it can't be purely focused")
         else :
             if worker.evaluate_job(task.to_job(), task.tactic_prefix):
-                with (args.state_dir / "eval"/ f"finished-{workerid}.txt").open('a') as f,FileLock(f):
+                with (args.state_dir / f"finished-{workerid}.txt").open('a') as f,FileLock(f):
                     print(json.dumps(task.as_dict()), file=f, flush=True)
         
         
         recently_done_tasks.append(task)
-        with (args.state_dir / "eval" / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
+        with (args.state_dir / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
             print(json.dumps(task.as_dict()), file=f, flush=True)
         
 
@@ -172,7 +172,7 @@ def allocate_next_task(args: argparse.Namespace,
                       -> Optional[Tuple[int, RLTask]]:
     all_files = list(file_all_tasks_dict.keys())
     while True:
-        with (args.state_dir / "eval" / "taken" / "taken-files.txt"
+        with (args.state_dir / "taken" / "taken-files.txt"
               ).open("r+") as f, FileLock(f):
             taken_files: Counter[Path] = Counter(Path(p.strip()) for p in f)
             if len(all_files) <= len(files_finished_this_ep):
@@ -245,7 +245,7 @@ def allocate_next_task_from_file(args: argparse.Namespace,
                                  our_taken_tasks: Set[int],
                                  skip_taken_proofs: bool) \
                                 -> Optional[Tuple[int, RLTask]]:
-    filepath = args.state_dir / "eval" / "taken" / ("file-" + safe_abbrev(filename, all_files) + ".txt")
+    filepath = args.state_dir / "taken" / ("file-" + safe_abbrev(filename, all_files) + ".txt")
     with filepath.open("r+") as f, FileLock(f):
         # Loading the taken file
         taken_tasks: Set[int] = set()
