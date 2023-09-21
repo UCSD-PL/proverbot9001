@@ -70,7 +70,6 @@ def main() -> None:
     jobid = int(os.environ['SLURM_ARRAY_JOB_ID'])
     eprint(f"Starting worker {workerid}")
     evaluation_worker(args,workerid,jobid)
-    eprint(f"Finished worker {workerid}")
 
 
 
