@@ -163,27 +163,24 @@ python -u src/distributed_rl_eval_cluster_worker.py {supervised_weights_arg} {co
         print("Finished Evaluation")
     check_success(args, len(all_tasks))
 
+def get_jobs_done(args: argparse.Namespace) -> int:
+    jobs_done = 0
+    for worker_progress_file in glob(str(args.state_dir / f"progress-*.txt")):
+        with open(worker_progress_file, 'r') as f:
+            jobs_done += sum(1 for _ in f)
+    return jobs_done
 
 def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
-    
-    with tqdm(desc="Jobs finished", total=total_num_tasks, initial=0, dynamic_ncols=True,position=0,leave=True) as bar :
-        jobs_done = 0
+    jobs_done = get_jobs_done(args)
+    with tqdm(desc="Jobs finished", total=total_num_tasks, initial=jobs_done, dynamic_ncols=True,position=0,leave=True) as bar :
         while True :
             time.sleep(0.1)
-            new_jobs_done = 0
-            for workeridx in range(1, args.num_eval_workers + 1) :
-                with (args.state_dir / f"progress-{workeridx}.txt").open("r+") as f:
-                    new_jobs_done += sum(1 for _ in f)
-
-            
+            new_jobs_done = get_jobs_done(args)
             bar.update(new_jobs_done - jobs_done)
-            
             jobs_done = new_jobs_done
 
-            if jobs_done == total_num_tasks :
+            if jobs_done == total_num_tasks:
                 break
-        
-    
 
 def check_success(args: argparse.Namespace, total_num_jobs: int) -> None:
     total_num_jobs_successful = 0
