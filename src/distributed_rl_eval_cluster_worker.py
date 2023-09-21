@@ -155,13 +155,6 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
         recently_done_tasks.append(task)
         with (args.state_dir / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
             print(json.dumps(task.as_dict()), file=f, flush=True)
-        
-
-    return
-    
-
-
-
 
 def allocate_next_task(args: argparse.Namespace,
                        file_all_tasks_dict: Dict[Path, List[Tuple[int, RLTask]]], # changed from file_all_te _dict
