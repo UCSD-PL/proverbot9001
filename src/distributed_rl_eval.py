@@ -11,20 +11,20 @@ import shutil
 import signal
 import sys
 
-from gen_rl_tasks import RLTask
-from search_file import get_all_jobs
-from search_worker import project_dicts_from_args
-
-
-from util import (nostderr, FileLock, eprint,
-                  print_time, unwrap, safe_abbrev)
 from pathlib import Path
 from glob import glob
 from typing import List, Tuple, Optional, Dict, Set
 from tqdm import tqdm
 
 
-def main() :
+from gen_rl_tasks import RLTask
+from search_file import get_all_jobs
+from search_worker import project_dicts_from_args
+
+from util import (nostderr, eprint,
+                  print_time, unwrap, safe_abbrev)
+
+def main():
     eprint("Starting main")
     parser = argparse.ArgumentParser(
         description="Evaluation worker - The rl agent"
