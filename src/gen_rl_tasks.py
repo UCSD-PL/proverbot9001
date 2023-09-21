@@ -17,8 +17,8 @@ from coq_serapy.contexts import (FullContext, ProofContext,
 
 from dataloader import scraped_from_file
 
-from search_file import get_all_jobs
-from search_worker import get_predictor, ReportJob
+#from search_file import get_all_jobs
+from coq_worker import get_predictor, ReportJob, get_all_jobs
 from models.tactic_predictor import TacticPredictor
 
 from util import unwrap, eprint

@@ -32,8 +32,12 @@ import torch
 
 from search_file import (add_args_to_parser, get_predictor,
                          SearchWorker, project_dicts_from_args)
+import rl
 import util
+import torch_util
 from util import eprint, FileLock
+from torch import nn
+from cached_obligation_encoder import CachedObligationEncoder
 
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
@@ -59,7 +63,7 @@ def main(arg_list: List[str]) -> None:
         args.filenames = []
 
     sys.setrecursionlimit(100000)
-    if util.use_cuda:
+    if torch_util.use_cuda:
         torch.cuda.set_device("cuda:0")
         util.cuda_device = "cuda:0"
 
@@ -84,6 +88,15 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
         all_jobs = [json.loads(line) for line in f]
 
     predictor = get_predictor(args)
+
+    if args.rl_weightsfile is not None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        is_singlethreaded, replay_buffer, steps_already_done, network_state, \
+        tnetwork_state, shorter_proofs_dict, random_state = \
+            torch.load(str(args.output_file), map_location=device)
+        v_network = rl.VNetwork(None, args.learning_rate,
+            args.batch_step, args.lr_step)
+    else: v_network = None
 
     project_dicts = project_dicts_from_args(args)
     if any(["switch" in item for item in project_dicts]):

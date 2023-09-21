@@ -1,7 +1,7 @@
 from collections import defaultdict
 import json
 import random
-from search_worker import ReportJob, Worker, get_predictor
+from coq_worker import ReportJob, Worker, get_predictor
 
 class Taskhandler() :
     def __init__(self) :

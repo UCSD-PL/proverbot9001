@@ -46,7 +46,8 @@ from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma
 import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
-from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
+from search_worker import get_file_jobs, project_dicts_from_args
+from coq_worker import get_predictor
 from models.tactic_predictor import TacticPredictor
 
 import multi_project_report

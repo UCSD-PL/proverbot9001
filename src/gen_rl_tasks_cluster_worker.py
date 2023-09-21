@@ -6,7 +6,7 @@ from pathlib import Path
 from os import environ
 
 from gen_rl_tasks import add_args_to_parser, get_job_tasks
-from search_worker import ReportJob
+from coq_worker import ReportJob
 from search_file import get_predictor
 
 from util import FileLock, eprint

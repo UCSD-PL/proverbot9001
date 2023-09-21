@@ -25,8 +25,8 @@ from coq_serapy.contexts import (FullContext, truncate_tactic_context,
 import coq2vec
 
 from search_file import get_all_jobs
-from search_worker import ReportJob, Worker, get_predictor
-from search_strategies import completed_proof
+from coq_worker import ReportJob, Worker, get_predictor
+from coq_worker import completed_proof
 
 from models.tactic_predictor import (TacticPredictor, Prediction)
 

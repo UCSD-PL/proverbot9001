@@ -49,7 +49,8 @@ from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, project_dicts_from_args
+from search_worker import SearchWorker, get_files_jobs, project_dicts_from_args
+from coq_worker import ReportJob, get_predictor, get_all_jobs
 import util
 
 from tqdm import tqdm
@@ -99,6 +100,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
     parser.add_argument('--weightsfile', default=None, type=Path)
+    parser.add_argument("--rl-weightsfile", defualt=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -293,25 +295,25 @@ def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
             return True
     return False
 
-def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> List[ReportJob]:
-    project_dicts = project_dicts_from_args(args)
-    proj_filename_tuples = [(project_dict["project_name"], filename)
-                            for project_dict in project_dicts
-                            for filename in project_dict[partition]]
-    jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
-    if args.proofs_file is not None:
-        found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
-                           for project, filename, sm_prefix, stmt, done_stmts in jobs]
-        with open(args.proofs_file, 'r') as f:
-            jobs_lines = list(f)
-        for job_line in jobs_lines:
-            assert in_qualified_proofs_list(job_line.strip(), found_job_lines), \
-                f"Couldn't find job {job_line.strip()}, found jobs {found_job_lines}"
-        assert len(jobs) == len(jobs_lines), \
-            f"There are {len(jobs_lines)} lines in the jobs file but only {len(jobs)} found jobs!"
-    elif args.proof:
-        assert len(jobs) == 1
-    return jobs
+#def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> List[ReportJob]:
+#    project_dicts = project_dicts_from_args(args)
+#    proj_filename_tuples = [(project_dict["project_name"], filename)
+#                            for project_dict in project_dicts
+#                            for filename in project_dict[partition]]
+#    jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
+#    if args.proofs_file is not None:
+#        found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
+#                           for project, filename, sm_prefix, stmt, done_stmts in jobs]
+#        with open(args.proofs_file, 'r') as f:
+#            jobs_lines = list(f)
+#        for job_line in jobs_lines:
+#            assert in_qualified_proofs_list(job_line.strip(), found_job_lines), \
+#                f"Couldn't find job {job_line.strip()}, found jobs {found_job_lines}"
+#        assert len(jobs) == len(jobs_lines), \
+#            f"There are {len(jobs_lines)} lines in the jobs file but only {len(jobs)} found jobs!"
+#    elif args.proof:
+#        assert len(jobs) == 1
+#    return jobs
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
     project_dicts = project_dicts_from_args(args)

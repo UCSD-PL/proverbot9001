@@ -11,6 +11,8 @@ from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast
 from dataclasses import dataclass, field
 from pathlib import Path
 
+from torch import nn
+
 import pygraphviz as pgv
 from tqdm import tqdm, trange
 
@@ -27,6 +29,9 @@ from util import nostderr, unwrap, eprint, mybarfmt, copyArgs
 
 from value_estimator import Estimator
 import dataloader
+
+from rl import VMNetwork
+from coq_worker import completed_proof
 
 unnamed_goal_number: int = 0
 
@@ -524,11 +529,11 @@ def dfs_proof_search_with_graph(lemma_name: str,
     return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
 
 
-def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
-    if coq.proof_context:
-        return len(coq.proof_context.all_goals) == 0 and \
-            coq.tactic_history.curDepth() == 0
-    return False
+#def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
+#    if coq.proof_context:
+#        return len(coq.proof_context.all_goals) == 0 and \
+#            coq.tactic_history.curDepth() == 0
+#    return False
 
 
 @dataclass
@@ -877,7 +882,8 @@ def best_first_proof_search(lemma_name: str,
                        output_dir: Path,
                        args: argparse.Namespace,
                        bar_idx: int,
-                       predictor: TacticPredictor) \
+                       predictor: TacticPredictor,
+                       v_network: VNetwork) \
                        -> SearchResult:
     assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
     if args.scoring_function in ["pickled", "pickled-normcert"]:
@@ -998,6 +1004,10 @@ def best_first_proof_search(lemma_name: str,
             if args.search_type == "astar":
                 # Calculate the A* f_score
                 g_score = len(prediction_node.path())
+                if args.rl_weightsfile is not None:
+                    v_values = v_network(coq.proof_context.fg_goals[0])
+                    h_score = math.log(max(sys.float_info.min, vval_predicted)) \
+                                               / math.log(args.gamma)
                 score = g_score + h_score
             else:
                 score = h_score

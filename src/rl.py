@@ -36,9 +36,10 @@ import coq2vec
 from gen_rl_tasks import RLTask
 
 with print_time("Importing search code"):
-    from search_file import get_all_jobs
-    from search_worker import ReportJob, Worker, get_predictor
-    from search_strategies import completed_proof
+    #from search_file import get_all_jobs
+    from coq_worker import ReportJob, Worker, get_predictor, get_all_jobs
+    #from search_strategies import completed_proof
+    from coq_worker import completed_proof
 
     from models.tactic_predictor import (TacticPredictor, Prediction)
 
