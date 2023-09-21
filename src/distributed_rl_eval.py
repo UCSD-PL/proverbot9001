@@ -187,9 +187,9 @@ def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
 
 def check_success(args: argparse.Namespace, total_num_jobs: int) -> None:
     total_num_jobs_successful = 0
-    for workerid in range(1, args.num_eval_workers + 1) :
-        with (args.state_dir / f"finished-{workerid}.txt").open('r') as f, FileLock(f):
-                total_num_jobs_successful += sum(1 for _ in f)
+    for finished_file in glob(str(args.state_dir / "finished-*.txt")):
+        with open(finished_file, 'r') as f:
+            total_num_jobs_successful += sum(1 for _ in f)
     print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
 
 
