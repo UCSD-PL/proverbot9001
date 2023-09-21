@@ -143,12 +143,11 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
             submit_script = f"""#!/bin/bash
 #
 #SBATCH --job-name=Rl_eval_{unique_id}
-#SBATCH -p gpu
-#SBATCH --gpus=1
-#SBATCH --mem=8G
 #SBATCH -o {args.state_dir}/eval/slurm-%A_%a_out.txt
 #SBATCH -e {args.state_dir}/eval/slurm-%A_%a_err.txt
-#SBATCH --array=1-{args.num_eval_workers}
+#SBATCH -p {args.partition}
+#SBATCH --mem={args.mem}
+#SBATCH --array=1-{num_workers_actually_needed}
 #SBATCH --time={args.worker_alive_time}
 
 
