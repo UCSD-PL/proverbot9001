@@ -253,7 +253,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
     
     file_taken_dict: Dict[Path, List[RLTask]] = {}
     for task in done_tasks:
-        if task.src_file in file_taken_dict:
+        if Path(task.src_file) in file_taken_dict:
             file_taken_dict[Path(task.src_file)].append(task)
         else:
             file_taken_dict[Path(task.src_file)] = [task]
