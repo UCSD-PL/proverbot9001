@@ -32,12 +32,11 @@ import torch
 
 from search_file import (add_args_to_parser, get_predictor,
                          SearchWorker, project_dicts_from_args)
-import rl
 import util
 import torch_util
 from util import eprint, FileLock
 from torch import nn
-from cached_obligation_encoder import CachedObligationEncoder
+from rl import CachedObligationEncoder, VNetwork
 
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
@@ -93,9 +92,10 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
         device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         is_singlethreaded, replay_buffer, steps_already_done, network_state, \
         tnetwork_state, shorter_proofs_dict, random_state = \
-            torch.load(str(args.output_file), map_location=device)
-        v_network = rl.VNetwork(None, args.learning_rate,
-            args.batch_step, args.lr_step)
+            torch.load(str(args.rl_weightsfile), map_location=device)
+        v_network = VNetwork(None, 0.000005, 25, 0.8) # learning_rate, batch_step, lr_step 
+        v_network.load_state(network_state)
+        v_network.network.to(device)
     else: v_network = None
 
     project_dicts = project_dicts_from_args(args)
@@ -108,7 +108,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with worker_taken_file.open("w"):
         pass
 
-    with SearchWorker(args, threadid, predictor, switch_dict) as worker:
+    with SearchWorker(args, threadid, predictor, v_network, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]

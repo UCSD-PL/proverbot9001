@@ -22,19 +22,23 @@ from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matchi
 
 from coq_worker import ReportJob, Worker, get_predictor
 
+from rl import VNetwork
+
 unnamed_goal_number: int = 0
 
 class SearchWorker(Worker):
     widx: int
     predictor: TacticPredictor
     axioms_already_added: bool
+    v_network: VNetwork
     def __init__(self, args: argparse.Namespace, worker_idx: int,
-                 predictor: TacticPredictor,
+            predictor: TacticPredictor, v_network: VNetwork,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
         super().__init__(args, switch_dict)
         self.widx = worker_idx
         self.predictor = predictor
-        self.axioms_already_added = False
+        self.axioms_already_added = False,
+        self.v_network = v_network
 
     def enter_file(self, filename: str) -> None:
         super().enter_file(filename)
@@ -73,7 +77,7 @@ class SearchWorker(Worker):
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, self.predictor)
+                             self.widx, self.predictor, self.v_network)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
@@ -160,7 +164,8 @@ def attempt_search(args: argparse.Namespace,
                    coq: coq_serapy.SerapiInstance,
                    output_dir: Path,
                    bar_idx: int,
-                   predictor: TacticPredictor) \
+                   predictor: TacticPredictor,
+                   v_network: VNetwork = None) \
         -> SearchResult:
     global unnamed_goal_number
     if module_name:
@@ -196,7 +201,7 @@ def attempt_search(args: argparse.Namespace,
             result = best_first_proof_search(lemma_name, module_prefix,
                                              context_lemmas, coq,
                                              output_dir,
-                                             args, bar_idx, predictor)
+                                             args, bar_idx, predictor, v_network)
         else:
             assert False, args.search_type
     except KeyboardInterrupt as exc:

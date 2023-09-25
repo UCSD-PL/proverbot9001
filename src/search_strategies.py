@@ -30,7 +30,7 @@ from util import nostderr, unwrap, eprint, mybarfmt, copyArgs
 from value_estimator import Estimator
 import dataloader
 
-from rl import VMNetwork
+from rl import VNetwork
 from coq_worker import completed_proof
 
 unnamed_goal_number: int = 0
@@ -885,7 +885,7 @@ def best_first_proof_search(lemma_name: str,
                        predictor: TacticPredictor,
                        v_network: VNetwork) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    #assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
     if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
@@ -1004,10 +1004,10 @@ def best_first_proof_search(lemma_name: str,
             if args.search_type == "astar":
                 # Calculate the A* f_score
                 g_score = len(prediction_node.path())
-                if args.rl_weightsfile is not None:
+                if v_network is not None:
                     v_values = v_network(coq.proof_context.fg_goals[0])
-                    h_score = math.log(max(sys.float_info.min, vval_predicted)) \
-                                               / math.log(args.gamma)
+                    h_score = math.log(max(sys.float_info.min, v_values)) \
+                                               / math.log(0.7) #args.gamma
                 score = g_score + h_score
             else:
                 score = h_score

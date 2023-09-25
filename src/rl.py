@@ -17,12 +17,12 @@ from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
 
 from util import unwrap, eprint, print_time, nostderr
 
-with print_time("Importing torch"):
-    import torch
-    from torch import nn
-    import torch.nn.functional as F
-    from torch import optim
-    import torch.optim.lr_scheduler as scheduler
+#with print_time("Importing torch"):
+import torch
+from torch import nn
+import torch.nn.functional as F
+from torch import optim
+import torch.optim.lr_scheduler as scheduler
 
 #pylint: disable=wrong-import-order
 from tqdm import tqdm
@@ -35,13 +35,12 @@ import coq2vec
 
 from gen_rl_tasks import RLTask
 
-with print_time("Importing search code"):
-    #from search_file import get_all_jobs
-    from coq_worker import ReportJob, Worker, get_predictor, get_all_jobs
-    #from search_strategies import completed_proof
-    from coq_worker import completed_proof
-
-    from models.tactic_predictor import (TacticPredictor, Prediction)
+#with print_time("Importing search code"):
+#from search_file import get_all_jobs
+from coq_worker import ReportJob, Worker, get_predictor, get_all_jobs
+#from search_strategies import completed_proof
+from coq_worker import completed_proof
+from models.tactic_predictor import (TacticPredictor, Prediction)
 
 def main():
     eprint("Starting main")

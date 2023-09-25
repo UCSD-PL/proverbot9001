@@ -57,6 +57,8 @@ from tqdm import tqdm
 from pathlib import Path
 import torch
 
+from rl import VNetwork
+
 start_time = datetime.now()
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
@@ -100,7 +102,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
     parser.add_argument('--weightsfile', default=None, type=Path)
-    parser.add_argument("--rl-weightsfile", defualt=None, type=Path)
+    parser.add_argument("--rl-weightsfile", default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -232,7 +234,16 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
+    if args.rl_weightsfile is not None:
+        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        is_singlethreaded, replay_buffer, steps_already_done, network_state, \
+        tnetwork_state, shorter_proofs_dict, random_state = \
+            torch.load(str(args.output_file), map_location=device)
+        v_network = rl.VNetwork(None, args.learning_rate,
+            args.batch_step, args.lr_step)
+    else: v_network = None
+
+    with SearchWorker(args, worker_idx, predictor, switch_dict, v_network) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
