@@ -36,7 +36,7 @@ from data import (ListDataset, normalizeSentenceLength, RawDataset,
                   EmbeddedSample)
 from util import maybe_cuda, LongTensor, FloatTensor, topk_with_filter
 from coq_serapy.contexts import TacticContext, strip_scraped_output
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 import threading
 import multiprocessing
@@ -123,7 +123,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                        for _, _, _, goal in in_datas]
         hyps = [get_closest_hyp(hyps, goal, self.training_args.max_length)
                 for _, _, hyps, goal in in_datas]
-        hyp_types = [serapi_instance.get_hyp_type(hyp) for hyp in hyps]
+        hyp_types = [coq_serapy.get_hyp_type(hyp) for hyp in hyps]
         hyps_batch = [normalizeSentenceLength(
             self._tokenizer.toTokenList(hyp_type),
                       self.training_args.max_length)
@@ -273,9 +273,9 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         output_var = maybe_cuda(Variable(outputs_batch))
         return self._criterion(predictionDistribution, output_var)
     def add_arg(self, tactic_stem : str, goal : str, hyps : List[str], max_length : int):
-        if serapi_instance.tacticTakesHypArgs(tactic_stem):
+        if coq_serapy.tacticTakesHypArgs(tactic_stem):
             return tactic_stem + " " + \
-                serapi_instance.get_first_var_in_hyp(get_closest_hyp(hyps, goal,
+                coq_serapy.get_first_var_in_hyp(get_closest_hyp(hyps, goal,
                                                                      max_length)) \
                 + "."
         else:
@@ -284,13 +284,13 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
                  goal : str, hyps : List[str], max_length : int):
         possibilities : List[Prediction] = []
         for stem, stem_score in stem_predictions:
-            if serapi_instance.tacticTakesHypArgs(stem):
+            if coq_serapy.tacticTakesHypArgs(stem):
                 for hyp, hyp_score in get_closest_hyps(hyps, goal,
                                                        len(stem_predictions),
                                                        max_length):
                     possibilities.append(
                         Prediction(stem + " " +
-                                   serapi_instance.get_first_var_in_hyp(hyp) + ".",
+                                   coq_serapy.get_first_var_in_hyp(hyp) + ".",
                                    hyp_score * stem_score))
             else:
                 possibilities.append(Prediction(stem + ".", stem_score * 0.5))
@@ -309,7 +309,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             certainties, idxs = topk_with_filter(
                 prediction_distribution.view(-1), k,
                 lambda certainty, idx:
-                not serapi_instance.tacticTakesHypArgs(
+                not coq_serapy.tacticTakesHypArgs(
                     cast(Embedding, self._embedding).decode_token(idx)))
         else:
             certainties, idxs = prediction_distribution.view(-1).topk(k)
@@ -328,7 +328,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             prediction_distribution = self._predictDistributions([in_data])[0]
         if k > self._embedding.num_tokens():
             k = self._embedding.num_tokens()
-        correct_stem = serapi_instance.get_stem(correct)
+        correct_stem = coq_serapy.get_stem(correct)
         if self._embedding.has_token(correct_stem):
             output_var = maybe_cuda(Variable(
                 LongTensor([self._embedding.encode_token(correct_stem)])))
@@ -339,7 +339,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             certainties, idxs = topk_with_filter(
                 prediction_distribution.view(-1), k,
                 lambda certainty, idx:
-                not serapi_instance.tacticTakesHypArgs(
+                not coq_serapy.tacticTakesHypArgs(
                     cast(Embedding, self._embedding).decode_token(idx)))
         else:
             certainties, idxs = prediction_distribution.view(-1).topk(k)
@@ -357,7 +357,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
         assert self.training_args
         with self._lock:
             prediction_distributions = self._predictDistributions(in_data)
-        correct_stems = [serapi_instance.get_stem(correct) for correct in corrects]
+        correct_stems = [coq_serapy.get_stem(correct) for correct in corrects]
         output_var = maybe_cuda(Variable(
             LongTensor([self._embedding.encode_token(correct_stem)
                         if self._embedding.has_token(correct_stem)
@@ -370,7 +370,7 @@ class HypFeaturesPredictor(TrainablePredictor[HypFeaturesDataset,
             [single_distribution.view(-1).topk(k) if len(context.hypotheses) > 0 else
              topk_with_filter(single_distribution.view(-1), k,
                               lambda certainty, idx:
-                              not serapi_instance.tacticTakesHypArgs(
+                              not coq_serapy.tacticTakesHypArgs(
                                   cast(Embedding, self._embedding).decode_token(idx)))
              for single_distribution, context in
              zip(prediction_distributions, in_data)]
@@ -403,11 +403,11 @@ def get_closest_hyp(hyps : List[str], goal : str, max_length : int):
 
     result = max(hyps, key=lambda hyp:
                  score_hyp_type(limitNumTokens(goal, max_length),
-                                limitNumTokens(serapi_instance.get_hyp_type(hyp), max_length),
+                                limitNumTokens(coq_serapy.get_hyp_type(hyp), max_length),
                                 max_length))
     return result
 def get_closest_hyp_type(tokenizer : Tokenizer, max_length : int, context : TacticContext):
-    return tokenizer.toTokenList(serapi_instance.get_hyp_type(
+    return tokenizer.toTokenList(coq_serapy.get_hyp_type(
         get_closest_hyp(context.hypotheses, context.goal, max_length)))
 def get_closest_hyps(hyps : List[str], goal : str, num_hyps : int, max_length : int)\
                         -> List[Tuple[str, float]]:
@@ -415,7 +415,7 @@ def get_closest_hyps(hyps : List[str], goal : str, num_hyps : int, max_length : 
         return [Prediction(":", 0)] * num_hyps
     else:
         return list(sorted([(hyp, score_hyp_type(limitNumTokens(goal, max_length),
-                                                 limitNumTokens(serapi_instance.get_hyp_type(hyp), max_length),
+                                                 limitNumTokens(coq_serapy.get_hyp_type(hyp), max_length),
                                                  max_length))
                             for hyp in hyps],
                            reverse=True,

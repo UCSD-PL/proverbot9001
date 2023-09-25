@@ -25,7 +25,7 @@ from difflib import SequenceMatcher
 
 from models.tactic_predictor import (TacticPredictor, Prediction)
 from coq_serapy.contexts import TacticContext
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 import tokenizer
 
 class ApplyLongestPredictor(TacticPredictor):
@@ -37,7 +37,7 @@ class ApplyLongestPredictor(TacticPredictor):
             return [Prediction("eauto", 0)]
         k = min(k, len(in_data.hypotheses))
         best_hyps = sorted(in_data.hypotheses, key=len, reverse=True)[:k]
-        return [Prediction("apply " + serapi_instance.get_first_var_in_hyp(hyp) + ".",
+        return [Prediction("apply " + coq_serapy.get_first_var_in_hyp(hyp) + ".",
                            .5 ** idx) for idx, hyp in enumerate(best_hyps)]
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) \
         -> Tuple[List[Prediction], float]:
@@ -77,10 +77,10 @@ class ApplyStringSimilarPredictor(TacticPredictor):
             sorted(in_data.hypotheses,
                    reverse=True,
                    key=lambda hyp:
-                   SequenceMatcher(None, serapi_instance.get_hyp_type(hyp),
+                   SequenceMatcher(None, coq_serapy.get_hyp_type(hyp),
                                    in_data.goal).ratio()
             )[:k]
-        return [Prediction("apply " + serapi_instance.get_first_var_in_hyp(hyp) + ".",
+        return [Prediction("apply " + coq_serapy.get_first_var_in_hyp(hyp) + ".",
                            .5 ** idx) for idx, hyp in enumerate(best_hyps)]
 
     def _description(self) -> str:
@@ -110,10 +110,10 @@ class ApplyNormalizedSimilarPredictor(TacticPredictor):
             sorted(in_data.hypotheses,
                    reverse=True,
                    key=lambda hyp:
-                   SequenceMatcher(None, serapi_instance.get_hyp_type(hyp),
+                   SequenceMatcher(None, coq_serapy.get_hyp_type(hyp),
                                    in_data.goal).ratio() * len(hyp)
             )[:k]
-        return [Prediction("apply " + serapi_instance.get_first_var_in_hyp(hyp) + ".",
+        return [Prediction("apply " + coq_serapy.get_first_var_in_hyp(hyp) + ".",
                            .5 ** idx) for idx, hyp in enumerate(best_hyps)]
 
     def _description(self) -> str:
@@ -143,10 +143,10 @@ class ApplyWordSimlarPredictor(TacticPredictor):
                    key=lambda hyp:
                    SequenceMatcher(None,
                                    tokenizer.get_symbols(
-                                       serapi_instance.get_hyp_type(hyp)),
+                                       coq_serapy.get_hyp_type(hyp)),
                                    in_data.goal).ratio() * len(hyp)
             )[:k]
-        return [Prediction("apply " + serapi_instance.get_first_var_in_hyp(hyp) + ".",
+        return [Prediction("apply " + coq_serapy.get_first_var_in_hyp(hyp) + ".",
                            .5 ** idx) for idx, hyp in enumerate(best_hyps)]
     def _description(self) -> str:
         return "A predictor that tries to apply the most similar hypothesis to the goal"

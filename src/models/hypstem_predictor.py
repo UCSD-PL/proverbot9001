@@ -47,7 +47,7 @@ from data import (getNGramTokenbagVector, ListDataset, RawDataset)
 from coq_serapy.contexts import ScrapedTactic, TacticContext
 
 from util import maybe_cuda, LongTensor, FloatTensor, list_topk
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 class HypStemSample(NamedTuple):
     hypotheses : List[int]
@@ -81,17 +81,17 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
             relevant_hyp, relevance = \
                 max([(hyp,
                       term_relevance(in_data.goal,
-                                           serapi_instance.get_hyp_type(hyp)))
+                                           coq_serapy.get_hyp_type(hyp)))
                      for hyp in in_data.hypotheses], key=lambda x: x[1])
         else:
             relevant_hyp = ":"
             relevance = 0
-        encoded_hyp = self._encode_term(serapi_instance.get_hyp_type(relevant_hyp))
+        encoded_hyp = self._encode_term(coq_serapy.get_hyp_type(relevant_hyp))
         encoded_relevance = [relevance]
         encoded_goal = self._encode_term(in_data.goal)
         stem_distribution = self._run_model(encoded_hyp, encoded_relevance, encoded_goal)
         return FloatTensor(stem_distribution), \
-            serapi_instance.get_first_var_in_hyp(relevant_hyp)
+            coq_serapy.get_first_var_in_hyp(relevant_hyp)
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
         -> Tuple[HypStemDataset, Tuple[Tokenizer, Embedding]]:
         embedding, embedded_data = embed_data(data)
@@ -133,7 +133,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
                                 correct : str) -> Tuple[List[Prediction], float]:
         with self._lock:
             distribution, hyp_var = self._predictDistribution(in_data)
-            correct_stem = serapi_instance.get_stem(correct)
+            correct_stem = coq_serapy.get_stem(correct)
             if self._embedding.has_token(correct_stem):
                 loss = self._criterion(distribution.view(1, -1),
                                        Variable(LongTensor([self._embedding.encode_token(correct_stem)]))).item()
@@ -143,7 +143,7 @@ class HypStemPredictor(TrainablePredictor[HypStemDataset, Tuple[Tokenizer, Embed
         predictions : List[Prediction] = []
         for certainty, idx in zip(probabilities, indices):
             stem = self._embedding.decode_token(idx)
-            if serapi_instance.tacticTakesHypArgs(stem):
+            if coq_serapy.tacticTakesHypArgs(stem):
                 predictions.append(Prediction(stem + " " + hyp_var + ".",
                                               math.exp(certainty)))
             else:
@@ -225,7 +225,7 @@ def most_relevant_hyp(inter: ScrapedTactic) -> Tuple[str, float]:
     if len(hyp_list) == 0:
         return "", 0
     result = max([(hyp_term, term_relevance(
-        goal, serapi_instance.get_hyp_type(hyp_term)))
+        goal, coq_serapy.get_hyp_type(hyp_term)))
                   for hyp_term in hyp_list], key=lambda x: x[1])
     return result
 

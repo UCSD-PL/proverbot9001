@@ -28,7 +28,7 @@ from typing import Dict, Callable, Union, List, cast, Tuple, Iterable
 
 from tokenizer import get_symbols
 from coq_serapy.contexts import TacticContext
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 ContextFilter = Callable[[TacticContext, str,
                           TacticContext, argparse.Namespace], bool]
@@ -58,7 +58,7 @@ def filter_or(*args : ContextFilter) -> ContextFilter:
 def no_compound_or_bullets(in_data : TacticContext, tactic : str,
                            next_in_data : TacticContext,
                            arg_values : argparse.Namespace) -> bool:
-    tactic = serapi_instance.kill_comments(tactic)
+    tactic = coq_serapy.kill_comments(tactic)
     return (not re.match("\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
             not re.match(".*;.*", tactic, flags=re.DOTALL))
 def not_proof_keyword(in_data : TacticContext, tactic : str,
@@ -91,11 +91,11 @@ def no_args(in_data : TacticContext, tactic : str,
 
 def args_vars_in_list(tactic : str,
                       context_list : List[str]) -> bool:
-    stem, args_string  = serapi_instance.split_tactic(tactic)
+    stem, args_string  = coq_serapy.split_tactic(tactic)
     args = args_string[:-1].split()
-    if not serapi_instance.tacticTakesHypArgs(stem) and len(args) > 0:
+    if not coq_serapy.tacticTakesHypArgs(stem) and len(args) > 0:
         return False
-    var_names = serapi_instance.get_vars_in_hyps(context_list)
+    var_names = coq_serapy.get_vars_in_hyps(context_list)
     for arg in args:
         if not arg in var_names:
             return False
@@ -142,7 +142,7 @@ def min_args(num_str: str,
              in_data: TacticContext, tactic: str,
              new_in_data: TacticContext,
              arg_values: argparse.Namespace) -> bool:
-    stem, args_string = serapi_instance.split_tactic(tactic)
+    stem, args_string = coq_serapy.split_tactic(tactic)
     args = args_string.strip()[:-1].split()
     return len(args) >= int(num_str)
 
@@ -151,7 +151,7 @@ def max_args(num_str : str,
              in_data: TacticContext, tactic : str,
              new_in_data : TacticContext,
              arg_values : argparse.Namespace) -> bool:
-    stem, args_string  = serapi_instance.split_tactic(tactic)
+    stem, args_string  = coq_serapy.split_tactic(tactic)
     args = args_string.strip()[:-1].split()
     return len(args) <= int(num_str)
 
@@ -159,7 +159,7 @@ def numeric_args(in_data : TacticContext, tactic : str,
                  next_in_data : TacticContext,
                  arg_values : argparse.Namespace) -> bool:
     goal_words = get_symbols(in_data.goal)
-    stem, rest = serapi_instance.split_tactic(tactic)
+    stem, rest = coq_serapy.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
         if not re.fullmatch("\d+", arg):
@@ -170,7 +170,7 @@ def args_token_in_goal(in_data : TacticContext, tactic : str,
                        next_in_data : TacticContext,
                        arg_values : argparse.Namespace) -> bool:
     goal_words = get_symbols(in_data.goal)[:arg_values.max_length]
-    stem, rest = serapi_instance.split_tactic(tactic)
+    stem, rest = coq_serapy.split_tactic(tactic)
     if len(rest) > 0 and rest[-1] == '.':
         rest = rest[:-1]
     args = get_subexprs(rest)
@@ -179,7 +179,7 @@ def args_token_in_goal(in_data : TacticContext, tactic : str,
     if (stem == "intros" or stem == "intro") and len(args) > 0:
         return False
     for arg in args:
-        if not any([serapi_instance.symbol_matches(goal_word, arg)
+        if not any([coq_serapy.symbol_matches(goal_word, arg)
                     for goal_word in goal_words]):
             return False
     return True

@@ -24,7 +24,7 @@ import multiprocessing
 import functools
 import itertools
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from coq_serapy.contexts import (ScrapedCommand, ScrapedTactic,
                                  strip_scraped_output, TacticContext)
 from context_filter import get_context_filter
@@ -55,7 +55,7 @@ def main() -> None:
                     print(match)
             elif args.print_name:
                 for match in matches:
-                    print(serapi_instance.lemma_name_from_statement(match))
+                    print(coq_serapy.lemma_name_from_statement(match))
             else:
                 print(f"{filename}: "
                       f"{len(matches)}/{num_proofs} "
@@ -142,7 +142,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
                     cur_proof_counts = True
             else:
                 if args.all and cur_proof_counts:
-                    cur_lemma_name = serapi_instance.lemma_name_from_statement(
+                    cur_lemma_name = coq_serapy.lemma_name_from_statement(
                         cur_lemma_stmt)
                     if cur_proof_counts:
                         eprint(f"Eliminating proof {cur_lemma_name} "
@@ -152,7 +152,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
                         cur_proof_counts = False
 
         if exiting_proof:
-            cur_lemma_name = serapi_instance.lemma_name_from_statement(
+            cur_lemma_name = coq_serapy.lemma_name_from_statement(
                 cur_lemma_stmt)
             if not cur_lemma_name:
                 cur_lemma_stmt = ""

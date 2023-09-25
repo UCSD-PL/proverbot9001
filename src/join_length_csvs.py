@@ -22,7 +22,7 @@
 import argparse
 import csv
 import re
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 from typing import Tuple
 
@@ -52,7 +52,7 @@ def main() -> None:
                 assert lemma_statement in length_map, (lemma_statement, length_map)
                 writer.writerow([lemma_statement, status, length_map[lemma_statement]])
 def norm(statement : str):
-    return serapi_instance.kill_comments(stmt).strip()
+    return coq_serapy.kill_comments(stmt).strip()
 
 def parse_arguments() -> Tuple[argparse.Namespace, argparse.ArgumentParser]:
     parser = argparse.ArgumentParser(

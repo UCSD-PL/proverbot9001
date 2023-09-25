@@ -23,7 +23,7 @@ import argparse
 import csv
 import itertools
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from coq_serapy.contexts import *
 from util import *
 from data import read_all_text_data
@@ -63,7 +63,7 @@ def toStr(obj) -> str:
     else:
         return obj
 def norm(statement : str):
-    return serapi_instance.kill_comments(toStr(statement)).strip()
+    return coq_serapy.kill_comments(toStr(statement)).strip()
 
 def count_lengths(args : argparse.Namespace, filename : str):
     print(f"Counting {filename}")
@@ -71,10 +71,10 @@ def count_lengths(args : argparse.Namespace, filename : str):
     scraped_commands = list(read_all_text_data(Path2(full_filename + ".scrape")))
     scraped_iter = iter(scraped_commands)
     if args.post_linear:
-        original_commands = serapi_instance.load_commands_preserve(args, 0,
+        original_commands = coq_serapy.load_commands_preserve(args, 0,
                                                                    full_filename + ".lin")
     else:
-        original_commands = serapi_instance.load_commands_preserve(args, 0, full_filename)
+        original_commands = coq_serapy.load_commands_preserve(args, 0, full_filename)
 
     with open(full_filename + ".csv", 'w') as fout:
         rowwriter = csv.writer(fout)
@@ -82,9 +82,9 @@ def count_lengths(args : argparse.Namespace, filename : str):
         in_proof = False
         cur_len = 0
         for cmd in original_commands:
-            if not serapi_instance.possibly_starting_proof(cmd) and not in_proof:
+            if not coq_serapy.possibly_starting_proof(cmd) and not in_proof:
                 continue
-            if serapi_instance.possibly_starting_proof(cmd) and not in_proof:
+            if coq_serapy.possibly_starting_proof(cmd) and not in_proof:
                 normalized_command = norm(cmd)
                 cur_scraped = norm(next(scraped_iter))
                 while cur_scraped != normalized_command:
@@ -99,7 +99,7 @@ def count_lengths(args : argparse.Namespace, filename : str):
                     cur_len = 0
                 else:
                     scraped_iter = itertools.chain([next_after_start], scraped_iter)
-            elif serapi_instance.ending_proof(cmd):
+            elif coq_serapy.ending_proof(cmd):
                 assert in_proof
                 rowwriter.writerow([lemma_statement.strip(),
                                     cur_len])

@@ -40,9 +40,9 @@ data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
-	cat ../data/coq-projects-train-files.txt | $(HEAD_CMD) | \
-	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
-				        		 --prelude ../coq-projects
+	cat ../data/compcert-train-files.txt | $(HEAD_CMD) | \
+	xargs python scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+				        		 --prelude ../CompCert
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
 CompCert/%.scrape: CompCert/%

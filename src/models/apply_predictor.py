@@ -28,7 +28,7 @@ from models.components import (Embedding, SimpleEmbedding, DNNClassifier, add_nn
 from data import (Sentence, ListDataset, RawDataset,
                   normalizeSentenceLength, getNGramTokenbagVector)
 from tokenizer import Tokenizer
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from coq_serapy.contexts import (ScrapedTactic, TacticContext)
 from util import *
 
@@ -71,7 +71,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                                       self._tokenizer.toTokenList(term))
 
     def _predictDistribution(self, in_data : TacticContext) -> torch.FloatTensor:
-        hyp_terms = [serapi_instance.get_hyp_type(hyp) for hyp in in_data.hypotheses]
+        hyp_terms = [coq_serapy.get_hyp_type(hyp) for hyp in in_data.hypotheses]
         encoded_hyps = FloatTensor([self._encode_term(term) for term in hyp_terms])
         encoded_goals = FloatTensor(self._encode_term(in_data.goal)) \
             .view(1, -1).expand(len(in_data.hypotheses), -1)
@@ -91,7 +91,7 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                 probs = FloatTensor([probs])
                 indices = LongTensor([indices])
         return [Prediction("apply " +
-                           serapi_instance.get_first_var_in_hyp(
+                           coq_serapy.get_first_var_in_hyp(
                                in_data.hypotheses[idx.item()]) + ".",
                            math.exp(certainty.item()))
                 for certainty, idx in zip(probs, indices)]
@@ -118,10 +118,10 @@ class ApplyPredictor(TrainablePredictor[ApplyDataset,
                             default=default_values.get("num-layers", 3))
 
     def _determine_relevance(self, inter: ScrapedTactic) -> List[bool]:
-        stem, args_string = serapi_instance.split_tactic(inter.tactic)
+        stem, args_string = coq_serapy.split_tactic(inter.tactic)
         args = args_string[:-1].split()
         return [any([var.strip() in args for var in
-                     serapi_instance.get_var_term_in_hyp(hyp).split(",")])
+                     coq_serapy.get_var_term_in_hyp(hyp).split(",")])
                 for hyp in inter.context.focused_hyps]
 
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \

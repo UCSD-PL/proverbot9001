@@ -51,7 +51,7 @@ import torch
 from pathlib_revised import Path2
 from tqdm import trange, tqdm
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from coq_serapy.contexts import (TacticContext, ProofContext, Obligation,
                                  truncate_tactic_context)
 import dataloader
@@ -68,7 +68,7 @@ from rgraph import (LabeledTransition,
                     ReinforceGraph, assignApproximateQScores)
 
 
-serapi_instance.set_parseSexpOneLevel_fn(util.parseSexpOneLevel)
+coq_serapy.set_parseSexpOneLevel_fn(util.parseSexpOneLevel)
 
 
 def main() -> None:
@@ -186,7 +186,7 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
                 already_done.append((Path2(next_done[0]), next_done[1],
                                      next_done[2]))
                 graphpath = (args.graphs_dir /
-                             serapi_instance.lemma_name_from_statement(
+                             coq_serapy.lemma_name_from_statement(
                                next_done[2]))\
                     .with_suffix(".svg")
                 graph = ReinforceGraph.load(
@@ -263,11 +263,11 @@ def reinforce_multithreaded(args: argparse.Namespace) -> None:
             proof_names = [line.strip() for line in f]
         all_jobs = [
             job for job in jobs_in_files if
-            serapi_instance.lemma_name_from_statement(job[2]) in proof_names]
+            coq_serapy.lemma_name_from_statement(job[2]) in proof_names]
     elif args.proof:
         all_jobs = [
             job for job in jobs_in_files if
-            serapi_instance.lemma_name_from_statement(job[2]) == args.proof] \
+            coq_serapy.lemma_name_from_statement(job[2]) == args.proof] \
              * args.num_threads
     else:
         all_jobs = jobs_in_files
@@ -405,13 +405,13 @@ def reinforce_worker(worker_idx: int,
         (next_file, next_module, next_lemma), demonstration = jobs.get_nowait()
     except queue.Empty:
         return
-    all_commands = serapi_instance.load_commands_preserve(
+    all_commands = coq_serapy.load_commands_preserve(
         args, worker_idx + 1, args.prelude / next_file)
 
     rest_commands = all_commands
     while rest_commands:
-        with serapi_instance.SerapiContext(["sertop", "--implicit"],
-                                           serapi_instance.
+        with coq_serapy.SerapiContext(["sertop", "--implicit"],
+                                           coq_serapy.
                                            get_module_from_filename(str(next_file)),
                                            str(args.prelude)) as coq:
             coq.quiet = True
@@ -424,14 +424,14 @@ def reinforce_worker(worker_idx: int,
                     if not rest_commands:
                         eprint(f"Couldn't find lemma {next_lemma}!")
                         break
-                except serapi_instance.CoqAnomaly:
+                except coq_serapy.CoqAnomaly:
                     with util.silent():
-                        all_commands = serapi_instance.\
+                        all_commands = coq_serapy.\
                             load_commands_preserve(
                                 args, 0, args.prelude / next_file)
                         rest_commands = all_commands
                     break
-                except serapi_instance.SerapiException:
+                except coq_serapy.SerapiException:
                     eprint(f"Failed getting to before: {next_lemma}")
                     eprint(f"In file {next_file}")
                     raise
@@ -448,7 +448,7 @@ def reinforce_worker(worker_idx: int,
                                                         demonstration)
                         graphpath, graph = graph_job
                         graph.save(graphpath + ".json")
-                    except serapi_instance.CoqAnomaly:
+                    except coq_serapy.CoqAnomaly:
                         if args.hardfail:
                             raise
                         if failing_lemma == lemma_statement:
@@ -465,7 +465,7 @@ def reinforce_worker(worker_idx: int,
                             if new_file != next_file:
                                 next_file = new_file
                                 with util.silent():
-                                    all_commands = serapi_instance.\
+                                    all_commands = coq_serapy.\
                                         load_commands_preserve(
                                             args, 0, args.prelude / next_file)
                                     rest_commands = all_commands
@@ -483,10 +483,10 @@ def reinforce_worker(worker_idx: int,
                                 f"lemma {next_lemma}")
                             eprint(e)
                         raise
-                    while not serapi_instance.ending_proof(rest_commands[0]):
+                    while not coq_serapy.ending_proof(rest_commands[0]):
                         rest_commands.pop(0)
                     ending_comamnd = rest_commands.pop(0)
-                    serapi_instance.admit_proof(coq, lemma_statement, ending_command)
+                    coq_serapy.admit_proof(coq, lemma_statement, ending_command)
                     done.put(((next_file, next_module, next_lemma),
                               graph_job))
                     try:
@@ -498,7 +498,7 @@ def reinforce_worker(worker_idx: int,
                     if new_file != next_file:
                         next_file = new_file
                         with util.silent():
-                            all_commands = serapi_instance.\
+                            all_commands = coq_serapy.\
                                 load_commands_preserve(
                                     args, 0,
                                     args.prelude / next_file)
@@ -507,21 +507,21 @@ def reinforce_worker(worker_idx: int,
                 else:
                     ending_command = None
                     for cmd in rest_commands:
-                        if serapi_instance.ending_proof(cmd):
+                        if coq_serapy.ending_proof(cmd):
                             ending_command = cmd
                             break
                     proof_relevant = ending_command.strip() == "Defined." or \
                         bool(re.match(
                             r"\s*Derive",
-                            serapi_instance.kill_comments(lemma_statement))
+                            coq_serapy.kill_comments(lemma_statement))
                              ) or\
                         bool(re.match(
                             r"\s*Let",
-                            serapi_instance.kill_comments(lemma_statement))
+                            coq_serapy.kill_comments(lemma_statement))
                              ) or\
                         bool(re.match(
                             r"\s*Equations",
-                            serapi_instance.kill_comments(lemma_statement))
+                            coq_serapy.kill_comments(lemma_statement))
                              ) or\
                         args.careful
                     if proof_relevant:
@@ -529,17 +529,17 @@ def reinforce_worker(worker_idx: int,
                             rest_commands)
                     else:
                         try:
-                            serapi_instance.admit_proof(coq, lemma_statement)
-                        except serapi_instance.SerapiException:
+                            coq_serapy.admit_proof(coq, lemma_statement)
+                        except coq_serapy.SerapiException:
                             next_lemma_name = \
-                                serapi_instance.\
+                                coq_serapy.\
                                 lemma_name_from_statement(next_lemma)
                             eprint(
                                 f"{next_file}: Failed to admit proof "
                                 f"{next_lemma_name}")
                             raise
 
-                        while not serapi_instance.ending_proof(
+                        while not coq_serapy.ending_proof(
                                 rest_commands[0]):
                             rest_commands = rest_commands[1:]
                         rest_commands = rest_commands[1:]
@@ -548,7 +548,7 @@ def reinforce_worker(worker_idx: int,
 
 def reinforce_lemma_multithreaded(
         args: argparse.Namespace,
-        coq: serapi_instance.SerapiInstance,
+        coq: coq_serapy.SerapiInstance,
         predictor: TacticPredictor,
         estimator: QEstimator,
         worker_idx: int,
@@ -557,7 +557,7 @@ def reinforce_lemma_multithreaded(
         _module_prefix: str,
         demonstration: Optional[Demonstration]) -> Tuple[str, ReinforceGraph]:
 
-    lemma_name = serapi_instance.lemma_name_from_statement(lemma_statement)
+    lemma_name = coq_serapy.lemma_name_from_statement(lemma_statement)
     graph = ReinforceGraph(lemma_name)
     lemma_memory = []
     for i in trange(args.num_episodes, disable=(not args.progress),
@@ -617,7 +617,7 @@ def reinforce_lemma_multithreaded(
                     try:
                         coq.run_stmt(try_action)
                         proof_context_after = unwrap(coq.proof_context)
-                        if any([serapi_instance.contextSurjective(
+                        if any([coq_serapy.contextSurjective(
                                 proof_context_after, path_context)
                                 for path_context in proof_contexts_seen]):
                             coq.cancel_last()
@@ -637,9 +637,9 @@ def reinforce_lemma_multithreaded(
                         action = try_action
                         original_certainty = try_original_certainty
                         break
-                    except (serapi_instance.ParseError,
-                            serapi_instance.CoqExn,
-                            serapi_instance.TimeoutError):
+                    except (coq_serapy.ParseError,
+                            coq_serapy.CoqExn,
+                            coq_serapy.TimeoutError):
                         if args.ghosts:
                             transition = assign_failed_reward(
                                 context_trunced.relevant_lemmas,
@@ -788,10 +788,10 @@ def get_proofs(args: argparse.Namespace,
                t: Tuple[int, str]) -> List[Tuple[str, str, str]]:
     idx, filename = t
     with util.silent():
-        cmds = serapi_instance.load_commands_preserve(
+        cmds = coq_serapy.load_commands_preserve(
             args, idx, args.prelude / filename)
     return [(filename, module, cmd) for module, cmd in
-            serapi_instance.lemmas_in_file(
+            coq_serapy.lemmas_in_file(
                 filename, cmds, args.include_proof_relevant)]
 
 

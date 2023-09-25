@@ -30,26 +30,26 @@ import multiprocessing
 import threading
 import signal
 import json
+import json.decoder
 import queue
 import traceback
 import subprocess
 import cProfile
 import copy
 import functools
+import signal
 from typing import (List, Tuple, NamedTuple, Optional, Dict,
                     Union, Callable, cast, IO, TypeVar,
                     Any, Iterator, Iterable)
 
 from models.tactic_predictor import TacticPredictor
-from predict_tactic import (static_predictors, loadPredictorByFile,
-                            loadPredictorByName)
-import coq_serapy as serapi_instance
+import coq_serapy
 
-from util import eprint
+from util import eprint, FileLock
 import search_report
+from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, Worker, get_files_jobs
-import multi_project_report
+from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, project_dicts_from_args
 import util
 
 from tqdm import tqdm
@@ -57,7 +57,6 @@ from pathlib import Path
 import torch
 
 start_time = datetime.now()
-
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
     sys.setrecursionlimit(100000)
@@ -70,9 +69,13 @@ def main(arg_list: List[str]) -> None:
         torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
-    predictor = get_predictor(parser, args)
+    if not args.predictor and not args.weightsfile:
+        print("You must specify a weightsfile or a predictor.")
+        parser.print_help()
+        sys.exit(1)
 
-    search_file_multithreaded(args, predictor)
+
+    search_file_multithreaded(args)
 
 
 def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
@@ -105,7 +108,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-width", type=int, default=5)
     parser.add_argument("--max-attempts", type=int, default=10)
     parser.add_argument("--search-depth", type=int, default=6)
-    parser.add_argument("--astar-steps", type=int, default=1024)
+    parser.add_argument("--max-steps", type=int, default=None)
     parser.add_argument("--beam-width", type=int, default=16)
     parser.add_argument("--hard-depth-limit", dest="hard_depth_limit",
                         type=int, default=100)
@@ -143,8 +146,9 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'beam-bfs', 'astar', 'best-first'], default='dfs')
-    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty"], default="certainty")
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
+    parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
+    parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
@@ -159,8 +163,11 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--tactics-file", type=Path, default=Path("tactics.txt"))
     parser.add_argument("--tokens-file", type=Path, default=Path("tokens.txt"))
     parser.add_argument("--beta-file", type=Path, default=Path("beta.txt"))
+    parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--features-json", action='store_true')
     parser.add_argument("--search-prefix", type=str, default=None)
+    parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
+    parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -182,23 +189,6 @@ def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
         known_args.filenames = []
     return known_args, unknown_args, parser
 
-
-
-
-def get_predictor(parser: argparse.ArgumentParser,
-                  args: argparse.Namespace) -> TacticPredictor:
-    predictor: TacticPredictor
-    if args.weightsfile:
-        predictor = loadPredictorByFile(args.weightsfile)
-    elif args.predictor:
-        predictor = loadPredictorByName(args.predictor)
-    else:
-        print("You must specify either --weightsfile or --predictor!")
-        parser.print_help()
-        sys.exit(1)
-    return predictor
-
-
 def search_file_worker_profiled(
         args: argparse.Namespace,
         predictor: TacticPredictor,
@@ -214,8 +204,6 @@ def search_file_worker_profiled(
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
 def search_file_worker(args: argparse.Namespace,
-                       predictor: TacticPredictor,
-                       predictor_lock: threading.Lock,
                        jobs: 'multiprocessing.Queue[ReportJob]',
                        done:
                        'multiprocessing.Queue['
@@ -223,6 +211,9 @@ def search_file_worker(args: argparse.Namespace,
                        worker_idx: int,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
+
+    predictor = get_predictor(args)
+
     # util.use_cuda = False
     if util.use_cuda:
         torch.cuda.set_device(device) # type: ignore
@@ -239,7 +230,7 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with Worker(args, worker_idx, predictor, switch_dict) as worker:
+    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
@@ -248,45 +239,79 @@ def search_file_worker(args: argparse.Namespace,
             solution = worker.run_job(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
 
-def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-    else:
-        project_dicts = [{"project_name": ".",
-                          "test_files": [str(filename) for filename in args.filenames]}]
-    return project_dicts
-
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []
 
     project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in project_dict["test_files"]:
+            fixing_duplicates = False
+            file_jobs: List[Tuple[ReportJob, Any]] = []
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
                                              [Path(filename) for filename in
                                               project_dict["test_files"]])
                             + "-proofs.txt"))
             try:
-                with proofs_file.open('r') as f:
-                    for line in f:
-                        (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
-                        already_done_jobs.append(ReportJob(job_project,
-                                                           job_file,
-                                                           job_module,
-                                                           job_lemma))
+                with proofs_file.open('r') as f, FileLock(f, exclusive=False):
+                    for idx, line in enumerate(f):
+                        try:
+                            (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
+                        except json.decoder.JSONDecodeError:
+                            print(f"On line {idx} in file {proofs_file}")
+                            raise
+                        assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
+                            f"doesn't match it's filename {filename}. {job_file}"
+                        loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
+                        if loaded_job in [job for job, sol in file_jobs]:
+                            eprint(f"In project {project_dict['project_name']} "
+                                   f"file {filename} "
+                                   f"found duplicate job {loaded_job}. "
+                                   f"Automatically removing it...")
+                            fixing_duplicates = True
+                        else:
+                            assert loaded_job not in already_done_jobs, \
+                              f"Already found job {loaded_job} in another file!"
+                            file_jobs.append((loaded_job, sol))
+                already_done_jobs.extend([job for job, sol in file_jobs])
+                if fixing_duplicates:
+                    with proofs_file.open('w') as f, FileLock(f):
+                        for job, sol in file_jobs:
+                            print(json.dumps((job, sol)), file=f)
             except FileNotFoundError:
                 pass
 
+            if len(set(already_done_jobs)) < len(already_done_jobs):
+                eprint(f"After adding file {filename} from project {project_dict['project_name']}, there are duplicates in the solution!")
+                sys.exit(1)
+
     return already_done_jobs
 
-def get_all_jobs(args: argparse.Namespace) -> List[ReportJob]:
+def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
+    for qualified_ident in proofs_list:
+        if qualified_ident.endswith("." + job_line):
+            return True
+    return False
+
+def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
     proj_filename_tuples = [(project_dict["project_name"], filename)
                             for project_dict in project_dicts
-                            for filename in project_dict["test_files"]]
-    return list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
+                            for filename in project_dict[partition]]
+    jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
+    if args.proofs_file is not None:
+        found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
+                           for project, filename, sm_prefix, stmt, done_stmts in jobs]
+        with open(args.proofs_file, 'r') as f:
+            jobs_lines = list(f)
+        for job_line in jobs_lines:
+            assert in_qualified_proofs_list(job_line.strip(), found_job_lines), \
+                f"Couldn't find job {job_line.strip()}, found jobs {found_job_lines}"
+        assert len(jobs) == len(jobs_lines), \
+            f"There are {len(jobs_lines)} lines in the jobs file but only {len(jobs)} found jobs!"
+    elif args.proof:
+        assert len(jobs) == 1
+    return jobs
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
     project_dicts = project_dicts_from_args(args)
@@ -302,31 +327,32 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
             except FileNotFoundError:
                 pass
 
-def search_file_multithreaded(args: argparse.Namespace,
-                              predictor: TacticPredictor) -> None:
+def search_file_multithreaded(args: argparse.Namespace) -> None:
     global start_time
+    os.makedirs(str(args.output_dir), exist_ok=True)
     start_time = datetime.now()
+    all_jobs = get_all_jobs(args)
+    assert len(all_jobs) > 0, "No jobs found! Maybe you passed a bad proof parameter?"
     if args.resume:
-        solved_jobs = get_already_done_jobs(args)
+        solved_jobs = [job for job in get_already_done_jobs(args)
+                       if job in all_jobs]
         try:
             with open(args.output_dir / "time_so_far.txt", 'r') as f:
-                datestring = f.read().strip()
-                try:
-                    t = datetime.strptime(datestring, "%H:%M:%S.%f")
-                except ValueError:
-                    t = datetime.strptime(datestring, "%j day, %H:%M:%S.%f")
-                start_time = datetime.now() - timedelta(days=t.day, hours=t.hour,
-                                                        minutes=t.minute, seconds=t.second)
+                time_taken = util.read_time_taken(f.read())
+                start_time = datetime.now() - time_taken
         except FileNotFoundError:
             assert len(solved_jobs) == 0, "Trying to resume but can't find a time record!"
             pass
     else:
         remove_already_done_jobs(args)
         solved_jobs = []
-    all_jobs = get_all_jobs(args)
     todo_jobs = [job for job in all_jobs if job not in solved_jobs]
     assert len(todo_jobs) == len(all_jobs) - len(solved_jobs),\
       f"{len(todo_jobs)} != {len(all_jobs)} - {len(solved_jobs)}"
+    if args.just_print_jobs:
+        for job in todo_jobs:
+            print(job)
+        sys.exit(0)
     with multiprocessing.Manager() as manager:
         jobs: multiprocessing.Queue[ReportJob] = multiprocessing.Queue()
         done: multiprocessing.Queue[
@@ -349,28 +375,18 @@ def search_file_multithreaded(args: argparse.Namespace,
         else:
             assert args.gpus is None, "Passed --gpus flag, but CUDA is not supported!"
             worker_devices = ["cpu"]
-        worker_predictors = [copy.deepcopy(predictor)
-                             for device in worker_devices]
-        for predictor, device in zip(worker_predictors, worker_devices):
-            predictor.to_device(device) # type: ignore
-            predictor.share_memory() # type: ignore
         # This cast appears to be needed due to a buggy type stub on
         # multiprocessing.Manager()
-        predictor_locks = [cast(multiprocessing.managers.SyncManager,
-                                manager).Lock()
-                           for predictor in worker_predictors]
         workers = [multiprocessing.Process(target=search_file_worker,
                                            args=(args,
-                                                 worker_predictors[widx % len(worker_predictors)],
-                                                 predictor_locks[widx % len(worker_predictors)],
                                                  jobs, done, widx,
-                                                 worker_devices[widx % len(worker_predictors)]))
+                                                 worker_devices[widx % len(worker_devices)]))
                    for widx in range(num_threads)]
         for worker in workers:
             worker.start()
         num_already_done = len(solved_jobs)
         os.makedirs(args.output_dir, exist_ok=True)
-        with util.sighandler_context(signal.SIGINT, functools.partial(handle_interrupt, args)):
+        with util.sighandler_context(signal.SIGINT, functools.partial(exit_early, args)):
             with tqdm(total=len(todo_jobs) + num_already_done,
                       dynamic_ncols=True, desc="Searching proofs") as bar:
                 bar.update(n=num_already_done)
@@ -401,16 +417,27 @@ def search_file_multithreaded(args: argparse.Namespace,
     time_taken = datetime.now() - start_time
     write_time(args)
     if args.generate_report:
+        with open(args.output_dir / "args.json", 'w') as f:
+            json.dump({k: f"\"{v}\"" if isinstance(v, (Path, str))
+                       else str(v) for k, v in vars(args).items()}, f)
+        predictor = get_predictor(args)
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
 
-def write_time(args: argparse.Namespace, *rest_args) -> None:
+def format_arg_value(v: Any) -> str:
+    if isinstance(v, (Path, str)):
+        return f"\"{v}\""
+    if isinstance(v, list):
+        return "[" + ",".join([format_arg_value(item) for item in v]) + "]"
+    return str(v)
+def write_time(args: argparse.Namespace) -> None:
+    global start_time
     with open(args.output_dir / "time_so_far.txt", 'w') as f:
         time_taken = datetime.now() - start_time
         print(str(time_taken), file=f)
-def handle_interrupt(args: argparse.Namespace, *rest_args) -> None:
+def exit_early(args: argparse.Namespace, *rest) -> None:
     write_time(args)
-    sys.exit(1)
+    sys.exit()
 
 if __name__ == "__main__":
     main(sys.argv[1:])

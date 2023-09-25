@@ -37,7 +37,7 @@ from context_filter import get_context_filter
 from data import get_text_data, filter_data, RawDataset, Sentence
 from util import *
 from util import _inflate
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 import torch
 import torch.nn as nn
@@ -206,7 +206,7 @@ def decode_tactic_structure(term_tokenizer : Tokenizer, stem_embedding : SimpleE
         if idx == 0:
             return "UNKNOWN"
         else:
-            return serapi_instance.get_first_var_in_hyp(hyps[idx-1])
+            return coq_serapy.get_first_var_in_hyp(hyps[idx-1])
     stem_idx, arg_hyp_idxs = struct
     return " ".join([stem_embedding.decode_token(stem_idx)] +
                     [get_var(hyp_idx) for hyp_idx in takewhile(lambda idx: idx > 0,
@@ -231,7 +231,7 @@ def encode_seq_structural_data(data : RawDataset,
                                                          num_keywords, num_reserved_tokens)
     encodedData = []
     for prev_tactics, hyps, goal, tactic in data:
-        stem, rest = serapi_instance.split_tactic(tactic)
+        stem, rest = coq_serapy.split_tactic(tactic)
         encodedData.append(([context_tokenizer.toTokenList(hyp) for hyp in hyps],
                             context_tokenizer.toTokenList(goal),
                             (embedding.encode_token(stem),

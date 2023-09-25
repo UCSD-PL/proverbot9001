@@ -28,9 +28,10 @@ import contextlib
 import shutil
 import json
 import re
+import os.path
 
 import linearize_semicolons
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 from util import eprint, mybarfmt
 
@@ -64,21 +65,23 @@ def main():
     parser.add_argument("--ignore-lin-hash", action='store_true')
     parser.add_argument("--linearizer-timeout", type=int,
                         default=(60 * 60))
+    parser.add_argument("-s", "--switch", default=None, type=str)
+    parser.add_argument("--sertop-flags", default=None, type=str)
+    parser.add_argument("--text-encoding", default='utf-8', type=str)
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
     # Set up the command which runs sertop.
     coqargs = ["sertop", "--implicit"]
+    if args.sertop_flags:
+        coqargs += args.sertop_flags.split()
     tasks = [(idx % args.threads, filename) for (idx, filename)
              in enumerate(args.inputs)]
-    with multiprocessing.Pool(args.threads) as pool:
-        scrape_result_files = pool.map(
-            functools.partial(scrape_file, coqargs, args, file_jobs),
-            tasks)
-        with (open(args.output, 'w') if args.output
-              else contextlib.nullcontext(sys.stdout)) as out:
-            for idx, scrape_result_file in enumerate(scrape_result_files,
-                                                     start=1):
+    if args.threads == 1:
+        scrape_result_files = (scrape_file(coqargs, args, task) for task in tasks)
+        for idx, scrape_result_file in enumerate(scrape_result_files, start=1):
+            with (open(args.output, 'w') if args.output
+                  else contextlib.nullcontext(sys.stdout)) as out:
                 if scrape_result_file is None:
                     eprint("Failed file {} of {}"
                            .format(idx, len(args.inputs)))
@@ -89,6 +92,25 @@ def main():
                     with open(scrape_result_file, 'r') as f:
                         for line in f:
                             out.write(line)
+    else:
+        with multiprocessing.Pool(args.threads) as pool:
+            scrape_result_files = pool.imap_unordered(
+                functools.partial(scrape_file, coqargs, args),
+                tasks)
+            with (open(args.output, 'w') if args.output
+                  else contextlib.nullcontext(sys.stdout)) as out:
+                for idx, scrape_result_file in enumerate(scrape_result_files,
+                                                         start=1):
+                    if scrape_result_file is None:
+                        eprint("Failed file {} of {}"
+                               .format(idx, len(args.inputs)))
+                    else:
+                        if args.verbose:
+                            eprint("Finished file {} of {}"
+                                   .format(idx, len(args.inputs)))
+                        with open(scrape_result_file, 'r') as f:
+                            for line in f:
+                                out.write(line)
 
 
 def scrape_file(coqargs: List[str], args: argparse.Namespace,
@@ -96,6 +118,16 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
     sys.setrecursionlimit(4500)
     file_idx, filename = file_tuple
     full_filename = args.prelude + "/" + filename
+
+    components = filename.split("/")
+    prelude = args.prelude
+    for component_idx in reversed(range(len(components) - 1)):
+        possible_project_path = os.path.join(*([args.prelude] +
+                                               components[:component_idx+1]))
+        if os.path.exists(os.path.join(possible_project_path, "_CoqProject")):
+             prelude = possible_project_path
+             break
+
     result_file = full_filename + ".scrape"
     temp_file = full_filename + ".scrape.partial"
     if args.cont:
@@ -108,12 +140,14 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
         if args.linearize:
             commands = linearize_semicolons.get_linearized(args, coqargs, file_idx, filename)
         else:
-            commands = serapi_instance.load_commands_preserve(
+            commands = coq_serapy.load_commands_preserve(
                 args, file_idx, str(full_filename))
-        with serapi_instance.SerapiContext(
+        if args.switch:
+            coq_serapy.set_switch(args.switch)
+        with coq_serapy.SerapiContext(
                 coqargs,
-                serapi_instance.get_module_from_filename(filename),
-                args.prelude, args.relevant_lemmas == "hammer") as coq:
+                coq_serapy.get_module_from_filename(filename),
+                prelude, args.relevant_lemmas == "hammer") as coq:
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:
@@ -124,9 +158,10 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                                         dynamic_ncols=True,
                                         bar_format=mybarfmt):
                         process_statement(args, coq, command, f)
+                    print(json.dumps("\"(* End of File *)\""), file=f)
                 shutil.move(temp_file, result_file)
                 return result_file
-            except serapi_instance.TimeoutError:
+            except coq_serapy.CoqTimeoutError:
                 eprint("Command in {} timed out.".format(filename))
                 return temp_file
     except Exception as e:
@@ -138,7 +173,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
 
 
 def process_statement(args: argparse.Namespace,
-                      coq: serapi_instance.SerapiInstance, command: str,
+                      coq: coq_serapy.SerapiInstance, command: str,
                       result_file: TextIO) -> None:
     if coq.proof_context:
         prev_tactics = coq.prev_tactics

@@ -5,7 +5,7 @@ import json
 import sys
 from pathlib_revised import Path2
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 
 def main() -> None:
@@ -24,7 +24,7 @@ def main() -> None:
             for line in proof_file:
                 (filename, module, lemma_stmt), sol = json.loads(line)
                 if sol["status"] == "SUCCESS":
-                    print(serapi_instance.lemma_name_from_statement(
+                    print(coq_serapy.lemma_name_from_statement(
                         lemma_stmt))
 
 if __name__ == "__main__":

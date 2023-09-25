@@ -19,7 +19,7 @@
 #
 ##########################################################################
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 import tokenizer
 
 from models.q_estimator import QEstimator
@@ -140,7 +140,7 @@ class FeaturesQEstimator(QEstimator):
     def _features(self, context: TacticContext, certainty: float) \
             -> Tuple[List[int], List[float]]:
         if len(context.prev_tactics) > 1:
-            prev_tactic = serapi_instance.get_stem(context.prev_tactics[-1])
+            prev_tactic = coq_serapy.get_stem(context.prev_tactics[-1])
             prev_tactic_index = emap_lookup(self.tactic_map, 32, prev_tactic)
         else:
             prev_tactic_index = 0
@@ -157,14 +157,14 @@ class FeaturesQEstimator(QEstimator):
 
     def _encode_action(self, context: TacticContext, action: str) \
             -> Tuple[int, int]:
-        stem, argument = serapi_instance.split_tactic(action)
+        stem, argument = coq_serapy.split_tactic(action)
         stem_idx = emap_lookup(self.tactic_map, 32, stem)
         all_premises = context.hypotheses + context.relevant_lemmas
         stripped_arg = argument.strip(".").strip()
         if stripped_arg == "":
             arg_idx = 0
         else:
-            index_hyp_vars = dict(serapi_instance.get_indexed_vars_in_hyps(
+            index_hyp_vars = dict(coq_serapy.get_indexed_vars_in_hyps(
                 all_premises))
             if stripped_arg in index_hyp_vars:
                 hyp_varw, _, rest = all_premises[index_hyp_vars[stripped_arg]]\

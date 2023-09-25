@@ -32,7 +32,7 @@ from torch import optim
 import torch.optim.lr_scheduler as scheduler
 from pathlib_revised import Path2
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 import tokenizer
 
 from util import maybe_cuda, eprint
@@ -192,7 +192,7 @@ class PolyargQEstimator(QEstimator):
 
     def _encode_action(self, context: TacticContext, action: str) \
             -> Tuple[List[int], torch.FloatTensor]:
-        stem, argument = serapi_instance.split_tactic(action)
+        stem, argument = coq_serapy.split_tactic(action)
         stem_idx = encode_fpa_stem(self.dataloader_args,
                                    self.fpa_metadata,
                                    stem)
@@ -234,7 +234,7 @@ class PolyargQEstimator(QEstimator):
             tokenized_arg_hyp = tokenize(
                 self.dataloader_args,
                 self.fpa_metadata,
-                serapi_instance.get_hyp_type(arg_hyp))
+                coq_serapy.get_hyp_type(arg_hyp))
             encoded_arg = maybe_cuda(torch.cat((
                 self.predictor.hyp_encoder(
                     torch.LongTensor([stem_idx]),

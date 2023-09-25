@@ -22,7 +22,7 @@
 from coq_serapy.contexts import TacticContext
 from tokenizer import get_symbols, limitNumTokens
 from util import eprint
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 import typing
 from typing import List, Dict, Set, Any, overload, Tuple
@@ -192,7 +192,7 @@ class TopLevelTokenInBestHyp(WordFeature):
         headTokenCounts: typing.Counter[str] = Counter()
         for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             for hyp in hyps:
-                headToken = get_symbols(serapi_instance.get_hyp_type(hyp))[0]
+                headToken = get_symbols(coq_serapy.get_hyp_type(hyp))[0]
                 headTokenCounts[headToken] += 1
         if args.load_head_keywords and Path2(args.load_head_keywords).exists():
             result = TopLevelTokenInBestHyp(
@@ -213,7 +213,7 @@ class TopLevelTokenInBestHyp(WordFeature):
     def __call__(self, context: TacticContext) -> int:
         if len(context.hypotheses) == 0:
             return 0
-        hyp_types = [limitNumTokens(serapi_instance.get_hyp_type(hyp),
+        hyp_types = [limitNumTokens(coq_serapy.get_hyp_type(hyp),
                                     self.max_length)
                      for hyp in context.hypotheses]
         goal = limitNumTokens(context.goal, self.max_length)
@@ -250,7 +250,7 @@ class BestHypScore(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         if len(context.hypotheses) == 0:
             return [0.]
-        hyp_types = [serapi_instance.get_hyp_type(hyp)[:100] for hyp in context.hypotheses]
+        hyp_types = [coq_serapy.get_hyp_type(hyp)[:100] for hyp in context.hypotheses]
         best_hyp_score = max([SequenceMatcher(None, context.goal,hyp).ratio() * len(hyp)
                               for hyp in hyp_types])
         return [best_hyp_score / 100]
@@ -263,7 +263,7 @@ class PrevTacticV(VecFeature):
         prevTacticsCounts : typing.Counter[str] = Counter()
         for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             if len(prev_tactics) > 2:
-                prevTacticsCounts[serapi_instance.get_stem(prev_tactics[-1])] += 1
+                prevTacticsCounts[coq_serapy.get_stem(prev_tactics[-1])] += 1
         if args.load_tactic_keywords and Path2(args.load_tactic_keywords).exists():
             self.tacticKeywords = torch.load(args.load_tactic_keywords)
         else:
@@ -273,7 +273,7 @@ class PrevTacticV(VecFeature):
         eprint("Tactic keywords are {}".format(self.tacticKeywords),
                guard=args.print_keywords)
     def __call__(self, context : TacticContext) -> List[float]:
-        prev_tactic = (serapi_instance.get_stem(context.prev_tactics[-1]) if
+        prev_tactic = (coq_serapy.get_stem(context.prev_tactics[-1]) if
                        len(context.prev_tactics) > 1 else "Proof")
         oneHotPrevs= [0.] * len(self.tacticKeywords)
         if prev_tactic in self.tacticKeywords:
@@ -303,7 +303,7 @@ class PrevTactic(WordFeature):
         for relevant_lemmas, prev_tactics, hyps, goal in init_dataset:
             if len(prev_tactics) > 2:
                 prevTacticsCounts[
-                    serapi_instance.get_stem(prev_tactics[-1])] += 1
+                    coq_serapy.get_stem(prev_tactics[-1])] += 1
         if args.load_tactic_keywords and \
            Path2(args.load_tactic_keywords).exists():
             result = PrevTactic(torch.load(args.load_tactic_keywords))
@@ -320,7 +320,7 @@ class PrevTactic(WordFeature):
         self.tacticKeywords = tactic_keywords
 
     def __call__(self, context : TacticContext) -> int:
-        prev_tactic = (serapi_instance.get_stem(context.prev_tactics[-1]) if
+        prev_tactic = (coq_serapy.get_stem(context.prev_tactics[-1]) if
                        len(context.prev_tactics) > 1 else "Proof")
         if prev_tactic in self.tacticKeywords:
             return self.tacticKeywords.index(prev_tactic) + 1
@@ -344,7 +344,7 @@ class PrevTactic(WordFeature):
 class NumUnboundIdentifiersInGoal(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         identifiers = get_symbols(context.goal)
-        locallyBoundInHyps = serapi_instance.get_vars_in_hyps(context.hypotheses)
+        locallyBoundInHyps = coq_serapy.get_vars_in_hyps(context.hypotheses)
         binders = ["forall\s+(.*)(?::.*)?,",
                    "fun\s+(.*)(?::.*)?,",
                    "let\s+\S+\s+:="]

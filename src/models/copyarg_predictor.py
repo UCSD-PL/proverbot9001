@@ -34,7 +34,7 @@ from util import maybe_cuda, LongTensor, FloatTensor
 from coq_serapy.contexts import (ScrapedTactic, TacticContext,
                                  strip_scraped_output, Obligation,
                                  ProofContext)
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from models.components import (WordFeaturesEncoder, Embedding,
                                DNNClassifier, EncoderDNN, add_nn_args)
 from models.tactic_predictor import (TrainablePredictor,
@@ -196,7 +196,7 @@ class CopyArgPredictor(TrainablePredictor[CopyArgDataset,
                                     in [get_stem_and_arg_idx(
                                         self.training_args.max_length,
                                         self._embedding,
-                                        serapi_instance.normalizeNumericArgs(
+                                        coq_serapy.normalizeNumericArgs(
                                             ScrapedTactic(
                                                 [],
                                                 in_data.prev_tactics,
@@ -443,7 +443,7 @@ def mkCopySample(max_length : int,
 
 def get_stem_and_arg_idx(max_length: int, embedding: Embedding,
                          inter: ScrapedTactic) -> Tuple[int, int]:
-    tactic_stem, tactic_rest = serapi_instance.split_tactic(inter.tactic)
+    tactic_stem, tactic_rest = coq_serapy.split_tactic(inter.tactic)
     stem_idx = embedding.encode_token(tactic_stem)
     symbols = tokenizer.get_symbols(inter.context.focused_goal)
     arg = tactic_rest.split()[0].strip(".")
@@ -457,7 +457,7 @@ def get_stem_and_arg_idx(max_length: int, embedding: Embedding,
 
 
 def get_arg_idx(max_length: int, inter: ScrapedTactic) -> int:
-    tactic_stem, tactic_rest = serapi_instance.split_tactic(inter.tactic)
+    tactic_stem, tactic_rest = coq_serapy.split_tactic(inter.tactic)
     symbols = tokenizer.get_symbols(inter.context.focused_goal)
     arg = tactic_rest.split()[0].strip(".")
     assert arg in symbols, "tactic: {}, arg: {}, goal: {}, symbols: {}"\

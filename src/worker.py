@@ -32,15 +32,16 @@ T = TypeVar('T', bound='Worker')
 
 class Worker:
     args: argparse.Namespace
-    coq: Optional[coq_serapy.SerapiInstance]
+    coq: Optional[coq_serapy.CoqAgent]
     switch_dict: Optional[Dict[str, str]]
 
     # File-local state
     cur_project: Optional[str]
     cur_file: Optional[str]
     last_program_statement: Optional[str]
-    lemmas_encountered: List[ReportJob]
+    lemmas_encountered: Dict[ReportJob, int]
     remaining_commands: List[str]
+    original_commands: List[str]
     obligation_num: int
 
     def __init__(self, args: argparse.Namespace,
@@ -50,7 +51,7 @@ class Worker:
         self.cur_file: Optional[str] = None
         self.cur_project: Optional[str] = None
         self.last_program_statement: Optional[str] = None
-        self.lemmas_encountered: List[ReportJob] = []
+        self.lemmas_encountered: Dict[ReportJob, int] = {}
         self.remaining_commands: List[str] = []
         self.obligation_num = 0
         self.switch_dict = switch_dict
@@ -113,7 +114,7 @@ class Worker:
 
     def reset_file_state(self) -> None:
         self.last_program_statement = None
-        self.lemmas_encountered = []
+        self.lemmas_encountered = {}
         self.remaining_commands = []
         self.obligation_num = 0
 
@@ -121,78 +122,69 @@ class Worker:
         assert self.coq
         self.cur_file = filename
         self.coq.enter_file(filename)
-        self.remaining_commands = get_linearized(
+        self.original_commands = get_linearized(
             self.args, ["sertop"], 1,
-            self.args.prelude / self.cur_project / filename)
+            str(Path(self.cur_project) / filename))
+        self.remaining_commands = self.original_commands
 
     def exit_cur_file(self) -> None:
         assert self.coq
         self.coq.reset()
 
-    def run_backwards_into_job(self, job: ReportJob) -> None:
+    def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
         assert self.coq
         assert not self.coq.proof_context, "Already in a proof!"
-
         job_project, job_file, job_module, job_lemma = job
-        all_file_commands = coq_serapy.load_commands_preserve(
-            self.args, 1, self.args.prelude / self.cur_project / job_file)
+        lemma_name = coq_serapy.lemma_name_from_statement(job_lemma)
+        for i in range(len(self.coq._file_state.local_lemmas)):
+            ll_sm_stack, ll_lemma_hyp, ll_is_sec_local = self.coq._file_state.local_lemmas[-1]
+            ll_sm_prefix = ".".join([mod for mod, is_section in ll_sm_stack]) + "."
+            ll_lemma_name = coq_serapy.get_var_term_in_hyp(ll_lemma_hyp)
+            if ll_lemma_name == lemma_name and ll_sm_prefix == job_module:
+                break
+            self.coq._file_state.local_lemmas.pop()
+        assert len(self.coq._file_state.local_lemmas) > 0, "Couldn't find lemma!"
+
+        # Set self.remaining_commands to the commands after the lemma we're
+        # cancelling into.
+        all_file_commands = self.original_commands
         commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
         while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
-               coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() != coq_serapy.kill_comments(job_lemma).strip()):
+               coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() !=
+               coq_serapy.kill_comments(job.lemma_statement).strip()):
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
-        commands_to_cancel = commands_after_lemma_start[:len(commands_after_lemma_start)-len(self.remaining_commands)]
-        commands_before_point = list(all_file_commands[:len(all_file_commands)-len(self.remaining_commands)])
-        while len(commands_to_cancel) > 0:
-            if coq_serapy.ending_proof(commands_to_cancel[-1]):
-                while not coq_serapy.possibly_starting_proof(commands_to_cancel[-1]):
-                    popped = commands_to_cancel.pop(-1)
-                    commands_before_point.pop(-1)
-                cancelled_lemma_statement = commands_to_cancel.pop(-1)
-                commands_before_point.pop(-1)
-                last_lemma_encountered = self.lemmas_encountered.pop()
-                assert coq_serapy.kill_comments(cancelled_lemma_statement).strip() in \
-                    [coq_serapy.kill_comments(last_lemma_encountered.lemma_statement).strip(),
-                     "Next Obligation."], \
-                    f"Last lemma encountered was {last_lemma_encountered.lemma_statement}, " \
-                    f"but cancelling {cancelled_lemma_statement}"
-
-                assert not self.coq.proof_context
-                # Sometimes a Qed in file corresponds to two commands
-                # in our coqagent history, because of the way we need
-                # to Admit Let's
-                while not self.coq.proof_context:
-                    self.coq.cancel_last()
-                while self.coq.proof_context:
-                    self.coq.cancel_last()
-                self.coq._file_state.cancel_potential_local_lemmas(
-                    cancelled_lemma_statement, commands_before_point)
-                self.coq.secvar_dep_map.cancelBinding(
-                    self.coq.module_prefix + coq_serapy.lemma_name_from_statement(
-                        cancelled_lemma_statement))
-            else:
-                self.coq.cancel_last()
-                cancelled_cmd = coq_serapy.kill_comments(commands_to_cancel.pop(-1)).strip()
-                commands_before_point.pop(-1)
-                newstack = \
-                    coq_serapy.coq_util.cancel_update_sm_stack(
-                        self.coq._file_state.sm_stack,
-                        cancelled_cmd, commands_before_point)
-
-                if newstack != self.coq._file_state.sm_stack:
-                    self.coq._file_state.sm_stack = newstack
-                section_start_match = re.match(r"Section\s+([\w']*)(?!.*:=)", cancelled_cmd)
-                if section_start_match:
-                    self.coq.secvar_dep_map.cancelSectionStart()
-                end_match = re.match(r"End\s+([\w']*)\.", cancelled_cmd)
-                if end_match and self.coq._file_state.sm_stack[-1][1]:
-                    self.coq.secvar_dep_map.cancelSectionEnd()
-        self.coq.run_stmt(job_lemma)
         self.remaining_commands = commands_after_lemma_start
-        appendjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
-        self.lemmas_encountered.append(appendjob)
+        # Reset the sm stack in Coq to the one from the command we're
+        # cancelling to.
+        self.coq._file_state.sm_stack = sm_stack
 
+        # Get the state number from before the lemma from our dict.
+        checkjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
+        state_before_lemma = self.lemmas_encountered[checkjob]
+        # Filter lemmas out of lemmas_encountered that occur after the target
+        # lemma.
+        self.lemmas_encountered = \
+                {lemma: state
+                 for lemma, state in self.lemmas_encountered.items()
+                 if state <= state_before_lemma}
+        try:
+            # Reset to the state number before the target lemma
+            self.coq.run_stmt(f"BackTo {state_before_lemma}.")
+            # Finally run the lemma statement
+            self.coq.run_stmt(job_lemma)
+        except coq_serapy.CoqAnomaly as e:
+            if restart_anomaly:
+                self.restart_coq()
+                self.reset_file_state()
+                self.enter_file(job_file)
+                eprint("Hit a coq anomaly! Restarting...",
+                    guard=self.args.verbose >= 1)
+                self.run_into_job(job, True, False)
+                return
+            eprint(e)
+            assert False
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
@@ -229,10 +221,8 @@ class Worker:
                     "Currently in a proof! Back up to before the current proof, "\
                     "or use coq.finish_proof(cmds) or " \
                     "admit_proof(coq, lemma_statement, ending_stmt)"
-                rest_commands, run_commands = \
-                    unwrap(cast(Optional[Tuple[List[str], List[str]]],
-                                self.coq.run_into_next_proof(
-                                    self.remaining_commands)))
+                rest_commands, run_commands, state_before_proof = \
+                    self.coq.run_into_next_proof(self.remaining_commands)
                 assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except coq_serapy.CoqAnomaly:
                 if restart_anomaly:
@@ -245,6 +235,7 @@ class Worker:
                     return
                 assert False
             except coq_serapy.SerapiException:
+                raise
                 if not careful:
                     eprint("Hit a problem, possibly due to admitting proofs! "
                            "Restarting file with --careful...",
@@ -275,35 +266,25 @@ class Worker:
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
+            norm_job = ReportJob(self.cur_project,
+                                 unwrap(self.cur_file),
+                                 self.coq.sm_prefix,
+                                 coq_serapy.kill_comments(unique_lemma_statement).strip())
+            self.lemmas_encountered[norm_job] = state_before_proof
             if coq_serapy.kill_comments(unique_lemma_statement).strip() == \
                coq_serapy.kill_comments(job_lemma).strip() and \
               self.coq.sm_prefix == job_module:
-                self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                         unwrap(self.cur_file),
-                                                         self.coq.sm_prefix,
-                                                         coq_serapy.kill_comments(unique_lemma_statement).strip()))
                 return
-            try:
-                self.skip_proof(careful)
-            except coq_serapy.SerapiException:
-                if not careful:
-                    eprint("Hit a problem, possibly due to admitting proofs! "
-                           "Restarting file with --careful...",
-                           guard=self.args.verbose >= 1)
-                    self.reset_file_state()
-                    self.exit_cur_file()
-                    self.enter_file(job_file)
-                    self.run_into_job(job, restart_anomaly, True)
-                    return
-                eprint(f"Failed getting to before: {job_lemma}")
-                eprint(f"In file {job_file}")
-                raise
+            self.skip_proof(careful)
 
     def skip_proof(self, careful: bool) -> None:
         assert self.coq
-        lemma_statement = self.coq.prev_tactics[0]
+        lemma_statement = coq_serapy.kill_comments(self.coq.prev_tactics[0]).strip()
         ending_command = None
+        important_vernac_cmds = []
         for cmd in self.remaining_commands:
+            if re.match("\s*(?:Local\s+|Global\s+)?(?:Opaque|Transparent)\s+[\w']+\.\s*", cmd):
+                important_vernac_cmds.append(cmd)
             if coq_serapy.ending_proof(cmd):
                 ending_command = cmd
                 break
@@ -313,17 +294,11 @@ class Worker:
         # declaration that sets the correct type. This also sets up a
         # table of lemma dependencies for recursive use of section
         # variables.
-        self._mark_proof_using()
         proof_relevant = ending_command.strip() == "Defined." or \
-            bool(re.match(
-                r"\s*Derive",
-                coq_serapy.kill_comments(lemma_statement))) or \
-            bool(re.match(
-                r"\s*Let",
-                coq_serapy.kill_comments(lemma_statement))) or \
-            bool(re.match(
-                r"\s*Equations",
-                coq_serapy.kill_comments(lemma_statement))) or \
+            bool(re.match(r"\s*Derive", lemma_statement)) or \
+            bool(re.match(r"\s*Let", lemma_statement)) or \
+            bool(re.match(r"\s*Equations", lemma_statement)) or \
+            bool(re.match(r"\s*Next\s+Obligation", lemma_statement)) or \
             careful
         if proof_relevant:
             while len(self.coq.prev_tactics) > 1:
@@ -334,7 +309,13 @@ class Worker:
             lemma_name = \
                 coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
-                coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
+                starting_command = coq_serapy.kill_comments(self.remaining_commands[0]).strip()
+                if starting_command.startswith("Proof"):
+                    self.coq.run_stmt(starting_command)
+                for cmd in important_vernac_cmds:
+                    self.coq.run_stmt(cmd)
+                if not coq_serapy.ending_proof(starting_command):
+                    coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
                 raise
@@ -343,44 +324,6 @@ class Worker:
                 self.remaining_commands.pop(0)
             # Pop the actual Qed/Defined/Save
             self.remaining_commands.pop(0)
-        self.lemmas_encountered.append(ReportJob(self.cur_project,
-                                                 self.cur_file, self.coq.module_prefix,
-                                                 coq_serapy.kill_comments(lemma_statement).strip()))
-    def _mark_proof_using(self) -> None:
-        lemma_name = \
-            coq_serapy.lemma_name_from_statement(self.coq.prev_tactics[0])
-        section_variables = self._get_secvars_used_in_proof()
-        assert self.coq.module_prefix + lemma_name not in self.coq.secvar_dep_map.curBindings(), (lemma_name, self.coq.secvar_dep_map.curBindings())
-        self.coq.run_stmt("Proof using " + " ".join(section_variables) + ".")
-
-    def _get_secvars_used_in_proof(self) -> List[str]:
-        def has_ident(ident: str, haystack: str) -> bool:
-            return bool(re.match(rf".*\W{ident}[^\w']", haystack, flags=re.DOTALL))
-        def ident_in_next_proof(ident: str) -> bool:
-            for cmd in self.remaining_commands:
-                if coq_serapy.ending_proof(cmd):
-                    return False
-                if has_ident(ident, cmd):
-                    return True
-            assert False
-        assert len(self.coq.prev_tactics) == 1, \
-            "This method is meant to be called just after the start of a proof, " \
-            "so that we can properly determine the section variables. " \
-            f"So far, {len(self.coq.prev_tactics)} statements have been run, " \
-            "but we only accept 1."
-        used_secvars = []
-        for secvar in coq_serapy.get_vars_in_hyps(self.coq.hypotheses):
-            prebinder_string = split_by_char_outside_matching(
-                r"\(", r"\)", ":", self.coq.prev_tactics[0])[0]
-            if has_ident(secvar, prebinder_string):
-                continue
-            if ident_in_next_proof(secvar):
-                used_secvars.append(secvar)
-        for ident, deps in self.coq.secvar_dep_map.curBindings().items():
-            if ident_in_next_proof(ident.rsplit(".")[-1]):
-                used_secvars += deps
-        return used_secvars
-
 
 class SearchWorker(Worker):
     widx: int
@@ -405,7 +348,6 @@ class SearchWorker(Worker):
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
-        self._mark_proof_using()
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         if self.args.add_axioms and not self.axioms_already_added:
@@ -484,7 +426,6 @@ class SearchWorker(Worker):
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
-
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:

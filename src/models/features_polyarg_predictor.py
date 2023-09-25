@@ -60,7 +60,7 @@ from dataloader import (features_polyarg_tensors,
                         DataloaderArgs,
                         get_fpa_words)
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 import argparse
 import sys
@@ -502,7 +502,7 @@ class FeaturesPolyargPredictor(
                        context.goal)
 
         prediction_stem, prediction_args = \
-            serapi_instance.split_tactic(prediction)
+            coq_serapy.split_tactic(prediction)
         prediction_stem_idx = encode_fpa_stem(extract_dataloader_args(self.training_args),
                                               self.metadata, prediction_stem)
         assert prediction_stem_idx < num_stem_poss
@@ -533,7 +533,7 @@ class FeaturesPolyargPredictor(
             prediction_args)
         assert prediction_arg_idx is not None, \
             (prediction, prediction_args, context.goal,
-             [serapi_instance.get_var_term_in_hyp(hyp) for hyp
+             [coq_serapy.get_var_term_in_hyp(hyp) for hyp
               in context.hypotheses + context.relevant_lemmas])
 
         goal_arg_values = self.goal_token_scores(

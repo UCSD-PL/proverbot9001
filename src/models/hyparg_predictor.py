@@ -35,7 +35,7 @@ from models.components import SimpleEmbedding
 from tokenizer import Tokenizer, tokenizers, make_keyword_tokenizer_relevance
 from models.args import start_std_args, optimizers
 from models.components import DNNClassifier, EncoderDNN, DecoderGRU
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from coq_serapy.contexts import TacticContext
 
 from typing import List, Dict, Tuple, NamedTuple, Union, Callable, \
@@ -237,7 +237,7 @@ def decode_tactic_structure(stem_embedding : SimpleEmbedding,
                             struct : TacticStructure, hyps : List[str]) -> str:
     stem_idx, arg_hyp_idxs = struct
     return " ".join([stem_embedding.decode_token(stem_idx)] +
-                    [serapi_instance.get_first_var_in_hyp(hyps[hyp_idx-TOKEN_START])
+                    [coq_serapy.get_first_var_in_hyp(hyps[hyp_idx-TOKEN_START])
                      for hyp_idx in arg_hyp_idxs])
 
 def flatten_tactic_structure(tac : TacticStructure) -> List[int]:
@@ -252,7 +252,7 @@ def _encode_hyps(t : Tokenizer, e : 'TermEncoder', num_hyps : int,
     return encoded + ([[0] * encoded_length] * (num_hyps - len(encoded)))
 def get_arg_idx(hyps : List[str], arg : str):
     hyp_vars = [[name.strip() for name
-                 in serapi_instance.get_var_term_in_hyp(hyp).split(",")]
+                 in coq_serapy.get_var_term_in_hyp(hyp).split(",")]
                 for hyp in hyps]
     for hyp_idx, hyp_var_list in enumerate(hyp_vars):
         if arg in hyp_var_list:
@@ -264,7 +264,7 @@ def encode_tactic_structure(stem_embedding : SimpleEmbedding,
                             hyps_and_tactic : Tuple[List[str], str]) \
     -> TacticStructure:
     hyps, tactic = hyps_and_tactic
-    tactic_stem, args_str = serapi_instance.split_tactic(tactic)
+    tactic_stem, args_str = coq_serapy.split_tactic(tactic)
     arg_strs = args_str.split()[:max_args]
     stem_idx = stem_embedding.encode_token(tactic_stem)
     arg_idxs = [get_arg_idx(hyps, arg.strip()) for arg in args_str.split()]
@@ -292,7 +292,7 @@ def encode_hyparg_data(data : RawDataset,
     else:
         subset = random.sample(data_list, entropy_data_size)
     tokenizer = make_keyword_tokenizer_relevance(
-        [(context, stem_embedding.encode_token(serapi_instance.get_stem(tactic)))
+        [(context, stem_embedding.encode_token(coq_serapy.get_stem(tactic)))
          for relevant_lemmas, prev_tactics, hyps, context, tactic in subset],
         tokenizer_type, num_keywords, num_reserved_tokens)
     termEncoder = functools.partial(getNGramTokenbagVector, 1, tokenizer.numTokens())

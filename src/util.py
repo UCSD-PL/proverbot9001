@@ -27,6 +27,7 @@ import re
 import itertools
 import argparse
 import fcntl
+from datetime import datetime, timedelta
 
 from typing import (List, Tuple, Iterable, Any, overload, TypeVar,
                     Callable, Optional, Pattern, Match, Union)
@@ -38,31 +39,6 @@ import torch.autograd as autograd
 from sexpdata import Symbol
 from dataloader import rust_parse_sexp_one_level
 from pathlib import Path
-
-
-def maybe_cuda(component):
-    if use_cuda:
-        return component.to(device=torch.device(cuda_device))
-    else:
-        return component
-
-def LongTensor(*args : Any) -> torch.LongTensor:
-    if use_cuda:
-        return torch.cuda.LongTensor(*args)
-    else:
-        return torch.LongTensor(*args)
-
-def FloatTensor(*args : Any) -> torch.FloatTensor:
-    if use_cuda:
-        return torch.cuda.FloatTensor(*args)
-    else:
-        return torch.FloatTensor(*args)
-
-def ByteTensor(*args : Any) -> torch.ByteTensor:
-    if use_cuda:
-        return torch.cuda.ByteTensor(*args)
-    else:
-        return torch.ByteTensor(*args)
 
 def asMinutes(s : float) -> str:
     m = math.floor(s / 60)
@@ -227,7 +203,43 @@ def silent():
 with silent():
     use_cuda = torch.cuda.is_available()
     cuda_device = "cuda:0"
-    # assert use_cuda
+    
+    # we want to use this in modules,
+    # but we also want to compile those modules.
+
+    # pytorch is extremely unhappy with references to
+    # global variables.
+
+    # therefore, we will bake the above static result
+    # into these functions right now.
+
+    if use_cuda:
+        def maybe_cuda(component):
+            return component.to(device=torch.device("cuda:0"))
+
+        def LongTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.long).to(device=torch.device("cuda:0"))
+
+        def FloatTensor(x : List[float]):
+            return torch.tensor(x,dtype=torch.float32).to(device=torch.device("cuda:0"))
+
+        def ByteTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.uint8).to(device=torch.device("cuda:0"))
+    else:
+        def maybe_cuda(component):
+                return component
+ 
+        def LongTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.long)
+
+        def FloatTensor(x : List[float]):
+            return torch.tensor(x,dtype=torch.float32)
+
+        def ByteTensor(x : List[int]):
+            return torch.tensor(x,dtype=torch.uint8)
+    # now these can be easily compiled into torchscript.
+
+
 
 import signal as sig
 @contextlib.contextmanager
@@ -244,6 +256,15 @@ def print_time(msg : str, guard=True):
         yield
     finally:
         eprint("{:.2f}s".format(time.time() - start), guard=guard)
+
+@contextlib.contextmanager
+def print_time_precise(msg : str, guard=True):
+    start = time.time()
+    eprint(msg + "...", end="", guard=guard)
+    try:
+        yield
+    finally:
+        eprint("{:.5f}s".format(time.time() - start), guard=guard)
 
 mybarfmt = '{l_bar}{bar}| {n_fmt}/{total_fmt} [{elapsed}]'
 
@@ -329,6 +350,11 @@ def split_by_char_outside_matching(openpat: str, closepat: str,
                 curpos = nextsplitpos
     return None
 
+def copyArgs(args: argparse.Namespace) -> argparse.Namespace:
+    result = argparse.Namespace()
+    for k in vars(args).keys():
+        setattr(result, k, getattr(args, k))
+    return result
 
 def get_possible_arg(args: argparse.Namespace, argname: str,
                      default: Any) -> Any:
@@ -366,17 +392,33 @@ def safe_abbrev(filename: Path, all_files: List[Path]) -> str:
         return filename.stem
 
 class FileLock:
-    def __init__(self, file_handle):
+    def __init__(self, file_handle, exclusive=True):
         self.file_handle = file_handle
+        if exclusive:
+            self.lock_style = fcntl.LOCK_EX
+        else:
+            self.lock_style = fcntl.LOCK_SH
 
     def __enter__(self):
-        while True:
-            try:
-                fcntl.flock(self.file_handle, fcntl.LOCK_EX | fcntl.LOCK_NB)
-                break
-            except OSError:
-               time.sleep(0.01)
+        fcntl.flock(self.file_handle, self.lock_style)
         return self
 
     def __exit__(self, type, value, traceback):
         fcntl.flock(self.file_handle, fcntl.LOCK_UN)
+
+def read_time_taken(timestring: str) -> timedelta:
+    timestring = timestring.strip()
+    try:
+        t = datetime.strptime(timestring, "%H:%M:%S.%f")
+        # Not sure why this is needed, seems to be a bug in the time parsing.
+        days = 0
+    except ValueError:
+        try:
+            t = datetime.strptime(timestring, "%j day, %H:%M:%S.%f")
+            days = t.day
+        except ValueError:
+            t = datetime.strptime(timestring, "%j days, %H:%M:%S.%f")
+            days = t.day
+    time_taken = timedelta(days=days, hours=t.hour,
+                           minutes=t.minute,seconds=t.second)
+    return time_taken

@@ -21,7 +21,7 @@
 
 from evaluate_state import static_evaluators, loadEvaluatorByFile, loadEvaluatorByName
 from models.state_evaluator import StateEvaluator
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from context_filter import get_context_filter
 from coq_serapy.contexts import (TacticContext, ScrapedCommand, ScrapedTactic,
                                  strip_scraped_output)
@@ -220,7 +220,7 @@ def generate_evaluation_details(args : argparse.Namespace, idx : int,
         nonlocal tag
         nonlocal text
         lemma_name = \
-            serapi_instance.lemma_name_from_statement(lemma_statement)
+            coq_serapy.lemma_name_from_statement(lemma_statement)
         with tag('button', klass='collapsible', id=f'collapsible-{region_idx}'):
             with tag('code', klass='buttontext'):
                 write_highlighted(lemma_statement.strip())

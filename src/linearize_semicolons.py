@@ -32,10 +32,11 @@ from traceback import *
 from util import *
 from util import eprint, split_by_char_outside_matching, hash_file
 from compcert_linearizer_failures import compcert_failures
+from add_proof_using import add_proof_using_with_running_instance
 
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 from coq_serapy import (AckError, CompletedError, CoqExn,
-                        BadResponse, TimeoutError, ParseError,
+                        BadResponse, CoqTimeoutError, ParseError,
                         NoSuchGoalError, CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
@@ -59,7 +60,7 @@ class LinearizerThisShouldNotHappen(Exception):
 
 def linearize_commands(args: argparse.Namespace, file_idx: int,
                        commands_sequence: Iterable[str],
-                       coq: serapi_instance.SerapiInstance,
+                       coq: coq_serapy.SerapiInstance,
                        filename: str, relative_filename: str,
                        skip_nochange_tac: bool,
                        known_failures: List[List[str]]):
@@ -83,7 +84,7 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
 
         # Pull the entire proof from the lifter into command_batch
         command_batch = []
-        while command and not serapi_instance.ending_proof(command):
+        while command and not coq_serapy.ending_proof(command):
             command_batch.append(command)
             command = next(commands_iter, None)
         # Get the QED on there too.
@@ -92,7 +93,7 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
 
         # Now command_batch contains everything through the next
         # Qed/Defined.
-        theorem_statement = serapi_instance.kill_comments(command_batch.pop(0))
+        theorem_statement = coq_serapy.kill_comments(command_batch.pop(0))
         theorem_name = theorem_statement.split(":")[0].strip()
         coq.run_stmt(theorem_statement)
         yield theorem_statement
@@ -119,7 +120,7 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
                 linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
                                                            args.verbose, skip_nochange_tac))
                 yield from linearized_commands
-            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
+            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, CoqTimeoutError, NoSuchGoalError) as e:
                 if args.verbose:
                     eprint("Aborting current proof linearization!")
                     eprint("Proof of:\n{}\nin file {}".format(
@@ -145,7 +146,7 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
         command = next(commands_iter, None)
 
 
-def linearize_proof(coq: serapi_instance.SerapiInstance,
+def linearize_proof(coq: coq_serapy.SerapiInstance,
                     theorem_name: str,
                     command_batch: List[str],
                     verbose: int = 0,
@@ -158,7 +159,7 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                 while command_batch:
                     command = command_batch.pop(0)
                     if "Transparent" in command or \
-                       serapi_instance.ending_proof(command):
+                       coq_serapy.ending_proof(command):
                         coq.run_stmt(command)
                         yield command
                 return
@@ -177,21 +178,21 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                             "(.*)<\.\.>", cmd, flags=re.DOTALL)
                         if dotdotmatch:
                             continue
-                        assert serapi_instance.isValidCommand(cmd), \
+                        assert coq_serapy.isValidCommand(cmd), \
                             f"\"{cmd}\" is not a valid command"
                     if (not rest_cmd) and dotdotmatch:
                         pending_commands_stack[-1] = [next_cmd]
-                        assert serapi_instance.isValidCommand(dotdotmatch.group(1)), \
+                        assert coq_serapy.isValidCommand(dotdotmatch.group(1)), \
                             f"\"{dotdotmatch.group(1)}\" is not a valid command"
                         command_batch.insert(0, dotdotmatch.group(1))
                     else:
-                        assert serapi_instance.isValidCommand(next_cmd), \
+                        assert coq_serapy.isValidCommand(next_cmd), \
                             f"\"{next_cmd}\" is not a valid command"
                         command_batch.insert(0, next_cmd)
                     pending_commands_stack[-1] = rest_cmd if rest_cmd else None
                     pass
                 elif pending_commands:
-                    assert serapi_instance.isValidCommand(pending_commands), \
+                    assert coq_serapy.isValidCommand(pending_commands), \
                         f"\"{command}\" is not a valid command"
                     command_batch.insert(0, pending_commands)
             else:
@@ -205,7 +206,7 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                         pending_commands_stack[-1] = popped + \
                             pending_commands_stack[-1]
         command = command_batch.pop(0)
-        assert serapi_instance.isValidCommand(command), \
+        assert coq_serapy.isValidCommand(command), \
             f"command is \"{command}\", command_batch is {command_batch}"
         comment_before_command = ""
         command_proper = command
@@ -219,7 +220,7 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
         if re.match("\s*[*+-]+\s*|\s*[{}]\s*", command):
             continue
 
-        command = serapi_instance.kill_comments(command_proper)
+        command = coq_serapy.kill_comments(command_proper)
         if verbose >= 2:
             eprint(f"Linearizing command \"{command}\"")
 
@@ -237,7 +238,7 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                 raise LinearizerCouldNotLinearize
             if pending_commands_stack[-1] is None:
                 completed_rest = rest + "."
-                assert serapi_instance.isValidCommand(rest + "."),\
+                assert coq_serapy.isValidCommand(rest + "."),\
                     f"\"{completed_rest}\" is not a valid command in {command}"
                 pending_commands_stack[-1] = ["idtac."] * \
                     (goal_num - 2) + [completed_rest]
@@ -325,23 +326,23 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                                           for cmd in commands_list]
                 else:
                     command_remainders = [cmd + "." for cmd in commands_list]
-                assert serapi_instance.isValidCommand(command_remainders[0]), \
+                assert coq_serapy.isValidCommand(command_remainders[0]), \
                     f"\"{command_remainders[0]}\" is not a valid command"
                 command_batch.insert(0, command_remainders[0])
                 if coq.count_fg_goals() > 1:
                     for command in command_remainders[1:]:
-                        assert serapi_instance.isValidCommand(command), \
+                        assert coq_serapy.isValidCommand(command), \
                             f"\"{command}\" is not a valid command"
                     pending_commands_stack.append(command_remainders[1:])
                     coq.run_stmt("{")
                     yield indentation + "{"
             else:
                 if coq.count_fg_goals() > 0:
-                    assert serapi_instance.isValidCommand(rest), \
+                    assert coq_serapy.isValidCommand(rest), \
                         f"\"{rest}\" is not a valid command, from {command}"
                     command_batch.insert(0, rest)
                 if coq.count_fg_goals() > 1:
-                    assert serapi_instance.isValidCommand(rest), \
+                    assert coq_serapy.isValidCommand(rest), \
                         f"\"{rest}\" is not a valid command, from {command}"
                     pending_commands_stack.append(rest)
                     coq.run_stmt("{")
@@ -482,7 +483,7 @@ def prelinear_desugar_tacs(commands: Iterable[str]) -> Iterable[str]:
             comment_before_command += next_comment
         for f in desugar_passes:
             newcommand = f(command_proper)
-            assert serapi_instance.isValidCommand(
+            assert coq_serapy.isValidCommand(
                 newcommand), (command_proper, newcommand)
             command_proper = newcommand
         full_command = comment_before_command + command_proper
@@ -490,15 +491,15 @@ def prelinear_desugar_tacs(commands: Iterable[str]) -> Iterable[str]:
 
 
 def lifted_vernac(command: str) -> Optional[Match[Any]]:
-    return re.match("Ltac\s", serapi_instance.kill_comments(command).strip())
+    return re.match("Ltac\s", coq_serapy.kill_comments(command).strip())
 
 
-def generate_lifted(commands: List[str], coq: serapi_instance.SerapiInstance,
+def generate_lifted(commands: List[str], coq: coq_serapy.SerapiInstance,
                     pbar: tqdm) \
         -> Iterator[str]:
     lemma_stack = []  # type: List[List[str]]
     for command in commands:
-        if serapi_instance.possibly_starting_proof(command):
+        if coq_serapy.possibly_starting_proof(command):
             coq.run_stmt(command)
             if coq.proof_context:
                 lemma_stack.append([])
@@ -508,7 +509,7 @@ def generate_lifted(commands: List[str], coq: serapi_instance.SerapiInstance,
         else:
             pbar.update(1)
             yield command
-        if serapi_instance.ending_proof(command):
+        if coq_serapy.ending_proof(command):
             pending_commands = lemma_stack.pop()
             pbar.update(len(pending_commands))
             yield from pending_commands
@@ -524,9 +525,9 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
         failed = True
         failures = list(compcert_failures)
         while failed:
-            with serapi_instance.SerapiContext(
+            with coq_serapy.SerapiContext(
                     coqargs,
-                    serapi_instance.get_module_from_filename(filename),
+                    coq_serapy.get_module_from_filename(filename),
                     prelude) as coq:
                 coq.verbose = args.verbose
                 coq.quiet = True
@@ -540,12 +541,14 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
                     try:
                         failed = False
                         result = list(
-                            postlinear_desugar_tacs(
-                                linearize_commands(
-                                    args, file_idx,
-                                    generate_lifted(commands, coq, pbar),
-                                    coq, filename, relative_filename,
-                                    skip_nochange_tac, failures)))
+                            add_proof_using_with_running_instance(
+                                coq,
+                                postlinear_desugar_tacs(
+                                    linearize_commands(
+                                        args, file_idx,
+                                        generate_lifted(commands, coq, pbar),
+                                        coq, filename, relative_filename,
+                                        skip_nochange_tac, failures))))
                     except CoqAnomaly as e:
                         if isinstance(e.msg, str):
                             raise
@@ -555,7 +558,7 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
     except (CoqExn, BadResponse, AckError, CompletedError):
         eprint("In file {}".format(filename))
         raise
-    except serapi_instance.TimeoutError:
+    except coq_serapy.CoqTimeoutError:
         eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
 
@@ -575,7 +578,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
         args, bar_idx, local_filename)
     if loaded_commands is None:
         original_commands = \
-            serapi_instance.load_commands_preserve(
+            coq_serapy.load_commands_preserve(
                 args, bar_idx, str(args.prelude) + "/" + filename)
         try:
             if args.linearizer_timeout:
@@ -591,7 +594,11 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
             fresh_commands = original_commands
         except (CoqAnomaly, CoqExn):
             fresh_commands = original_commands
-        save_lin(fresh_commands, local_filename)
+        try:
+            text_encoding = args.text_encoding
+        except AttributeError:
+            text_encoding = 'utf-8'
+        save_lin(fresh_commands, local_filename, text_encoding)
 
         return fresh_commands
     else:
@@ -614,14 +621,14 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
     with lin_path.open(mode='r') as f:
         first_line = f.readline().strip()
         if ignore_lin_hash or hash_file(filename) == first_line:
-            return serapi_instance.read_commands(f.read())
+            return coq_serapy.read_commands(f.read())
         else:
             return None
 
 
-def save_lin(commands: List[str], filename: str) -> None:
+def save_lin(commands: List[str], filename: str, text_encoding: str) -> None:
     output_file = filename + '.lin'
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding=text_encoding) as f:
         print(hash_file(filename), file=f)
         for command in commands:
             print(command, file=f)
@@ -640,6 +647,7 @@ def main():
                         action='store_const', const=True, default=False)
     parser.add_argument("--linearizer-timeout",
                         type=int, default=(60 * 60 * 2))
+    parser.add_argument("--text-encoding", default='utf-8', type=str)
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     arg_values = parser.parse_args()
 
@@ -649,16 +657,16 @@ def main():
         if arg_values.verbose:
             eprint("Linearizing {}".format(filename))
         local_filename = arg_values.prelude + "/" + filename
-        original_commands = serapi_instance.load_commands_preserve(
+        original_commands = coq_serapy.load_commands_preserve(
             arg_values, 0, arg_values.prelude + "/" + filename)
         try:
             fresh_commands = preprocess_file_commands(
                 arg_values, 0, original_commands,
                 coqargs, arg_values.prelude,
                 local_filename, filename, False)
-            serapi_instance.save_lin(fresh_commands, local_filename)
+            save_lin(fresh_commands, local_filename, arg_values.text_encoding)
         except CoqAnomaly:
-            serapi_instance.save_lin(original_commands, local_filename)
+            save_lin(original_commands, local_filename, arg_values.text_encoding)
 
 
 if __name__ == "__main__":

@@ -21,7 +21,7 @@ from pathlib_revised import Path2
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
 from coq_serapy import get_stem, load_commands_preserve
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 import linearize_semicolons
 from predict_tactic import static_predictors, loadPredictorByFile, loadPredictorByName
 from models.tactic_predictor import TacticPredictor, Prediction
@@ -281,9 +281,9 @@ proper_subs = {"auto.": "eauto."}
 def grade_prediction(correct_inter: ScrapedTactic, prediction: str):
     correct_tactic = correct_inter.tactic
     correct_tactic_normalized = \
-        serapi_instance.normalizeNumericArgs(correct_inter).tactic
+        coq_serapy.normalizeNumericArgs(correct_inter).tactic
     prediction_normalized = \
-        serapi_instance.normalizeNumericArgs(ScrapedTactic(
+        coq_serapy.normalizeNumericArgs(ScrapedTactic(
             correct_inter.relevant_lemmas, correct_inter.prev_tactics,
             correct_inter.context,
             prediction)).tactic

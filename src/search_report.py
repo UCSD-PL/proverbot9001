@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 ##########################################################################
 #
 #    This file is part of Proverbot9001.
@@ -28,26 +28,27 @@ import datetime
 import itertools
 import json
 import subprocess
-import datetime
-from pathlib_revised import Path2
 from pathlib import Path
 from shutil import copyfile
 
 from yattag import Doc
-
-from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+from tqdm import tqdm
 
 from typing import (List, Tuple, Sequence, Dict, Callable,
                     Any, Iterable, Optional)
 
-from models.tactic_predictor import TacticPredictor
-import data
+from dataloader import scraped_from_file, ScrapedTactic, Obligation, ProofContext
 
+import coq_serapy
+import coq_serapy.contexts
+
+from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
-from search_worker import get_file_jobs
-import coq_serapy
-from coq_serapy.contexts import ScrapedTactic, Obligation
+from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
+from models.tactic_predictor import TacticPredictor
+
 import multi_project_report
 
 index_css = ["report.css"]
@@ -65,61 +66,73 @@ unnamed_goal_number: int = 0
 
 def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
                     project_dicts: List[Dict[str, Any]], time_taken: datetime.timedelta) -> None:
-    stats: List[ReportStats] = []
-    model_name = dict(predictor.getOptions())["predictor"]
     base = Path(os.path.dirname(os.path.abspath(__file__)))
 
     if not args.output_dir.exists():
         os.makedirs(str(args.output_dir))
-    for project_dict in project_dicts:
-        os.makedirs(args.output_dir / project_dict["project_name"], exist_ok=True)
-        for filename in [details_css, details_javascript]:
-            destpath = args.output_dir / project_dict["project_name"] / filename
-            if not destpath.exists():
-                srcpath = base.parent / 'reports' / filename
-                copyfile(srcpath, destpath)
-        for filename in project_dict["test_files"]:
-            file_solutions = []
-            output_file_prefix = args.output_dir / project_dict["project_name"] / \
-                  (safe_abbrev(Path(filename),
-                                    [Path(path) for path in
-                                     project_dict["test_files"]]))
-            source_file = args.prelude / project_dict["project_name"] / filename
-            try:
-                with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
-                    for line in f:
-                        job, sol = json.loads(line)
-                        file_solutions.append((job, SearchResult.from_dict(sol)))
-            except FileNotFoundError:
-                lemmas = get_file_jobs(args, project_dict["project_name"], filename)
-                assert len(lemmas) == 0
-                stats.append(ReportStats(filename, 0, 0, 0))
-                continue
-            blocks = blocks_from_scrape_and_sols(
-                source_file,
-                [(lemma_stmt, module_name, sol)
-                for (project, filename, module_name, lemma_stmt), sol
-                in file_solutions])
-
-            write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
-                                 model_name, blocks)
-            write_html(args, output_file_prefix.with_suffix(".html"),
-                       filename, blocks)
-            write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
-            stats.append(stats_from_blocks(blocks, str(filename)))
-        produce_index(args, predictor,
-                      args.output_dir / project_dict["project_name"],
-                      stats, time_taken)
+    for project_dict in tqdm([project_dict for project_dict in project_dicts
+                              if len(project_dict["test_files"]) > 0],
+                             desc="Report Projects"):
+        generate_project_report(args, predictor, project_dict, time_taken)
     if len(project_dicts) > 1:
         multi_project_report.multi_project_index(args.output_dir)
 
+def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor,
+                            project_dict: Dict[str, Any], time_taken: datetime.timedelta) \
+                            -> None:
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
+    model_name = dict(predictor.getOptions())["predictor"]
+    stats: List[ReportStats] = []
+    for filename in [details_css, details_javascript]:
+        destpath = args.output_dir / project_dict["project_name"] / filename
+        if not destpath.exists():
+            srcpath = base.parent / 'reports' / filename
+            copyfile(srcpath, destpath)
+    for filename in tqdm(project_dict["test_files"], desc="Report Files", leave=False):
+        file_solutions = []
+        output_file_prefix = args.output_dir / project_dict["project_name"] / \
+              (safe_abbrev(Path(filename),
+                                [Path(path) for path in
+                                 project_dict["test_files"]]))
+        source_file = args.prelude / project_dict["project_name"] / filename
+        try:
+            with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
+                for line in f:
+                    job, sol = json.loads(line)
+                    file_solutions.append((job, SearchResult.from_dict(sol)))
+        except FileNotFoundError:
+            lemmas = get_file_jobs(args, project_dict["project_name"], filename)
+            assert len(lemmas) == 0, lemmas
+            stats.append(ReportStats(filename, 0, 0, 0))
+            continue
+        for (sol_project, sol_filename, _, _), _ in file_solutions:
+            assert sol_project == project_dict["project_name"], \
+              (sol_project, project_dict["project_name"])
+            assert Path(sol_filename) == Path(filename), \
+              (Path(sol_filename), Path(filename))
+        blocks = blocks_from_scrape_and_sols(
+            source_file,
+            [(lemma_stmt, module_name, sol)
+            for (project, filename, module_name, lemma_stmt), sol
+            in file_solutions])
+
+        write_solution_vfile(args, output_file_prefix.with_suffix(".v"),
+                             model_name, blocks)
+        write_html(args, output_file_prefix.with_suffix(".html"),
+                   Path(filename), blocks)
+        write_csv(args, output_file_prefix.with_suffix(".csv"), blocks)
+        stats.append(stats_from_blocks(blocks, str(filename)))
+    produce_index(args, predictor,
+                  args.output_dir / project_dict["project_name"],
+                  stats, time_taken)
+
 def blocks_from_scrape_and_sols(
-        src_filename: Path2,
+        src_filename: Path,
         lemma_statements_done: List[Tuple[str, str, SearchResult]]
         ) -> List[DocumentBlock]:
 
-    interactions = data.read_all_text_data(
-        src_filename.with_suffix(".v.scrape"))
+    interactions = scraped_from_file(
+        str(src_filename.with_suffix(".v.scrape")))
 
     def lookup(module: str, lemma_stmt: str) -> Optional[SearchResult]:
         for lstmt, lmod, lresult in lemma_statements_done:
@@ -199,16 +212,27 @@ def blocks_from_scrape_and_sols(
                     obl_num = 0
         if in_proof:
             yield yield_proof()
-        pass
+        else:
+            yield VernacBlock(vernac_cmds_batch)
     blocks = list(generate())
     return blocks
 
+def dObligation_to_native(obl: Obligation) -> coq_serapy.contexts.Obligation:
+    return coq_serapy.contexts.Obligation(obl.hypotheses, obl.goal)
+
+def dContext_to_native(context: ProofContext) -> coq_serapy.contexts.ProofContext:
+    return coq_serapy.contexts.ProofContext(
+        [dObligation_to_native(g) for g in context.fg_goals],
+        [dObligation_to_native(g) for g in context.bg_goals],
+        [dObligation_to_native(g) for g in context.shelved_goals],
+        [dObligation_to_native(g) for g in context.given_up_goals])
+
 
 def interaction_from_scraped(s: ScrapedTactic) -> TacticInteraction:
-    return TacticInteraction(s.tactic, s.context)
+    return TacticInteraction(s.tactic, dContext_to_native(s.context))
 
 
-def write_solution_vfile(args: argparse.Namespace, output_filename: Path2,
+def write_solution_vfile(args: argparse.Namespace, output_filename: Path,
                          model_name: str,
                          doc_blocks: List[DocumentBlock]):
     with output_filename.open('w') as sfile:
@@ -235,7 +259,7 @@ def write_solution_vfile(args: argparse.Namespace, output_filename: Path2,
 
 
 def write_csv(args: argparse.Namespace,
-              output_filename: Path2,
+              output_filename: Path,
               doc_blocks: List[DocumentBlock]):
     with output_filename.open('w', newline='') as csvfile:
         for k, v in vars(args).items():
@@ -250,7 +274,7 @@ def write_csv(args: argparse.Namespace,
 
 
 def write_html(args: argparse.Namespace,
-               output_file: Path2, filename: Path2,
+               output_file: Path, filename: Path,
                doc_blocks: List[DocumentBlock]) -> None:
     global unnamed_goal_number
     unnamed_goal_number = 0
@@ -317,7 +341,8 @@ def escape_quotes(term: str):
     return re.sub("\"", "\\\"", term)
 
 
-def subgoal_to_string(args: argparse.Namespace, sg: Obligation) -> str:
+def subgoal_to_string(args: argparse.Namespace,
+                      sg: coq_serapy.contexts.Obligation) -> str:
     return "(\"" + escape_quotes(sg.goal[:args.max_print_term]) + "\", (\"" + \
         "\",\"".join([escape_quotes(hyp[:args.max_print_term]) for hyp in
                       sg.hypotheses[:args.max_print_hyps]]) + "\"))"
@@ -591,3 +616,43 @@ def get_metadata(args: argparse.Namespace) -> Tuple[str, datetime.datetime, str]
     else:
         weights_hash = ""
     return cur_commit, cur_date, weights_hash
+
+def main() -> None:
+    arg_parser = argparse.ArgumentParser()
+    arg_parser.add_argument("report_dir", type=Path)
+    arg_parser.add_argument("-p", "--project", type=str, default=None)
+    arg_parser.add_argument("-i", "--project-index-only", action="store_true")
+    top_args = arg_parser.parse_args()
+    assert not (top_args.project and top_args.project_index_only)
+
+    with open(top_args.report_dir / "args.json", 'r') as f:
+        args_dict = json.loads(f.read())
+        args = argparse.Namespace()
+        for k, v in args_dict.items():
+            if k in ["output_dir", "prelude"]:
+                setattr(args, k, Path(eval(v)))
+            elif k == "filenames":
+                setattr(args, k, [Path(f) for f in eval(v)])
+            else:
+                setattr(args, k, eval(v))
+
+    predictor = get_predictor(args)
+    project_dicts = project_dicts_from_args(args)
+    with open(top_args.report_dir / "time_so_far.txt", 'r') as f:
+        time_taken = util.read_time_taken(f.read())
+    if top_args.project:
+        matching_project_dicts = [project_dict for project_dict in project_dicts
+                                  if project_dict["project_name"] == top_args.project]
+        assert len(matching_project_dicts) != 0, \
+          f"No project matches project name {top_args.project}"
+        assert len(matching_project_dicts) == 1, \
+          f"Multiple projects match project name {top_args.project}"
+        generate_project_report(args, predictor, matching_project_dicts[0], time_taken)
+    elif top_args.project_index_only:
+        assert len(project_dicts) > 1
+        multi_project_report.multi_project_index(args.output_dir)
+    else:
+        generate_report(args, predictor, project_dicts, time_taken)
+
+if __name__ == "__main__":
+    main()

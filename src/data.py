@@ -46,7 +46,7 @@ from coq_serapy.contexts import (read_tactic_tuple, ScrapedTactic,
                                  strip_scraped_output,
                                  ProofContext)
 from models.components import SimpleEmbedding
-import coq_serapy as serapi_instance
+import coq_serapy as coq_serapy
 
 from typing import (Tuple, NamedTuple, List, Callable, Optional,
                     Sized, Sequence, Dict, Generic, Iterable, TypeVar,
@@ -277,7 +277,7 @@ def preprocess_data(arg_values: Namespace, dataset_iter:
                 dataset_iter)
         if get_possible_arg(arg_values, 'normalize_numeric_args', True):
             dataset_iter = pool.imap(
-                serapi_instance.normalizeNumericArgs, dataset_iter)
+                coq_serapy.normalizeNumericArgs, dataset_iter)
         yield from dataset_iter
 
 
@@ -540,7 +540,7 @@ def tactic_substitutions(substitutions: Dict[str, str],
 def truncate_tactic_semicolons_eval(sample : StateScore) -> StateScore:
     return StateScore(truncate_tactic_semicolons(sample.state), sample.score)
 def normalizeNumericArgs_eval(sample : StateScore) -> StateScore:
-    return StateScore(serapi_instance.normalizeNumericArgs(sample.state), sample.score)
+    return StateScore(coq_serapy.normalizeNumericArgs(sample.state), sample.score)
 
 
 def truncate_tactic_semicolons(sample: ScrapedTactic) \
