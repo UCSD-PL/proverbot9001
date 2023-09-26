@@ -7,7 +7,7 @@ then
     git clone https://github.com/rbenv/ruby-build.git ~/ruby-build
     mkdir -p ~/.local
     PREFIX=~/.local ~/ruby-build/install.sh
-    ~/.local/ruby-build 3.1.2 ~/.local/
+    ~/.local/bin/ruby-build 3.1.2 ~/.local/
 fi
 
 git submodule init && git submodule update
