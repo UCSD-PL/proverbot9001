@@ -86,6 +86,7 @@ git clone git@github.com:DistributedComponents/InfSeqExt.git deps/InfSeqExt
 (cd deps/InfSeqExt && opam install -y . )
 # Cheerios has its own issues
 git clone git@github.com:uwplse/cheerios.git deps/cheerios
+git -C deps/cheerios checkout 9c7f66e57b91f706d70afa8ed99d64ed98ab367d
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
 git clone git@github.com:uwplse/verdi.git deps/verdi
 git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
