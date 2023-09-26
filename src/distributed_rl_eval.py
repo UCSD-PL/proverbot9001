@@ -1,4 +1,5 @@
 import argparse
+from collections import defaultdict
 import json
 import random
 import uuid
@@ -51,7 +52,7 @@ def main():
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-p", "--num-predictions", default=16, type=int)
+    parser.add_argument("-p", "--num-predictions", default=5, type=int)
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
@@ -60,10 +61,11 @@ def main():
     evalGroup = parser.add_mutually_exclusive_group(required=True)
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
+    
     parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
     parser.add_argument("--workers-output-dir", default=Path("output"), type=Path)
     parser.add_argument("--num-eval-workers", default=1, type=int)
-    parser.add_argument("--worker-alive-time", type=str, default="00:20:00")
+    parser.add_argument("--worker-alive-time", type=str, default="00:40:00")
     parser.add_argument("--partition", default="cpu")
     parser.add_argument("--mem", default="4G")
     args = parser.parse_args()
@@ -100,10 +102,11 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
             task_file_arg = f"--tasks-file {str(args.tasks_file)}"
         else :
             task_file_arg = ""
-
+        
         if args.evaluate :
             evaluate_arg = "--evaluate"
         elif args.evaluate_baseline :
+            print("evaluating baseline")
             evaluate_arg = "--evaluate-baseline"
 
         if args.verbose>0 :
@@ -159,10 +162,11 @@ python -u src/distributed_rl_eval_cluster_worker.py {supervised_weights_arg} {co
 """
             f.write(submit_script)
         subprocess.run(f'sbatch submit/submit_multi_eval_jobs.sh', shell=True)
+        print("Submitted Jobs")
         track_progress(args, len(all_tasks))
 
         print("Finished Evaluation")
-    check_success(args, len(all_tasks))
+    check_success(args, all_tasks)
 
 def get_jobs_done(args: argparse.Namespace) -> int:
     jobs_done = 0
@@ -183,12 +187,28 @@ def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
             if jobs_done == total_num_tasks:
                 break
 
-def check_success(args: argparse.Namespace, total_num_jobs: int) -> None:
+def check_success(args: argparse.Namespace, all_tasks) -> None:
     total_num_jobs_successful = 0
+    total_num_jobs = len(all_tasks)
+    finished_tasks = defaultdict(list)
+    original_tasks = defaultdict(list)
     for finished_file in glob(str(args.state_dir / "finished-*.txt")):
         with open(finished_file, 'r') as f:
-            total_num_jobs_successful += sum(1 for _ in f)
+            for line in f:
+                job = json.loads(line)
+                finished_tasks[int(job["target_length"])].append(job)
+                total_num_jobs_successful += 1
+    
+    for task in all_tasks :
+        original_tasks[task.target_length].append(task)
+
     print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
+
+    task_lengths = sorted(original_tasks.keys())
+    for task_length in task_lengths :
+        num_finished_tasks = sum( [ 1 for _ in finished_tasks[task_length] ])
+        num_total_tasks = sum( [ 1 for _ in original_tasks[task_length] ])
+        print(f"Task Length {task_length} : {num_finished_tasks}/{num_total_tasks} = {'%.2f'%(100*num_finished_tasks/num_total_tasks)}%")
 
 
 def cancel_workers(args: argparse.Namespace, unique_id: uuid.UUID) -> None:
@@ -197,7 +217,8 @@ def cancel_workers(args: argparse.Namespace, unique_id: uuid.UUID) -> None:
 
 
 def setup_eval_jobstate(args: argparse.Namespace) -> int:
-
+    print("Resuming? ", args.eval_resume)
+    print("State dir", args.state_dir)
     if not args.eval_resume :
         if (args.state_dir).exists() :
             shutil.rmtree(str(args.state_dir))
