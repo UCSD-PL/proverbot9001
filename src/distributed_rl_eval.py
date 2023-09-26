@@ -51,7 +51,7 @@ def main():
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-p", "--num-predictions", default=5, type=int)
+    parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
@@ -137,6 +137,7 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
         coq2vecweightsarg = f"--coq2vec-weights {str(args.coq2vec_weights)}"
         predictionarg = f"-p {args.num_predictions}"
         maxsertopworkersarg = f"--max-sertop-workers {args.max_sertop_workers}"
+        statedirargs = f"--state-dir {str(args.state_dir)}"
     
     
         with open("submit/submit_multi_eval_jobs.sh","w") as f:
@@ -153,8 +154,8 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
 module add opam/2.1.2
 python -u src/distributed_rl_eval_cluster_worker.py {supervised_weights_arg} {coq2vecweightsarg} \
     compcert_projs_splits.json {prelude_arg} {backend_arg} {output_arg} {task_file_arg} {evaluate_arg} \
-     {verbosity_arg} {predictionarg} {setswitchargs} {proofrelevantargs} {maxsertopworkersarg} \
-     {blacklistedtacticsarg} -s {args.steps_per_episode}
+     {verbosity_arg} {predictionarg} {setswitchargs} {proofrelevantargs} {maxsertopworkersarg} {statedirargs} \
+     {blacklistedtacticsarg} -s {args.steps_per_episode} 
 """
             f.write(submit_script)
         subprocess.run(f'sbatch submit/submit_multi_eval_jobs.sh', shell=True)
@@ -208,28 +209,6 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
     if not taken_path.exists():
         with taken_path.open('w'):
             pass
-
-    # for workerid in range(1, args.num_eval_workers + 1):
-    #     done_path = args.state_dir / "eval" / f"done-{workerid}.txt"
-    #     with done_path.open("w"):
-    #         pass
-    #     taken_path = args.state_dir / "eval" / "taken" / f"taken-{workerid}.txt"
-    #     with taken_path.open("w") as f:
-    #         pass
-    #     progress_path = args.state_dir / "eval" / f"progress-{workerid}.txt"
-    #     with progress_path.open("w") as f:
-    #         pass
-    #     finished_path = args.state_dir / "eval" / f"finished-{workerid}.txt"
-    #     with finished_path.open("w") as f:
-    #         pass
-
-   
-    # for fidx, filename in enumerate(get_all_files(args)):
-    #     with (args.state_dir / "eval" /  "taken" /
-    #           ("file-" + util.safe_abbrev(filename,
-    #                             []) + ".txt")).open("w") as f:
-    #         pass
-
 
     done_tasks = []
     for workerid in range(1, args.num_eval_workers + 1):

@@ -52,7 +52,7 @@ def main() -> None:
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
-    parser.add_argument("--state_dir", default="drl_eval_state", type=Path)
+    parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
     
     
     args = parser.parse_args()
