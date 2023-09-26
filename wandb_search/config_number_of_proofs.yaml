@@ -1,6 +1,8 @@
 program: ../src/rl_tuning_wandb.py
 method: bayes
 name: seach_number_of_proofs
+controller:
+  type: local
 metric:
   goal: maximize
   name: score #weighted_score #score
@@ -15,7 +17,7 @@ parameters:
     max: 0.999
   starting_epsilon:
     distribution: uniform
-    min: 0
+    min: 0 
     max: 1
   batch_step:
     distribution: int_uniform

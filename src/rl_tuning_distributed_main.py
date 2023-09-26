@@ -153,8 +153,15 @@ def config_fnames(logdir: str = 'logs'):
         while os.path.exists(os.path.join(logdir,f'output{index}.log')):
             index += 1
         new_output_name = f'output{index}.log'
+
     new_error_name = f'error{index}.log'
     bash_file = f'run{index}.sh'
+    with open(f'{logdir}/{new_output_name}',"w") as f:
+        f.write("")
+    with open(f'{logdir}/{new_error_name}',"w") as f:
+        f.write("")
+    with open(f'{logdir}/{bash_file}',"w") as f:
+        f.write("")
     return new_output_name, new_error_name,bash_file
 def tuning(args) -> None:
     """
@@ -185,15 +192,17 @@ def tuning(args) -> None:
             os.makedirs(resultdir)
         log_fname, err_fname,bash_fname = config_fnames(logdir)
         script_dir = os.path.join(logdir, bash_fname)
+
+
         # Add the necessary arguments to the sbatch command
         sbatch_command = []
         sbatch_command.extend([
             '#!/bin/bash',          # Specify the interpreter to be bash
             f'#SBATCH --job-name={args.exp_name}',  # Specify the job name
-            '#SBATCH --ntasks=1',  # Specify the number of tasks (processes) to run, default is 1
-            '#SBATCH --time=0-6:00:00',  # Specify the time limit for the job
+            '#SBATCH --time=0-12:00:00',  # Specify the time limit for the job
             f'#SBATCH --output={logdir}/{log_fname}',  # Specify the output log file
             f'#SBATCH --error={logdir}/{err_fname}',    # Specify the error log file
+            '#SBATCH --mem-per-cpu=128G',  # Specify how much memory to allocate per CPU core
             f'python {RUN_ROOT}/rl_tuning_distributed_worker.py \\',               # Specify the command to run (Python interpreter)          # Specify the Python script to run
         ])
 
@@ -230,14 +239,12 @@ def tuning(args) -> None:
     tuner = tune.Tuner(
         tune.with_resources(
             tune.with_parameters(objective, args=args),
-            {"cpu": args.num_cpus, "gpu": args.num_gpus},
+            {"cpu": 1},
         ),
         param_space=search_space,
         tune_config=tune.TuneConfig(num_samples=args.num_trails),
     )
-
     tuner.fit()
-
 
 if __name__ == "__main__":
     main()

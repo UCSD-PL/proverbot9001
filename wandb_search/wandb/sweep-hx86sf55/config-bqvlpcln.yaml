@@ -1,0 +1,16 @@
+wandb_version: 1
+
+batch_step:
+  value: 11
+batches_per_proof:
+  value: 19
+gamma:
+  value: 0.7262009857717696
+learning_rate:
+  value: 1.0099498165747147
+lr_step:
+  value: 0.806329942666724
+starting_epsilon:
+  value: 0.14406004791301918
+sync_target_every:
+  value: 94

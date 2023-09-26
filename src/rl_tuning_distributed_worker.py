@@ -57,12 +57,19 @@ import time
 import fcntl
 
 def write_to_csv(file_path, data):
-    with open(file_path, 'a') as file:
-        csv_writer = csv.writer(file)
-        if csv_file.tell() == 0:
-            header = ["gamma", "starting_epsilon", "batch_step", "lr_step", "batches_per_proof", "sync_target_every","proofs_solved"]
+    if not os.path.exists(file_path) or os.path.getsize(file_path) == 0:
+        with open(file_path, 'w', newline='') as file:
+            csv_writer = csv.writer(file)
+            header = ["gamma", "starting_epsilon", "batch_step", "lr_step", "batches_per_proof", "sync_target_every", "proofs_solved"]
             csv_writer.writerow(header)
+
+    with open(file_path, 'a', newline='') as file:
+        csv_writer = csv.writer(file)
         csv_writer.writerow(data)
+
+
+
+
 
 def write_to_csv_worker(csv_file_path,line_to_write):
     while True:
