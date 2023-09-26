@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
 
-INIT_CMD="~/opam-scripts/read-opam.sh"
+# INIT_CMD="~/opam-scripts/read-opam.sh"
+INIT_CMD=""
 
 NTHREADS=1
 while getopts ":j:" opt; do
