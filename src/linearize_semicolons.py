@@ -531,7 +531,7 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
                     prelude) as coq:
                 coq.verbose = args.verbose
                 coq.quiet = True
-                with tqdm(file=sys.stdout,
+                with tqdm(file=sys.stderr,
                           disable=not args.progress,
                           position=(file_idx * 2),
                           desc="Linearizing", leave=False,
