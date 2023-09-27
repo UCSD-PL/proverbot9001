@@ -33,6 +33,8 @@ from util import FileLock, eprint, safe_abbrev, print_time, unwrap
 
 def main() -> None:
   parser = argparse.ArgumentParser()
+  parser.add_argument("--progress", "-P", help="show progress of files",
+                      action='store_true')
   parser.add_argument("filenames", nargs="+", type=Path)
   parser.add_argument("--prelude", type=Path, default=".")
   parser.add_argument("--tasks-file", type=Path)

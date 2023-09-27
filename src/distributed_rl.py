@@ -216,6 +216,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    "--backend", args.backend,
                    ] + (["--curriculum"] if args.curriculum else []) +
                    (["--no-interleave"] if not args.interleave else []) + 
+                   (["--progress"] if args.progress else []) +
                    ["--blacklist-tactic={tactic}" for tactic
                     in args.blacklisted_tactics] +
                    (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
