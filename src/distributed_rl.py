@@ -33,11 +33,15 @@ def main() -> None:
     all_task_eps = get_all_task_episodes(args)
     num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
                                       args.num_actors)
-    dispatch_learner_and_actors(args, num_workers_actually_needed)
-    with util.sighandler_context(signal.SIGINT,
-                                 functools.partial(interrupt_early, args)):
-        show_progress(args, num_workers_actually_needed)
-    cancel_workers(args)
+    if num_workers_actually_needed > 0:
+        dispatch_learner_and_actors(args, num_workers_actually_needed)
+        with util.sighandler_context(signal.SIGINT,
+                                     functools.partial(interrupt_early, args)):
+            show_progress(args, num_workers_actually_needed)
+        cancel_workers(args)
+    elif num_workers_actually_needed < 0:
+        util.eprint(f"WARNING: there are {len(task_eps_done)} tasks eps already done, but only {len(all_task_eps)} task eps total! "
+               "This means that something didn't resume properly, or you resumed with a smaller task set")
     build_final_save(args, len(all_task_eps))
 
     if args.verifyvval:
