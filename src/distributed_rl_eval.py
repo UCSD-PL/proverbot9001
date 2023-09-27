@@ -65,7 +65,7 @@ def main():
     parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
     parser.add_argument("--workers-output-dir", default=Path("output"), type=Path)
     parser.add_argument("--num-eval-workers", default=1, type=int)
-    parser.add_argument("--worker-alive-time", type=str, default="00:40:00")
+    parser.add_argument("--worker-alive-time", type=str, default="00:20:00")
     parser.add_argument("--partition", default="cpu")
     parser.add_argument("--mem", default="4G")
     args = parser.parse_args()
@@ -102,6 +102,11 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
             task_file_arg = f"--tasks-file {str(args.tasks_file)}"
         else :
             task_file_arg = ""
+        
+        if args.partition == 'gpu' :
+            partition_part = '#SBATCH -p gpu \n#SBATCH --gpus 1'
+        else :
+            partition_part = '#SBATCH -p cpu'
         
         if args.evaluate :
             evaluate_arg = "--evaluate"
@@ -147,7 +152,7 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
             submit_script = f"""#!/bin/bash
 #
 #SBATCH --job-name=Rl_eval_{unique_id}
-#SBATCH -p {args.partition}
+{partition_part}
 #SBATCH --mem={args.mem}
 #SBATCH -o {args.state_dir}/worker-%a_output.txt
 #SBATCH --array=1-{num_workers_actually_needed}
