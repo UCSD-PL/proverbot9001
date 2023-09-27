@@ -96,14 +96,18 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   num_resulting_obls = [[len(resulting_obls)
                          for _action, resulting_obls in action_records]
                         for _start_obl, action_records in samples]
+
   all_resulting_obls = [obl for _start_obl, action_records in samples
                         for _action, resulting_obls in action_records
                         for obl in resulting_obls]
-  with torch.no_grad():
-    all_obls_tensor = torch.cat([obl.view(1, args.encoding_size) for obl in
-                                 all_resulting_obls], dim=0)
-    eprint(all_obls_tensor)
-    all_obl_scores = target_model(all_obls_tensor)
+  if len(all_resulting_obls) > 0:
+    with torch.no_grad():
+      all_obls_tensor = torch.cat([obl.view(1, args.encoding_size) for obl in
+                                   all_resulting_obls], dim=0)
+      eprint(all_obls_tensor)
+      all_obl_scores = target_model(all_obls_tensor)
+  else:
+      all_obl_scores = []
   outputs = []
   cur_row = 0
   for resulting_obl_lens in num_resulting_obls:
