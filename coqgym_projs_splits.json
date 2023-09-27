@@ -4780,7 +4780,8 @@
             "lib/FMapVeryWeak.v",
             "lib/Ssrexport.v"
         ],
-        "switch": "coq-8.12"
+        "switch": "coq-8.12",
+        "build_command": "./configure && make"
     },
     {
         "project_name": "zorns-lemma",
