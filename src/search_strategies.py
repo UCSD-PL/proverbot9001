@@ -24,7 +24,7 @@ from coq_serapy.contexts import TacticContext, FullContext, ProofContext, trunca
 import tokenizer
 from models.tactic_predictor import Prediction, TacticPredictor
 from models.features_polyarg_predictor import FeaturesPolyargPredictor
-from search_results import TacticInteraction, SearchResult, SearchStatus
+from search_results import TacticInteraction, SearchResult, SearchStatus, KilledException
 from util import nostderr, unwrap, eprint, mybarfmt, copyArgs
 
 from value_estimator import Estimator
@@ -332,6 +332,11 @@ class TqdmSpy(tqdm):
     def update(self, value):
         self.n = self.n + value
         super().update(value)
+
+
+def has_it_been_much_too_long(args):
+    return time.time() > args.the_end
+        
 
 
 def dfs_proof_search_with_graph(lemma_name: str,
@@ -912,6 +917,10 @@ def best_first_proof_search(lemma_name: str,
                        desc=desc_name, disable=(not args.progress),
                        leave=False, position=bar_idx + 1,
                        dynamic_ncols=True, bar_format=mybarfmt):
+
+        if has_it_been_much_too_long(args):
+            break
+
         if len(nodes_todo) == 0:
             break
         next_node = heapq.heappop(nodes_todo)
@@ -928,6 +937,8 @@ def best_first_proof_search(lemma_name: str,
             blacklist=args.blacklisted_tactics)
 
         for prediction in predictions:
+            if has_it_been_much_too_long(args):
+                break
             if num_successful_predictions >= args.search_width:
                 break
             context_after, num_stmts, \
@@ -976,9 +987,16 @@ def best_first_proof_search(lemma_name: str,
                 start_node.draw_graph(graph_file)
                 return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
                                     prediction_node.interactions()[1:], step+1)
-            if args.scoring_function == "const":
+            if v_network is not None:
+                v_values = v_network(coq.proof_context.fg_goals[0])
+                h_score = math.log(max(sys.float_info.min, v_values)) \
+                                           / math.log(0.7) #args.gamma
+                eprint("h score is")
+                eprint(h_score)
+            elif args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
+                eprint("there is no h_score")
                 h_score = -abs(next_node.f_score * prediction.certainty)
             elif args.scoring_function == "norm-certainty":
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
@@ -1004,10 +1022,10 @@ def best_first_proof_search(lemma_name: str,
             if args.search_type == "astar":
                 # Calculate the A* f_score
                 g_score = len(prediction_node.path())
-                if v_network is not None:
-                    v_values = v_network(coq.proof_context.fg_goals[0])
-                    h_score = math.log(max(sys.float_info.min, v_values)) \
-                                               / math.log(0.7) #args.gamma
+                #if v_network is not None:
+                #    v_values = v_network(coq.proof_context.fg_goals[0])
+                #    h_score = math.log(max(sys.float_info.min, v_values)) \
+                #                               / math.log(0.7) #args.gamma
                 score = g_score + h_score
             else:
                 score = h_score
