@@ -109,6 +109,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
+    evalGroup.add_argument("--evaluate-random-baseline", action="store_true")
     parser.add_argument("--curriculum",action="store_true")
     parser.add_argument("--verifyvval",action="store_true")
     parser.add_argument("--verifyv-every", type=int, default=None)
@@ -437,7 +438,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     if steps_already_done < len(task_episodes):
         with print_time("Saving"):
             save_state(args, worker, shorter_proofs_dict, step)
-    if args.evaluate or args.evaluate_baseline:
+    if args.evaluate or args.evaluate_baseline or args.evaluate_random_baseline:
         if args.test_file:
             test_tasks = read_tasks_file(args.test_file, False)
             evaluate_results(args, worker, test_tasks)
