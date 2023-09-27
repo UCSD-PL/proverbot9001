@@ -466,7 +466,7 @@ def load_latest_q_network(args: argparse.Namespace, v_network: rl.VNetwork) -> N
     args.state_dir / "weights" /
     f"common-v-network-{newest_index}.dat")
   eprint(f"Loading latest q network from {latest_q_network_path}")
-  q_network_state = torch.load(latest_q_network_path)
+  q_network_state = torch.load(latest_q_network_path, map_location="cpu")
   v_network.network.load_state_dict(q_network_state)
 
 def experience_proof(args: argparse.Namespace,
