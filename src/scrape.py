@@ -151,7 +151,7 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
             coq.verbose = args.verbose
             try:
                 with open(temp_file, 'w') as f:
-                    for command in tqdm(commands, file=sys.stdout,
+                    for command in tqdm(commands, file=sys.stderr,
                                         disable=(not args.progress),
                                         position=file_idx * 2,
                                         desc="Scraping file", leave=False,
