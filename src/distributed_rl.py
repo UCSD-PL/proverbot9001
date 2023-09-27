@@ -430,7 +430,7 @@ def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
     assert save_path is not None, \
       "We've reached the end of training, but no common weights are found " \
       "in the weights directory!"
-    common_network_weights_dict = torch.load(str(save_path))
+    common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
     v_network_state: Tuple[dict, Any, OrderedDict[Any, torch.FloatTensor]] = \
                            (common_network_weights_dict, obl_encoder_state, OrderedDict())
