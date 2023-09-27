@@ -174,6 +174,8 @@ class ImprovedSerapiInstance():
         if not in_proof_before:
             # print("Command: ", command)
             self.current_gallina.append(stmt)
+        elif "Proof" in stmt:
+            self.current_gallina.append(stmt)
         elif in_proof_before and in_proof_after:
             self.current_proof.append(stmt)
         elif in_proof_before and not in_proof_after:
@@ -388,12 +390,16 @@ def process_statement(args: argparse.Namespace,
         result_file.write(json.dumps(command))
     result_file.write("\n")
 
-    print("Running command: ", command)
+    # print("Running command: ", command)
     try:
         coq.run_stmt(command, timeout=600, store=True)
     except coq_serapy.coq_backend.CoqExn as e:
         print("CoqExn: ", e)
         print("Command: ", command)
+        with open("error.log", 'a') as f:
+            f.write("".join(coq.coq.tactic_history.getFullHistory()))
+
+    
         raise e
     # in_proof_before = coq.proof_context is not None
     # try:
