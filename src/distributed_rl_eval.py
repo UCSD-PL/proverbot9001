@@ -61,7 +61,7 @@ def main():
     evalGroup = parser.add_mutually_exclusive_group(required=True)
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
-    
+    evalGroup.add_argument("--evaluate-random-baseline", action="store_true")
     parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
     parser.add_argument("--workers-output-dir", default=Path("output"), type=Path)
     parser.add_argument("--num-eval-workers", default=1, type=int)
@@ -113,6 +113,9 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
         elif args.evaluate_baseline :
             print("evaluating baseline")
             evaluate_arg = "--evaluate-baseline"
+        else:
+            assert args.evaluate_random_baseline
+            evaluate_arg = "--evaluate-random-baseline"
 
         if args.verbose>0 :
             verbosity_arg = "-"+"v"*args.verbose

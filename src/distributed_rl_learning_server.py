@@ -50,8 +50,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   eprint("Establishing connection")
   dist.init_process_group(backend)
   eprint("Connection established")
-  v_network: nn.Module = model_setup(args.encoding_size)
-  target_network: nn.Module = model_setup(args.encoding_size)
+  assert torch.cuda.is_available(), "Training node doesn't have CUDA available!"
+  device = "cuda"
+  v_network: nn.Module = model_setup(args.encoding_size).to(device)
+  target_network: nn.Module = model_setup(args.encoding_size).to(device)
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optim.RMSprop(v_network.parameters(),
                                              lr=args.learning_rate)
@@ -94,14 +96,18 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   num_resulting_obls = [[len(resulting_obls)
                          for _action, resulting_obls in action_records]
                         for _start_obl, action_records in samples]
+
   all_resulting_obls = [obl for _start_obl, action_records in samples
                         for _action, resulting_obls in action_records
                         for obl in resulting_obls]
-  with torch.no_grad():
-    all_obls_tensor = torch.cat([obl.view(1, args.encoding_size) for obl in
-                                 all_resulting_obls], dim=0)
-    eprint(all_obls_tensor)
-    all_obl_scores = target_model(all_obls_tensor)
+  if len(all_resulting_obls) > 0:
+    with torch.no_grad():
+      all_obls_tensor = torch.cat([obl.view(1, args.encoding_size) for obl in
+                                   all_resulting_obls], dim=0)
+      eprint(all_obls_tensor)
+      all_obl_scores = target_model(all_obls_tensor)
+  else:
+      all_obl_scores = []
   outputs = []
   cur_row = 0
   for resulting_obl_lens in num_resulting_obls:
@@ -112,7 +118,8 @@ def train(args: argparse.Namespace, v_model: nn.Module,
       cur_row += num_obls
     outputs.append(max(action_outputs))
   actual_values = v_model(inputs).view(len(samples))
-  target_values = torch.FloatTensor(outputs)
+  device = "cuda"
+  target_values = torch.FloatTensor(outputs).to(device)
   loss = F.mse_loss(actual_values, target_values)
   eprint(f"Loss: {loss}")
   optimizer.zero_grad()
@@ -130,6 +137,7 @@ class BufferPopulatingThread(Thread):
     super().__init__()
     pass
   def run(self) -> None:
+    device = "cuda"
     while True:
       newest_prestate_sample: torch.FloatTensor = \
         torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
@@ -143,9 +151,9 @@ class BufferPopulatingThread(Thread):
         newest_poststate_sample: torch.FloatTensor = \
           torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
         dist.recv(tensor=newest_poststate_sample, src=sending_worker, tag=3)
-        post_states.append(newest_poststate_sample)
+        post_states.append(newest_poststate_sample.to(device))
       self.replay_buffer.add_transition(
-        (newest_prestate_sample, int(newest_action_sample.item()),
+        (newest_prestate_sample.to(device), int(newest_action_sample.item()),
          post_states))
       self.replay_buffer.buffer_steps += 1
       self.signal_change.set()

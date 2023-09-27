@@ -1,8 +1,8 @@
 #!/usr/bin/env bash
 
-set -e
+set -ex
 
-FILES=$(echo $(jq -r ".[]  | (.test_files[], .train_files[])" compcert_projs_splits.json))
+FILES=${@:-$(echo $(jq -r ".[]  | (.test_files[], .train_files[])" compcert_projs_splits.json))}
 for file in $FILES; do
     if grep -q "Proof using" CompCert/$file.lin; then
         echo "Skipping "$file.lin" (it appears to be already fixed)"

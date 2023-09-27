@@ -33,6 +33,8 @@ from util import FileLock, eprint, safe_abbrev, print_time, unwrap
 
 def main() -> None:
   parser = argparse.ArgumentParser()
+  parser.add_argument("--progress", "-P", help="show progress of files",
+                      action='store_true')
   parser.add_argument("filenames", nargs="+", type=Path)
   parser.add_argument("--prelude", type=Path, default=".")
   parser.add_argument("--tasks-file", type=Path)
@@ -464,7 +466,7 @@ def load_latest_q_network(args: argparse.Namespace, v_network: rl.VNetwork) -> N
     args.state_dir / "weights" /
     f"common-v-network-{newest_index}.dat")
   eprint(f"Loading latest q network from {latest_q_network_path}")
-  q_network_state = torch.load(latest_q_network_path)
+  q_network_state = torch.load(latest_q_network_path, map_location="cpu")
   v_network.network.load_state_dict(q_network_state)
 
 def experience_proof(args: argparse.Namespace,

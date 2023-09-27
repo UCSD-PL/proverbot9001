@@ -33,11 +33,15 @@ def main() -> None:
     all_task_eps = get_all_task_episodes(args)
     num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
                                       args.num_actors)
-    dispatch_learner_and_actors(args, num_workers_actually_needed)
-    with util.sighandler_context(signal.SIGINT,
-                                 functools.partial(interrupt_early, args)):
-        show_progress(args, num_workers_actually_needed)
-    cancel_workers(args)
+    if num_workers_actually_needed > 0:
+        dispatch_learner_and_actors(args, num_workers_actually_needed)
+        with util.sighandler_context(signal.SIGINT,
+                                     functools.partial(interrupt_early, args)):
+            show_progress(args, num_workers_actually_needed)
+        cancel_workers(args)
+    elif num_workers_actually_needed < 0:
+        util.eprint(f"WARNING: there are {len(task_eps_done)} tasks eps already done, but only {len(all_task_eps)} task eps total! "
+               "This means that something didn't resume properly, or you resumed with a smaller task set")
     build_final_save(args, len(all_task_eps))
 
     if args.verifyvval:
@@ -212,6 +216,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    "--backend", args.backend,
                    ] + (["--curriculum"] if args.curriculum else []) +
                    (["--no-interleave"] if not args.interleave else []) + 
+                   (["--progress"] if args.progress else []) +
                    ["--blacklist-tactic={tactic}" for tactic
                     in args.blacklisted_tactics] +
                    (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
@@ -341,8 +346,6 @@ def check_for_crashed_actors(args: argparse.Namespace,
         # Skip any worker for which we've already reported a crash
         if worker_id in crashed_actors:
             continue
-        util.eprint(f"Worker id {worker_id} isn't in {new_workers_alive}")
-        util.eprint(f"squeue output was {normal_squeue_output}")
         # Get the jobs taken by workers.
         with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
             taken_by_worker = [(RLTask(**task_dict), episode)
@@ -427,7 +430,7 @@ def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
     assert save_path is not None, \
       "We've reached the end of training, but no common weights are found " \
       "in the weights directory!"
-    common_network_weights_dict = torch.load(str(save_path))
+    common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
     v_network_state: Tuple[dict, Any, OrderedDict[Any, torch.FloatTensor]] = \
                            (common_network_weights_dict, obl_encoder_state, OrderedDict())
