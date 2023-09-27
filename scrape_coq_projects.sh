@@ -39,7 +39,7 @@ for project in $TARGETS; do
 
     echo "eval \"$(opam env --set-switch --switch=$SWITCH)\"" >> coq-projects/$project/scrape.sh
 
-    echo "./src/scrape.py -c --prelude=./coq-projects/$project/$PRELUDE ${FILES} > /dev/null" >> coq-projects/$project/scrape.sh
+    echo "./src/scrape.py -c --prelude=./coq-projects/$project/$PRELUDE \$@ ${FILES} > /dev/null" >> coq-projects/$project/scrape.sh
     chmod u+x coq-projects/$project/scrape.sh
     set -x
     ./src/sbatch-retry.sh --cpus-per-task=${NTHREADS} -o "coq-projects/$project/scrape-output.out" "coq-projects/$project/scrape.sh"
