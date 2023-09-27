@@ -346,8 +346,6 @@ def check_for_crashed_actors(args: argparse.Namespace,
         # Skip any worker for which we've already reported a crash
         if worker_id in crashed_actors:
             continue
-        util.eprint(f"Worker id {worker_id} isn't in {new_workers_alive}")
-        util.eprint(f"squeue output was {normal_squeue_output}")
         # Get the jobs taken by workers.
         with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
             taken_by_worker = [(RLTask(**task_dict), episode)
