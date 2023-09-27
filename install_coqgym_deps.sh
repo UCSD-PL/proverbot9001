@@ -30,7 +30,7 @@ opam install -y coq-serapi \
      coq-smpl \
      coq-int-map \
      coq-pocklington \
-     coq-mathcomp-ssreflect coq-mathcomp-bigenough coq-mathcomp-algebra\
+     coq-mathcomp-ssreflect coq-mathcomp-bigenough coq-mathcomp-algebra coq-mathcomp-field \
      coq-fcsl-pcm \
      coq-simple-io \
      coq-list-string \
