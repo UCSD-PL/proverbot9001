@@ -52,6 +52,7 @@ def main() -> None:
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
+    evalGroup.add_argument("--evaluate-random-baseline", action="store_true")
     parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
     
     
@@ -86,18 +87,28 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
 
     predictor = MemoizingPredictor(get_predictor(args))
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
-    is_distributed, replay_buffer, steps_already_done, \
-      network_state, tnetwork_state, shorter_proofs_dict, random_state = \
-        torch.load(str(args.rl_weights), map_location=device)
-    if random_state is not None:
-        random.setstate(random_state)
-    # Giving dummy values for learning rate, batch step, and lr step because we
-    # won't be training this network, so it won't matter.
-    v_network = VNetwork(None, 0.0, 1, 1.0)
-    target_network = VNetwork(None, 0.0, 1, 1.0)
-    target_network.obligation_encoder = v_network.obligation_encoder
-    v_network.load_state(network_state)
-    target_network.load_state(tnetwork_state)
+    if not args.evaluate_random_baseline:
+        is_distributed, replay_buffer, steps_already_done, \
+          network_state, tnetwork_state, shorter_proofs_dict, random_state = \
+            torch.load(str(args.rl_weights), map_location=device)
+        if random_state is not None:
+            random.setstate(random_state)
+    else:
+        replay_buffer = None
+    if args.evaluate_random_baseline:
+        # Giving dummy values for learning rate, batch step, and lr step because we
+        # won't be training this network, so it won't matter.
+        v_network = VNetwork(args.coq2vec_weights, 0.0, 1, 1.0)
+        target_network = VNetwork(args.coq2vec_weights, 0.0, 1, 1.0)
+        target_network.obligation_encoder = v_network.obligation_encoder
+    else:
+        # Giving dummy values for learning rate, batch step, and lr step because we
+        # won't be training this network, so it won't matter.
+        v_network = VNetwork(None, 0.0, 1, 1.0)
+        target_network = VNetwork(None, 0.0, 1, 1.0)
+        target_network.obligation_encoder = v_network.obligation_encoder
+        v_network.load_state(network_state)
+        target_network.load_state(tnetwork_state)
     # rl.py expects these arguments for reinforcement workers, when replay
     # buffer is None (which it is for loading from distributed training), but
     # since we're not going to use it at all we can pass a dummy value
