@@ -196,28 +196,37 @@ def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
                 break
 
 def check_success(args: argparse.Namespace, all_tasks) -> None:
-    total_num_jobs_successful = 0
-    total_num_jobs = len(all_tasks)
-    finished_tasks = defaultdict(list)
-    original_tasks = defaultdict(list)
-    for finished_file in glob(str(args.state_dir / "finished-*.txt")):
-        with open(finished_file, 'r') as f:
-            for line in f:
-                job = json.loads(line)
-                finished_tasks[int(job["target_length"])].append(job)
-                total_num_jobs_successful += 1
-    
-    for task in all_tasks :
-        original_tasks[task.target_length].append(task)
+    if args.tasks_file :
+        total_num_jobs_successful = 0
+        total_num_jobs = len(all_tasks)
+        finished_tasks = defaultdict(list)
+        original_tasks = defaultdict(list)
+        for finished_file in glob(str(args.state_dir / "finished-*.txt")):
+            with open(finished_file, 'r') as f:
+                for line in f:
+                    job = json.loads(line)
+                    finished_tasks[int(job["target_length"])].append(job)
+                    total_num_jobs_successful += 1
+        
+        for task in all_tasks :
+            original_tasks[task.target_length].append(task)
 
-    print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
+        print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
 
-    task_lengths = sorted(original_tasks.keys())
-    for task_length in task_lengths :
-        num_finished_tasks = sum( [ 1 for _ in finished_tasks[task_length] ])
-        num_total_tasks = sum( [ 1 for _ in original_tasks[task_length] ])
-        print(f"Task Length {task_length} : {num_finished_tasks}/{num_total_tasks} = {'%.2f'%(100*num_finished_tasks/num_total_tasks)}%")
 
+        task_lengths = sorted(original_tasks.keys())
+        for task_length in task_lengths :
+            num_finished_tasks = sum( [ 1 for _ in finished_tasks[task_length] ])
+            num_total_tasks = sum( [ 1 for _ in original_tasks[task_length] ])
+            print(f"Task Length {task_length} : {num_finished_tasks}/{num_total_tasks} = {'%.2f'%(100*num_finished_tasks/num_total_tasks)}%")
+    else :
+        total_num_jobs_successful = 0
+        total_num_jobs = len(all_tasks)
+        for finished_file in glob(str(args.state_dir / "finished-*.txt")):
+            with open(finished_file, 'r') as f:
+                for line in f:
+                    total_num_jobs_successful += 1
+        print(f"Jobs Succesfully Solved : {total_num_jobs_successful}/{total_num_jobs} = { '%.2f'% (100*total_num_jobs_successful/total_num_jobs) }%")
 
 def cancel_workers(args: argparse.Namespace, unique_id: uuid.UUID) -> None:
     os.system(f"scancel -n RL_eval_{unique_id}")
