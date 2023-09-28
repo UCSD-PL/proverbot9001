@@ -46,6 +46,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--ignore-lin-hash", action='store_true')
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--data-partition", choices=["test", "train"], default="train")
+    parser.add_argument("--no-filter", dest="filter", action='store_false')
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
@@ -320,7 +321,10 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
         for cmd_idx, (cmd, prediction_rank) in \
                 reversed(list(enumerate(aobl.tactic_contents))):
             if prediction_rank is None:
-                break
+                if args.filter:
+                    break
+                else:
+                    prediction_rank = float("Inf")
             largest_prediction_rank = max(largest_prediction_rank, prediction_rank)
             if cmd in ["{", "}"]:
                 continue
