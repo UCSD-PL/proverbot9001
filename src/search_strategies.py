@@ -7,6 +7,7 @@ import sys
 import pickle
 import heapq
 import math
+import torch
 from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -988,15 +989,13 @@ def best_first_proof_search(lemma_name: str,
                 return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
                                     prediction_node.interactions()[1:], step+1)
             if v_network is not None:
-                v_values = v_network(coq.proof_context.fg_goals[0])
-                h_score = math.log(max(sys.float_info.min, v_values)) \
+                v_values = v_network(coq.proof_context.all_goals)
+                v_value_single = torch.prod(v_values, 0).data.item()
+                h_score = math.log(max(sys.float_info.min, v_value_single)) \
                                            / math.log(0.7) #args.gamma
-                eprint("h score is")
-                eprint(h_score)
             elif args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
-                eprint("there is no h_score")
                 h_score = -abs(next_node.f_score * prediction.certainty)
             elif args.scoring_function == "norm-certainty":
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
