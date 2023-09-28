@@ -202,7 +202,7 @@ def tuning(args) -> None:
             '#SBATCH --time=0-12:00:00',  # Specify the time limit for the job
             f'#SBATCH --output={logdir}/{log_fname}',  # Specify the output log file
             f'#SBATCH --error={logdir}/{err_fname}',    # Specify the error log file
-            '#SBATCH --mem-per-cpu=128G',  # Specify how much memory to allocate per CPU core
+            '#SBATCH --mem-per-cpu=16G',  # Specify how much memory to allocate per CPU core
             f'python {RUN_ROOT}/rl_tuning_distributed_worker.py \\',               # Specify the command to run (Python interpreter)          # Specify the Python script to run
         ])
 
