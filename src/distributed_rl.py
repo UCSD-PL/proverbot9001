@@ -341,8 +341,9 @@ def check_for_learning_worker(args: argparse.Namespace) -> None:
 def check_for_crashed_actors(args: argparse.Namespace, 
                              crashed_actors: List[int]) -> int:
     # Get the workers that are alive
+    cur_dir = os.path.realpath(os.path.dirname(__file__))
     squeue_output = subprocess.check_output(
-        f"squeue -r -u$USER -h -n drl-actor-{args.output_file} -OHetJobOffset",
+        f"{cur_dir}/squeue-retry.sh -r -u$USER -h -n drl-actor-{args.output_file} -OHetJobOffset",
         shell=True, text=True)
     normal_squeue_output = subprocess.check_output("squeue -u$USER",
                                                    shell=True, text=True)
