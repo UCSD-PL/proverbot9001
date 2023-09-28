@@ -114,23 +114,23 @@ def show_progress(args: argparse.Namespace) -> None:
         num_workers_total = int(f.read())
     with (args.output_dir / "workers_scheduled.txt").open('r') as f:
         workers_scheduled = list(f)
-    jobs_done = get_already_done_jobs(args)
+    num_jobs_done = get_num_jobs_already_done(args)
     crashed_workers: List[int] = []
-    with tqdm(desc="Jobs finished", total=len(all_jobs), initial=len(jobs_done), dynamic_ncols=True) as bar, \
+    with tqdm(desc="Jobs finished", total=len(all_jobs), initial=num_jobs_done, dynamic_ncols=True) as bar, \
          tqdm(desc="Workers scheduled", total=num_workers_total, initial=len(workers_scheduled), dynamic_ncols=True) as wbar:
-        while len(jobs_done) < len(all_jobs):
+        while num_jobs_done < len(all_jobs):
             new_workers_alive = [int(wid) for wid in
                                  subprocess.check_output(
                                    "squeue -r -u$USER -h -n proverbot9001-task-worker -o%K",
                                    shell=True, text=True).strip().split("\n")
                                  if wid != ""]
             time.sleep(0.2)
-            new_jobs_done = get_already_done_jobs(args)
-            bar.update(len(new_jobs_done) - len(jobs_done))
-            jobs_done = new_jobs_done
+            new_num_jobs_done = get_num_jobs_already_done(args)
+            bar.update(new_num_jobs_done - num_jobs_done)
+            num_jobs_done = new_num_jobs_done
             if len(new_workers_alive) == 0:
                 time.sleep(1)
-                if len(jobs_done) < len(all_jobs):
+                if num_jobs_done < len(all_jobs):
                     util.eprint("All workers exited, but jobs aren't done!")
                     sys.exit(1)
             with (args.output_dir / "workers_scheduled.txt").open('r') as f:
@@ -143,6 +143,13 @@ def interrupt_early(*args) -> None:
 
 def cancel_workers() -> None:
     subprocess.run(["scancel -u $USER -n proverbot9001-task-worker"], shell=True, check=True)
+
+def get_num_jobs_already_done(args: argparse.Namespace) -> int:
+    num_jobs = 0
+    for filename in glob(str(args.output_dir / "*-done.json")):
+        with open(filename, 'r') as f:
+            num_jobs += len(list(f))
+    return num_jobs
 
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     try:
