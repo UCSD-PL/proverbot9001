@@ -17,9 +17,10 @@ from tqdm import tqdm
 
 import util
 
-from gen_rl_tasks import add_args_to_parser
-from search_file_cluster import get_all_jobs_cluster
-from search_worker import ReportJob
+with util.print_time("Importing"):
+    from gen_rl_tasks import add_args_to_parser
+    from search_file_cluster import get_all_jobs_cluster
+    from search_worker import ReportJob
 
 def main():
     parser = argparse.ArgumentParser(
