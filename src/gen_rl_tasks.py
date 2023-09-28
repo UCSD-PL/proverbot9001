@@ -7,7 +7,7 @@ import os
 
 from pathlib import Path
 from dataclasses import dataclass
-from typing import List, Tuple, Dict, Any, Optional
+from typing import List, Tuple, Dict, Any, Optional, Sequence
 
 from tqdm import tqdm
 
@@ -53,15 +53,46 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
 
-@dataclass
+@dataclass(eq=True, unsafe_hash=True)
 class RLTask:
     src_file: Path
     module_prefix: str
     proof_statement: str
-    tactic_prefix: List[str]
-    orig_solution: List[str]
     target_length: int
     largest_prediction_idx: int
+    _tactic_prefix: Sequence[str]
+    _orig_solution: Sequence[str]
+    def __init__(self, src_file: Path, module_prefix: str, proof_statement: str,
+                 target_length: int, largest_prediction_idx: int,
+                 tactic_prefix: List[str], orig_solution: List[str]) -> None:
+        self.src_file = src_file
+        self.module_prefix = module_prefix
+        self.proof_statement = proof_statement
+        self._tactic_prefix = tuple(tactic_prefix)
+        self._orig_solution = tuple(orig_solution)
+        self.target_length = target_length
+        self.largest_prediction_idx = largest_prediction_idx
+    def as_dict(self) -> Dict[str, Any]:
+        return {"src_file": self.src_file,
+                "module_prefix": self.module_prefix,
+                "proof_statement": self.proof_statement,
+                "tactic_prefix": self.tactic_prefix,
+                "orig_solution": self.orig_solution,
+                "target_length": self.target_length,
+                "largest_prediction_idx": self.largest_prediction_idx}
+    def to_job(self) -> ReportJob:
+        return ReportJob(".", self.src_file, self.module_prefix, self.proof_statement)
+    @classmethod
+    def from_job(cls, job: ReportJob) -> 'RLTask':
+        return RLTask(job.filename, job.module_prefix, job.lemma_statement, -1, -1, [], [])
+    def to_proof_spec(self) -> Tuple[str, str, str]:
+        return self.src_file, self.module_prefix, self.proof_statement
+    @property
+    def tactic_prefix(self) -> List[str]:
+        return list(self._tactic_prefix)
+    @property
+    def orig_solution(self) -> List[str]:
+        return list(self._orig_solution)
 
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
@@ -118,7 +149,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
         tasks = get_job_tasks(args, predictor, job)
         with partial_output.open('a') as f:
             for task in tasks:
-                print(json.dumps(vars(task)), file=f)
+                print(json.dumps(task.as_dict()), file=f)
         with jobs_done_output.open('a') as f:
             print(json.dumps(job), file=f)
 
@@ -301,9 +332,10 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
             if len([tac for tac in task_solution if tac == "{"]) != \
                len([tac for tac in task_solution if tac == "}"]):
                 continue
-            tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
-                                task_prefix, task_solution, sol_tac_length,
-                                largest_prediction_rank))
+            tasks.append(RLTask(job.filename, job.module_prefix,
+                                job.lemma_statement, sol_tac_length,
+                                largest_prediction_rank, task_prefix,
+                                task_solution))
     return tasks
 
 if __name__ == "__main__":

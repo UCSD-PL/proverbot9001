@@ -32,7 +32,7 @@ T = TypeVar('T', bound='Worker')
 
 class Worker:
     args: argparse.Namespace
-    coq: Optional[coq_serapy.SerapiInstance]
+    coq: Optional[coq_serapy.CoqAgent]
     switch_dict: Optional[Dict[str, str]]
 
     # File-local state
@@ -283,22 +283,18 @@ class Worker:
         ending_command = None
         important_vernac_cmds = []
         for cmd in self.remaining_commands:
-            if re.match("\s*(?:Local\s+|Global\s+)?(?:Opaque|Transparent)\s+[\w']+\.\s*", cmd):
+            if re.match("\s*(?:Local\s+|Global\s+)?(?:Opaque|Transparent)(\s+[\w']+)+\.\s*", cmd):
                 important_vernac_cmds.append(cmd)
             if coq_serapy.ending_proof(cmd):
                 ending_command = cmd
                 break
         assert ending_command
-        # Check if the original proof used any section local variables
-        # which would change its type, and add a "Proof using"
-        # declaration that sets the correct type. This also sets up a
-        # table of lemma dependencies for recursive use of section
-        # variables.
         proof_relevant = ending_command.strip() == "Defined." or \
             bool(re.match(r"\s*Derive", lemma_statement)) or \
             bool(re.match(r"\s*Let", lemma_statement)) or \
             bool(re.match(r"\s*Equations", lemma_statement)) or \
             bool(re.match(r"\s*Next\s+Obligation", lemma_statement)) or \
+            bool(re.match(r".*\s+with\s+.*", lemma_statement, flags=re.DOTALL)) or \
             careful
         if proof_relevant:
             while len(self.coq.prev_tactics) > 1:

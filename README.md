@@ -52,6 +52,21 @@ https://graphviz.gitlab.io/_pages/Download/Download_windows.html
 https://www.python.org/downloads/windows/
 
 or use Windows Subsystem for Linux
+### Setting up environments for distributed RL on Unity
+1. ```modules load openmpi/4.1.3+cuda11.6.2```
+2. ```git clone --recursive git@github.com:pytorch/pytorch.git```
+3. ```If using conda: `conda install cmake ninja```
+4.
+```cd pytorch
+pip install -r requirements.txt
+pip install mkl mkl-include
+pip install pytorch magma-cuda117
+git submodule sync && git submodule update --init --recursive
+```
+5. If using conda: ```export CMAKE_PREFIX_PATH=${CONDA_PREFIX:-"$(dirname $(which conda))/../"}```
+6. ```CMAKE_C_COMPILER=$(which mpicc) CMAKE_CXX_COMPILER=$(which mpicxx) python setup.py develop```
+7. **Important** make sure you run ```module load opam/2.1.2 graphviz/2.49.0+py3.8.12 openmpi/4.1.3+cuda11.6.2``` before each run. 
+
 
 ## Getting Started with RL4Proof
 ```
@@ -120,4 +135,8 @@ python src/rl.py --supervised-weights=$ROOT/data/polyarg-weights-develop.dat --c
          --tasks-file=/absolute/path/to/your/train/file.json --test-file=/absolute/path/to/your/test/file.json --prelude=$ROOT/CompCert --backend=serapi --allow-partial-batches \
          --learning-rate=0.0001 -n1 -o $ROOT/data/rl_weights-compcert-5.dat -s5 --hyperparameter_search --output $ROOT/data/rl_weights.dat \
          --num-trails $NUM_OF_HYPERPARAMETERS_YOU_WANT_TO_TRY --num-cpus $NUM_CPUS_AVAILABLE --num-gpus $NUM_GPUS_AVAILABLE
+### Running Distributed RL
+
+```
+python src/distributed_rl.py --mem=8G --num-actors=2 --supervised-weights=data/polyarg-weights-develop.dat --coq2vec-weights=../coq2vec/term2vec-weights-59.dat compcert_projs_splits.json --prelude=./CompCert --backend=serapi --gamma=0.7 -s7 -p5 --learning-rate=0.000005 -n24 -o data/rl_weights_distributed_test.dat --tasks-file=single_task.json --resume=yes
 ```
