@@ -21,6 +21,7 @@ from tqdm import tqdm
 from gen_rl_tasks import RLTask
 from search_file import get_all_jobs
 from search_worker import project_dicts_from_args
+from distributed_rl import get_all_files
 
 from util import (nostderr, eprint,
                   print_time, unwrap, safe_abbrev)
@@ -303,16 +304,6 @@ def get_all_tasks(args: argparse.Namespace) -> List[RLTask]:
     else:
         all_tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
     return all_tasks
-
-def get_all_files(args: argparse.Namespace) -> List[Path]:
-    if args.tasks_file:
-        with open(args.tasks_file, 'r') as f:
-            return list({Path(json.loads(line)["src_file"]) for line in f})
-    else:
-        project_dicts = project_dicts_from_args(args)
-        return [Path(filename) for project_dict in project_dicts
-                for filename in project_dict["test_files"]]
-
 
 if __name__ == '__main__' :
     main()

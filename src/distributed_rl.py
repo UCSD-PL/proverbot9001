@@ -17,6 +17,8 @@ from glob import glob
 from tqdm import tqdm, trange
 
 from gen_rl_tasks import RLTask
+from search_file import get_all_jobs
+from search_worker import project_dicts_from_args
 import rl
 import util
 import torch
@@ -28,6 +30,12 @@ def main() -> None:
     rl.add_args_to_parser(parser)
     add_distrl_args_to_parser(parser)
     args = parser.parse_args()
+
+    if args.filenames[0].suffix == ".json":
+        args.splits_file = args.filenames[0]
+        args.filenames = []
+    else:
+        args.splits_file = None
 
     task_eps_done = setup_jobstate(args)
     all_task_eps = get_all_task_episodes(args)
@@ -203,7 +211,6 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
     actor_script_args = ([
                    "python", f"{cur_dir}/distributed_rl_acting_worker.py",
                    "--prelude", str(args.prelude),
-                   "--tasks-file", str(args.tasks_file),
                    "--state-dir", str(args.state_dir),
                    "-s", str(args.steps_per_episode),
                    "-n", str(args.num_episodes),
@@ -217,6 +224,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    ] + (["--curriculum"] if args.curriculum else []) +
                    (["--no-interleave"] if not args.interleave else []) + 
                    (["--progress"] if args.progress else []) +
+                   (["--tasks-file", str(args.tasks_file)]
+                    if args.tasks_file is not None else []) +
                    ["--blacklist-tactic={tactic}" for tactic
                     in args.blacklisted_tactics] +
                    (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
@@ -253,9 +262,11 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
 
 TaskEpisode = Tuple[RLTask, int]
 def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
-    assert args.tasks_file, "Can't do distributed rl without tasks right now."
-    with open(args.tasks_file, 'r') as f:
-        all_tasks = [RLTask(**json.loads(line)) for line in f]
+    if args.tasks_file is not None:
+        with open(args.tasks_file, 'r') as f:
+            all_tasks = [RLTask(**json.loads(line)) for line in f]
+    else:
+        all_tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
 
     if args.curriculum:
         all_tasks = sorted(all_tasks, key=lambda t: t.target_length)
@@ -271,8 +282,13 @@ def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
     return task_episodes
 
 def get_all_files(args: argparse.Namespace) -> List[Path]:
-    with open(args.tasks_file, 'r') as f:
-        return list({Path(json.loads(line)["src_file"]) for line in f})
+    if args.tasks_file:
+        with open(args.tasks_file, 'r') as f:
+            return list({Path(json.loads(line)["src_file"]) for line in f})
+    else:
+        project_dicts = project_dicts_from_args(args)
+        return [Path(filename) for project_dict in project_dicts
+                for filename in project_dict["test_files"]]
 
 def show_progress(args: argparse.Namespace, num_actors_dispatched: int) -> None:
     all_task_eps = get_all_task_episodes(args)
