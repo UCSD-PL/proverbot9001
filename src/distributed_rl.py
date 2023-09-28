@@ -83,7 +83,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--partition", default="cpu")
     parser.add_argument("--learning-partition", default="gpu")
     parser.add_argument("--mem", default="2G")
-    parser.add_argument("--state_dir", default="drl_state", type=Path)
+    parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
     parser.add_argument("--sync-workers-every", type=int, default=16)
 
