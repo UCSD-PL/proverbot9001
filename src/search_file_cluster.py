@@ -190,11 +190,13 @@ def get_all_jobs_cluster(args: argparse.Namespace, partition: str = "test_files"
         worker_args.append(f"--proofs-file={str(args.proofs_file)}")
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     num_job_workers = min(len(projfiles), args.num_workers-1)
+    partition = vars(args).get("partition", None)
     subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                     "-o", str(args.output_dir / args.workers_output_dir /
                               "file-scanner-%a.out"),
-                    f"--array=0-{num_job_workers}",
-                    f"{cur_dir}/job_getting_worker.sh"] + worker_args)
+                    f"--array=0-{num_job_workers}"]
+                    + ([f"--partition={partition}"] if partition is not None else []) +
+                    [f"{cur_dir}/job_getting_worker.sh"] + worker_args)
     threads = [Thread(target=follow_and_print, args=
         (str(args.output_dir / args.workers_output_dir / f"file-scanner-{idx}.out"),))
         for idx in range(num_job_workers)]
