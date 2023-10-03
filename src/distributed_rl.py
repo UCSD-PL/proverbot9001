@@ -309,7 +309,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             # If all actors are dead, and we're not done with the
             # jobs, print a message and exit (we'll just exit if the
             # jobs are all done at the while condition)
-            if num_actors_alive == 0 and num_task_eps_progress < len(all_task_eps):
+            if num_actors_alive == 0 and len(scheduled_actors) == num_actors_dispatched and num_task_eps_progress < len(all_task_eps):
                 util.eprint("All actors exited, but jobs aren't done!")
                 cancel_workers(args)
                 sys.exit(1)
