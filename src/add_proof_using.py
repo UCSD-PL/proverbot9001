@@ -50,10 +50,10 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
             assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
             if cmd.strip() == "Qed." and coq.backend.feedback_string.strip() != "":
                 suggestion_match = re.match(
-                    r"\n?The proof of ([^ \n]+)(?: |\n)"
+                    r".*\n?The proof of ([^ \n]+)(?: |\n)"
                     r"should start with one of the following commands:"
                     r"(?: |\n)(Proof using[^.]+\.)",
-                    coq.backend.feedback_string)
+                    coq.backend.feedback_string, re.DOTALL)
                 suggested_command = unwrap(suggestion_match).group(2) + "\n"
                 if cur_proof_commands[0].strip() == "Proof.":
                     cur_proof_commands[0] = suggested_command
