@@ -96,6 +96,7 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
 
     signal.signal(signal.SIGINT, signal_handler)
 
+    os.makedirs(args.state_dir, exist_ok=True)
     all_tasks = get_all_tasks(args)
     num_tasks_done = setup_eval_jobstate(args)
     num_workers_actually_needed = min(len(all_tasks) - num_tasks_done,
