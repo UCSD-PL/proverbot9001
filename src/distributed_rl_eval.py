@@ -306,7 +306,11 @@ def get_all_tasks(args: argparse.Namespace) -> List[RLTask]:
         with open(args.tasks_file, 'r') as f:
             all_tasks = [RLTask(**json.loads(line)) for line in f]
     else:
-        all_tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
+        get_all_jobs_cluster(args)
+        with open(args.output_dir / "all_jobs.txt") as f:
+            all_jobs = [ReportJob(*json.loads(line)) for line in f]
+        assert len(all_jobs) > 0
+        all_tasks = [RLTask.from_job(job) for job in all_jobs]
     return all_tasks
 
 if __name__ == '__main__' :
