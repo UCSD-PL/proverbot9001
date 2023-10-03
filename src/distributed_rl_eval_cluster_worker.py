@@ -139,8 +139,6 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
             eprint(f"Finished worker {workerid}")
             break
 
-        
-
         next_task_idx, task = next_task_and_idx
         with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
             print(json.dumps(task.as_dict()), file=f, flush=True)
@@ -161,8 +159,8 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
             if worker.evaluate_job(task.to_job(), task.tactic_prefix):
                 with (args.state_dir / f"finished-{workerid}.txt").open('a') as f,FileLock(f):
                     print(json.dumps(task.as_dict()), file=f, flush=True)
-        
-        
+
+
         recently_done_tasks.append(task)
         with (args.state_dir / f"progress-{workerid}.txt").open('a') as f, FileLock(f):
             print(json.dumps(task.as_dict()), file=f, flush=True)
