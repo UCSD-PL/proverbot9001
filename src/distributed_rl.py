@@ -36,15 +36,15 @@ def main() -> None:
     else:
         args.splits_file = None
 
-    task_eps_done = setup_jobstate(args)
     all_task_eps = get_all_task_episodes(args)
+    task_eps_done = setup_jobstate(args, all_task_eps)
     num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
                                       args.num_actors)
     if num_workers_actually_needed > 0:
         dispatch_learner_and_actors(args, num_workers_actually_needed)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_early, args)):
-            show_progress(args, num_workers_actually_needed)
+            show_progress(args, all_task_eps, num_workers_actually_needed)
         cancel_workers(args)
     elif num_workers_actually_needed < 0:
         util.eprint(f"WARNING: there are {len(task_eps_done)} tasks eps already done, but only {len(all_task_eps)} task eps total! "
@@ -152,9 +152,9 @@ def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTa
     return file_taken_dict
 
 def write_done_tasks_to_taken_files(args: argparse.Namespace,
+                                    all_task_eps: List[Tuple[RLTask, int]],
                                     file_done_task_eps: Dict[Path, List[Tuple[RLTask, int]]])\
                                     -> None:
-    all_task_eps = get_all_task_episodes(args)
     task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
     all_files = get_all_files(args)
     for fidx, filename in enumerate(tqdm(all_files,
@@ -177,13 +177,13 @@ def write_done_tasks_to_taken_files(args: argparse.Namespace,
 
 # Returns the list of done tasks too because it can be slow to get them and we
 # need them to set up job state anyway.
-def setup_jobstate(args: argparse.Namespace) -> List[Tuple[RLTask, int]]:
+def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> List[Tuple[RLTask, int]]:
     check_resume(args)
     make_initial_filestructure(args)
 
     file_taken_dict = get_file_taken_tasks(args)
 
-    write_done_tasks_to_taken_files(args, file_taken_dict)
+    write_done_tasks_to_taken_files(args, all_task_eps, file_taken_dict)
 
     done_task_eps = []
     for _filename, file_done_task_eps in file_taken_dict.items():
@@ -289,8 +289,7 @@ def get_all_files(args: argparse.Namespace) -> List[Path]:
         return [Path(filename) for project_dict in project_dicts
                 for filename in project_dict["test_files"]]
 
-def show_progress(args: argparse.Namespace, num_actors_dispatched: int) -> None:
-    all_task_eps = get_all_task_episodes(args)
+def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]], num_actors_dispatched: int) -> None:
     num_task_eps_progress = get_num_task_eps_done(args)
     num_task_eps_done = 0
     scheduled_actors: List[int] = []
