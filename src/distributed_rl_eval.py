@@ -76,6 +76,9 @@ def main():
         args.filenames = None
     else:
         args.splits_file = None
+
+    args.output_dir = args.state_dir
+    args.num_workers = args.num_eval_workers
     
     evaluate(args)
 
