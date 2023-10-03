@@ -79,6 +79,8 @@ def main():
 
     args.output_dir = args.state_dir
     args.num_workers = args.num_eval_workers
+
+    assert args.rl_weights.exists(), "Can't find weights file {args.rl_weights}!"
     
     evaluate(args)
 
