@@ -241,8 +241,6 @@ def cancel_workers(args: argparse.Namespace, unique_id: uuid.UUID) -> None:
 
 
 def setup_eval_jobstate(args: argparse.Namespace) -> int:
-    print("Resuming? ", args.eval_resume)
-    print("State dir", args.state_dir)
     if not args.eval_resume :
         if (args.state_dir).exists() :
             shutil.rmtree(str(args.state_dir))
