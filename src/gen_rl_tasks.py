@@ -56,6 +56,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
 
 @dataclass(eq=True, unsafe_hash=True)
 class RLTask:
+    project: str
     src_file: Path
     module_prefix: str
     proof_statement: str
@@ -63,9 +64,11 @@ class RLTask:
     largest_prediction_idx: int
     _tactic_prefix: Sequence[str]
     _orig_solution: Sequence[str]
-    def __init__(self, src_file: Path, module_prefix: str, proof_statement: str,
+    def __init__(self, project: str,
+                 src_file: Path, module_prefix: str, proof_statement: str,
                  target_length: int, largest_prediction_idx: int,
                  tactic_prefix: List[str], orig_solution: List[str]) -> None:
+        self.project = project
         self.src_file = src_file
         self.module_prefix = module_prefix
         self.proof_statement = proof_statement
@@ -74,7 +77,8 @@ class RLTask:
         self.target_length = target_length
         self.largest_prediction_idx = largest_prediction_idx
     def as_dict(self) -> Dict[str, Any]:
-        return {"src_file": self.src_file,
+        return {"project": self.project,
+                "src_file": self.src_file,
                 "module_prefix": self.module_prefix,
                 "proof_statement": self.proof_statement,
                 "tactic_prefix": self.tactic_prefix,
@@ -82,12 +86,12 @@ class RLTask:
                 "target_length": self.target_length,
                 "largest_prediction_idx": self.largest_prediction_idx}
     def to_job(self) -> ReportJob:
-        return ReportJob(".", self.src_file, self.module_prefix, self.proof_statement)
+        return ReportJob(self.project, self.src_file, self.module_prefix, self.proof_statement)
     @classmethod
     def from_job(cls, job: ReportJob) -> 'RLTask':
-        return RLTask(job.filename, job.module_prefix, job.lemma_statement, -1, -1, [], [])
-    def to_proof_spec(self) -> Tuple[str, str, str]:
-        return self.src_file, self.module_prefix, self.proof_statement
+        return RLTask(job.project_dir, job.filename, job.module_prefix, job.lemma_statement, -1, -1, [], [])
+    def to_proof_spec(self) -> Tuple[str, str, str, str]:
+        return self.project, self.src_file, self.module_prefix, self.proof_statement
     @property
     def tactic_prefix(self) -> List[str]:
         return list(self._tactic_prefix)
@@ -336,7 +340,7 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
             if len([tac for tac in task_solution if tac == "{"]) != \
                len([tac for tac in task_solution if tac == "}"]):
                 continue
-            tasks.append(RLTask(job.filename, job.module_prefix,
+            tasks.append(RLTask(job.project_dir, job.filename, job.module_prefix,
                                 job.lemma_statement, sol_tac_length,
                                 largest_prediction_rank, task_prefix,
                                 task_solution))
