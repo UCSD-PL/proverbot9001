@@ -534,6 +534,8 @@ def experience_proof(args: argparse.Namespace,
     if len(coq.proof_context.all_goals) < initial_open_obligations:
       eprint(f"Completed task with trace {[sample[1] for sample in samples]}")
       return True, samples
+    assert len(coq.proof_context.all_goals) > 0
+    assert len(coq.proof_context.fg_goals) > 0
   return False, samples
 if __name__ == "__main__":
   main()

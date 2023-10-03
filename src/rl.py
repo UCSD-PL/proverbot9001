@@ -739,6 +739,8 @@ def execute_action(coq: coq_serapy.CoqAgent,
        (coq.count_fg_goals() > 0 and subgoals_closed > 0):
         coq.run_stmt("{")
 
+    assert len(coq.proof_context.all_goals) == 0 or len(coq.proof_context.fg_goals) > 0
+
     return resulting_obls
 
 def train_v_network(args: argparse.Namespace,
