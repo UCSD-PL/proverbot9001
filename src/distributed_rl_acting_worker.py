@@ -38,6 +38,7 @@ def main() -> None:
   parser.add_argument("filenames", nargs="+", type=Path)
   parser.add_argument("--prelude", type=Path, default=".")
   parser.add_argument("--tasks-file", type=Path)
+  parser.add_argument("--include-proof-relevant", action="store_true")
   parser.add_argument("--state-dir", type=Path, default="drl_state")
   parser.add_argument("--curriculum", action='store_true')
   parser.add_argument("--no-interleave", action='store_false', dest='interleave')
@@ -70,6 +71,8 @@ def main() -> None:
     args.filenames = None
   else:
     args.splits_file = None
+  args.proofs_file = None
+  args.proof = None
 
   reinforcement_act(args, workerid)
   eprint("Done, exiting")

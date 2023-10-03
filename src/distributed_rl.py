@@ -224,6 +224,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    (["--progress"] if args.progress else []) +
                    (["--tasks-file", str(args.tasks_file)]
                     if args.tasks_file is not None else []) +
+                   (["--include-proof-relevant"] if args.include_proof_relevant else []) +
                    ["--blacklist-tactic={tactic}" for tactic
                     in args.blacklisted_tactics] +
                    (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
