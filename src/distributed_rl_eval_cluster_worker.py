@@ -57,6 +57,7 @@ def main() -> None:
     
     
     args = parser.parse_args()
+    args.output_dir = args.state_dir
 
     
     (args.state_dir).mkdir(exist_ok=True, parents=True)
