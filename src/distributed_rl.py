@@ -33,7 +33,6 @@ def main() -> None:
 
     if args.filenames[0].suffix == ".json":
         args.splits_file = args.filenames[0]
-        args.filenames = []
     else:
         args.splits_file = None
 
