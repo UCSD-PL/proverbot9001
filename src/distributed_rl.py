@@ -304,9 +304,6 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             new_num_task_eps_progress = get_num_task_eps_done(args)
             task_eps_bar.update(new_num_task_eps_progress - num_task_eps_progress)
             num_task_eps_progress = new_num_task_eps_progress
-            # Update the actors scheduled bar with actors that have been newly scheduled
-            with (args.state_dir / "actors_scheduled.txt").open('r') as f:
-                new_scheduled_actors = list(f)
 
             num_actors_alive = check_for_crashed_actors(args, crashed_actors)
             # If all actors are dead, and we're not done with the
@@ -343,8 +340,6 @@ def check_for_crashed_actors(args: argparse.Namespace,
     squeue_output = subprocess.check_output(
         f"{cur_dir}/squeue-retry.sh -r -u$USER -h -n drl-actor-{args.output_file} -OHetJobOffset",
         shell=True, text=True)
-    normal_squeue_output = subprocess.check_output("squeue -u$USER",
-                                                   shell=True, text=True)
     new_workers_alive = [int(wid) - 1 for wid in
                          squeue_output.strip().split("\n")
                          if wid != ""]
