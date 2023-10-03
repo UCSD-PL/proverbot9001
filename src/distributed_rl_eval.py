@@ -110,10 +110,10 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
         else :
             task_file_arg = ""
         
-        if args.partition == 'gpu' :
-            partition_part = '#SBATCH -p gpu \n#SBATCH --gpus 1'
+        if "gpu" in args.partition:
+            partition_part = f"#SBATCH -p {args.partition} \n#SBATCH --gpus 1"
         else :
-            partition_part = '#SBATCH -p cpu'
+            partition_part = f"#SBATCH -p {args.partition}"
         
         if args.evaluate :
             evaluate_arg = "--evaluate"
