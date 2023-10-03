@@ -30,6 +30,7 @@ from util import eprint, unwrap
 # pylint: enable=wrong-import-position
 
 def main() -> None:
+  eprint("Starting main")
   parser = argparse.ArgumentParser()
   parser.add_argument("--state-dir", type=Path, default="drl_state")
   parser.add_argument("-e", "--encoding-size", type=int, required=True)

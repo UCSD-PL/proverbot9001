@@ -18,13 +18,15 @@ from typing import List, Tuple, Optional, Dict, Set
 from tqdm import tqdm
 
 
-from gen_rl_tasks import RLTask
-from search_file import get_all_jobs
-from search_worker import project_dicts_from_args
-from distributed_rl import get_all_files
-
 from util import (nostderr, eprint,
                   print_time, unwrap, safe_abbrev)
+
+with print_time("Importing"):
+    from gen_rl_tasks import RLTask
+    from search_file_cluster import get_all_jobs_cluster
+    from search_worker import project_dicts_from_args, ReportJob
+    from distributed_rl import get_all_files
+
 
 def main():
     eprint("Starting main")
