@@ -24,6 +24,7 @@ import argparse
 import sys
 from pathlib import Path
 from typing import List
+import random
 
 from predict_tactic import loadPredictorByFile
 from models.tactic_predictor import TacticPredictor
@@ -36,6 +37,11 @@ def get_predictor(parser: argparse.ArgumentParser,
     predictor = loadPredictorByFile(args.weightsfile)
     return predictor
 
+def get_random_predictor(parser: argparse.ArgumentParser,
+                  args: argparse.Namespace) -> TacticPredictor:
+    predictor: TacticPredictor
+    predictor = loadPredictorByFile(random.choice(args.combo_weightsfiles))
+    return predictor
 
 def input_list() -> List[str]:
     result = []

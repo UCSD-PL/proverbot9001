@@ -49,15 +49,19 @@ from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, project_dicts_from_args
+from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, get_random_predictor, project_dicts_from_args
 import util
 import torch_util
 
 from tqdm import tqdm
 from pathlib import Path
 import torch
+from hs import HashSet
 
 start_time = datetime.now()
+
+
+
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
     sys.setrecursionlimit(100000)
@@ -100,6 +104,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
     parser.add_argument('--weightsfile', default=None, type=Path)
+    parser.add_argument('--combo_weightsfiles', nargs="*", default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -147,7 +152,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'combo-b'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
@@ -217,32 +222,77 @@ def search_file_worker(args: argparse.Namespace,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
 
-    predictor = get_predictor(args)
+    if not args.search_type == 'combo-b':
 
-    # torch_util.use_cuda = False
-    if torch_util.use_cuda:
-        torch.cuda.set_device(device) # type: ignore
-    util.cuda_device = device
+        predictor = get_predictor(args)
 
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-        if any(["switch" in item for item in project_dicts]):
-            switch_dict = {item["project_name"]: item["switch"]
-                           for item in project_dicts}
+        # util.use_cuda = False
+        if util.use_cuda:
+            torch.cuda.set_device(device) # type: ignore
+        util.cuda_device = device
+
+        if args.splits_file:
+            with args.splits_file.open('r') as f:
+                project_dicts = json.loads(f.read())
+            if any(["switch" in item for item in project_dicts]):
+                switch_dict = {item["project_name"]: item["switch"]
+                               for item in project_dicts}
+            else:
+                switch_dict = None
         else:
             switch_dict = None
-    else:
-        switch_dict = None
 
-    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
-        while True:
-            try:
-                next_job = jobs.get_nowait()
-            except queue.Empty:
-                return
-            solution = worker.run_job(next_job, restart=not args.hardfail)
-            done.put((next_job, solution))
+        with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
+            while True:
+                try:
+                    next_job = jobs.get_nowait()
+                except queue.Empty:
+                    return
+                solution = worker.run_job(next_job, restart=not args.hardfail)
+                done.put((next_job, solution))
+    else:
+        # torch_util.use_cuda = False
+        if torch_util.use_cuda:
+            torch.cuda.set_device(device) # type: ignore
+        util.cuda_device = device
+
+        if args.splits_file:
+            with args.splits_file.open('r') as f:
+                project_dicts = json.loads(f.read())
+            if any(["switch" in item for item in project_dicts]):
+                switch_dict = {item["project_name"]: item["switch"]
+                               for item in project_dicts}
+            else:
+                switch_dict = None
+        else:
+            switch_dict = None
+
+        with SearchWorker(args, worker_idx, None, switch_dict) as worker:
+            while True:
+                try:
+                    next_job = jobs.get_nowait()
+                except queue.Empty:
+                    return
+                solution = worker.run_job(next_job, prefix=None, restart=not args.hardfail)
+                # Empty proof scripts set 
+                proof_scripts = {[]} 
+                #hashed_proof_scripts.add(solution.to_dict()['commands'][0])
+                steps_taken = 0 # until max steps
+                while steps_taken < args.max_steps and solution.to_dict()['status'] != SearchStatus.SUCCESS:
+                    # pick script to continue
+                    script_to_continue = proof_scripts.set()[random.randint(0,len(proof_scripts))]
+                    # remove it from the set
+                    proof_scripts.remove(script_to_continue)
+                    # get a random predictor
+                    curr_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
+                    # get solution
+                    solution = worker.run_job(next_job, predictor, script_to_continue, restart=not args.hardfail) 
+                    # add new proof script to set 
+                    proof_scripts.add(solution.to_dict()['commands'][0])
+                    # add step to steps taken 
+                    steps_taken += 1
+                # add hopefully successful solution to done
+                done.put((next_job, solution))
 
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []
@@ -425,7 +475,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
         with open(args.output_dir / "args.json", 'w') as f:
             json.dump({k: f"\"{v}\"" if isinstance(v, (Path, str))
                        else str(v) for k, v in vars(args).items()}, f)
-        predictor = get_predictor(args)
+        predictor = get_predictor(args) #ZHANNA ASK ABOUT THIS
         search_report.generate_report(args, predictor, project_dicts_from_args(args),
                                       time_taken)
 
