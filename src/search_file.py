@@ -104,7 +104,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
     parser.add_argument('--weightsfile', default=None, type=Path)
-    parser.add_argument('--combo_weightsfiles', nargs="*", default=None, type=Path)
+    parser.add_argument('--combo-weightsfiles', nargs="*", default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
