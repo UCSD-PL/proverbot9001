@@ -118,6 +118,8 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
     with (args.state_dir / "actors_scheduled.txt").open('w'):
         pass
 
+    (args.state_dir / "learner_scheduled.txt").unlink(missing_ok=True)
+
     (args.state_dir / "shorter_proofs").mkdir(exist_ok=True)
     all_files = get_all_files(args)
     for filename in all_files:
@@ -294,6 +296,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
     num_task_eps_done = 0
     scheduled_actors: List[int] = []
     crashed_actors: List[int] = []
+    learner_is_scheduled = False
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
               initial=num_task_eps_progress, dynamic_ncols=True) as task_eps_bar, \
          tqdm(desc="Actors scheduled", total=num_actors_dispatched,
@@ -313,8 +316,10 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
                 util.eprint("All actors exited, but jobs aren't done!")
                 cancel_workers(args)
                 sys.exit(1)
-            check_for_learning_worker(args)
-
+            if learner_is_scheduled:
+                check_for_learning_worker(args)
+            else:
+                learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
             # Get the new scheduled actors, and update the worker
             # bar.
             with (args.state_dir / "actors_scheduled.txt").open('r') as f:

@@ -45,6 +45,8 @@ def main() -> None:
   parser.add_argument("--sync-workers-every", type=int, default=16)
   args = parser.parse_args()
 
+  with (args.state_dir / "learner_scheduled.txt").open('w') as f:
+      print("1", file=f, flush=True)
   serve_parameters(args)
 
 def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
