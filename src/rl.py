@@ -12,7 +12,7 @@ import pickle
 import sys
 from pathlib import Path
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
-                    Sequence, TypeVar, Callable, OrderedDict)
+                    Sequence, TypeVar, Callable, OrderedDict, Iterable)
 
 
 from util import unwrap, eprint, print_time, nostderr
@@ -64,7 +64,7 @@ def main():
 
     reinforce_jobs(args)
 
-def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
+def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentParser:
     parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--output", "-o", dest="output_file",
                         help="output data folder name",
@@ -269,7 +269,7 @@ class ReinforcementWorker:
             eprint("Encountered anomaly without restart, closing current job")
         return None
     def evaluate_job(self, job: ReportJob, tactic_prefix: List[str], restart: bool = True) \
-            -> bool:
+            -> Optional[bool]:
         if not tactic_prefix_is_usable(tactic_prefix):
             if self.args.verbose >= 2:
                 eprint(f"Skipping job {job} with prefix {tactic_prefix} "
@@ -316,19 +316,21 @@ class ReinforcementWorker:
                 return self.estimate_starting_vval(job, tactic_prefix, restart=False)
             raise
 
-        context: List[Optional[ProofContext]] = file_worker.coq.proof_context
+        context: Optional[ProofContext] = file_worker.coq.proof_context
         assert context is not None
         all_obl_scores = self.v_network(context.fg_goals)
 
-        resulting_state_val = math.prod(all_obl_scores).item()
+        resulting_state_val = math.prod([s.item() for s in all_obl_scores])
 
         return resulting_state_val
 
 
     def sync_networks(self) -> None:
+        assert self.target_v_network.network
+        assert self.v_network.network
         self.target_v_network.network.load_state_dict(self.v_network.network.state_dict())
 
-def switch_dict_from_args(args: argparse.Namespace) -> Dict[str, str]:
+def switch_dict_from_args(args: argparse.Namespace) -> Optional[Dict[str, str]]:
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
@@ -376,6 +378,8 @@ def possibly_resume_rworker(args: argparse.Namespace) \
                                   args.optimizer)
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
+        assert v_network.network
+        assert target_network.network
         v_network.network.to(device)
         target_network.network.to(device)
         
@@ -507,7 +511,7 @@ class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
 
 class VNetwork:
     obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
-    network: nn.Module
+    network: Optional[nn.Module]
     steps_trained: int
     optimizer: optim.Optimizer
     batch_step: int
@@ -516,6 +520,7 @@ class VNetwork:
 
     def get_state(self) -> Any:
         assert self.obligation_encoder is not None
+        assert self.network is not None
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state(),
                 self.obligation_encoder.obl_cache)
@@ -544,7 +549,9 @@ class VNetwork:
             assert len(state) == 3
             network_state, encoder_state, obl_cache = state
             self._load_encoder_state(encoder_state)
+            assert self.obligation_encoder
             self.obligation_encoder.obl_cache = obl_cache
+        assert self.network
         self.network.load_state_dict(network_state)
         self.network.to(self.device)
 
@@ -563,11 +570,12 @@ class VNetwork:
         self.steps_trained = 0
         self.total_loss = torch.tensor(0.0).to(self.device)
         if coq2vec_weights is not None:
-            self._load_encoder_state(torch.load(coq2vec_weights, map_location=self.device))
+            self._load_encoder_state(torch.load(str(coq2vec_weights), map_location=self.device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
+        assert self.network
         if isinstance(obls, Obligation):
             obls = [obls]
         else:
@@ -598,7 +606,7 @@ class VNetwork:
         # eprint(f"Loss: {loss}", guard=verbosity >= 1)
         self.steps_trained += 1
         self.total_loss += loss
-        return loss
+        return loss.item()
 
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
@@ -849,7 +857,7 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
                     shorter_proofs_dict,
                     random.getstate()), f)
 
-def path_obl_length(path: List[Union[ProofContext, str]]) -> None:
+def path_obl_length(path: List[Union[ProofContext, str]]) -> int:
     bracket_depth = 0
     cur_length = 0
     for context_or_bracket in path:
@@ -874,7 +882,7 @@ def print_path_vval_errors(args: argparse.Namespace,
         target_steps = path_obl_length(path[step_idx:])
         assert len(context.fg_goals) == 1, len(context.fg_goals)
         vval_predicted = v_network(context.fg_goals[0])
-        steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) \
+        steps_predicted = math.log(max(sys.float_info.min, vval_predicted.item())) \
             / math.log(args.gamma)
         print(f"At obligation: {coq_serapy.summarizeObligation(context.fg_goals[0])}")
         print(f"Predicted vval {vval_predicted} ({steps_predicted} steps) vs "
@@ -946,6 +954,7 @@ def evaluate_proof(args: argparse.Namespace,
             best_action, best_score = max(zip(actions, action_scores), key=lambda p: p[1])
         if best_score == -float("Inf"):
             break
+        assert best_action
         eprint(f"Taking action {best_action} with estimated value {best_score}",
                guard=args.verbose >= 1)
         execute_action(coq, best_action.prediction)
@@ -1061,7 +1070,7 @@ class ReplayBuffer:
 
 # NOT THREAD SAFE
 @contextlib.contextmanager
-def log_time(msg: str) -> None:
+def log_time(msg: str) -> Iterable[None]:
     start = time.time()
     try:
         yield
