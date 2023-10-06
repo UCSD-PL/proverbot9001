@@ -49,6 +49,8 @@ def main() -> None:
   parser.add_argument("-s", "--steps-per-episode", type=int)
   parser.add_argument("-n", "--num-episodes", type=int)
   parser.add_argument("-p", "--num_predictions", type=int)
+  parser.add_argument("--optimizer", choices=rl.optimizers.keys(),
+                      default=list(rl.optimizers.keys())[0])
   parser.add_argument("--blacklist-tactic", action="append",
                       dest="blacklisted_tactics")
   parser.add_argument("--backend", choices=["serapi", "lsp", "auto"],
@@ -448,7 +450,7 @@ def initialize_actor(args: argparse.Namespace) \
     -> RLActor: 
   predictor = rl.MemoizingPredictor(get_predictor(args))
   network = rl.VNetwork(args.coq2vec_weights, 0.0,
-                        1, 1)
+                        1, 1, args.optimizer)
   load_latest_q_network(args, network)
   return RLActor(args, predictor, network)
 

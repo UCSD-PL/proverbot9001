@@ -25,7 +25,7 @@ import torch.distributed as dist
 
 # pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
-from rl import model_setup
+from rl import model_setup, optimizers
 from util import eprint, unwrap
 # pylint: enable=wrong-import-position
 
@@ -43,6 +43,7 @@ def main() -> None:
   parser.add_argument("--sync-target-every", type=int, default=32)
   parser.add_argument("--keep-latest", default=3, type=int)
   parser.add_argument("--sync-workers-every", type=int, default=16)
+  parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -58,8 +59,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   v_network: nn.Module = model_setup(args.encoding_size).to(device)
   target_network: nn.Module = model_setup(args.encoding_size).to(device)
   target_network.load_state_dict(v_network.state_dict())
-  optimizer: optim.Optimizer = optim.RMSprop(v_network.parameters(),
-                                             lr=args.learning_rate)
+  optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
+                                                          lr=args.learning_rate)
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches)
   signal_change = Event()

@@ -42,6 +42,12 @@ with print_time("Importing search code"):
 
     from models.tactic_predictor import (TacticPredictor, Prediction)
 
+optimizers = {
+  "RMSProp": optim.RMSprop,
+  "SGD": optim.SGD,
+  "Adam": optim.Adam,
+}
+
 def main():
     eprint("Starting main")
     parser = argparse.ArgumentParser(
@@ -97,6 +103,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--train-every", default=1, type=int)
+    parser.add_argument("--optimizer", choices=optimizers.keys(),
+                        default=list(optimizers.keys())[0])
     parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--sync-target-every",
                         help="Sync target network to v network every <n> episodes",
@@ -361,9 +369,11 @@ def possibly_resume_rworker(args: argparse.Namespace) \
             random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
         v_network = VNetwork(None, args.learning_rate,
-                             args.batch_step, args.lr_step)
+                             args.batch_step, args.lr_step,
+                             args.optimizer)
         target_network = VNetwork(None, args.learning_rate,
-                                  args.batch_step, args.lr_step)
+                                  args.batch_step, args.lr_step,
+                                  args.optimizer)
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
         v_network.network.to(device)
@@ -380,9 +390,9 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         shorter_proofs_dict = {}
         with print_time("Building models"):
             v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                 args.batch_step, args.lr_step)
+                                 args.batch_step, args.lr_step, args.optimizer)
             target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                 args.batch_step, args.lr_step)
+                                 args.batch_step, args.lr_step, args.optimizer)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
         is_singlethreaded = True
@@ -517,8 +527,10 @@ class VNetwork:
         assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
-        self.network = model_setup(insize).to(self.device)
-        self.optimizer = optim.RMSprop(self.network.parameters(), lr=self.learning_rate)
+        self.network = model_setup(insize)
+        self.network.to(self.device)
+        self.optimizer: optim.Optimizer = optimizers[self.optimizer_type](self.network.parameters(),
+                                                                     lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
 
@@ -538,13 +550,14 @@ class VNetwork:
 
 
     def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
-                 batch_step: int, lr_step: float) -> None:
+                 batch_step: int, lr_step: int, optimizer_type: str) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.batch_step = batch_step
         self.lr_step = lr_step
         self.learning_rate = learning_rate
         self.obligation_encoder = None
         self.network = None
+        self.optimizer_type = optimizer_type
         # Steps trained only counts from the last resume! Don't use
         # for anything more essential than printing.
         self.steps_trained = 0

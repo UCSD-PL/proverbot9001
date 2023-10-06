@@ -221,6 +221,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    "--ending-epsilon", str(args.ending_epsilon),
                    "--smoothing-factor", str(args.smoothing_factor),
                    "--backend", args.backend,
+                   "--optimizer", args.optimizer,
                    ] + (["--curriculum"] if args.curriculum else []) +
                    (["--no-interleave"] if not args.interleave else []) + 
                    (["--progress"] if args.progress else []) +
@@ -250,6 +251,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "--sync-target-every", str(args.sync_target_every),
                      "--sync-workers-every", str(args.sync_workers_every),
                      "--keep-latest", str(args.keep_latest),
+                     "--optimizer", args.optimizer,
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches 
                       else []))
     total_args = ["srun"] + learner_args
