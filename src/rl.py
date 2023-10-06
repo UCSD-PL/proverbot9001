@@ -768,35 +768,36 @@ def train_v_network(args: argparse.Namespace,
                     v_network: VNetwork,
                     target_network: VNetwork,
                     replay_buffer: 'ReplayBuffer'):
-        samples = replay_buffer.sample(args.batch_size)
-        if samples is None:
-            return
-        inputs = [start_obl for start_obl, action_records in samples]
-        num_resulting_obls = [[len(resulting_obls)
-                               for action, resulting_obls in action_records]
-                              for starting_obl, action_records in samples]
-        all_obls = [obl
-                    for starting_obl, action_records in samples
-                    for action, resulting_obls in action_records
-                    for obl in resulting_obls]
-        with torch.no_grad():
-            all_obl_scores = target_network(all_obls)
-        outputs = []
-        cur_row = 0
-        for resulting_obl_lens in num_resulting_obls:
-            action_outputs = []
-            for num_obls in resulting_obl_lens:
-                selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
-                action_outputs.append(args.gamma * math.prod(
-                    selected_obl_scores))
-                cur_row += num_obls
-            outputs.append(max(action_outputs))
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    samples = replay_buffer.sample(args.batch_size)
+    if samples is None:
+        return
+    inputs = [start_obl for start_obl, action_records in samples]
+    num_resulting_obls = [[len(resulting_obls)
+                           for action, resulting_obls in action_records]
+                          for starting_obl, action_records in samples]
+    all_obls = [obl
+                for starting_obl, action_records in samples
+                for action, resulting_obls in action_records
+                for obl in resulting_obls]
+    with torch.no_grad():
+        all_obl_scores = target_network(all_obls)
+    outputs = []
+    cur_row = 0
+    for resulting_obl_lens in num_resulting_obls:
+        action_outputs = []
+        for num_obls in resulting_obl_lens:
+            selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
+            action_outputs.append(args.gamma * math.prod(
+                selected_obl_scores))
+            cur_row += num_obls
+        outputs.append(max(action_outputs))
 
-        v_network.train(inputs, outputs, verbosity=args.verbose)
-        if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
-            avg_loss = v_network.total_loss / args.print_loss_every
-            v_network.total_loss = torch.tensor(0.0).to(self.device)
-            print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
+    v_network.train(inputs, outputs, verbosity=args.verbose)
+    if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
+        avg_loss = v_network.total_loss / args.print_loss_every
+        v_network.total_loss = torch.tensor(0.0).to(device)
+        print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class MemoizingPredictor(TacticPredictor):
     underlying_predictor: TacticPredictor
