@@ -13,12 +13,13 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 from linearize_semicolons import get_linearized
 
 from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching
+import random
 
 unnamed_goal_number: int = 0
 
@@ -345,6 +346,116 @@ class SearchWorker(Worker):
         super().reset_file_state()
         self.axioms_already_added = False
 
+    def set_predictor(self, predictor:TacticPredictor) -> None:
+        self.predictor = predictor
+
+    def run_job_with_random(self, job: ReportJob, restart: bool = True) -> SearchResult:
+        assert self.coq
+        self.run_into_job(job, restart, self.args.careful)
+        job_project, job_file, job_module, job_lemma = job
+        initial_context: ProofContext = unwrap(self.coq.proof_context)
+        if self.args.add_axioms and not self.axioms_already_added:
+            self.axioms_already_added = True
+            # Cancel the lemma statement so we can run the axiom
+            self.coq.cancel_last()
+            with self.args.add_axioms.open('r') as f:
+                for signature in f:
+                    try:
+                        self.coq.run_stmt(signature)
+                        self.coq.run_stmt("Admitted.")
+                    except coq_serapy.CoqExn:
+                        axiom_name = coq_serapy.lemma_name_from_statement(
+                            signature)
+                        eprint(f"Couldn't declare axiom {axiom_name} "
+                               f"at this point in the proof")
+            self.coq.run_stmt(job_lemma)
+        empty_context = ProofContext([], [], [], [])
+        context_lemmas = context_lemmas_from_args(self.args, self.coq)
+        try:
+            # Empty proof scripts set 
+            proof_scripts = {tuple([])}
+            steps_taken = 1 
+            search_status = SearchStatus.INCOMPLETE
+            # TODO: how to approach max steps? which value? grab from args? how to end if max steps is reached? tactic_solution = None?
+            max_steps = 100
+            while steps_taken < max_steps and search_status != SearchStatus.SUCCESS:
+                # pick script to continue
+                script_to_continue = random.choice(list(proof_scripts))
+                # remove it from the set
+                proof_scripts.remove(script_to_continue)
+                # get a random predictor
+                curr_predictor = get_random_predictor(self.args) # not sure whether to get the random predictor here in search_file.py/search_file_cluster_worker.py?
+                search_status, _, last_tactic, steps_taken = \
+                  attempt_search(self.args, job_lemma,
+                                 self.coq.sm_prefix,
+                                 context_lemmas,
+                                 self.coq,
+                                 self.args.output_dir / self.cur_project,
+                                 self.widx, curr_predictor, script_to_continue)
+                # add new proof script to set 
+                if last_tactic is not None:
+                    # if search status is success in the next while check, this is the successful script that gets propagated
+                    # TODO: is this the way to do this?
+                    tactic_solution = script_to_continue + tuple([last_tactic]) 
+                    proof_scripts.add(tactic_solution)
+                eprint("current proof script that I just added to:")
+                eprint(tactic_solution)
+                # add step to steps taken 
+                steps_taken += 1
+            # add hopefully successful solution to done
+            done.put((next_job, solution))
+        except KilledException:
+            tactic_solution = None
+            search_status = SearchStatus.INCOMPLETE
+        except coq_serapy.CoqAnomaly:
+            if self.args.hardfail:
+                raise
+            if self.args.log_anomalies:
+                with self.args.log_anomalies.open('a') as f:
+                    print(f"ANOMALY at {job_file}:{job_lemma}",
+                          file=f)
+                    traceback.print_exc(file=f)
+            self.restart_coq()
+            self.reset_file_state()
+            self.enter_file(job_file)
+            if restart:
+                eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
+                return self.run_job(job, restart=False)
+            if self.args.log_hard_anomalies:
+                with self.args.log_hard_anomalies.open('a') as f:
+                    print(
+                        f"HARD ANOMALY at "
+                        f"{job_file}:{job_lemma}",
+                        file=f)
+                    traceback.print_exc(file=f)
+
+            search_status = SearchStatus.CRASHED
+            solution: List[TacticInteraction] = []
+            eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
+                   "due to multiple failures",
+                   guard=self.args.verbose >= 1)
+            return SearchResult(search_status, context_lemmas, solution, 0)
+        except Exception:
+            eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
+            raise
+        if not tactic_solution:
+            solution = [
+                TacticInteraction("Proof.", initial_context),
+                TacticInteraction("Admitted.", initial_context)]
+        else:
+            solution = (
+                [TacticInteraction("Proof.", initial_context)]
+                + tactic_solution +
+                [TacticInteraction("Qed.", empty_context)])
+
+        while not coq_serapy.ending_proof(self.remaining_commands[0]):
+            self.remaining_commands.pop(0)
+        # Pop the actual Qed/Defined/Save
+        ending_command = self.remaining_commands.pop(0)
+        coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
+
+        return SearchResult(search_status, context_lemmas, solution, steps_taken)
+
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
@@ -367,6 +478,10 @@ class SearchWorker(Worker):
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
+        # Run proof script so far
+        if prefix is not None:
+            for prefix_statement in prefix:
+                self.coq.run_stmt(prefix_statement)
         try:
             search_status, _, tactic_solution, steps_taken = \
               attempt_search(self.args, job_lemma,
@@ -461,8 +576,11 @@ def attempt_search(args: argparse.Namespace,
                    coq: coq_serapy.SerapiInstance,
                    output_dir: Path,
                    bar_idx: int,
-                   predictor: TacticPredictor) \
+                   predictor: TacticPredictor, 
+                   prefix=None) \
         -> SearchResult:
+
+    # TODO: should probably specify prefix is tuple of strings
     global unnamed_goal_number
     if module_name:
         module_prefix = escape_lemma_name(module_name)
@@ -493,6 +611,11 @@ def attempt_search(args: argparse.Namespace,
                                            context_lemmas, coq,
                                            output_dir,
                                            args, bar_idx, predictor)
+        elif args.search_type == 'combo-b':
+            result = combo_b_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor, prefix)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
                                              context_lemmas, coq,
@@ -549,6 +672,27 @@ def get_predictor(args: argparse.Namespace, allow_static_predictor: bool = True)
     else:
         raise ValueError("Can't load a predictor from given args!")
     return predictor
+
+def get_random_predictor(args: argparse.Namespace, allow_static_predictor: bool = True) -> TacticPredictor:
+    predictor: TacticPredictor
+    if args.combo_weightsfiles:
+        predictor = loadPredictorByFile(random.choice(args.combo_weightsfiles))
+    elif allow_static_predictor and args.predictor: #TODO: probably don't need this
+        predictor = loadPredictorByName(args.predictor)
+    else:
+        raise ValueError("Can't load a predictor from given args!")
+    return predictor
+
+def get_one_predictor(args: argparse.Namespace, allow_static_predictor: bool = True) -> TacticPredictor:
+    predictor: TacticPredictor
+    if args.weightsfiles:
+        predictor = loadPredictorByFile(random.choice(args.weightsfiles))
+    elif allow_static_predictor and args.predictor:
+        predictor = loadPredictorByName(args.predictor)
+    else:
+        raise ValueError("Can't load a predictor from given args!")
+    return predictor
+
 
 def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
     if args.splits_file:

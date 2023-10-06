@@ -56,7 +56,6 @@ import torch_util
 from tqdm import tqdm
 from pathlib import Path
 import torch
-from hs import HashSet
 
 start_time = datetime.now()
 
@@ -74,8 +73,8 @@ def main(arg_list: List[str]) -> None:
         torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
-    if not args.predictor and not args.weightsfile:
-        print("You must specify a weightsfile or a predictor.")
+    if not args.predictor and not args.weightsfile and not args.combo_weightsfiles:
+        print("You must specify a weightsfile, a combo-weightsfiles or a predictor.")
         parser.print_help()
         sys.exit(1)
 
@@ -222,34 +221,38 @@ def search_file_worker(args: argparse.Namespace,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
 
-    if not args.search_type == 'combo-b':
+    #if not args.search_type == 'combo-b':
 
-        predictor = get_predictor(args)
+    predictor = get_predictor(args)
 
-        # util.use_cuda = False
-        if util.use_cuda:
-            torch.cuda.set_device(device) # type: ignore
-        util.cuda_device = device
+    # util.use_cuda = False
+    if util.use_cuda:
+        torch.cuda.set_device(device) # type: ignore
+    util.cuda_device = device
 
-        if args.splits_file:
-            with args.splits_file.open('r') as f:
-                project_dicts = json.loads(f.read())
-            if any(["switch" in item for item in project_dicts]):
-                switch_dict = {item["project_name"]: item["switch"]
-                               for item in project_dicts}
-            else:
-                switch_dict = None
+    if args.splits_file:
+        with args.splits_file.open('r') as f:
+            project_dicts = json.loads(f.read())
+        if any(["switch" in item for item in project_dicts]):
+            switch_dict = {item["project_name"]: item["switch"]
+                           for item in project_dicts}
         else:
             switch_dict = None
+    else:
+        switch_dict = None
 
-        with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
-            while True:
-                try:
-                    next_job = jobs.get_nowait()
-                except queue.Empty:
-                    return
+    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
+        while True:
+            try:
+                next_job = jobs.get_nowait()
+            except queue.Empty:
+                return
+            if not args.search_type == 'combo-b':
                 solution = worker.run_job(next_job, restart=not args.hardfail)
-                done.put((next_job, solution))
+            else:
+                solution = worker.run_job_with_random(next_job, restart=not args.hardfail)
+            done.put((next_job, solution))
+    '''
     else:
         # torch_util.use_cuda = False
         if torch_util.use_cuda:
@@ -267,17 +270,18 @@ def search_file_worker(args: argparse.Namespace,
         else:
             switch_dict = None
 
-        with SearchWorker(args, worker_idx, None, switch_dict) as worker:
+        init_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
+        with SearchWorker(args, worker_idx, init_predictor, switch_dict) as worker:
             while True:
                 try:
                     next_job = jobs.get_nowait()
                 except queue.Empty:
                     return
-                solution = worker.run_job(next_job, prefix=None, restart=not args.hardfail)
+                solution = worker.run_job(next_job, None, restart=not args.hardfail) 
                 # Empty proof scripts set 
-                proof_scripts = {[]} 
+                proof_scripts = {solution.to_dict()['commands'][0]} 
                 #hashed_proof_scripts.add(solution.to_dict()['commands'][0])
-                steps_taken = 0 # until max steps
+                steps_taken = 1 # until max steps
                 while steps_taken < args.max_steps and solution.to_dict()['status'] != SearchStatus.SUCCESS:
                     # pick script to continue
                     script_to_continue = proof_scripts.set()[random.randint(0,len(proof_scripts))]
@@ -285,14 +289,20 @@ def search_file_worker(args: argparse.Namespace,
                     proof_scripts.remove(script_to_continue)
                     # get a random predictor
                     curr_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
+                    worker.set_predictor(curr_predictor)
                     # get solution
-                    solution = worker.run_job(next_job, predictor, script_to_continue, restart=not args.hardfail) 
+                    solution = worker.run_job(next_job, script_to_continue, restart=not args.hardfail) 
                     # add new proof script to set 
-                    proof_scripts.add(solution.to_dict()['commands'][0])
+                    new_script = solution.to_dict()['commands'][0]
+                    if new_script is not None:
+                        proof_scripts.add(solution.to_dict()['commands'][0])
+                    eprint("current proof script that I just added to:")
+                    eprint(solution.to_dict()['commands'][0])
                     # add step to steps taken 
                     steps_taken += 1
                 # add hopefully successful solution to done
                 done.put((next_job, solution))
+    '''
 
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []

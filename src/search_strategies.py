@@ -681,6 +681,111 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
 
     return [leaf for leaf in get_leaf_descendents(significant_parent) if leaf != node]
 
+def combo_b_search(lemma_name: str,
+                          module_prefix: str,
+                          relevant_lemmas: List[str],
+                          coq: coq_serapy.SerapiInstance,
+                          output_dir: Path,
+                          args: argparse.Namespace,
+                          bar_idx: int,
+                          predictor: TacticPredictor, prefix=None) \
+                          -> SearchResult:
+    #hasUnexploredNode = False
+    #g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+    #                args.features_json)
+    #graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
+
+    #features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
+    # Run proof script so far
+    if prefix is not None:
+        for prefix_statement in prefix:
+            coq.run_stmt(prefix_statement)
+
+    initial_history_len = len(coq.tactic_history.getFullHistory())
+    # TODO: what is the search prefix
+    #if args.search_prefix:
+    #    for command in coq_serapy.read_commands(args.search_prefix):
+    #        full_context_before = FullContext(relevant_lemmas,
+    #                                          coq.prev_tactics,
+    #                                          unwrap(coq.proof_context))
+    full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          unwrap(coq.proof_context))
+    predictions = predictor.predictKTactics(args,
+        truncate_tactic_context(full_context_before.as_tcontext(),
+                                args.max_term_length),
+        args.max_attempts,
+        blacklist=args.blacklisted_tactics)
+    assert len(predictions) == args.max_attempts
+    if coq.use_hammer:
+        predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
+                                  prediction.certainty)
+                       for prediction in predictions]
+    for _prediction_idx, prediction in enumerate(predictions):
+        try:
+            context_after, num_stmts, \
+                subgoals_closed, subgoals_opened, \
+                error, time_taken, unshelved = \
+                    tryPrediction(args, coq, prediction.prediction, time.time())
+                # figure out time
+                # tryPrediction(args, coq, prediction.prediction,
+                #             time_on_path(current_path[-1]))
+            if error:
+                # figuring out implimentation for context in history
+                if contextIsBig(context_after): #or \
+                        #contextInHistory(context_after, prediction_node):
+                    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                    for _ in range(num_stmts):
+                        coq.cancel_last()
+                    continue
+                if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
+                    if args.count_softfail_predictions:
+                        num_successful_predictions += 1
+                    for _ in range(num_stmts):
+                        coq.cancel_last()
+                    continue
+                if completed_proof(coq):
+                    return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, prediction.prediction, 0)
+            else: 
+                return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, prediction.prediction, 0)
+        except coq_serapy.CoqAnomaly:
+            predictionNode = g.mkNode(prediction,
+                                      full_context_before,
+                                      current_path[-1])
+            g.setNodeColor(predictionNode, "grey25")
+            if lemma_name == "":
+                unnamed_goal_number += 1
+                g.draw(f"{output_dir}/{module_prefix}"
+                       f"{unnamed_goal_number}.svg")
+            else:
+                if args.features_json:
+                    g.write_feat_json(f"{output_dir}/{module_prefix}"
+                                      f"{lemma_name}.json")
+                g.draw(f"{output_dir}/{module_prefix}"
+                       f"{lemma_name}.svg")
+
+            raise
+        #do not have a progress bar here right now
+        #pbar.update(1)
+        #assert cast(TqdmSpy, pbar).n > 0
+        #if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
+        #    if args.count_softfail_predictions:
+        #        num_successful_predictions += 1
+        #    prediction_node.setNodeColor("orange")
+        #    for _ in range(num_stmts):
+        #        coq.cancel_last()
+        #    continue
+        #if completed_proof(coq):
+        #    prediction_node.mkQED()
+        #    start_node.draw_graph(graph_file)
+        #    return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
+        #                        prediction_node.interactions()[1:], 0)
+
+    # not sure what to do with the normally drawn graph
+    #start_node.draw_graph(graph_file)
+    #if hasUnexploredNode:
+    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
+
 def bfs_beam_proof_search(lemma_name: str,
                           module_prefix: str,
                           relevant_lemmas: List[str],
