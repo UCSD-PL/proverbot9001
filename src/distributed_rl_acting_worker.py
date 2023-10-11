@@ -136,7 +136,6 @@ class RLActor:
     if len(self.file_workers) > self.args.max_sertop_workers:
       filename, evicted_worker = self.file_workers.popitem(last=False)
       evicted_worker.coq.kill()
-    self.file_workers.move_to_end(filename)
     return self.file_workers[filename]
   def run_task_reinforce(self, task: RLTask, epsilon: float,
                          restart: bool = True) -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
