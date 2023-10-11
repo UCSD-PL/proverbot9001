@@ -92,6 +92,8 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     if next_task_ep is None:
       eprint(f"Finished worker {workerid}")
       break
+    elif args.verbose > 0:
+      eprint(f"Starting task ep {next_task_ep}")
     next_task, next_ep = next_task_ep
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
     successful, samples = actor.run_task_reinforce(
