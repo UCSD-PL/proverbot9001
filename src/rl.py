@@ -43,7 +43,7 @@ with print_time("Importing search code"):
     from models.tactic_predictor import (TacticPredictor, Prediction)
 
 optimizers = {
-  "RMSProp": optim.RMSprop,
+  "RMSprop": optim.RMSprop,
   "SGD": optim.SGD,
   "Adam": optim.Adam,
 }
