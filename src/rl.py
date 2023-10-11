@@ -105,6 +105,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("--train-every", default=1, type=int)
     parser.add_argument("--optimizer", choices=optimizers.keys(),
                         default=list(optimizers.keys())[0])
+    parser.add_argument("--start-from", type=Path, default=None)
     parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--sync-target-every",
                         help="Sync target network to v network every <n> episodes",
@@ -362,14 +363,16 @@ def possibly_resume_rworker(args: argparse.Namespace) \
     else:
         resume = args.resume
 
+    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if resume == "yes":
-        device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         is_singlethreaded, replay_buffer, steps_already_done, network_state, \
           tnetwork_state, shorter_proofs_dict, random_state = \
             torch.load(str(args.output_file), map_location=device)
         if is_singlethreaded:
             random.setstate(random_state)
         print(f"Resuming from existing weights of {steps_already_done} steps")
+        if args.start_from is not None:
+            print("WARNING: Not starting from weights passed in --start-from because we're resuming from a partial run")
         v_network = VNetwork(None, args.learning_rate,
                              args.batch_step, args.lr_step,
                              args.optimizer)
@@ -391,14 +394,26 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         steps_already_done = 0
         replay_buffer = None
         random_state = random.getstate()
-        shorter_proofs_dict = {}
         with print_time("Building models"):
             v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
                                  args.batch_step, args.lr_step, args.optimizer)
             target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                 args.batch_step, args.lr_step, args.optimizer)
+                                      args.batch_step, args.lr_step, args.optimizer)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
+            if args.start_from is not None:
+               _, _, _, network_state, \
+                 tnetwork_state, shorter_proofs_dict, _ = \
+                   torch.load(str(args.output_file), map_location=device)
+               v_network.load_state(network_state)
+               target_network.load_state(tnetwork_state)
+               assert v_network.network
+               assert target_network.network
+               v_network.network.to(device)
+               target_network.network.to(device)
+            else:
+                shorter_proofs_dict = {}
+
         is_singlethreaded = True
     worker = ReinforcementWorker(args, predictor, v_network, target_network,
                                  switch_dict_from_args(args),
