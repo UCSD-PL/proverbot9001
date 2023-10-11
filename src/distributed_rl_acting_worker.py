@@ -64,7 +64,7 @@ def main() -> None:
   args = parser.parse_args()
 
   workerid = args.workerid
-  
+
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)
 
@@ -92,14 +92,19 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     if next_task_ep is None:
       eprint(f"Finished worker {workerid}")
       break
-    elif args.verbose > 0:
+    if args.verbose > 0:
       eprint(f"Starting task ep {next_task_ep}")
     next_task, next_ep = next_task_ep
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
     successful, samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
+    if next_ep == 0:
+      learning_connection.encode_and_send_target_v(samples[0][0],
+                                                   args.gamma ** next_task.target_length)
     if successful and len(samples) < next_task.target_length:
-      update_shorter_proofs_dict(args, all_files, next_task, len(samples))
+      update_shorter_proofs_dict(args, all_files, next_task, len(samples),
+                                 samples[0][0],
+                                 learning_connection)
     for prestate, action, poststates in samples:
       learning_connection.encode_and_send_sample(prestate, action, poststates)
     mark_task_done(args, workerid, next_task_ep)
@@ -133,7 +138,7 @@ class RLActor:
       evicted_worker.coq.kill()
     self.file_workers.move_to_end(filename)
     return self.file_workers[filename]
-  def run_task_reinforce(self, task: RLTask, epsilon: float, 
+  def run_task_reinforce(self, task: RLTask, epsilon: float,
                          restart: bool = True) -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
     if not rl.tactic_prefix_is_usable(task.tactic_prefix):
       if self.args.verbose >= 2:
@@ -188,6 +193,7 @@ class LearningServerConnection:
   def send_sample(self, pre_state_encoded: torch.FloatTensor,
                   action_encoded: int,
                   post_state_encodeds: List[torch.FloatTensor]) -> None:
+    dist.send(tensor=torch.tensor(0, dtype=int), tag=4, dst=0)
     dist.send(tensor=pre_state_encoded, tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([action_encoded]), tag=1, dst=0)
     dist.send(tensor=torch.LongTensor([len(post_state_encodeds)]), tag=2, dst=0)
@@ -199,6 +205,15 @@ class LearningServerConnection:
     states_encoded = self.obligation_encoder.obligations_to_vectors_cached(
       [pre_state] + post_states)
     self.send_sample(states_encoded[0], hash(action), states_encoded[1:])
+
+  def send_target_v(self, state_encoded: torch.FloatTensor, target_v_value: float) -> None:
+    dist.send(tensor=torch.tensor(1, dtype=int), tag=4, dst=0)
+    dist.send(tensor=state_encoded, tag=5, dst=0)
+    dist.send(tensor=target_v_value, tag=6, dst=0)
+
+  def encode_and_send_target_v(self, state: Obligation, target_v_value: float) -> None:
+    state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0]
+    self.send_target_v(state_encoded, target_v_value)
 
 @dataclass
 class FileTaskState:
@@ -432,12 +447,14 @@ def mark_task_done(args: argparse.Namespace, workerid: int,
 def update_shorter_proofs_dict(args: argparse.Namespace,
                                all_files: List[Path],
                                task: RLTask,
-                               solution_length: int) -> None:
+                               solution_length: int,
+                               starting_state: Obligation,
+                               server_connection: LearningServerConnection) -> None:
   with (args.state_dir / "shorter_proofs" /
         (safe_abbrev(Path(task.src_file), all_files) + ".json")
         ).open("r+") as shorter_proofs_handle, FileLock(shorter_proofs_handle):
     shorter_proofs_dict = {RLTask(**task_dict): shorter_length
-                           for l in shorter_proofs_handle 
+                           for l in shorter_proofs_handle
                            for task_dict, shorter_length in (json.loads(l),)}
     if task in shorter_proofs_dict and \
       shorter_proofs_dict[task] <= solution_length:
@@ -447,8 +464,11 @@ def update_shorter_proofs_dict(args: argparse.Namespace,
     for task, shorter_length in shorter_proofs_dict.items():
       print(json.dumps((task.as_dict(), shorter_length)), file=shorter_proofs_handle)
 
+  target_v_value = args.gamma ** solution_length
+  server_connection.encode_and_send_target_v(starting_state, target_v_value)
+
 def initialize_actor(args: argparse.Namespace) \
-    -> RLActor: 
+    -> RLActor:
   predictor = rl.MemoizingPredictor(get_predictor(args))
   network = rl.VNetwork(args.coq2vec_weights, 0.0,
                         1, 1, args.optimizer)

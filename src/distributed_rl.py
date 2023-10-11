@@ -252,8 +252,10 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "--sync-workers-every", str(args.sync_workers_every),
                      "--keep-latest", str(args.keep_latest),
                      "--optimizer", args.optimizer,
-                   ] + (["--allow-partial-batches"] if args.allow_partial_batches 
-                      else []))
+                   ] + (["--allow-partial-batches"] if args.allow_partial_batches
+                      else [])
+                     + (["--verifyv-every", args.verifyv_every]
+                        if args.verifyv_every is not None else []))
     total_args = ["srun"] + learner_args
     for workerid in range(num_actors):
         total_args += ([":"] + actor_job_args +

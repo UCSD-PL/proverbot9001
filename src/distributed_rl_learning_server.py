@@ -3,19 +3,16 @@
 from __future__ import annotations
 
 import argparse
-import json
 import os
 import sys
 import random
 import math
-import subprocess
 import re
 from glob import glob
 
 from threading import Thread, Lock, Event
 from pathlib import Path
 from typing import List, Set, Optional, Dict, Tuple, Sequence
-from socket import gethostname
 
 import torch
 from torch import nn
@@ -44,6 +41,7 @@ def main() -> None:
   parser.add_argument("--keep-latest", default=3, type=int)
   parser.add_argument("--sync-workers-every", type=int, default=16)
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
+  parser.add_argument("--verifyv-every", type=int, default=None)
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -61,23 +59,27 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
                                                           lr=args.learning_rate)
+  verification_states: Dict[torch.FloatTensor, float] = {}
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches)
   signal_change = Event()
-  buffer_thread = BufferPopulatingThread(replay_buffer, signal_change, 
-                                         args.encoding_size)
+  buffer_thread = BufferPopulatingThread(replay_buffer, verification_states,
+                                         signal_change, args.encoding_size)
   buffer_thread.start()
 
   steps_last_trained = 0
   steps_last_synced_target = 0
   steps_last_synced_workers = 0
   common_network_version = 0
+  iters_trained = 0
+  last_iter_verified = 0
 
   while signal_change.wait():
     signal_change.clear()
     if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
       steps_last_trained = replay_buffer.buffer_steps
       train(args, v_network, target_network, optimizer, replay_buffer)
+      iters_trained += 1
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint("Syncing target network")
       steps_last_synced_target = replay_buffer.buffer_steps
@@ -86,6 +88,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       steps_last_synced_workers = replay_buffer.buffer_steps
       send_new_weights(args, v_network, common_network_version)
       common_network_version += 1
+    if args.verifyv_every is not None and \
+       iters_trained - last_iter_verified >= args.verifyv_every:
+      print_vvalue_errors(v_network, verification_states)
+      last_iter_verified = iters_trained
 
 def train(args: argparse.Namespace, v_model: nn.Module,
           target_model: nn.Module,
@@ -132,36 +138,58 @@ def train(args: argparse.Namespace, v_model: nn.Module,
 
 class BufferPopulatingThread(Thread):
   replay_buffer: EncodedReplayBuffer
+  verification_states: Dict[torch.FloatTensor, float]
   signal_change: Event
-  def __init__(self, replay_buffer: EncodedReplayBuffer, 
+  def __init__(self, replay_buffer: EncodedReplayBuffer,
+               verification_states: Dict[torch.FloatTensor, float],
                signal_change: Event, encoding_size: int) -> None:
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
     self.encoding_size = encoding_size
+    self.verification_states = verification_states
     super().__init__()
     pass
   def run(self) -> None:
-    device = "cuda"
     while True:
-      newest_prestate_sample: torch.FloatTensor = \
+      send_type = torch.zeros(1, dtype=int)
+      sending_worker = dist.recv(tensor=send_type, tag=4)
+      if send_type.item() == 0:
+        self.receive_experience_sample(sending_worker)
+      elif send_type.item() == 1:
+        self.receive_verification_sample(sending_worker)
+
+  def receive_experience_sample(self, sending_worker: int) -> None:
+    device = "cuda"
+    newest_prestate_sample: torch.FloatTensor = \
+      torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
+    dist.recv(tensor=newest_prestate_sample, src=sending_worker, tag=0)
+    newest_action_sample = torch.zeros(1, dtype=int)
+    dist.recv(tensor=newest_action_sample, src=sending_worker, tag=1)
+    number_of_poststates = torch.zeros(1, dtype=int)
+    dist.recv(tensor=number_of_poststates, src=sending_worker, tag=2)
+    post_states = []
+    for _ in range(number_of_poststates.item()):
+      newest_poststate_sample: torch.FloatTensor = \
         torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
-      sending_worker = dist.recv(tensor=newest_prestate_sample, tag=0)
-      newest_action_sample = torch.zeros(1, dtype=int)
-      dist.recv(tensor=newest_action_sample, src=sending_worker, tag=1)
-      number_of_poststates = torch.zeros(1, dtype=int)
-      dist.recv(tensor=number_of_poststates, src=sending_worker, tag=2)
-      post_states = []
-      for _ in range(number_of_poststates.item()):
-        newest_poststate_sample: torch.FloatTensor = \
-          torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
-        dist.recv(tensor=newest_poststate_sample, src=sending_worker, tag=3)
-        post_states.append(newest_poststate_sample.to(device))
-      self.replay_buffer.add_transition(
-        (newest_prestate_sample.to(device), int(newest_action_sample.item()),
-         post_states))
-      self.replay_buffer.buffer_steps += 1
-      self.signal_change.set()
-    pass
+      dist.recv(tensor=newest_poststate_sample, src=sending_worker, tag=3)
+      post_states.append(newest_poststate_sample.to(device))
+    self.replay_buffer.add_transition(
+      (newest_prestate_sample.to(device), int(newest_action_sample.item()),
+       post_states))
+    self.replay_buffer.buffer_steps += 1
+    self.signal_change.set()
+
+  def receive_verification_sample(self, sending_worker: int) -> None:
+    device = "cuda"
+    state_sample: torch.FloatTensor = \
+      torch.zeros(self.encoding_size, dtype=torch.float32).to(device) #type: ignore
+    dist.recv(tensor=state_sample, src=sending_worker, tag=5)
+    target_v_value: torch.FloatTensor = torch.zeros(1, dtype=torch.float32)
+    dist.recv(tensor=target_v_value, src=sending_worker, tag=6)
+    if state_sample in self.verification_states:
+      assert target_v_value >= self.verification_states[state_sample], \
+        "Got sent a target value  less than the previously expected value for this state!"
+    self.verification_states[state_sample] = target_v_value.item()
 
 EObligation = torch.FloatTensor
 ETransition = Tuple[int, Sequence[EObligation]]
@@ -229,6 +257,13 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
     old_save_path = (args.state_dir / "weights" /
                      f"common-v-network-{save_num}.dat")
     old_save_path.unlink()
+
+def print_vvalue_errors(vnetwork: nn.Module,
+                        verification_samples: Dict[torch.FloatTensor, float]):
+  total_error = 0
+  for encoded_obl, target_v in verification_samples.items():
+    total_error += abs(vnetwork([encoded_obl])[0].item() - target_v)
+  eprint(f"Average V Value error across {len(verification_samples)} initial states: {total_error / len(verification_samples)}")
 
 if __name__ == "__main__":
   main()
