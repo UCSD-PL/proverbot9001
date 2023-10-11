@@ -237,104 +237,103 @@ def allocate_next_task(args: argparse.Namespace, workerid: int,
                        task_state: TaskState) \
       -> Optional[TaskEpisode]:
   all_files = task_state.all_files()
-  # We put this in a while loop because we might go through all the work of
-  # allocating a file, only to find out there are no eligible tasks in that
-  # file. In that case, we want to mark that file as finished this episode, and
-  # start the file allocating process over again.
   while True:
-    # First thing we do to allocate a file is open and take a lock on the
-    # "taken-files.txt" file. This tells us what files have been taken by other
-    # workers.
-    with (args.state_dir / "taken" / "taken-files.txt"
-          ).open("r+") as taken_files_handle, FileLock(taken_files_handle):
-      # Since multiple workers can be working on a file, we'll count here how
-      # many workers have taken each file. At first we only care about whether
-      # the file is taken by a non-zero number of workers, but once we run out
-      # of unclaimed and our own files, we'll care about which file was taken
-      # the least number of times.
-      taken_files = Counter(Path(p.strip()) for p in taken_files_handle)
-      # If we've looked at every file this episode, either we're on our last
-      # episode and we're done, or there was only one file. In the latter case
-      # we might still have episodes to work on, so we'll break to our
-      # episode/phase incrementing code at the end of the function.
-      if len(all_files) == len(task_state.files_finished_this_ep):
-        assert task_state.cur_episode == args.num_episodes - 1 or len(all_files) == 1
+    # We put this in a while loop because we might go through all the work of
+    # allocating a file, only to find out there are no eligible tasks in that
+    # file. In that case, we want to mark that file as finished this episode, and
+    # start the file allocating process over again.
+    while True:
+      # First thing we do to allocate a file is open and take a lock on the
+      # "taken-files.txt" file. This tells us what files have been taken by other
+      # workers.
+      with (args.state_dir / "taken" / "taken-files.txt"
+            ).open("r+") as taken_files_handle, FileLock(taken_files_handle):
+        # Since multiple workers can be working on a file, we'll count here how
+        # many workers have taken each file. At first we only care about whether
+        # the file is taken by a non-zero number of workers, but once we run out
+        # of unclaimed and our own files, we'll care about which file was taken
+        # the least number of times.
+        taken_files = Counter(Path(p.strip()) for p in taken_files_handle)
+        # If we've looked at every file this episode, either we're on our last
+        # episode and we're done, or there was only one file. In the latter case
+        # we might still have episodes to work on, so we'll break to our
+        # episode/phase incrementing code at the end of the function.
+        if len(all_files) == len(task_state.files_finished_this_ep):
+          assert task_state.cur_episode == args.num_episodes - 1 or len(all_files) == 1
+          break
+        # Get the number of workers taking the least-taken file.
+        least_taken_count = min(taken_files[filename] for filename in all_files
+                                if filename not in task_state.files_finished_this_ep)
+        cur_file: Optional[Path] = None
+        for src_file in all_files:
+          # Skip files that we know we already finished with for now.
+          if src_file in task_state.files_finished_this_ep:
+            continue
+          # There are three cases where we'll accept a file as eligible:
+          # 1. We've already started working on it (but haven't finished it yet)
+          # 2. It hasn't been taken by any other worker
+          # 3. We've already finished all files that we initially claimed
+          #    or were unclaimed, and it's the least-taken file.
+          #
+          # The condition in 3 is a bit tricky, because the condition doesn't
+          # explicitly say that we've finished all files that would satisfy
+          # condition (2). But if there is a file that satisfies condition (2),
+          # then the least_taken_count will be 0, making condition (3) just a
+          # stricter version of (2).
+          if (src_file in task_state.file_our_taken_dict.keys() or
+              taken_files[src_file] == 0 or
+              (all(filename in task_state.files_finished_this_ep
+                   for filename in task_state.file_our_taken_dict.keys()) and
+               task_state.cur_episode == args.num_episodes - 1 and
+               taken_files[src_file] == least_taken_count)):
+             cur_file = src_file
+             break
+        # If a new file to claim was found, and we hadn't worked on it before,
+        # add a claim to it for this worker.
+        if (cur_file is not None and
+            cur_file not in task_state.file_our_taken_dict.keys()):
+          print(cur_file, file=taken_files_handle, flush=True)
+      # If we came out of here without a file, we either need to increment our
+      # episode/skip_taken, or we're done
+      if cur_file is None:
         break
-      # Get the number of workers taking the least-taken file.
-      least_taken_count = min(taken_files[filename] for filename in all_files
-                              if filename not in task_state.files_finished_this_ep)
-      cur_file: Optional[Path] = None
-      for src_file in all_files:
-        # Skip files that we know we already finished with for now.
-        if src_file in task_state.files_finished_this_ep:
-          continue
-        # There are three cases where we'll accept a file as eligible:
-        # 1. We've already started working on it (but haven't finished it yet)
-        # 2. It hasn't been taken by any other worker
-        # 3. We've already finished all files that we initially claimed 
-        #    or were unclaimed, and it's the least-taken file.
-        #
-        # The condition in 3 is a bit tricky, because the condition doesn't
-        # explicitly say that we've finished all files that would satisfy
-        # condition (2). But if there is a file that satisfies condition (2),
-        # then the least_taken_count will be 0, making condition (3) just a
-        # stricter version of (2).
-        if (src_file in task_state.file_our_taken_dict.keys() or
-            taken_files[src_file] == 0 or
-            (all(filename in task_state.files_finished_this_ep 
-                 for filename in task_state.file_our_taken_dict.keys()) and
-             task_state.cur_episode == args.num_episodes - 1 and
-             taken_files[src_file] == least_taken_count)):
-           cur_file = src_file
-           break
-      # If a new file to claim was found, and we hadn't worked on it before,
-      # add a claim to it for this worker.
-      if (cur_file is not None and 
-          cur_file not in task_state.file_our_taken_dict.keys()):
-        print(cur_file, file=taken_files_handle, flush=True)
-    # If we came out of here without a file, we either need to increment our
-    # episode/skip_taken, or we're done
-    if cur_file is None:
-      break
-    # Allocate from the file in question.
-    next_te_and_idx = allocate_next_task_from_file_with_retry(
-      args, task_state.file_task_state(cur_file))
-    # If there was a task in that file, add this file and task to our taken
-    # dict, write it to our taken file, and return it.
-    if next_te_and_idx is not None:
-      task_index, (task, episode) = next_te_and_idx
-      src_path = Path(task.src_file)
-      if src_path in task_state.file_our_taken_dict:
-        task_state.file_our_taken_dict[src_path].add(task_index)
-      else:
-        task_state.file_our_taken_dict[src_path] = {task_index}
-      with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
-        print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
-      return (task, episode)
-    # Otherwise if we don't find a task in that file, then we need to mark it
-    # as finished for this episode/phase and try the next one.
-    eprint(f"Couldn't find an available task for file {cur_file}, "
-           f"trying next file...",
-           guard=args.verbose >= 2)
-    task_state.files_finished_this_ep.add(cur_file)
-  # If we leave the loop without returning, then it's time to increment our
-  # phase (cur_episode + skip_taken_proofs)
-  if task_state.cur_episode == args.num_episodes - 1:
-    # If we're on the last episode, and skip_taken_proofs is already false,
-    # then we're on the last phase, and there's nothing to return.
-    if not task_state.skip_taken_proofs:
-      return None
-    # If we're on the last episode but we're still skipping tasks within taken
-    # proofs, we can now start sharing proofs with others.
-    task_state.skip_taken_proofs = False
-  else:
-    # If we're not on the last episode yet, increment the episode
-    task_state.cur_episode += 1
-  # If we incremented the phase at all, then we have a new chance to make
-  # progress on every file, so clear the set of files finished this episode.
-  task_state.files_finished_this_ep = set()
-  # Finally, call ourselves recursively to try again with the new phase.
-  return allocate_next_task(args, workerid, task_state)
+      # Allocate from the file in question.
+      next_te_and_idx = allocate_next_task_from_file_with_retry(
+        args, task_state.file_task_state(cur_file))
+      # If there was a task in that file, add this file and task to our taken
+      # dict, write it to our taken file, and return it.
+      if next_te_and_idx is not None:
+        task_index, (task, episode) = next_te_and_idx
+        src_path = Path(task.src_file)
+        if src_path in task_state.file_our_taken_dict:
+          task_state.file_our_taken_dict[src_path].add(task_index)
+        else:
+          task_state.file_our_taken_dict[src_path] = {task_index}
+        with (args.state_dir / "taken" / f"taken-{workerid}.txt").open('a') as f:
+          print(json.dumps((task.as_dict(), episode)), file=f, flush=True)
+        return (task, episode)
+      # Otherwise if we don't find a task in that file, then we need to mark it
+      # as finished for this episode/phase and try the next one.
+      eprint(f"Couldn't find an available task for file {cur_file}, "
+             f"trying next file...",
+             guard=args.verbose >= 2)
+      task_state.files_finished_this_ep.add(cur_file)
+    # If we leave the loop without returning, then it's time to increment our
+    # phase (cur_episode + skip_taken_proofs)
+    if task_state.cur_episode == args.num_episodes - 1:
+      # If we're on the last episode, and skip_taken_proofs is already false,
+      # then we're on the last phase, and there's nothing to return.
+      if not task_state.skip_taken_proofs:
+        return None
+      # If we're on the last episode but we're still skipping tasks within taken
+      # proofs, we can now start sharing proofs with others.
+      task_state.skip_taken_proofs = False
+    else:
+      # If we're not on the last episode yet, increment the episode
+      task_state.cur_episode += 1
+    # If we incremented the phase at all, then we have a new chance to make
+    # progress on every file, so clear the set of files finished this episode.
+    task_state.files_finished_this_ep = set()
 
 def allocate_next_task_from_file_with_retry(
       args: argparse.Namespace,
