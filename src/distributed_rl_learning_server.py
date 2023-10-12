@@ -263,7 +263,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
                         verification_samples: Dict[torch.FloatTensor, int]):
   device = "cuda"
   items = list(verification_samples.items())
-  predicted_v_values = vnetwork(torch.cat([obl.view(1, -1) for obl, _ in items], dim=0))
+  predicted_v_values = vnetwork(torch.cat([obl.view(1, -1) for obl, _ in items], dim=0)).view(-1)
   predicted_steps = torch.log(predicted_v_values) / math.log(gamma)
   target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
   step_errors = torch.abs(predicted_steps - target_steps)
