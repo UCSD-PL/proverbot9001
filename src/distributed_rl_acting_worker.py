@@ -99,8 +99,8 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     successful, samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
     if next_ep == 0:
-      learning_connection.encode_and_send_target_v(samples[0][0],
-                                                   args.gamma ** next_task.target_length)
+      learning_connection.encode_and_send_target_length(samples[0][0],
+                                                        next_task.target_length)
     if successful and len(samples) < next_task.target_length:
       update_shorter_proofs_dict(args, all_files, next_task, len(samples),
                                  samples[0][0],
@@ -205,14 +205,14 @@ class LearningServerConnection:
       [pre_state] + post_states)
     self.send_sample(states_encoded[0], hash(action), states_encoded[1:])
 
-  def send_target_v(self, state_encoded: torch.FloatTensor, target_v_value: float) -> None:
+  def send_target_v(self, state_encoded: torch.FloatTensor, target_length: int) -> None:
     dist.send(tensor=torch.tensor(1, dtype=int), tag=4, dst=0)
     dist.send(tensor=state_encoded, tag=5, dst=0)
-    dist.send(tensor=target_v_value, tag=6, dst=0)
+    dist.send(tensor=torch.tensor(target_length, dtype=int), tag=6, dst=0)
 
-  def encode_and_send_target_v(self, state: Obligation, target_v_value: float) -> None:
+  def encode_and_send_target_length(self, state: Obligation, target_length: int) -> None:
     state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0]
-    self.send_target_v(state_encoded, target_v_value)
+    self.send_target_v(state_encoded, target_length)
 
 @dataclass
 class FileTaskState:
@@ -463,8 +463,7 @@ def update_shorter_proofs_dict(args: argparse.Namespace,
     for task, shorter_length in shorter_proofs_dict.items():
       print(json.dumps((task.as_dict(), shorter_length)), file=shorter_proofs_handle)
 
-  target_v_value = args.gamma ** solution_length
-  server_connection.encode_and_send_target_v(starting_state, target_v_value)
+  server_connection.encode_and_send_target_length(starting_state, solution_length)
 
 def initialize_actor(args: argparse.Namespace) \
     -> RLActor:

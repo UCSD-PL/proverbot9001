@@ -254,7 +254,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "--optimizer", args.optimizer,
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches
                       else [])
-                     + (["--verifyv-every", args.verifyv_every]
+                     + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
     total_args = ["srun"] + learner_args
     for workerid in range(num_actors):

@@ -59,7 +59,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
                                                           lr=args.learning_rate)
-  verification_states: Dict[torch.FloatTensor, float] = {}
+  verification_states: Dict[torch.FloatTensor, int] = {}
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches)
   signal_change = Event()
@@ -90,7 +90,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       common_network_version += 1
     if args.verifyv_every is not None and \
        iters_trained - last_iter_verified >= args.verifyv_every:
-      print_vvalue_errors(v_network, verification_states)
+      print_vvalue_errors(args.gamma, v_network, verification_states)
       last_iter_verified = iters_trained
 
 def train(args: argparse.Namespace, v_model: nn.Module,
@@ -138,10 +138,10 @@ def train(args: argparse.Namespace, v_model: nn.Module,
 
 class BufferPopulatingThread(Thread):
   replay_buffer: EncodedReplayBuffer
-  verification_states: Dict[torch.FloatTensor, float]
+  verification_states: Dict[torch.FloatTensor, int]
   signal_change: Event
   def __init__(self, replay_buffer: EncodedReplayBuffer,
-               verification_states: Dict[torch.FloatTensor, float],
+               verification_states: Dict[torch.FloatTensor, int],
                signal_change: Event, encoding_size: int) -> None:
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
@@ -182,14 +182,15 @@ class BufferPopulatingThread(Thread):
   def receive_verification_sample(self, sending_worker: int) -> None:
     device = "cuda"
     state_sample: torch.FloatTensor = \
-      torch.zeros(self.encoding_size, dtype=torch.float32).to(device) #type: ignore
+      torch.zeros(self.encoding_size, dtype=torch.float32)  #type: ignore
     dist.recv(tensor=state_sample, src=sending_worker, tag=5)
-    target_v_value: torch.FloatTensor = torch.zeros(1, dtype=torch.float32)
-    dist.recv(tensor=target_v_value, src=sending_worker, tag=6)
+    target_steps: torch.LongTensor = torch.zeros(1, dtype=int) #type: ignore
+    dist.recv(tensor=target_steps, src=sending_worker, tag=6)
+    state_sample = state_sample.to(device)
     if state_sample in self.verification_states:
-      assert target_v_value >= self.verification_states[state_sample], \
+      assert target_steps.item() <= self.verification_states[state_sample], \
         "Got sent a target value  less than the previously expected value for this state!"
-    self.verification_states[state_sample] = target_v_value.item()
+    self.verification_states[state_sample] = target_steps.item()
 
 EObligation = torch.FloatTensor
 ETransition = Tuple[int, Sequence[EObligation]]
@@ -258,12 +259,17 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
                      f"common-v-network-{save_num}.dat")
     old_save_path.unlink()
 
-def print_vvalue_errors(vnetwork: nn.Module,
-                        verification_samples: Dict[torch.FloatTensor, float]):
-  total_error = 0
-  for encoded_obl, target_v in verification_samples.items():
-    total_error += abs(vnetwork([encoded_obl])[0].item() - target_v)
-  eprint(f"Average V Value error across {len(verification_samples)} initial states: {total_error / len(verification_samples)}")
+def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
+                        verification_samples: Dict[torch.FloatTensor, int]):
+  device = "cuda"
+  items = list(verification_samples.items())
+  predicted_v_values = vnetwork(torch.cat([obl.view(1, -1) for obl, _ in items], dim=0))
+  predicted_steps = torch.log(predicted_v_values) / math.log(gamma)
+  target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
+  step_errors = torch.abs(predicted_steps - target_steps)
+  total_error = torch.sum(step_errors).item()
+  avg_error = total_error / len(items)
+  eprint(f"Average V Value error across {len(items)} initial states: {avg_error:.6f}")
 
 if __name__ == "__main__":
   main()
