@@ -64,6 +64,8 @@ def main() -> None:
   args = parser.parse_args()
 
   workerid = args.workerid
+  # assert 'SLURM_ARRAY_TASK_ID' in environ
+  # workerid = int(environ['SLURM_ARRAY_TASK_ID'])
 
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)

@@ -6,6 +6,7 @@ import subprocess
 import functools
 import sys
 import os
+import stat
 import json
 import time
 import re
@@ -85,6 +86,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
     parser.add_argument("--sync-workers-every", type=int, default=16)
+    parser.add_argument("--hetjob", action='store_true')
 
 def check_resume(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "common-v-network-*.dat"))) > 0
@@ -206,10 +208,9 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
     actor_job_args = (["-J", actor_jobname,
                    "-p", args.partition,
                    "-t", str(args.worker_timeout),
-                   "--mem", args.mem,
-                   "--kill-on-bad-exit"])
+                   "--mem", args.mem])
     actor_script_args = ([
-                   "python", f"{cur_dir}/distributed_rl_acting_worker.py",
+                   f"{cur_dir}/distributed_rl_acting_worker.py",
                    "--prelude", str(args.prelude),
                    "--state-dir", str(args.state_dir),
                    "-s", str(args.steps_per_episode),
@@ -239,8 +240,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "-o", str(args.state_dir / args.workers_output_dir / "learner.out"),
                      "--mem", args.mem,
                      "--gres=gpu:1",
-                     "--kill-on-bad-exit",
-                     "python", f"{cur_dir}/distributed_rl_learning_server.py",
+                     f"{cur_dir}/distributed_rl_learning_server.py",
                      "--state-dir", str(args.state_dir),
                      "-e", str(encoding_size),
                      "-l", str(args.learning_rate),
@@ -256,14 +256,37 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                       else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
-    total_args = ["srun"] + learner_args
-    for workerid in range(num_actors):
-        total_args += ([":"] + actor_job_args +
-                       ["-o", str(args.state_dir / args.workers_output_dir
-                             / f"actor-{workerid}.out")] +
-                       actor_script_args + ["-w", str(workerid)])
-    args_string = " ".join(total_args)
-    subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
+    if args.hetjob:
+        total_args = ["srun"] + learner_args
+        for workerid in range(num_actors):
+            total_args += ([":"] + actor_job_args +
+                           ["-o", str(args.state_dir / args.workers_output_dir
+                                 / f"actor-{workerid}.out")] +
+                           actor_script_args + ["-w", str(workerid)])
+    else:
+        salloc_script = (args.state_dir / "run_job.sh")
+        with salloc_script.open("w") as f:
+            print("#!/usr/bin/env bash", file=f)
+            print(" ".join(["srun"] + learner_args), file=f)
+            for workerid in range(num_actors):
+                print(" ".join(["srun"] + actor_job_args +
+                               ["-o", str(args.state_dir / args.workers_output_dir
+                                          / f"actor-{workerid}.out")] +
+                               actor_script_args +
+                               ["-w", str(workerid)]), file=f)
+        os.chmod(str(salloc_script), stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
+        total_args = ["salloc",
+                      "-p", args.partition,
+                      "-t", args.worker_timeout,
+                      "--mem", args.mem,
+                      "-n", str(num_actors + 1),
+                      "--gres=gpu:1",
+                      "-J", f"drl-all-{args.output_file}",
+                      str(salloc_script)]
+
+    str_args = " ".join(total_args)
+    util.eprint(f"Running as {str_args}")
+    subprocess.Popen(total_args)# , stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
 def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
@@ -301,6 +324,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
     scheduled_actors: List[int] = []
     crashed_actors: List[int] = []
     learner_is_scheduled = False
+    start_time = time.time()
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
               initial=num_task_eps_progress, dynamic_ncols=True) as task_eps_bar, \
          tqdm(desc="Actors scheduled", total=num_actors_dispatched,
@@ -312,14 +336,6 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             task_eps_bar.update(new_num_task_eps_progress - num_task_eps_progress)
             num_task_eps_progress = new_num_task_eps_progress
 
-            num_actors_alive = check_for_crashed_actors(args, crashed_actors)
-            # If all actors are dead, and we're not done with the
-            # jobs, print a message and exit (we'll just exit if the
-            # jobs are all done at the while condition)
-            if num_actors_alive == 0 and len(scheduled_actors) == num_actors_dispatched and num_task_eps_progress < len(all_task_eps):
-                util.eprint("All actors exited, but jobs aren't done!")
-                cancel_workers(args)
-                sys.exit(1)
             if learner_is_scheduled:
                 check_for_learning_worker(args)
             else:
@@ -331,58 +347,24 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             wbar.update(len(new_scheduled_actors) - len(scheduled_actors))
             scheduled_actors = new_scheduled_actors
 
+            if len(scheduled_actors) == 0 and not learner_is_scheduled and \
+               time.time() - start_time > 5 * 60 and args.hetjob:
+                util.eprint("Het job is taking too long to schedule, and could "
+                            "be blocking other jobs from getting scheduled, "
+                            "so we're cancelling it. Try rerunning without --hetjob!")
+                cancel_workers(args)
+                sys.exit(1)
+
 def check_for_learning_worker(args: argparse.Namespace) -> None:
     # If the syncing worker dies, print a message and exit
     squeue_output = subprocess.check_output(
-        f"squeue -r -u$USER -h -n drl-learner-{args.output_file}",
+        f"squeue -r -u$USER -h -n drl-learner-{args.output_file} -n drl-all-{args.output_file}",
         shell=True, text=True)
     if squeue_output.strip() == "":
         util.eprint("Learning server died! Check the logs for more details. "
                     "Exiting...")
         cancel_workers(args)
         sys.exit(1)
-
-def check_for_crashed_actors(args: argparse.Namespace, 
-                             crashed_actors: List[int]) -> int:
-    # Get the workers that are alive
-    cur_dir = os.path.realpath(os.path.dirname(__file__))
-    squeue_output = subprocess.check_output(
-        f"{cur_dir}/squeue-retry.sh -r -u$USER -h -n drl-actor-{args.output_file} -OHetJobOffset",
-        shell=True, text=True)
-    new_workers_alive = [int(wid) - 1 for wid in
-                         squeue_output.strip().split("\n")
-                         if wid != ""]
-    # Wait a bit between doing this and checking the tasks
-    # done. This is because a worker might finish and stop
-    # showing up in squeue before it's writes to the "done"
-    # file are fully propagated.
-    time.sleep(0.1)
-    # Check for newly crashed workers
-    for worker_id in range(args.num_actors):
-        # Skip any living worker
-        if worker_id in new_workers_alive:
-            continue
-        # Skip any worker for which we've already reported a crash
-        if worker_id in crashed_actors:
-            continue
-        # Get the jobs taken by workers.
-        with (args.state_dir / "taken" / f"taken-{worker_id}.txt").open('r') as f:
-            taken_by_worker = [(RLTask(**task_dict), episode)
-                               for l in f
-                               for task_dict, episode in (json.loads(l),)]
-        with (args.state_dir / f"done-{worker_id}.txt").open('r') as f:
-            done_by_worker = [(RLTask(**task_dict), episode)
-                              for l in f
-                              for task_dict, episode in (json.loads(l),)]
-        task_eps_left_behind = 0
-        for task_ep in taken_by_worker:
-            if task_ep not in done_by_worker:
-                task_eps_left_behind += 1
-        if task_eps_left_behind > 0:
-            util.eprint(f"Worker {worker_id} crashed! "
-                        f"Left behind {task_eps_left_behind} task episodes")
-            crashed_actors.append(worker_id)
-    return len(new_workers_alive) - len(crashed_actors)
 
 def get_num_task_eps_done(args: argparse.Namespace) -> int:
     num_task_eps_done: int = 0
