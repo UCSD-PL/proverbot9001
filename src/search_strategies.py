@@ -10,6 +10,7 @@ import math
 from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast
 from dataclasses import dataclass, field
 from pathlib import Path
+import random
 
 import pygraphviz as pgv
 from tqdm import tqdm, trange
@@ -688,7 +689,7 @@ def combo_b_search(lemma_name: str,
                           output_dir: Path,
                           args: argparse.Namespace,
                           bar_idx: int,
-                          predictor: TacticPredictor, prefix=None) \
+                          predictor_list: [TacticPredictor]) \
                           -> SearchResult:
     #hasUnexploredNode = False
     #g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
@@ -697,9 +698,6 @@ def combo_b_search(lemma_name: str,
 
     #features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
     # Run proof script so far
-    if prefix is not None:
-        for prefix_statement in prefix:
-            coq.run_stmt(prefix_statement)
 
     initial_history_len = len(coq.tactic_history.getFullHistory())
     # TODO: what is the search prefix
@@ -711,60 +709,85 @@ def combo_b_search(lemma_name: str,
     full_context_before = FullContext(relevant_lemmas,
                                           coq.prev_tactics,
                                           unwrap(coq.proof_context))
-    predictions = predictor.predictKTactics(args,
-        truncate_tactic_context(full_context_before.as_tcontext(),
-                                args.max_term_length),
-        args.max_attempts,
-        blacklist=args.blacklisted_tactics)
-    assert len(predictions) == args.max_attempts
-    if coq.use_hammer:
-        predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                  prediction.certainty)
-                       for prediction in predictions]
-    for _prediction_idx, prediction in enumerate(predictions):
-        try:
-            context_after, num_stmts, \
-                subgoals_closed, subgoals_opened, \
-                error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction, time.time())
-                # figure out time
-                # tryPrediction(args, coq, prediction.prediction,
-                #             time_on_path(current_path[-1]))
-            if error:
-                # figuring out implimentation for context in history
-                if contextIsBig(context_after): #or \
-                        #contextInHistory(context_after, prediction_node):
-                    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                    continue
-                if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
-                    if args.count_softfail_predictions:
-                        num_successful_predictions += 1
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                    continue
-                if completed_proof(coq):
-                    return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, prediction.prediction, 0)
-            else: 
-                return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, prediction.prediction, 0)
-        except coq_serapy.CoqAnomaly:
-            predictionNode = g.mkNode(prediction,
-                                      full_context_before,
-                                      current_path[-1])
-            g.setNodeColor(predictionNode, "grey25")
-            if lemma_name == "":
-                unnamed_goal_number += 1
-                g.draw(f"{output_dir}/{module_prefix}"
-                       f"{unnamed_goal_number}.svg")
-            else:
-                if args.features_json:
-                    g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                      f"{lemma_name}.json")
-                g.draw(f"{output_dir}/{module_prefix}"
-                       f"{lemma_name}.svg")
+    steps_taken = 0
+    # Empty proof scripts set 
+    proof_scripts = {tuple([])}
+    steps_taken = 1 
+    search_status = SearchStatus.INCOMPLETE
+    max_steps = 100
+    while steps_taken < max_steps and search_status != SearchStatus.SUCCESS:
+        # pick script to continue
+        script_to_continue = random.choice(list(proof_scripts))
+        print("script continuing...")
+        print(script_to_continue)
+        # remove it from the set
+        proof_scripts.remove(script_to_continue)
+        for script_statement in script_to_continue:
+            coq.run_stmt(script_statement)
+        for apredictor in predictor_list:
+            predictions = apredictor.predictKTactics(args,
+                truncate_tactic_context(full_context_before.as_tcontext(),
+                                        args.max_term_length),
+                args.max_attempts,
+                blacklist=args.blacklisted_tactics)
+            assert len(predictions) == args.max_attempts
+            if coq.use_hammer:
+                predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
+                                          prediction.certainty)
+                               for prediction in predictions]
+            for _prediction_idx, prediction in enumerate(predictions):
+                try:
+                    context_after, num_stmts, \
+                        subgoals_closed, subgoals_opened, \
+                        error, time_taken, unshelved = \
+                            tryPrediction(args, coq, prediction.prediction, time.time())
+                        # figure out time
+                        # tryPrediction(args, coq, prediction.prediction,
+                        #             time_on_path(current_path[-1]))
+                    if error:
+                        # figuring out implimentation for context in history
+                        if contextIsBig(context_after): #or \
+                                #contextInHistory(context_after, prediction_node):
+                            eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                            for _ in range(num_stmts):
+                                coq.cancel_last()
+                            continue
+                        if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
+                            if args.count_softfail_predictions:
+                                num_successful_predictions += 1
+                            for _ in range(num_stmts):
+                                coq.cancel_last()
+                            continue
+                        if completed_proof(coq):
+                            for _ in range(num_stmts):
+                                coq.cancel_last()
+                            return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, script_to_continue + tuple([prediction.prediction]), 0)
+                    else: 
+                        add_script = script_to_continue + tuple([prediction.prediction]) 
+                        proof_scripts.add(add_script)
+                        # Return us to before running the prediction, so we're ready for
+                        # the next one.
+                        for _ in range(num_stmts):
+                            coq.cancel_last()
+                        break
+                except coq_serapy.CoqAnomaly:
+                    if lemma_name == "":
+                        eprint("encountered unnamed goal!")
+                        #unnamed_goal_number += 1
+                        #g.draw(f"{output_dir}/{module_prefix}"
+                        #       f"{unnamed_goal_number}.svg")
+                    else:
+                        eprint("coqanomaly without unnamed goal!")
+                        #if args.features_json:
+                        #    g.write_feat_json(f"{output_dir}/{module_prefix}"
+                        #                      f"{lemma_name}.json")
+                        #g.draw(f"{output_dir}/{module_prefix}"
+                        #       f"{lemma_name}.svg")
 
-            raise
+                    raise
+        steps_taken += 1
+        for _ in range(len(script_to_continue)):
+            coq.cancel_last()
         #do not have a progress bar here right now
         #pbar.update(1)
         #assert cast(TqdmSpy, pbar).n > 0

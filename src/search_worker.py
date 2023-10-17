@@ -350,6 +350,7 @@ class SearchWorker(Worker):
         self.predictor = predictor
 
     def run_job_with_random(self, job: ReportJob, restart: bool = True) -> SearchResult:
+        print("running job with random")
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
@@ -371,39 +372,18 @@ class SearchWorker(Worker):
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
+        predictor_list = []
+        for predfile in self.args.combo_weightsfiles:
+            predictor_list.append(get_predictor_by_path(predfile))
+
         try:
-            # Empty proof scripts set 
-            proof_scripts = {tuple([])}
-            steps_taken = 1 
-            search_status = SearchStatus.INCOMPLETE
-            # TODO: how to approach max steps? which value? grab from args? how to end if max steps is reached? tactic_solution = None?
-            max_steps = 100
-            while steps_taken < max_steps and search_status != SearchStatus.SUCCESS:
-                # pick script to continue
-                script_to_continue = random.choice(list(proof_scripts))
-                # remove it from the set
-                proof_scripts.remove(script_to_continue)
-                # get a random predictor
-                curr_predictor = get_random_predictor(self.args) # not sure whether to get the random predictor here in search_file.py/search_file_cluster_worker.py?
-                search_status, _, last_tactic, steps_taken = \
-                  attempt_search(self.args, job_lemma,
-                                 self.coq.sm_prefix,
-                                 context_lemmas,
-                                 self.coq,
-                                 self.args.output_dir / self.cur_project,
-                                 self.widx, curr_predictor, script_to_continue)
-                # add new proof script to set 
-                if last_tactic is not None:
-                    # if search status is success in the next while check, this is the successful script that gets propagated
-                    # TODO: is this the way to do this?
-                    tactic_solution = script_to_continue + tuple([last_tactic]) 
-                    proof_scripts.add(tactic_solution)
-                eprint("current proof script that I just added to:")
-                eprint(tactic_solution)
-                # add step to steps taken 
-                steps_taken += 1
-            # add hopefully successful solution to done
-            done.put((next_job, solution))
+            search_status, _, tactic_solution, steps_taken = \
+              attempt_search(self.args, job_lemma,
+                             self.coq.sm_prefix,
+                             context_lemmas,
+                             self.coq,
+                             self.args.output_dir / self.cur_project,
+                             self.widx, self.predictor, predictor_list)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
@@ -577,7 +557,7 @@ def attempt_search(args: argparse.Namespace,
                    output_dir: Path,
                    bar_idx: int,
                    predictor: TacticPredictor, 
-                   prefix=None) \
+                   predictor_list=None) \
         -> SearchResult:
 
     # TODO: should probably specify prefix is tuple of strings
@@ -615,7 +595,7 @@ def attempt_search(args: argparse.Namespace,
             result = combo_b_search(lemma_name, module_prefix,
                                            context_lemmas, coq,
                                            output_dir,
-                                           args, bar_idx, predictor, prefix)
+                                           args, bar_idx, predictor_list)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
                                              context_lemmas, coq,
@@ -676,23 +656,15 @@ def get_predictor(args: argparse.Namespace, allow_static_predictor: bool = True)
 def get_random_predictor(args: argparse.Namespace, allow_static_predictor: bool = True) -> TacticPredictor:
     predictor: TacticPredictor
     if args.combo_weightsfiles:
-        predictor = loadPredictorByFile(random.choice(args.combo_weightsfiles))
-    elif allow_static_predictor and args.predictor: #TODO: probably don't need this
-        predictor = loadPredictorByName(args.predictor)
+        predictor = loadPredictorByFile(args.combo_weightsfiles)
     else:
         raise ValueError("Can't load a predictor from given args!")
     return predictor
 
-def get_one_predictor(args: argparse.Namespace, allow_static_predictor: bool = True) -> TacticPredictor:
+def get_predictor_by_path(predictor_path, allow_static_predictor: bool = True) -> TacticPredictor:
     predictor: TacticPredictor
-    if args.weightsfiles:
-        predictor = loadPredictorByFile(random.choice(args.weightsfiles))
-    elif allow_static_predictor and args.predictor:
-        predictor = loadPredictorByName(args.predictor)
-    else:
-        raise ValueError("Can't load a predictor from given args!")
+    predictor = loadPredictorByFile(predictor_path)
     return predictor
-
 
 def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
     if args.splits_file:

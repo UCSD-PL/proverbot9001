@@ -226,7 +226,7 @@ def search_file_worker(args: argparse.Namespace,
     predictor = get_predictor(args)
 
     # util.use_cuda = False
-    if util.use_cuda:
+    if torch_util.use_cuda:
         torch.cuda.set_device(device) # type: ignore
     util.cuda_device = device
 

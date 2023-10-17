@@ -118,6 +118,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                 else:
                     eprint(f"Finished thread {threadid}")
                     break
+            print(args.search_type)
             if not args.search_type == 'combo-b':
                 solution = worker.run_job(current_job)
             else:
