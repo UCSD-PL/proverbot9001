@@ -80,7 +80,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--workers-output-dir", default=Path("output"),
                         type=Path)
     parser.add_argument("--worker-timeout", default="6:00:00")
-    parser.add_argument("--partition", default="cpu")
+    parser.add_argument("--partition", default="gypsum-2080ti")
     parser.add_argument("--learning-partition", default="gpu")
     parser.add_argument("--mem", default="2G")
     parser.add_argument("--state-dir", default="drl_state", type=Path)
@@ -267,19 +267,22 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
         salloc_script = (args.state_dir / "run_job.sh")
         with salloc_script.open("w") as f:
             print("#!/usr/bin/env bash", file=f)
-            print(" ".join(["srun"] + learner_args), file=f)
+            print(" ".join(["srun", "-N1"] + learner_args + ["&"]), file=f)
             for workerid in range(num_actors):
-                print(" ".join(["srun"] + actor_job_args +
+                print(" ".join(["srun", "-N1"] + actor_job_args +
                                ["-o", str(args.state_dir / args.workers_output_dir
-                                          / f"actor-{workerid}.out")] +
+                                          / f"actor-{workerid}.out"),
+                               # "-r", str(workerid + 1)
+                               ] +
                                actor_script_args +
-                               ["-w", str(workerid)]), file=f)
+                               ["-w", str(workerid), "&"]), file=f)
+            print("wait", file=f)
         os.chmod(str(salloc_script), stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
         total_args = ["salloc",
                       "-p", args.partition,
                       "-t", args.worker_timeout,
                       "--mem", args.mem,
-                      "-n", str(num_actors + 1),
+                      "-N", str(num_actors + 1),
                       "--gres=gpu:1",
                       "-J", f"drl-all-{args.output_file}",
                       str(salloc_script)]
@@ -337,7 +340,8 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             num_task_eps_progress = new_num_task_eps_progress
 
             if learner_is_scheduled:
-                check_for_learning_worker(args)
+                pass
+                # check_for_learning_worker(args)
             else:
                 learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
             # Get the new scheduled actors, and update the worker
