@@ -14,17 +14,27 @@ from threading import Thread, Lock, Event
 from pathlib import Path
 from typing import List, Set, Optional, Dict, Tuple, Sequence
 
+print("Finished std imports", file=sys.stderr)
+
 import torch
+print("Finished main torch import", file=sys.stderr)
 from torch import nn
+print("Finished nn import", file=sys.stderr)
 import torch.nn.functional as F
+print("Finished functional import", file=sys.stderr)
 from torch import optim
+print("Finished optim import", file=sys.stderr)
 import torch.distributed as dist
 
+print("Finished torch imports", file=sys.stderr)
 # pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
 from rl import model_setup, optimizers
-from util import eprint, unwrap
+print("Imported rl model setup", file=sys.stderr)
+from util import eprint, unwrap, print_time
 # pylint: enable=wrong-import-position
+eprint("Finished imports")
+
 
 def main() -> None:
   eprint("Starting main")
@@ -81,7 +91,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       train(args, v_network, target_network, optimizer, replay_buffer)
       iters_trained += 1
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
-      eprint("Syncing target network")
+      eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
       steps_last_synced_target = replay_buffer.buffer_steps
       target_network.load_state_dict(v_network.state_dict())
     if replay_buffer.buffer_steps - steps_last_synced_workers >= args.sync_workers_every:
