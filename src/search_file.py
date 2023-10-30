@@ -60,6 +60,9 @@ import torch
 start_time = datetime.now()
 
 
+from memory_profiler import profile
+
+
 
 def main(arg_list: List[str]) -> None:
     multiprocessing.set_start_method('spawn')
@@ -212,6 +215,7 @@ def search_file_worker_profiled(
                     'predictor_lock, jobs, done, worker_idx, device)',
                     globals(), locals(), 'searchstats-{}'.format(worker_idx))
 
+@profile
 def search_file_worker(args: argparse.Namespace,
                        jobs: 'multiprocessing.Queue[ReportJob]',
                        done:
@@ -226,10 +230,11 @@ def search_file_worker(args: argparse.Namespace,
     predictor = get_predictor(args)
 
     # util.use_cuda = False
+    print("cuda device")
     if torch_util.use_cuda:
         torch.cuda.set_device(device) # type: ignore
     util.cuda_device = device
-
+    print("end cuda devcie", flush=True)
     if args.splits_file:
         with args.splits_file.open('r') as f:
             project_dicts = json.loads(f.read())
@@ -240,9 +245,12 @@ def search_file_worker(args: argparse.Namespace,
             switch_dict = None
     else:
         switch_dict = None
-
+    print("end splits file", flush=True)
     with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
+        print("I am starting a worker", flush=True)
+        exit(0)
         while True:
+            print("started", flush=True)
             try:
                 next_job = jobs.get_nowait()
             except queue.Empty:
@@ -250,6 +258,7 @@ def search_file_worker(args: argparse.Namespace,
             if not args.search_type == 'combo-b':
                 solution = worker.run_job(next_job, restart=not args.hardfail)
             else:
+                print("running job with random?")
                 solution = worker.run_job_with_random(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
     '''
@@ -393,6 +402,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
                 pass
 
 def search_file_multithreaded(args: argparse.Namespace) -> None:
+    print("HELLO")
     global start_time
     os.makedirs(str(args.output_dir), exist_ok=True)
     start_time = datetime.now()
@@ -418,6 +428,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
         for job in todo_jobs:
             print(job)
         sys.exit(0)
+    print("about to begin multiprocessing")
     with multiprocessing.Manager() as manager:
         jobs: multiprocessing.Queue[ReportJob] = multiprocessing.Queue()
         done: multiprocessing.Queue[
@@ -426,6 +437,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
 
         for job in todo_jobs:
+            print("putting jobs")
             jobs.put(job)
 
         num_threads = min(args.num_threads,
@@ -435,20 +447,25 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
                 gpu_list = args.gpus.split(",")
             else:
                 gpu_list = [args.gpu]
+            print("worker devices?")
             worker_devices = [f"cuda:{gpu_idx}" for gpu_idx
                               in gpu_list[:min(len(gpu_list), num_threads)]]
+            print("over worker devices?")
         else:
             assert args.gpus is None, "Passed --gpus flag, but CUDA is not supported!"
             worker_devices = ["cpu"]
         # This cast appears to be needed due to a buggy type stub on
         # multiprocessing.Manager()
+        print("workers?")
         workers = [multiprocessing.Process(target=search_file_worker,
                                            args=(args,
                                                  jobs, done, widx,
                                                  worker_devices[widx % len(worker_devices)]))
                    for widx in range(num_threads)]
+        print("starting workers?")
         for worker in workers:
             worker.start()
+        print("started workers")
         num_already_done = len(solved_jobs)
         os.makedirs(args.output_dir, exist_ok=True)
         with util.sighandler_context(signal.SIGINT, functools.partial(exit_early, args)):

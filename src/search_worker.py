@@ -333,12 +333,16 @@ class SearchWorker(Worker):
     def __init__(self, args: argparse.Namespace, worker_idx: int,
                  predictor: TacticPredictor,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
+        print("initting init", flush=True)
         super().__init__(args, switch_dict)
+        print("initted init", flush=True)
         self.widx = worker_idx
         self.predictor = predictor
         self.axioms_already_added = False
+        print("initted searchworker", flush=True)
 
     def enter_file(self, filename: str) -> None:
+        print("entering file")
         super().enter_file(filename)
         self.axioms_already_added = False
 
@@ -348,6 +352,8 @@ class SearchWorker(Worker):
 
     def set_predictor(self, predictor:TacticPredictor) -> None:
         self.predictor = predictor
+        print("set predictor")
+        exit()
 
     def run_job_with_random(self, job: ReportJob, restart: bool = True) -> SearchResult:
         print("running job with random")
@@ -437,6 +443,7 @@ class SearchWorker(Worker):
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
+        print("running job without random")
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
@@ -458,10 +465,10 @@ class SearchWorker(Worker):
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
-        # Run proof script so far
-        if prefix is not None:
-            for prefix_statement in prefix:
-                self.coq.run_stmt(prefix_statement)
+        ## Run proof script so far
+        #if prefix is not None:
+        #    for prefix_statement in prefix:
+        #        self.coq.run_stmt(prefix_statement)
         try:
             search_status, _, tactic_solution, steps_taken = \
               attempt_search(self.args, job_lemma,

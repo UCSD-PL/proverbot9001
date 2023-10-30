@@ -120,8 +120,10 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                     break
             print(args.search_type)
             if not args.search_type == 'combo-b':
+                eprint("running job without random!!!")
                 solution = worker.run_job(current_job)
             else:
+                eprint("running job with random!!!")
                 solution = worker.run_job_with_random(current_job)
             job_project, job_file, _, _ = current_job
             project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]

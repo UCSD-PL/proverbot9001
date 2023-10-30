@@ -11,6 +11,7 @@ from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast
 from dataclasses import dataclass, field
 from pathlib import Path
 import random
+from random import shuffle
 
 import pygraphviz as pgv
 from tqdm import tqdm, trange
@@ -715,15 +716,17 @@ def combo_b_search(lemma_name: str,
     steps_taken = 1 
     search_status = SearchStatus.INCOMPLETE
     max_steps = 100
+    context_set = {}
     while steps_taken < max_steps and search_status != SearchStatus.SUCCESS:
         # pick script to continue
         script_to_continue = random.choice(list(proof_scripts))
-        print("script continuing...")
-        print(script_to_continue)
+        eprint("script continuing...")
+        eprint(script_to_continue)
         # remove it from the set
         proof_scripts.remove(script_to_continue)
         for script_statement in script_to_continue:
             coq.run_stmt(script_statement)
+        shuffle(predictor_list)
         for apredictor in predictor_list:
             predictions = apredictor.predictKTactics(args,
                 truncate_tactic_context(full_context_before.as_tcontext(),
@@ -745,30 +748,46 @@ def combo_b_search(lemma_name: str,
                         # tryPrediction(args, coq, prediction.prediction,
                         #             time_on_path(current_path[-1]))
                     if error:
-                        # figuring out implimentation for context in history
-                        if contextIsBig(context_after): #or \
-                                #contextInHistory(context_after, prediction_node):
-                            eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                            for _ in range(num_stmts):
+                        #if args.count_failing_predictions:
+                        #    num_successful_predictions += 1
+                        #prediction_node.setNodeColor("red")
+                        continue
+                    # Check if we've gone in circles
+                    if context_after in context_set:
+                        #if args.count_softfail_predictions:
+                        #    num_successful_predictions += 1
+                        eprint(f"Prediction in history", guard=args.verbose >= 2)
+                        #prediction_node.setNodeColor("orange")
+                        for _ in range(num_stmts):
+                            if coq.proof_context:
                                 coq.cancel_last()
-                            continue
-                        if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
-                            if args.count_softfail_predictions:
-                                num_successful_predictions += 1
-                            for _ in range(num_stmts):
+                        continue
+                    #num_successful_predictions += 1
+                    # Check if the resulting context is too big
+                    context_set.add(context_after)
+                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
+                      contextIsBig(context_after):
+                        if args.count_softfail_predictions:
+                            num_successful_predictions += 1
+                        prediction_node.setNodeColor("orange")
+                        for _ in range(num_stmts):
+                            if coq.proof_context:
                                 coq.cancel_last()
-                            continue
-                        if completed_proof(coq):
-                            for _ in range(num_stmts):
+                        continue
+                    # Check if the proof is done
+                    if completed_proof(coq):
+                        for _ in range(num_stmts):
+                            if coq.proof_context:
                                 coq.cancel_last()
-                            return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, script_to_continue + tuple([prediction.prediction]), 0)
+                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, script_to_continue + tuple([prediction.prediction]), 0)
                     else: 
                         add_script = script_to_continue + tuple([prediction.prediction]) 
                         proof_scripts.add(add_script)
                         # Return us to before running the prediction, so we're ready for
                         # the next one.
                         for _ in range(num_stmts):
-                            coq.cancel_last()
+                            if coq.proof_context:
+                                coq.cancel_last()
                         break
                 except coq_serapy.CoqAnomaly:
                     if lemma_name == "":
@@ -787,7 +806,10 @@ def combo_b_search(lemma_name: str,
                     raise
         steps_taken += 1
         for _ in range(len(script_to_continue)):
-            coq.cancel_last()
+            if coq.proof_context:
+                coq.cancel_last()
+            else:
+                coq.run_stmt(lemma_name) #? this?
         #do not have a progress bar here right now
         #pbar.update(1)
         #assert cast(TqdmSpy, pbar).n > 0
