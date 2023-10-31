@@ -655,10 +655,10 @@ def main():
 
     for filename in arg_values.filenames:
         if arg_values.verbose:
-            eprint("Linearizing {}".format(filename))
+            eprint(f"Linearizing {filename}")
         local_filename = arg_values.prelude + "/" + filename
         original_commands = serapi_instance.load_commands_preserve(
-            arg_values, 0, arg_values.prelude + "/" + filename)
+            arg_values, 0, local_filename)
         try:
             fresh_commands = preprocess_file_commands(
                 arg_values, 0, original_commands,
