@@ -622,8 +622,7 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
         first_line = f.readline().strip()
         if ignore_lin_hash or hash_file(filename) == first_line:
             return serapi_instance.read_commands(f.read())
-        else:
-            return None
+        return None
 
 
 def save_lin(commands: List[str], filename: str, text_encoding: str) -> None:
