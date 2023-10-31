@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 ##########################################################################
 #
 #    This file is part of Proverbot9001.
