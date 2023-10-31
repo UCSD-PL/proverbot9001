@@ -620,7 +620,8 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
     text_encoding = vars(args).get('text_encoding', 'utf-8')
     with lin_path.open(mode='r', encoding=text_encoding) as f:
         first_line = f.readline().strip()
-        if ignore_lin_hash or hash_file(filename) == first_line:
+        hash_str = first_line[3:-3]
+        if ignore_lin_hash or hash_file(filename) == hash_str:
             return serapi_instance.read_commands(f.read())
         return None
 
@@ -628,7 +629,7 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
 def save_lin(commands: List[str], filename: str, text_encoding: str) -> None:
     output_file = filename + '.lin'
     with open(output_file, 'w', encoding=text_encoding) as f:
-        print(hash_file(filename), file=f)
+        print(f"(* {hash_file(filename)} *)", file=f)
         for command in commands:
             print(command, file=f)
 
