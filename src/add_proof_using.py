@@ -52,16 +52,16 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
                 suggestion_match = re.match(
                     r".*\n?The proof of ([^ \n]+)(?: |\n)"
                     r"should start with one of the following commands:"
-                    r"(?: |\n)(Proof using[^.]+\.)",
+                    r"(?: |\n)Proof using\s*([^.]+)\.",
                     coq.backend.feedback_string, re.DOTALL)
-                suggested_command = unwrap(suggestion_match).group(2) + "\n"
-                if cur_proof_commands[0].strip() == "Proof.":
-                    cur_proof_commands[0] = suggested_command
+                suggested_deps = unwrap(suggestion_match).group(2)
+                proof_cmd_match = re.match(r"(Proof\s*[^.]+)\.",
+                                           cur_proof_commands[0].strip())
+                if proof_cmd_match:
+                    proof_cmd_prefix = proof_cmd_match.group(1)
+                    cur_proof_commands[0] = proof_cmd_prefix + " using " + suggested_deps + ".\n"
                 else:
-                    # If there's a Proof command with extra annotations,
-                    # just leave the original.
-                    if not re.match(r"Proof\s+[^.]+\.", cur_proof_commands[0].strip()):
-                        cur_proof_commands.insert(0, suggested_command)
+                    cur_proof_commands.insert(0, "Proof using " + suggested_deps + ".\n")
 
             yield from cur_proof_commands
             cur_proof_commands = []
