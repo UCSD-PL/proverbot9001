@@ -648,6 +648,7 @@ def main():
     parser.add_argument("--linearizer-timeout",
                         type=int, default=(60 * 60 * 2))
     parser.add_argument("--text-encoding", default='utf-8', type=str)
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     arg_values = parser.parse_args()
 
@@ -657,6 +658,10 @@ def main():
         if arg_values.verbose:
             eprint(f"Linearizing {filename}")
         local_filename = arg_values.prelude + "/" + filename
+        if arg_values.resume:
+            cmds = try_load_lin(arg_values, 0, local_filename)
+            if cmds is not None:
+                return
         original_commands = serapi_instance.load_commands_preserve(
             arg_values, 0, local_filename)
         try:
