@@ -1510,7 +1510,8 @@
         ],
         "test_files": [],
         "switch": "coq-8.10",
-        "build_command": "./configure -local && make"
+        "build_command": "./configure -local && make",
+        "extra_flags": "--allow-sprop"
     },
     {
         "project_name": "railroad-crossing",

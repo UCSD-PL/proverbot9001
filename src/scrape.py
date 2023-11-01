@@ -68,6 +68,7 @@ def main():
     parser.add_argument("-s", "--switch", default=None, type=str)
     parser.add_argument("--sertop-flags", default=None, type=str)
     parser.add_argument("--text-encoding", default='utf-8', type=str)
+    parser.add_argument("--allow-sprop", action="store_true")
     parser.add_argument('inputs', nargs="+", help="proof file name(s) (*.v)")
     args = parser.parse_args()
 
@@ -150,6 +151,8 @@ def scrape_file(coqargs: List[str], args: argparse.Namespace,
                 prelude, args.relevant_lemmas == "hammer") as coq:
             coq.verbose = args.verbose
             try:
+                if args.allow_sprop:
+                   coq.run_stmt("Set Allow StrictProp.")
                 with open(temp_file, 'w') as f:
                     for command in tqdm(commands, file=sys.stderr,
                                         disable=(not args.progress),

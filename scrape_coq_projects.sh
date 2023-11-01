@@ -29,6 +29,12 @@ for project in $TARGETS; do
         PRELUDE=""
         echo "No prelude"
     fi
+    if $(jq -e ".[] | select(.project_name == \"$project\") | has(\"extra_flags\")" \
+         coqgym_projs_splits.json); then
+        EXTRA_FLAGS=$(jq -r ".[] | select(.project_name == \"$project\") | .extra_flags" coqgym_projs_splits.json)
+    else
+        EXTRA_FLAGS=""
+    fi
     FILES=$(echo $(jq -r ".[] | select(.project_name == \"$project\") | (.test_files[], .train_files[])" coqgym_projs_splits.json))
     if [ -z "$FILES" ]; then
         continue
@@ -39,7 +45,7 @@ for project in $TARGETS; do
 
     echo "eval \"$(opam env --set-switch --switch=$SWITCH)\"" >> coq-projects/$project/scrape.sh
 
-    echo "./src/scrape.py -c --prelude=./coq-projects/$project/$PRELUDE \$@ ${FILES} > /dev/null" >> coq-projects/$project/scrape.sh
+    echo "./src/scrape.py $EXTRA_FLAGS -c --prelude=./coq-projects/$project/$PRELUDE \$@ ${FILES} > /dev/null" >> coq-projects/$project/scrape.sh
     chmod u+x coq-projects/$project/scrape.sh
     set -x
     ./src/sbatch-retry.sh --time=6:00:00 --cpus-per-task=${NTHREADS} -o "coq-projects/$project/scrape-output.out" "coq-projects/$project/scrape.sh"
