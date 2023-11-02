@@ -2040,7 +2040,8 @@
             "src/Show.v"
         ],
         "test_files": [],
-        "switch": "coq-8.10"
+        "switch": "coq-8.10",
+        "extra_flags": "--sertop-flags=\"-Q .,\\\"\\\"\""
     },
     {
         "project_name": "CompCert",
