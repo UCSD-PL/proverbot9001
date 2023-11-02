@@ -34,6 +34,7 @@ from search_file import (add_args_to_parser, get_predictor,
                          SearchWorker, project_dicts_from_args)
 import util
 from util import eprint, FileLock
+import torch_util
 
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
@@ -59,9 +60,9 @@ def main(arg_list: List[str]) -> None:
         args.filenames = []
 
     sys.setrecursionlimit(100000)
-    if util.use_cuda:
+    if torch_util.use_cuda:
         torch.cuda.set_device("cuda:0")
-        util.cuda_device = "cuda:0"
+        torch_util.cuda_device = "cuda:0"
 
     if not args.predictor and not args.weightsfile:
         print("You must specify a weightsfile or a predictor.")
