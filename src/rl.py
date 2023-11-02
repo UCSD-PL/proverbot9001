@@ -404,7 +404,7 @@ def possibly_resume_rworker(args: argparse.Namespace) \
             if args.start_from is not None:
                _, _, _, network_state, \
                  tnetwork_state, shorter_proofs_dict, _ = \
-                   torch.load(str(args.output_file), map_location=device)
+                   torch.load(str(args.start_from), map_location=device)
                v_network.load_state(network_state)
                target_network.load_state(tnetwork_state)
                assert v_network.network
