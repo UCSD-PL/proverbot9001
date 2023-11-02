@@ -446,6 +446,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             with nostderr():
                 worker.v_network.adjuster.step()
 
+    step = 0
     for step, task in enumerate(tqdm(task_episodes[steps_already_done:],
                                      initial=steps_already_done,
                                      total=len(task_episodes)),
@@ -464,7 +465,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
             save_state(args, worker, shorter_proofs_dict, step + 1)
         if args.verifyv_every is not None and (step + 1) % args.verifyv_every == 0:
             verify_vvals(args, worker, [task], shorter_proofs_dict)
-    if steps_already_done < len(task_episodes):
+    if steps_already_done < len(task_episodes) or len(task_episodes) == 0:
         with print_time("Saving"):
             save_state(args, worker, shorter_proofs_dict, step)
     if args.evaluate or args.evaluate_baseline or args.evaluate_random_baseline:
