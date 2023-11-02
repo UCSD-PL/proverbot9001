@@ -29,7 +29,7 @@ import torch.distributed as dist
 print("Finished torch imports", file=sys.stderr)
 # pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
-from rl import model_setup, optimizers
+from rl import model_setup, optimizers, ReplayBuffer
 print("Imported rl model setup", file=sys.stderr)
 from util import eprint, unwrap, print_time
 # pylint: enable=wrong-import-position
@@ -52,6 +52,7 @@ def main() -> None:
   parser.add_argument("--sync-workers-every", type=int, default=16)
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
   parser.add_argument("--verifyv-every", type=int, default=None)
+  parser.add_argument("--start-from", type=Path, default=None)
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -65,6 +66,13 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   assert torch.cuda.is_available(), "Training node doesn't have CUDA available!"
   device = "cuda"
   v_network: nn.Module = model_setup(args.encoding_size).to(device)
+  if args.start_from is not None:
+    _, _, _, network_state, \
+      tnetwork_state, shorter_proofs_dict, _ = \
+        torch.load(str(args.start_from), map_location=device)
+    eprint(f"Loading initial weights from {args.start_from}")
+    inner_network_state, _encoder_state, _obl_cache = network_state
+    v_network.load_state_dict(inner_network_state)
   target_network: nn.Module = model_setup(args.encoding_size).to(device)
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),

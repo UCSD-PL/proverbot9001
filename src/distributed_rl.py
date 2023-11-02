@@ -254,6 +254,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "--optimizer", args.optimizer,
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches
                       else [])
+                     + (["--start-from", str(args.start_from)]
+                        if args.start_from is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
     if args.hetjob:
