@@ -55,6 +55,8 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
                     r"(?: |\n)Proof using\s*([^.]+)\.",
                     coq.backend.feedback_string, re.DOTALL)
                 suggested_deps = unwrap(suggestion_match).group(2)
+                if suggested_deps.strip() == "":
+                    suggested_deps = "Type"
                 proof_cmd_match = re.match(r"(Proof\s*[^.]*)\.",
                                            cur_proof_commands[0].strip())
                 if proof_cmd_match:
