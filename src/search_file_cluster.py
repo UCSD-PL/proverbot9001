@@ -164,9 +164,17 @@ def get_all_jobs_cluster(args: argparse.Namespace, partition: str = "test_files"
     if (args.output_dir / "all_jobs.txt").exists():
         return
     project_dicts = project_dicts_from_args(args)
-    projfiles = [(project_dict["project_name"], filename)
-                 for project_dict in project_dicts
-                 for filename in project_dict[partition]]
+    projfiles = []
+    for project_dict in project_dicts :
+        if "prelude" in project_dict :
+            project_prelude = project_dict["prelude"] + "/"
+        else :
+            project_prelude = ""
+        for filename in project_dict[partition] :
+            projfiles.append( (project_dict["project_name"], project_prelude + filename) )
+    # projfiles = [(project_dict["project_name"], filename)
+    #              for project_dict in project_dicts
+    #              for filename in project_dict[partition]]
     with (args.output_dir / "all_jobs.txt.partial").open("w") as f:
         pass
     with (args.output_dir / "proj_files.txt").open("w") as f:
