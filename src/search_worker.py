@@ -333,13 +333,10 @@ class SearchWorker(Worker):
     def __init__(self, args: argparse.Namespace, worker_idx: int,
                  predictor: TacticPredictor,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
-        print("initting init", flush=True)
         super().__init__(args, switch_dict)
-        print("initted init", flush=True)
         self.widx = worker_idx
         self.predictor = predictor
         self.axioms_already_added = False
-        print("initted searchworker", flush=True)
 
     def enter_file(self, filename: str) -> None:
         print("entering file")
@@ -356,7 +353,6 @@ class SearchWorker(Worker):
         exit()
 
     def run_job_with_random(self, job: ReportJob, restart: bool = True) -> SearchResult:
-        print("running job with random")
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
@@ -406,7 +402,7 @@ class SearchWorker(Worker):
             self.enter_file(job_file)
             if restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
-                return self.run_job(job, restart=False)
+                return self.run_job_with_random(job, restart=False)
             if self.args.log_hard_anomalies:
                 with self.args.log_hard_anomalies.open('a') as f:
                     print(
@@ -429,9 +425,10 @@ class SearchWorker(Worker):
                 TacticInteraction("Proof.", initial_context),
                 TacticInteraction("Admitted.", initial_context)]
         else:
+            tactic_solution_list = [myi for myi in tactic_solution]
             solution = (
                 [TacticInteraction("Proof.", initial_context)]
-                + tactic_solution +
+                + tactic_solution_list +
                 [TacticInteraction("Qed.", empty_context)])
 
         while not coq_serapy.ending_proof(self.remaining_commands[0]):
@@ -516,6 +513,7 @@ class SearchWorker(Worker):
                 TacticInteraction("Proof.", initial_context),
                 TacticInteraction("Admitted.", initial_context)]
         else:
+            tactic_solution_list = [myi for myi in tactic_solution]
             solution = (
                 [TacticInteraction("Proof.", initial_context)]
                 + tactic_solution +
