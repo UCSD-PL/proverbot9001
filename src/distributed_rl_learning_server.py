@@ -128,7 +128,7 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   samples = replay_buffer.sample(args.batch_size)
   if samples is None:
     return
-  eprint(f"Got {len(samples)} samples to train")
+  eprint(f"Got {len(samples)} samples to train at step {replay_buffer.buffer_steps}")
   inputs = torch.cat([start_obl.view(1, args.encoding_size)
                       for start_obl, _action_records in samples], dim=0)
   num_resulting_obls = [[len(resulting_obls)
@@ -255,6 +255,7 @@ class EncodedReplayBuffer:
           del self._contents[obl]
         else:
           sample_pool.append((obl, transitions))
+      eprint(f"ReplayBuffer has {len(sample_pool)} valid items")
       if len(sample_pool) >= batch_size:
         return random.sample(sample_pool, batch_size)
       if self.allow_partial_batches and len(sample_pool) > 0:
