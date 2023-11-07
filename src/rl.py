@@ -412,6 +412,8 @@ def possibly_resume_rworker(args: argparse.Namespace) \
                _, _, _, network_state, \
                  tnetwork_state, shorter_proofs_dict, _ = \
                    torch.load(str(args.start_from), map_location=device)
+               v_network.obligation_encoder = None
+               target_network.obligation_encoder = None
                v_network.load_state(network_state)
                target_network.load_state(tnetwork_state)
                assert v_network.network
