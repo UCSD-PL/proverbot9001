@@ -57,11 +57,11 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
                 suggested_deps = unwrap(suggestion_match).group(2)
                 if suggested_deps.strip() == "":
                     suggested_deps = "Type"
-                proof_cmd_match = re.match(r"(Proof\s*[^.]*)\.",
+                proof_cmd_match = re.match(r"Proof(\s*[^.]*)\.",
                                            cur_proof_commands[0].strip())
                 if proof_cmd_match:
-                    proof_cmd_prefix = proof_cmd_match.group(1)
-                    cur_proof_commands[0] = proof_cmd_prefix + " using " + suggested_deps + ".\n"
+                    proof_cmd_suffix = proof_cmd_match.group(1)
+                    cur_proof_commands[0] = "Proof using " + suggested_deps + proof_cmd_suffix + ".\n"
                 else:
                     cur_proof_commands.insert(0, "Proof using " + suggested_deps + ".\n")
 
