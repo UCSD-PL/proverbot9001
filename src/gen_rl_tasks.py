@@ -116,7 +116,7 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
                sm_prefix == job.module_prefix:
                 in_proof = True
         elif in_proof:
-            eprint(f"Processing {interaction.tactic}", guard=args.verbosity > 1)
+            eprint(f"Processing tactic {interaction.tactic}", guard=args.verbosity > 1)
             if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
                 continue
             job_interactions.append(ScrapedTactic.from_structeq(interaction))
@@ -165,6 +165,8 @@ def get_job_tasks(args: argparse.Namespace, predictor: TacticPredictor,
                   job: ReportJob) -> List[RLTask]:
     commands = get_job_interactions(args, job)
     normalized = normalize_proof_interactions(commands, args.verbosity)
+    if len(normalized) == 0 : #Can happen when there is all: tac. in which case there's no hope
+        return []
     tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
     return tasks
 
@@ -203,7 +205,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
     output_interactions: List[ScrapedTactic] = []
     num_subgoals_stack: List[int] = [1]
     previous_num_subgoals: int = 1
-    for interaction in interactions:
+    for interaction_idx,interaction in enumerate(interactions):
         if verbosity > 1:
             coq_serapy.summarizeContext(interaction.context)
             eprint(interaction.tactic)
@@ -217,6 +219,8 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
                               interaction.context,
                               "{"))
         if subgoals_created_by_last_tac < 0:
+            if re.match("\s*all\s*:", interactions[interaction_idx - 1].tactic) :
+                return []
             assert subgoals_created_by_last_tac == -1, \
                 "Shouldn't be able to close more than one subgoal at a time. " \
                 f"Num subgoals before: {previous_num_subgoals}, "\
