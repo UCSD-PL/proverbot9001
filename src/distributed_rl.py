@@ -42,7 +42,14 @@ def main() -> None:
     num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
                                       args.num_actors)
     if num_workers_actually_needed > 0:
-        dispatch_learner_and_actors(args, num_workers_actually_needed)
+        if args.start_from is not None:
+            _, _, _, (_, _, _, hidden_size, num_layers), _, _, _ = \
+              torch.load(str(args.start_from), map_location=torch.device("cpu"))
+        else:
+            hidden_size = args.hidden_size
+            num_layers = args.num_layers
+        dispatch_learner_and_actors(args, num_workers_actually_needed,
+                                    hidden_size, num_layers)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_early, args)):
             show_progress(args, all_task_eps, num_workers_actually_needed)
@@ -195,14 +202,15 @@ def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, in
 
     return done_task_eps
 
-def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
+def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
+                                hidden_size: int, num_layers: int):
     with (args.state_dir / "workers_scheduled.txt").open('w'):
         pass
     assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    hidden_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
+    term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
     num_hyps = 5
-    encoding_size = hidden_size * (num_hyps + 1)
+    encoding_size = term_size * (num_hyps + 1)
     server_jobname = f"drl-learner-{args.output_file}"
     actor_jobname = f"drl-actor-{args.output_file}"
 
@@ -217,8 +225,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                    "-s", str(args.steps_per_episode),
                    "-n", str(args.num_episodes),
                    "-p", str(args.num_predictions),
-                   "--hidden-size", str(args.hidden_size),
-                   "--num-layers", str(args.num_layers),
+                   "--hidden-size", str(hidden_size),
+                   "--num-layers", str(num_layers),
                    "--coq2vec-weights", str(args.coq2vec_weights),
                    "--supervised-weights", str(args.weightsfile),
                    "--starting-epsilon", str(args.starting_epsilon),
@@ -249,8 +257,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                      "-l", str(args.learning_rate),
                      "-b", str(args.batch_size),
                      "-g", str(args.gamma),
-                     "--hidden-size", str(args.hidden_size),
-                     "--num-layers", str(args.num_layers),
+                     "--hidden-size", str(hidden_size),
+                     "--num-layers", str(num_layers),
                      "--window-size", str(args.window_size),
                      "--train-every", str(args.train_every),
                      "--sync-target-every", str(args.sync_target_every),

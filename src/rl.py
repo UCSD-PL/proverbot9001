@@ -542,13 +542,16 @@ class VNetwork:
     batch_step: int
     lr_step: int
     learning_rate: float
+    hidden_size: int
+    num_layers: int
 
     def get_state(self) -> Any:
         assert self.obligation_encoder is not None
         assert self.network is not None
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state(),
-                self.obligation_encoder.obl_cache)
+                self.obligation_encoder.obl_cache,
+                self.hidden_size, self.num_layers)
 
     def _load_encoder_state(self, encoder_state: Any,
                             hidden_size: int,
@@ -559,6 +562,8 @@ class VNetwork:
         assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
+        self.hidden_size = hidden_size
+        self.num_layers = num_layers
         self.network = model_setup(insize, hidden_size, num_layers)
         self.network.to(self.device)
         self.optimizer: optim.Optimizer = optimizers[self.optimizer_type](self.network.parameters(),
@@ -566,17 +571,25 @@ class VNetwork:
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
 
-    def load_state(self, state: Any, hidden_size: int,
-                   num_layers: int) -> None:
-        # This case exists for compatibility with older resume files that
-        # didn't save the obligation cache.
-        if len(state) == 2:
+    def load_state(self, state: Any, hidden_size: Optional[int] = None,
+                   num_layers: Optional[int] = None) -> None:
+        if len(state) == 3:
+            assert hidden_size is not None
+            assert num_layers is not None
+            network_state, encoder_state, obl_cache = state
+            self._load_encoder_state(encoder_state, hidden_size, num_layers)
+            assert self.obligation_encoder
             network_state, encoder_state = state
             self._load_encoder_state(encoder_state, hidden_size, num_layers)
         else:
-            assert len(state) == 3
-            network_state, encoder_state, obl_cache = state
-            self._load_encoder_state(encoder_state, hidden_size, num_layers)
+            assert len(state) == 5
+            network_state, encoder_state, obl_cache, \
+              loaded_hidden_size, loaded_num_layers = state
+            if hidden_size is not None or num_layers is not None:
+                eprint("Warning: Ignoring --hidden-size and --num-layers arguments "
+                       "because we're loading an existing network.")
+            self._load_encoder_state(encoder_state, loaded_hidden_size,
+                                     loaded_num_layers)
             assert self.obligation_encoder
             self.obligation_encoder.obl_cache = obl_cache
         assert self.network
