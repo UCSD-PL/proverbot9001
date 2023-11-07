@@ -44,6 +44,8 @@ def main() -> None:
   parser.add_argument("-l", "--learning-rate", default=5e-6, type=float)
   parser.add_argument("-b", "--batch-size", default=64, type=int)
   parser.add_argument("-g", "--gamma", default=0.9, type=float)
+  parser.add_argument("--hidden-size", type=int, default=128)
+  parser.add_argument("--num-layers", type=int, default=3)
   parser.add_argument("--allow-partial-batches", action='store_true')
   parser.add_argument("--window-size", type=int, default=2560)
   parser.add_argument("--train-every", type=int, default=8)
@@ -65,7 +67,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   eprint("Connection established")
   assert torch.cuda.is_available(), "Training node doesn't have CUDA available!"
   device = "cuda"
-  v_network: nn.Module = model_setup(args.encoding_size).to(device)
+  v_network: nn.Module = model_setup(args.encoding_size, args.hidden_size,
+                                     args.num_layers).to(device)
   if args.start_from is not None:
     _, _, _, network_state, \
       tnetwork_state, shorter_proofs_dict, _ = \
@@ -73,7 +76,9 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     eprint(f"Loading initial weights from {args.start_from}")
     inner_network_state, _encoder_state, _obl_cache = network_state
     v_network.load_state_dict(inner_network_state)
-  target_network: nn.Module = model_setup(args.encoding_size).to(device)
+  target_network: nn.Module = model_setup(args.encoding_size,
+                                          args.hidden_size,
+                                          args.num_layers).to(device)
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
                                                           lr=args.learning_rate)

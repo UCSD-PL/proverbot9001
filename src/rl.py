@@ -99,6 +99,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("-b", "--batch-size", default=64, type=int)
     parser.add_argument("-w", "--window-size", default=2560)
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
+    parser.add_argument("--hidden-size", type=int, default=128)
+    parser.add_argument("--num-layers", type=int, default=3)
     parser.add_argument("--batch-step", default=25, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
@@ -375,10 +377,12 @@ def possibly_resume_rworker(args: argparse.Namespace) \
             print("WARNING: Not starting from weights passed in --start-from because we're resuming from a partial run")
         v_network = VNetwork(None, args.learning_rate,
                              args.batch_step, args.lr_step,
-                             args.optimizer)
+                             args.optimizer, args.hidden_size,
+                             args.num_layers)
         target_network = VNetwork(None, args.learning_rate,
                                   args.batch_step, args.lr_step,
-                                  args.optimizer)
+                                  args.optimizer, args.hidden_size,
+                                  args.num_layers)
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
         assert v_network.network
@@ -396,9 +400,12 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         random_state = random.getstate()
         with print_time("Building models"):
             v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                 args.batch_step, args.lr_step, args.optimizer)
+                                 args.batch_step, args.lr_step, args.optimizer,
+                                 args.hidden_size, args.num_layers)
             target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
-                                      args.batch_step, args.lr_step, args.optimizer)
+                                      args.batch_step, args.lr_step,
+                                      args.optimizer, args.hidden_size,
+                                      args.num_layers)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
             if args.start_from is not None:
@@ -541,30 +548,33 @@ class VNetwork:
                 self.obligation_encoder.term_encoder.get_state(),
                 self.obligation_encoder.obl_cache)
 
-    def _load_encoder_state(self, encoder_state: Any) -> None:
+    def _load_encoder_state(self, encoder_state: Any,
+                            hidden_size: int,
+                            num_layers: int) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
         term_encoder.load_state(encoder_state)
         num_hyps = 5
         assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
         insize = term_encoder.hidden_size * (num_hyps + 1)
-        self.network = model_setup(insize)
+        self.network = model_setup(insize, hidden_size, num_layers)
         self.network.to(self.device)
         self.optimizer: optim.Optimizer = optimizers[self.optimizer_type](self.network.parameters(),
                                                                      lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
 
-    def load_state(self, state: Any) -> None:
+    def load_state(self, state: Any, hidden_size: int,
+                   num_layers: int) -> None:
         # This case exists for compatibility with older resume files that
         # didn't save the obligation cache.
         if len(state) == 2:
             network_state, encoder_state = state
-            self._load_encoder_state(encoder_state)
+            self._load_encoder_state(encoder_state, hidden_size, num_layers)
         else:
             assert len(state) == 3
             network_state, encoder_state, obl_cache = state
-            self._load_encoder_state(encoder_state)
+            self._load_encoder_state(encoder_state, hidden_size, num_layers)
             assert self.obligation_encoder
             self.obligation_encoder.obl_cache = obl_cache
         assert self.network
@@ -573,7 +583,8 @@ class VNetwork:
 
 
     def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
-                 batch_step: int, lr_step: int, optimizer_type: str) -> None:
+                 batch_step: int, lr_step: int, optimizer_type: str,
+                 hidden_size: int, num_layers: int) -> None:
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
         self.batch_step = batch_step
         self.lr_step = lr_step
@@ -586,7 +597,7 @@ class VNetwork:
         self.steps_trained = 0
         self.total_loss = torch.tensor(0.0).to(self.device)
         if coq2vec_weights is not None:
-            self._load_encoder_state(torch.load(str(coq2vec_weights), map_location=self.device))
+            self._load_encoder_state(torch.load(str(coq2vec_weights), map_location=self.device), hidden_size, num_layers)
 
     def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
         assert self.obligation_encoder, \
@@ -1136,15 +1147,13 @@ def tactic_prefix_is_usable(tactic_prefix: List[str]):
             return False
     return True
 
-def model_setup(insize: int) -> nn.Module:
-    return nn.Sequential(
-        nn.Linear(insize, 120),
-        nn.ReLU(),
-        nn.Linear(120, 84),
-        nn.ReLU(),
-        nn.Linear(84, 1),
-        nn.Sigmoid(),
-    )
+def model_setup(insize: int, hidden_size: int,
+                num_layers: int) -> nn.Module:
+    layers = [nn.Linear(insize, hidden_size)]
+    for layer_idx in range(num_layers - 1):
+        layers += [nn.ReLU(), nn.Linear(hidden_size, hidden_size)]
+    layers += [nn.ReLU(), nn.Linear(hidden_size, 1), nn.Sigmoid()]
+    return nn.Sequential(*layers)
 
 def sample_distribution(distribution: List[float]) -> int:
     rval = random.random()

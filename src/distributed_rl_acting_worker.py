@@ -48,7 +48,9 @@ def main() -> None:
   parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
   parser.add_argument("-s", "--steps-per-episode", type=int)
   parser.add_argument("-n", "--num-episodes", type=int)
-  parser.add_argument("-p", "--num_predictions", type=int)
+  parser.add_argument("-p", "--num-predictions", type=int)
+  parser.add_argument("--hidden-size", type=int, default=128)
+  parser.add_argument("--num-layers", type=int, default=3)
   parser.add_argument("--optimizer", choices=rl.optimizers.keys(),
                       default=list(rl.optimizers.keys())[0])
   parser.add_argument("--blacklist-tactic", action="append",
@@ -471,7 +473,8 @@ def initialize_actor(args: argparse.Namespace) \
     -> RLActor:
   predictor = rl.MemoizingPredictor(get_predictor(args))
   network = rl.VNetwork(args.coq2vec_weights, 0.0,
-                        1, 1, args.optimizer)
+                        1, 1, args.optimizer,
+                        args.hidden_size, args.num_layers)
   load_latest_q_network(args, network)
   return RLActor(args, predictor, network)
 
