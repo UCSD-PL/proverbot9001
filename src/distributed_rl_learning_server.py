@@ -55,6 +55,7 @@ def main() -> None:
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
   parser.add_argument("--verifyv-every", type=int, default=None)
   parser.add_argument("--start-from", type=Path, default=None)
+  parser.add_argument("--ignore-after", type=int, default=None)
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -87,7 +88,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
                                       args.allow_partial_batches)
   signal_change = Event()
   buffer_thread = BufferPopulatingThread(replay_buffer, verification_states,
-                                         signal_change, args.encoding_size)
+                                         signal_change, args.encoding_size,
+                                         args.ignore_after)
   buffer_thread.start()
 
   steps_last_trained = 0
@@ -106,7 +108,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
       steps_last_synced_target = replay_buffer.buffer_steps
-      target_network.load_state_dict(v_network.state_dict())
+      if replay_buffer.buffer_steps > args.ignore_after:
+          eprint("Skipping sync because we're ignoring samples now")
+      else:
+          target_network.load_state_dict(v_network.state_dict())
     if replay_buffer.buffer_steps - steps_last_synced_workers >= args.sync_workers_every:
       steps_last_synced_workers = replay_buffer.buffer_steps
       send_new_weights(args, v_network, common_network_version)
@@ -163,13 +168,15 @@ class BufferPopulatingThread(Thread):
   replay_buffer: EncodedReplayBuffer
   verification_states: Dict[torch.FloatTensor, int]
   signal_change: Event
+  ignore_after: Optional[int]
   def __init__(self, replay_buffer: EncodedReplayBuffer,
                verification_states: Dict[torch.FloatTensor, int],
-               signal_change: Event, encoding_size: int) -> None:
+               signal_change: Event, encoding_size: int, ignore_after: Optional[int] = None) -> None:
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
     self.encoding_size = encoding_size
     self.verification_states = verification_states
+    self.ignore_after = ignore_after
     super().__init__()
     pass
   def run(self) -> None:
@@ -182,6 +189,11 @@ class BufferPopulatingThread(Thread):
         self.receive_verification_sample(sending_worker)
 
   def receive_experience_sample(self, sending_worker: int) -> None:
+    if self.replay_buffer.buffer_steps >= self.ignore_after:
+        eprint("Ignoring a sample, but training anyway")
+        self.replay_buffer.buffer_steps += 1
+        self.signal_change.set()
+        return
     device = "cuda"
     newest_prestate_sample: torch.FloatTensor = \
       torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore

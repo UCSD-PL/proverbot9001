@@ -86,6 +86,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
     parser.add_argument("--sync-workers-every", type=int, default=16)
+    parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--hetjob", action='store_true')
 
 def check_resume(args: argparse.Namespace) -> None:
@@ -260,6 +261,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int):
                       else [])
                      + (["--start-from", str(args.start_from)]
                         if args.start_from is not None else [])
+                     + (["--ignore-after", str(args.ignore_after)]
+                        if args.ignore_after is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
     if args.hetjob:
