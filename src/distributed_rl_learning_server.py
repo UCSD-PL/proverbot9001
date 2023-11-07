@@ -189,7 +189,7 @@ class BufferPopulatingThread(Thread):
         self.receive_verification_sample(sending_worker)
 
   def receive_experience_sample(self, sending_worker: int) -> None:
-    if self.replay_buffer.buffer_steps >= self.ignore_after:
+    if self.ignore_after is not None and self.replay_buffer.buffer_steps >= self.ignore_after:
         eprint("Ignoring a sample, but training anyway")
         self.replay_buffer.buffer_steps += 1
         self.signal_change.set()
