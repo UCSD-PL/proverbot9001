@@ -1158,7 +1158,7 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
 
 def tactic_prefix_is_usable(tactic_prefix: List[str]):
     for tactic in tactic_prefix:
-        if re.match("\s*\d+\s*:", tactic) or re.match("\s*all\s*:", tactic) or re.match("\s*Focus(\s+\d+)?\s*") :
+        if re.match("\s*(\d\s*,?\s*)+\s*:", tactic) or re.match("\s*all\s*:", tactic) or re.match("\s*Focus(\s+\d+)?\s*", tactic) :
             warnings.warn("Warning: Tactic has banned preix. This should have had been filtered out during gen_rl_task")
             return False
     return True
