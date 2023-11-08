@@ -1,0 +1,10 @@
+Deleted a line in "coq-projects/ruler-compass-geometry/E4_Continuite.v"
+It was a comment with characters outside utf-8. Maybe using utf-16 or 32 would 
+be able to load that file, but the memory tradeoff is not worth it as its just a comment.
+Remember to rescrape
+
+
+During task creation found some of the files failing. On a deeper dive, turned out that
+the scrapes were bad. So deleted the scrape and rescraped it and it worked. 
+One such job was
+job = ReportJob(project_dir='amm11262', filename='unicode_format/utf_AMM11262.v', module_prefix='utf_AMM11262.problem_knows_not_refl.', lemma_statement=" \n\nLemma extendible_to_n:∀ B', B'⊆town ⇒ |B'| ≤ n ⇒ ∃B, |B| = n ∧  B'⊆B ∧ B⊆town. ")
