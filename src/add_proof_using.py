@@ -61,6 +61,8 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
                                            cur_proof_commands[0].strip())
                 if proof_cmd_match:
                     proof_cmd_suffix = proof_cmd_match.group(1)
+                    if len(suggested_deps.strip().split()) > 1 and proof_cmd_suffix.strip() != "":
+                        suggested_deps = "(" + suggested_deps + ")"
                     cur_proof_commands[0] = "Proof using " + suggested_deps + proof_cmd_suffix + ".\n"
                 else:
                     cur_proof_commands.insert(0, "Proof using " + suggested_deps + ".\n")
