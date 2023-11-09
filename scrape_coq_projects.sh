@@ -43,7 +43,7 @@ for project in $TARGETS; do
     echo "#!/usr/bin/env bash" > coq-projects/$project/scrape.sh
     echo ${INIT_CMD} >> coq-projects/$project/scrape.sh
 
-    echo "eval \"$(opam env --set-switch --switch=$SWITCH)\"" >> coq-projects/$project/scrape.sh
+    echo "eval \"\$(opam env --set-switch --switch=$SWITCH)\"" >> coq-projects/$project/scrape.sh
 
     echo "./src/scrape.py $EXTRA_FLAGS -c --prelude=./coq-projects/$project/$PRELUDE \$@ ${FILES} > /dev/null" >> coq-projects/$project/scrape.sh
     chmod u+x coq-projects/$project/scrape.sh
