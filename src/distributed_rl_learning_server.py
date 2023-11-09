@@ -84,11 +84,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
                                                           lr=args.learning_rate)
-  verification_states: Dict[torch.FloatTensor, int] = {}
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches)
   signal_change = Event()
-  buffer_thread = BufferPopulatingThread(replay_buffer, verification_states,
+  buffer_thread = BufferPopulatingThread(replay_buffer,
                                          signal_change, args.encoding_size,
                                          args.ignore_after)
   buffer_thread.start()
@@ -119,7 +118,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       common_network_version += 1
     if args.verifyv_every is not None and \
        iters_trained - last_iter_verified >= args.verifyv_every:
-      print_vvalue_errors(args.gamma, v_network, verification_states)
+      print_vvalue_errors(args.gamma, v_network, buffer_thread.verification_states)
       last_iter_verified = iters_trained
 
 def train(args: argparse.Namespace, v_model: nn.Module,
@@ -171,12 +170,11 @@ class BufferPopulatingThread(Thread):
   signal_change: Event
   ignore_after: Optional[int]
   def __init__(self, replay_buffer: EncodedReplayBuffer,
-               verification_states: Dict[torch.FloatTensor, int],
                signal_change: Event, encoding_size: int, ignore_after: Optional[int] = None) -> None:
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
     self.encoding_size = encoding_size
-    self.verification_states = verification_states
+    self.verification_states = {}
     self.ignore_after = ignore_after
     super().__init__()
     pass
