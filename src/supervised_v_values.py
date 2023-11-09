@@ -90,9 +90,7 @@ def train(args: argparse.Namespace) -> None:
       v_network.optimizer.zero_grad()
       actual = v_network.network(input_batch).view(-1)
       loss = F.mse_loss(actual, target_batch)
-      print("Calling backward on batch {batch_num}")
       loss.backward()
-      print("Done")
       v_network.optimizer.step()
       epoch_loss += (loss.item() / (num_batches * args.batch_size))
 
