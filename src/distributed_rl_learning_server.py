@@ -13,6 +13,7 @@ from glob import glob
 from threading import Thread, Lock, Event
 from pathlib import Path
 from typing import List, Set, Optional, Dict, Tuple, Sequence
+from dataclasses import dataclass
 
 print("Finished std imports", file=sys.stderr)
 
@@ -129,7 +130,7 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   if samples is None:
     return
   eprint(f"Got {len(samples)} samples to train at step {replay_buffer.buffer_steps}")
-  inputs = torch.cat([start_obl.view(1, args.encoding_size)
+  inputs = torch.cat([start_obl.contents.view(1, args.encoding_size)
                       for start_obl, _action_records in samples], dim=0)
   num_resulting_obls = [[len(resulting_obls)
                          for _action, resulting_obls in action_records]
@@ -140,8 +141,8 @@ def train(args: argparse.Namespace, v_model: nn.Module,
                         for obl in resulting_obls]
   if len(all_resulting_obls) > 0:
     with torch.no_grad():
-      all_obls_tensor = torch.cat([obl.view(1, args.encoding_size) for obl in
-                                   all_resulting_obls], dim=0)
+      all_obls_tensor = torch.cat([obl.contents.view(1, args.encoding_size)
+                                   for obl in all_resulting_obls], dim=0)
       eprint(all_obls_tensor)
       all_obl_scores = target_model(all_obls_tensor)
   else:
@@ -164,9 +165,19 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   loss.backward()
   optimizer.step()
 
+@dataclass
+class EObligation:
+  contents: torch.FloatTensor
+  def __hash__(self) -> int:
+    return hash(tuple(self.contents.view(-1).tolist()))
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, EObligation):
+      return False
+    return bool(torch.all(self.contents == other.contents))
+
 class BufferPopulatingThread(Thread):
   replay_buffer: EncodedReplayBuffer
-  verification_states: Dict[torch.FloatTensor, int]
+  verification_states: Dict[EObligation, int]
   signal_change: Event
   ignore_after: Optional[int]
   def __init__(self, replay_buffer: EncodedReplayBuffer,
@@ -206,27 +217,26 @@ class BufferPopulatingThread(Thread):
       newest_poststate_sample: torch.FloatTensor = \
         torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
       dist.recv(tensor=newest_poststate_sample, src=sending_worker, tag=3)
-      post_states.append(newest_poststate_sample.to(device))
+      post_states.append(EObligation(newest_poststate_sample.to(device)))
     self.replay_buffer.add_transition(
-      (newest_prestate_sample.to(device), int(newest_action_sample.item()),
+      (EObligation(newest_prestate_sample.to(device)), int(newest_action_sample.item()),
        post_states))
     self.replay_buffer.buffer_steps += 1
     self.signal_change.set()
 
   def receive_verification_sample(self, sending_worker: int) -> None:
     device = "cuda"
-    state_sample: torch.FloatTensor = \
+    state_sample_buffer: torch.FloatTensor = \
       torch.zeros(self.encoding_size, dtype=torch.float32)  #type: ignore
-    dist.recv(tensor=state_sample, src=sending_worker, tag=5)
+    dist.recv(tensor=state_sample_buffer, src=sending_worker, tag=5)
     target_steps: torch.LongTensor = torch.zeros(1, dtype=int) #type: ignore
     dist.recv(tensor=target_steps, src=sending_worker, tag=6)
-    state_sample = state_sample.to(device)
+    state_sample = EObligation(state_sample_buffer.to(device))
     if state_sample in self.verification_states:
       assert target_steps.item() <= self.verification_states[state_sample], \
         "Got sent a target value  less than the previously expected value for this state!"
     self.verification_states[state_sample] = target_steps.item()
 
-EObligation = torch.FloatTensor
 ETransition = Tuple[int, Sequence[EObligation]]
 EFullTransition = Tuple[EObligation, int, List[EObligation]]
 class EncodedReplayBuffer:
@@ -295,10 +305,10 @@ def delete_old_common_weights(args: argparse.Namespace) -> None:
     old_save_path.unlink()
 
 def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
-                        verification_samples: Dict[torch.FloatTensor, int]):
+                        verification_samples: Dict[EObligation, int]):
   device = "cuda"
   items = list(verification_samples.items())
-  predicted_v_values = vnetwork(torch.cat([obl.view(1, -1) for obl, _ in items], dim=0)).view(-1)
+  predicted_v_values = vnetwork(torch.cat([obl.contents.view(1, -1) for obl, _ in items], dim=0)).view(-1)
   predicted_steps = torch.log(predicted_v_values) / math.log(gamma)
   target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
   step_errors = torch.abs(predicted_steps - target_steps)
