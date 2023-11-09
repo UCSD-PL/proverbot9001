@@ -67,7 +67,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   eprint("Establishing connection")
   dist.init_process_group(backend)
   eprint("Connection established")
-  assert torch.cuda.is_available(), "Training node doesn't have CUDA available!"
+  assert torch.cuda.is_available(), "Training node doesn't have CUDA available!" # type: ignore
   device = "cuda"
   v_network: nn.Module = model_setup(args.encoding_size, args.hidden_size,
                                      args.num_layers).to(device)
