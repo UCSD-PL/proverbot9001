@@ -109,7 +109,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
       steps_last_synced_target = replay_buffer.buffer_steps
-      if replay_buffer.buffer_steps > args.ignore_after:
+      if args.ignore_after is not None and replay_buffer.buffer_steps > args.ignore_after:
           eprint("Skipping sync because we're ignoring samples now")
       else:
           target_network.load_state_dict(v_network.state_dict())
