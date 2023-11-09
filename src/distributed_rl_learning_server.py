@@ -235,6 +235,9 @@ class BufferPopulatingThread(Thread):
     if state_sample in self.verification_states:
       assert target_steps.item() <= self.verification_states[state_sample], \
         "Got sent a target value  less than the previously expected value for this state!"
+      eprint("Updating existing verification sample")
+    else:
+      eprint("Adding new verification sample")
     self.verification_states[state_sample] = target_steps.item()
 
 ETransition = Tuple[int, Sequence[EObligation]]
