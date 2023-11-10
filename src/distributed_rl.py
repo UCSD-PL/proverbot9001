@@ -95,6 +95,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--sync-workers-every", type=int, default=16)
     parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--hetjob", action='store_true')
+    parser.add_argument("--loss-smoothing", type=int, default=1)
 
 def check_resume(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "common-v-network-*.dat"))) > 0
@@ -265,12 +266,16 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                      "--sync-workers-every", str(args.sync_workers_every),
                      "--keep-latest", str(args.keep_latest),
                      "--optimizer", args.optimizer,
+                     "--loss-smoothing", str(args.loss_smoothing),
+                     "--learning-rate-decay", str(args.lr_step),
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches
                       else [])
                      + (["--start-from", str(args.start_from)]
                         if args.start_from is not None else [])
                      + (["--ignore-after", str(args.ignore_after)]
                         if args.ignore_after is not None else [])
+                     + (["--learning-rate-step", str(args.batch_step)]
+                        if args.batch_step is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
     if args.hetjob:
@@ -455,7 +460,8 @@ def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
     common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
     v_network_state: Tuple[dict, Any, OrderedDict[Any, torch.FloatTensor]] = \
-                           (common_network_weights_dict, obl_encoder_state, OrderedDict())
+                           (common_network_weights_dict, obl_encoder_state,
+                            OrderedDict(), args.hidden_size, args.num_layers)
     with args.output_file.open('wb') as f:
         torch.save((False, None,
                     steps_done, v_network_state, v_network_state,

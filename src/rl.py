@@ -101,7 +101,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
     parser.add_argument("--hidden-size", type=int, default=128)
     parser.add_argument("--num-layers", type=int, default=3)
-    parser.add_argument("--batch-step", default=25, type=int)
+    parser.add_argument("--batch-step", default=None, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--train-every", default=1, type=int)

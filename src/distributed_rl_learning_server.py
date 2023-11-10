@@ -20,12 +20,10 @@ print("Finished std imports", file=sys.stderr)
 import torch
 print("Finished main torch import", file=sys.stderr)
 from torch import nn
-print("Finished nn import", file=sys.stderr)
 import torch.nn.functional as F
-print("Finished functional import", file=sys.stderr)
 from torch import optim
-print("Finished optim import", file=sys.stderr)
 import torch.distributed as dist
+import torch.optim.lr_scheduler as scheduler
 
 print("Finished torch imports", file=sys.stderr)
 # pylint: disable=wrong-import-position
@@ -57,6 +55,9 @@ def main() -> None:
   parser.add_argument("--verifyv-every", type=int, default=None)
   parser.add_argument("--start-from", type=Path, default=None)
   parser.add_argument("--ignore-after", type=int, default=None)
+  parser.add_argument("--loss-smoothing", type=int, default=1)
+  parser.add_argument("--learning-rate-step", type=int, default=None)
+  parser.add_argument("--learning-rate-decay", type=float, default=0.8)
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -85,6 +86,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   target_network.load_state_dict(v_network.state_dict())
   optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
                                                           lr=args.learning_rate)
+  adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                              args.learning_rate_decay)
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches)
   signal_change = Event()
@@ -99,12 +102,25 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   common_network_version = 0
   iters_trained = 0
   last_iter_verified = 0
+  loss_buffer = []
 
   while signal_change.wait():
     signal_change.clear()
     if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
       steps_last_trained = replay_buffer.buffer_steps
-      train(args, v_network, target_network, optimizer, replay_buffer)
+      loss = train(args, v_network, target_network, optimizer, replay_buffer)
+      if args.learning_rate_step is not None and loss is not None:
+        adjuster.step()
+      if loss is not None:
+        if len(loss_buffer) == args.loss_smoothing:
+          loss_buffer = loss_buffer[1:] + [loss]
+        else:
+          eprint(f"Loss buffer is only {len(loss_buffer)} long")
+          loss_buffer.append(loss)
+      if len(loss_buffer) == args.loss_smoothing:
+        smoothed_loss = sum(loss_buffer) / args.loss_smoothing
+        lr = optimizer.param_groups[0]['lr']
+        eprint(f"Loss: {smoothed_loss} (learning rate {lr:.3e})")
       iters_trained += 1
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
@@ -125,7 +141,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
 def train(args: argparse.Namespace, v_model: nn.Module,
           target_model: nn.Module,
           optimizer: optim.Optimizer,
-          replay_buffer: EncodedReplayBuffer) -> None:
+          replay_buffer: EncodedReplayBuffer) -> torch.FloatTensor:
   samples = replay_buffer.sample(args.batch_size)
   if samples is None:
     return
@@ -160,10 +176,10 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   device = "cuda"
   target_values = torch.FloatTensor(outputs).to(device)
   loss = F.mse_loss(actual_values, target_values)
-  eprint(f"Loss: {loss}")
   optimizer.zero_grad()
   loss.backward()
   optimizer.step()
+  return loss
 
 @dataclass
 class EObligation:
