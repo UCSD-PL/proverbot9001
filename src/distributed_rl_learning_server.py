@@ -58,13 +58,18 @@ def main() -> None:
   parser.add_argument("--loss-smoothing", type=int, default=1)
   parser.add_argument("--learning-rate-step", type=int, default=None)
   parser.add_argument("--learning-rate-decay", type=float, default=0.8)
+  parser.add_argument("--reset-on-updated-sample", action='store_true')
+  parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
       print("1", file=f, flush=True)
   serve_parameters(args)
 
+vsample_changed: bool = False
+
 def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
+  global vsample_changed
   eprint("Establishing connection")
   dist.init_process_group(backend)
   eprint("Connection established")
@@ -121,14 +126,27 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         smoothed_loss = sum(loss_buffer) / args.loss_smoothing
         lr = optimizer.param_groups[0]['lr']
         eprint(f"Loss: {smoothed_loss} (learning rate {lr:.3e})")
+      if vsample_changed and args.reset_on_updated_sample:
+        vsample_changed = False
+        optimizer = optimizers[args.optimizer](v_network.parameters(),
+                                                                lr=args.learning_rate)
+        adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                                    args.learning_rate_decay)
+        eprint("Resetting the optimizer and adjuster")
       iters_trained += 1
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
       steps_last_synced_target = replay_buffer.buffer_steps
       if args.ignore_after is not None and replay_buffer.buffer_steps > args.ignore_after:
-          eprint("Skipping sync because we're ignoring samples now")
+        eprint("Skipping sync because we're ignoring samples now")
       else:
-          target_network.load_state_dict(v_network.state_dict())
+        target_network.load_state_dict(v_network.state_dict())
+      if args.reset_on_sync:
+        optimizer = optimizers[args.optimizer](v_network.parameters(),
+                                                                lr=args.learning_rate)
+        adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                                    args.learning_rate_decay)
+        eprint("Resetting the optimizer and adjuster")
     if replay_buffer.buffer_steps - steps_last_synced_workers >= args.sync_workers_every:
       steps_last_synced_workers = replay_buffer.buffer_steps
       send_new_weights(args, v_network, common_network_version)
@@ -241,6 +259,7 @@ class BufferPopulatingThread(Thread):
     self.signal_change.set()
 
   def receive_verification_sample(self, sending_worker: int) -> None:
+    global vsample_changed
     device = "cuda"
     state_sample_buffer: torch.FloatTensor = \
       torch.zeros(self.encoding_size, dtype=torch.float32)  #type: ignore
@@ -252,6 +271,7 @@ class BufferPopulatingThread(Thread):
       assert target_steps.item() <= self.verification_states[state_sample], \
         "Got sent a target value  less than the previously expected value for this state!"
       eprint("Updating existing verification sample")
+      vsample_changed = True
     else:
       eprint("Adding new verification sample")
     self.verification_states[state_sample] = target_steps.item()
