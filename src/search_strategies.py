@@ -657,7 +657,7 @@ class BFSNode:
         return
 
 
-def contextInHistory(full_context: ProofContext, node: BFSNode):
+def contextInHistory(full_context: FullContext, node: BFSNode):
     return any([coq_serapy.contextSurjective(full_context,
                                                   n.context_before.obligations)
                 for n in node.path()[1:]])
