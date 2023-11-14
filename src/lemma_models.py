@@ -6,6 +6,10 @@ from dataclasses import dataclass
 
 import coq2vec
 
+from coq2vec import (
+  Obligation
+)
+
 from sklearn.decomposition import PCA
 
 from sklearn.linear_model import LinearRegression # for linear regression of type vs difficulty
@@ -35,6 +39,14 @@ from numba import njit
 
 import json
 
+import logging
+
+logging.basicConfig(
+    format="%(asctime)s %(levelname)-8s %(message)s",
+    level=logging.INFO,
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
+
 Symbol = sexp.Symbol
 
 Sexpr = Union[sexp.Symbol, int, str, List['Sexpr']]
@@ -58,6 +70,9 @@ class Lemma:
   def hypos(self):
     for x in self.ctx["hypos"]:
       yield x
+
+def lem2obl(lem: Lemma) -> Obligation:
+  return Obligation(hypotheses=lem.ctx["hyp_strs"], goal=lem.ctx["goal_str"])
 
 class ProofStep(TypedDict):
   tacs: List[str]
@@ -95,8 +110,8 @@ def steps_from_json(x: Dict[str, Any]) -> Optional[ProofStep]:
     return {  
         "tacs" : [str(tac) for tac in x["tacs"]]
       , "ctx" : { 
-          "hypos": [eval(x) for x in ctx["hypos"]]
-        , "type": eval(ctx["type"]) 
+          "hypos": [eval(x, None, {"Symbol" : Symbol}) for x in ctx["hypos"]]
+        , "type": eval(ctx["type"], None, {"Symbol" : Symbol})
         , "goal_str" : ctx["goal_str"]
         , "hyp_strs" : ctx["hypo_strs"]
       } 
@@ -201,8 +216,19 @@ def iter_snd(xs: Iterable[Tuple[A, B]]) -> Iterable[B]:
   for _, x in xs:
     yield x
 
+class ITransformer(ABC):
+  @abstractmethod
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) -> np.ndarray:
+    raise NotImplemented
 
-class ILearner(ABC):
+  def transform_ys(self, diffs: Iterable[int]) -> np.ndarray:
+    return np.fromiter(diffs, np.single)
+
+  @abstractmethod
+  def predict(self, obl: Obligation, lem: Lemma):
+    raise NotImplemented
+
+class ILearner(ITransformer):
 
   _use_hypos : bool
 
@@ -212,26 +238,18 @@ class ILearner(ABC):
     else:
       self._use_hypos = False
 
-  def learn(self, lemmas: Iterable[Tuple[Lemma, int]]) -> None:
+  def learn(self, lemmas: Iterable[Tuple[Tuple[Obligation, Lemma], int]]) -> None:
     self.init(iter_fst(lemmas), iter_snd(lemmas))
     xs = self.transform_xs(iter_fst(lemmas))
     ys = self.transform_ys(iter_snd(lemmas))
     self.train_transformed(xs, ys)
 
-  def predict(self, lemma: Lemma) -> float:
-    xs = self.transform_xs([lemma])
+  def predict(self, obl: Obligation, lem: Lemma) -> float:
+    xs = self.transform_xs([(obl, lem)])
     return self.predict_transformed(xs)[0]
 
-  # clients that need to do initialization should override this
-  def init(self, lemmas: Iterable[Lemma], diffs: Iterable[int]) -> None:
+  def init(self, lemmas: Iterable[Tuple[Obligation, Lemma]], diffs: Iterable[int]) -> None:
     return None
-
-  @abstractmethod
-  def transform_xs(self, lemmas: Iterable[Lemma]) -> np.ndarray:
-    raise NotImplemented
-
-  def transform_ys(self, diffs: Iterable[int]) -> np.ndarray:
-    return np.fromiter(diffs, np.single)
 
   @abstractmethod
   def train_transformed(self, xs: np.ndarray, ys: np.ndarray) -> None:
@@ -253,18 +271,20 @@ class UnhandledExpr(Exception):
 
 class NaiveMeanLearner(ILearner):
 
+  _mean: np.float64
+
   def __init__(self, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
-    self._mean: float = 0
+    self._mean = np.float64(0.0)
 
-  def transform_xs(self, lemmas: Iterable[Lemma]):
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) :
     return np.array([np.array([1.0]) for _ in lemmas])
 
   def transform_ys(self, diffs: Iterable[int]):
     return np.fromiter(diffs, np.single)
 
   def train_transformed(self, xs: np.ndarray, ys: np.ndarray):
-    self._mean = np.mean(ys)
+    self._mean = np.mean(ys, dtype=np.float64)
 
   def predict_transformed(self, xs: np.ndarray):
     return np.fromiter((self._mean for _ in xs), np.single, count=len(xs))
@@ -281,7 +301,7 @@ class NaiveMedianLearner(ILearner):
     super().__init__(*args, **kwargs)
     self._median: np.single = np.single(0.0)
 
-  def transform_xs(self, lemmas: Iterable[Lemma]):
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) :
     return np.array([np.array([1.0]) for _ in lemmas])
 
   def transform_ys(self, diffs: Iterable[int]):
@@ -310,8 +330,8 @@ class LinRegressionLearner(ILearner):
     sizes = np.fromiter((float(nested_size(x)) for x in types), np.single, count=len(types))
     return np.array([np.sum(sizes)])
 
-  def transform_xs(self, lemmas: Iterable[Lemma]):
-    xs = [self.lem_to_x(lem) for lem in lemmas]
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) :
+    xs = [self.lem_to_x(lem) for _, lem in lemmas]
     return np.asarray(xs)
 
   def train_transformed(self, xs: np.ndarray, ys: np.ndarray):
@@ -349,7 +369,7 @@ class ISVRLearner(ILearner):
     else:
       self._should_CV = True
       self._svr_params = {}
-      ranges = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+      ranges = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0] # TODO: ma
       epsilon_ranges = [0.05, 0.1, 0.2, 0.3, 0.4, 0.5]
       self._model = make_pipeline(
           StandardScaler()
@@ -357,7 +377,7 @@ class ISVRLearner(ILearner):
         , GridSearchCV(
             estimator=SVR()
           , param_grid=[
-                {'C': ranges, 'epsilon': epsilon_ranges, 'gamma': ranges, 'kernel': ['rbf']},
+                {'C': ranges, 'epsilon': epsilon_ranges, 'gamma': ranges + ['scale'], 'kernel': ['rbf']},
             ]
           , n_jobs=-1
           , verbose=3
@@ -374,84 +394,62 @@ class ISVRLearner(ILearner):
   def predict_transformed(self, xs: np.ndarray):
     return self._model.predict(xs)
 
+class ISVRFactory(ABC):
+  @abstractmethod
+  def make_svr(self, *args, **kwargs) -> ISVRLearner: pass
+
 
 class SVRLength(ISVRLearner):
 
   def __init__(self, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
   
-  def transform_xs(self, lems: Iterable[Lemma]):
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) :
     return np.array([
-      np.array(lemma_nested_size(lemma, use_hypos=self._use_hypos)) for lemma in lems
+      np.array(lemma_nested_size(lemma, use_hypos=self._use_hypos)) for _, lemma in lemmas
     ])
     
   @property
   def name(self):
     return "SVR size"
+  
+def build_names(lem: Lemma) -> dict[str, int]:
+  return union_idents(lemma_hyp_idents(lem), lemma_ty_idents(lem))
+
+class SVRLFactory(ISVRFactory):
+  def make_svr(self, *args, **kwargs) -> ISVRLearner:
+    return SVRLength(*args, **kwargs)
 
 class SVRIdent(ISVRLearner):
 
-  def __init__(self, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
+  _names: dict[str, int] # map from idents (strings) to number of times the ident occur
 
-  def transform_xs(self, lems: Iterable[Lemma]):
+  # be careful with names and make sure that it is only built from training data
+  def __init__(self, names: dict[str, int], *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+    self._names = names
+
+  def init(self, lemmas: Iterable[Tuple[Obligation, Lemma]], diffs: Iterable[int]) -> None:
+    for _, lem in lemmas:
+      self._names = union_idents(self._names, union_idents(lemma_hyp_idents(lem), lemma_ty_idents(lem)))
+
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) :
     return np.array([
-      np.array(lemma_size(lemma, use_hypos=self._use_hypos)) for lemma in lems
+      make_ident_vector(lem, self._names, True) + make_ident_vector(lem, self._names, False) for _, lem in lemmas
     ])
 
   @property
   def name(self):
     return "SVR ident"
-
-class SVRIdentLength(ISVRLearner):
-
-  def __init__(self, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
   
-  def transform_xs(self, lems: Iterable[Lemma]):
-    return np.array([
-      np.array(lemma_nested_size(lemma, use_hypos=self._use_hypos) + lemma_size(lemma, use_hypos=self._use_hypos)) for lemma in lems
-    ])
-    
-  @property
-  def name(self):
-    return "SVR ident + size"
-
-# >>> import coq2vec
-# >>> vectorizer = coq2vec.CoqRNNVectorizer()
-# >>> vectorizer.load_weights("coq2vec/encoder_model.dat")
-# >>> vectorizer.term_to_vector("forall x: nat, x = x")
-
-class SVRNNGoal(ISVRLearner):
-
-  _vectorizer: coq2vec.CoqTermRNNVectorizer
-  _normalizer: StandardScaler
-
-  def __init__(self, encoder_weights_path : str = "encoder_model.dat", *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
-    self._vectorizer = coq2vec.CoqTermRNNVectorizer()
-    self._normalizer = StandardScaler()
-
-    self._vectorizer.load_weights(encoder_weights_path)
-
-  def init(self, lemmas: Iterable[Lemma], diffs: Iterable[int]) -> None:
-    super().init(lemmas, diffs)
-    xs = np.array([
-      self._vectorizer.term_to_vector(lemma.ctx["goal"]) for lemma in lemmas
-    ])
-    self._normalizer.fit(xs)
+  def predict(self, obl: Obligation, lem: Lemma) -> np.ndarray:
+    x = self.transform_xs([(obl, lem)])
+    return self._model.predict(x)[0]
   
-  def transform_xs(self, lems: Iterable[Lemma]):
-    xs = np.array([
-      self._vectorizer.term_to_vector(lemma.ctx["goal"]) for lemma in lems
-    ])
 
-
-    return self._normalizer.transform(xs, copy=False)
-    
-  @property
-  def name(self):
-    return "SVR NN goal"
+class SVRIdentFactory(ISVRFactory):
+  def make_svr(self, names: dict[str, int], *args, **kwargs) -> ISVRLearner:
+    return SVRIdent(names, *args, **kwargs)
 
 class SVRC2V(ISVRLearner):
 
@@ -465,8 +463,9 @@ class SVRC2V(ISVRLearner):
 
     self._vectorizer = coq2vec.CoqContextVectorizer(goal_vectorizer, 4)
 
-  def transform_xs(self, lemmas: Iterable[Lemma]) -> np.ndarray:
-    return super().transform_xs(lemmas)
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) -> np.ndarray:
+    obls = [obl for obl, _ in lemmas]
+    return np.array([x.flatten() for x in self._vectorizer.obligations_to_vectors(obls).numpy()])
 
   @property
   def name(self):
@@ -485,68 +484,30 @@ class SVRC2V(ISVRLearner):
     state["_vectorizer"] = coq2vec.CoqContextVectorizer(vectorizer, 4)
     self.__dict__.update(state)
 
-  def predict_obl(self, obl: coq2vec.Obligation) -> np.ndarray:
+  def predict_obl(self, obl: Obligation) -> np.ndarray:
     x : np.ndarray = self._vectorizer.obligation_to_vector(obl).numpy().flatten()
-
+    
     return self.predict_transformed(np.array([x]))
+  
+class SVRC2VFactory(ISVRFactory):
+  def make_svr(self, encoder_weights_path : str = "encoder_model.dat", *args, **kwargs) -> ISVRLearner:
+    return SVRC2V(encoder_weights_path=encoder_weights_path, *args, **kwargs)
 
 class SVRCounts(ISVRLearner):
 
   def __init__(self, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
 
-  def transform_xs(self, lemmas: Iterable[Lemma]) -> np.ndarray:
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) -> np.ndarray:
     return super().transform_xs(lemmas)
 
   @property
   def name(self):
     return "SVR Counts"
-
-
-class SVRNNGoalIdentLength(ISVRLearner):
-
-  _vectorizer: coq2vec.CoqTermRNNVectorizer
-  _normalizer: StandardScaler
-
-  def __init__(self, encoder_weights_path: str ="encoder_model.dat", *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
-
-    self._vectorizer = coq2vec.CoqTermRNNVectorizer()
-    self._normalizer = StandardScaler()
-    self._vectorizer.load_weights(encoder_weights_path)
-
-  def init(self, lemmas: Iterable[Lemma], diffs: Iterable[int]) -> None:
-    super().init(lemmas, diffs)
-    xs = np.array([
-      self._vectorizer.term_to_vector(lemma.ctx["goal"]) for lemma in lemmas
-    ])
-    self._normalizer.fit(xs)
   
-  def transform_xs(self, lems: Iterable[Lemma]):
-
-    return np.array([
-     np.concatenate(  (   
-            self._normalizer.transform(np.array([self._vectorizer.term_to_vector(lemma.ctx["goal"])]), copy=False)[0]
-          , np.array(lemma_nested_size(lemma, use_hypos=self._use_hypos) + lemma_size(lemma, use_hypos=self._use_hypos))
-        )
-        , axis=None
-      )
-      for lemma in lems
-    ])
-    
-  @property
-  def name(self):
-    return "SVR NN IL goal"
-
-
-def ranges(N: int):
-  return [float(k) / float(N) for k, _ in enumerate(range(1,N), start=1)] + [1.0]
-
-def find_quantile(buckets: list[float], x: float):
-  assert len(buckets) > 0, "empty quantiles?"
-  for i, buck in enumerate(buckets, start=0):
-    if x <= buck: return i
-  return i
+class SVRCountsFactory(ISVRFactory):
+  def make_svr(self, *args, **kwargs) -> ISVRLearner:
+    return SVRCounts(*args, **kwargs)
 
 def make_ident_vector(lem: Lemma, idxs: dict[str, int], use_hyps : bool) -> list[float]:
   if use_hyps:
@@ -554,214 +515,28 @@ def make_ident_vector(lem: Lemma, idxs: dict[str, int], use_hyps : bool) -> list
   else:
     idents = lemma_ty_idents(lem)
   
-  ret = [0.0] * len(idxs)
+  ret = [0.0] * (len(idxs)+1)
   for ident, value in idents.items():
-    ret[idxs[ident]] = float(value)
+    if ident in idxs:
+      ret[idxs[ident] + 1] = float(value)
+    else:
+      ret[0] += 1.0
   return ret
 
+# class KNNIdents(IEnsembleLearner):
 
+#   _model : BaseEstimator
 
+#   @property
+#   def model(self): 
+#     return self._model
 
-
-# for now, assumes that each of the individual learners use the same x data as the ensemble learner
-# so basically, only use individual learners that don't really make use of x data (or fit on the same data as the ensemble learner)
-class IEnsembleLearner(ILearner):
-
-  @property
-  @abstractmethod
-  def model(self) -> BaseEstimator:
-    pass
-
-  _locals : List[ILearner]
-  _buckets : int
-  _ty_ident_idx : dict[str, int]
-  _hyp_ident_idx : dict[str, int]
-  _thresholds : list[float]
-  
-  _init : bool
-  
-
-  def __init__(self, local_builder : Callable[[int], ILearner], buckets: int, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
-    
-    self._locals = []
-    self._ty_ident_idx = {}
-    self._hyp_ident_idx = {}
-    self._buckets = buckets
-    self._locals = [local_builder(i) for i in range(buckets)]
-
-    self._thresholds = []
-
-    self._init = False
-
-  def init_idents(self, lemmas: Iterable[Lemma]):
-    all_ty_idents : set[str] = set()
-    all_hyp_idents : set[str] = set()
-    # print("gathering idents...")
-    for lem in lemmas:
-      all_ty_idents |= lemma_ty_idents(lem)
-      if self._use_hypos:
-        all_hyp_idents |= lemma_hyp_idents(lem)
-
-    self._ty_ident_idx = {ident : i for i, ident in enumerate(all_ty_idents)}
-    self._hyp_ident_idx = {ident : i for i, ident in enumerate(all_hyp_idents)}
-
-  def init_buckets(self, diffs: Iterable[int]):
-    slices = ranges(self._buckets)
-    self._thresholds = np.quantile(list(map(float, diffs)), slices)
-    
-
-  def init(self, lemmas: Iterable[Lemma], diffs: Iterable[int]):
-    lems, diffs = list(lemmas), list(diffs)
-    self.init_idents(lems)
-    self.init_buckets(diffs)
-
-    for learner in self._locals:
-      learner.init(lems, diffs)
-
-    self._init = True
-
-
-  def train_transformed(self, xs: np.ndarray, ys: np.ndarray):
-    bucket_ys = np.fromiter((find_quantile(self._thresholds, y) for y in ys), ys.dtype, count=len(ys))
-    self.fit_classifier(xs, bucket_ys)
-
-    print("bounds:")
-    print(self._thresholds)
-    threshed_vals = split_diffs(list(zip(xs, ys)), self._thresholds)
-
-    for buck, xys in enumerate(threshed_vals):
-      
-      # tups = ((x, y) for x, y in zip(xs, ys) if find_quantile(self._thresholds, y) == buck)
-      local_xs = np.array(list(iter_fst(xys)), xs.dtype)
-      local_ys = np.fromiter(iter_snd(xys), ys.dtype)
-      self._locals[buck].train_transformed(local_xs, local_ys)
-
-
-  def predict_transformed(self, xs: np.ndarray) -> np.ndarray:
-
-    def pred_local(x): 
-      bf = self.model.predict([x])
-      return self._locals[int(bf)].predict_transformed([x])[0]
-
-    predictions = [pred_local(x) for x in xs]
-    # print("predictions:")
-    # print(predictions)
-    return np.array(predictions)
-
-    # return np.fromiter(
-    #     (pred_local(x) for x in xs)
-    #   , np.single
-    #   , count=len(xs)
-    # )
-
-
-  # assumes lemma_ys has already been transformed into buckets
-  def fit_classifier(self, lemma_xs: np.ndarray, lemma_ys: np.ndarray):
-    self.model.fit(lemma_xs, lemma_ys)
-
-  def pred_bucket(self, lemma, val : Optional[int] = None):
-    buck_float = self.model.predict(self.convert_lemmas([lemma]))
-    # print(f'predicted to {int(buck_float)}')
-    buck = int(buck_float) # could also try combining the two adjacent quantiles
-    
-    if val:
-      return (buck, find_quantile(self._thresholds, float(val)))
-    else:
-      return (buck, None)
-
-  def diff_to_buck(self, diff: int) -> int: 
-    return find_quantile(self._thresholds, float(diff))
-
-  def accuracy(self, lemmas : List[Tuple[Lemma, int]]):
-    return np.mean([1.0 if self.pred_bucket(l, val)[0] == self.pred_bucket(l, val)[1] else 0.0 for l, val in lemmas])
-
-  def np_accuracy(self, lem_xs: np.ndarray, lem_ys: np.ndarray):
-    y_pred = self.model.predict(lem_xs)
-    return accuracy_score(lem_ys, y_pred)
-
-
-  @property
-  def name(self):
-    inner = ",".join([x.name for x in self._locals])
-    return f"Ensemble {str(self.model)} + [{inner}]"
-
-  def convert_lemmas(self, lemmas: Iterable[Lemma]):
-    lemmas = list(lemmas)
-    fst = lemmas[0]
-    assert self._init, "uninitialized lemmas! (need to call init_lemmas)"
-
-    first_x_hyp = make_ident_vector(fst, self._hyp_ident_idx, True) if self._use_hypos else []
-    x_dim = len(first_x_hyp + make_ident_vector(fst, self._ty_ident_idx, False))
-
-    dater = np.fromiter(chain.from_iterable((make_ident_vector(lem, self._hyp_ident_idx, True) if self._use_hypos else []) + make_ident_vector(lem, self._ty_ident_idx, False) for lem in lemmas), float, count=x_dim*len(lemmas))
-
-    dater.shape = len(lemmas), x_dim
-    return dater
-  
-  def transform_xs(self, lemmas: Iterable[Lemma]) -> np.ndarray:
-    return self.convert_lemmas(lemmas)
-
-
-class KNNIdents(IEnsembleLearner):
-
-  _model : BaseEstimator
-
-  @property
-  def model(self): 
-    return self._model
-
-  def __init__(self, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
-    self._model = make_pipeline(
-        PCA(n_components=0.95)
-      , KNeighborsClassifier(weights='distance', n_jobs=-1)
-    )
-
-
-class SVMCV(IEnsembleLearner):
-
-  _model : BaseEstimator
-  _should_cv : bool
-
-  @property
-  def model(self): 
-    return self._model
-
-  def __init__(self, svc_params = None, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
-    ranges = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
-    if svc_params:
-      self._model = make_pipeline(
-          PCA(n_components=0.95)
-        , SVC(**svc_params)
-      )
-
-      self._should_cv = False
-    else:
-      self._model = make_pipeline(
-          PCA(n_components=0.95)
-        , GridSearchCV(
-            estimator=SVC()
-          , param_grid=[
-                {'C': ranges, 'kernel': ['linear']}
-              , {'C': ranges, 'gamma': ranges, 'kernel': ['rbf']},
-            ]
-          , verbose=1
-          , n_jobs=-1
-        )
-      )
-
-      self._should_cv = True
-
-
-  def fit_classifier(self, lemma_xs: np.ndarray, lemma_ys: np.ndarray):
-    ret = super().fit_classifier(lemma_xs, lemma_ys)
-
-    if self._should_cv:
-      print("cross validation params:")
-      print(self._model[-1].best_params_)
-    return ret
+#   def __init__(self, *args, **kwargs) -> None:
+#     super().__init__(*args, **kwargs)
+#     self._model = make_pipeline(
+#         PCA(n_components=0.95)
+#       , KNeighborsClassifier(weights='distance', n_jobs=-1)
+#     )
 
 
 def nested_size(obj: Sexpr) -> int:
@@ -915,7 +690,7 @@ def join_module(e: Sexpr) -> Optional[str]:
     case [name, *args] if name == Symbol("MPbound"):
       return None
     case _:
-      raise UnhandledExpr(e, "joint module")
+      raise UnhandledExpr(e, "join module")
   return None
 
 def conv_id(e: Sexpr) -> Optional[str]:
@@ -949,7 +724,7 @@ def lemma_hyp_idents(l: Lemma) -> dict[str, int]:
       assert False
   return ret
 
-class SVCCategories:
+class SVCCategories(ITransformer):
   
   _should_CV: bool
   _model : BaseEstimator
@@ -960,24 +735,23 @@ class SVCCategories:
   _lower_quantile : np.single
 
   @property 
-  def svr_params(self):
-    return self._svr_params
+  def svc_params(self):
+    return self._svc_params
 
-  def __init__(self, lower, upper, svr_params = None, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
+  def __init__(self, lower, upper, svc_params = None, *args, **kwargs) -> None:
     self._lower_quantile = lower
     self._upper_quantile = upper
-    if svr_params:
-      self._svr_params = svr_params
+    if svc_params:
+      self._svc_params = svc_params
       self._model = make_pipeline(
           StandardScaler()
         , PCA(n_components=0.95)
-        , SVC(**svr_params, class_weight='balanced')
+        , SVC(**svc_params, class_weight='balanced')
       )
       self._should_CV = False
     else:
       self._should_CV = True
-      self._svr_params = {}
+      self._svc_params = {}
       ranges = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
       self._model = make_pipeline(
           StandardScaler()
@@ -1000,10 +774,11 @@ class SVCCategories:
 
     self._model.fit(xs, ys_categories)
 
-  def predict(self, xs: np.ndarray) -> np.ndarray:
     if self._should_CV:
       print("cross validation params:")
       print(self._model[-1].best_params_)
+
+  def predict_transformed(self, xs: np.ndarray) -> np.ndarray:
     return self._model.predict(xs)
 
   def categorize(self, ys: np.ndarray):
@@ -1017,7 +792,10 @@ class SVCCategories:
 class SVCCatBinary(SVCCategories):
 
   def __init__(self, *args, **kwargs) -> None:
-    super().__init__(*args, **kwargs)
+    kwargs = {k: v for k, v in kwargs.items()}
+    kwargs["lower"] = 0.0
+    kwargs["upper"] = 0.0
+    super().__init__(*args, **kwargs) # lower, upper filled in in training
 
   def train(self, xs: np.ndarray, ys: np.ndarray):
     self._upper_quantile = np.single(np.inf)
@@ -1027,6 +805,56 @@ class SVCCatBinary(SVCCategories):
 
     self._model.fit(xs, ys_categories)
 
+class C2VCategories(SVCCategories):
+
+  _vectorizer: coq2vec.CoqContextVectorizer
+
+  def __init__(self, encoder_weights_path : str = "encoder_model.dat", *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+
+    goal_vectorizer = coq2vec.CoqTermRNNVectorizer()
+    goal_vectorizer.load_weights(encoder_weights_path)
+
+    self._vectorizer = coq2vec.CoqContextVectorizer(goal_vectorizer, 4)
+
+  def __getstate__(self):
+    state = self.__dict__.copy()
+    
+    state["_vectorizer"] = self._vectorizer.term_encoder.get_state()
+
+    return state
+
+  def __setstate__(self, state):
+    vectorizer = coq2vec.CoqTermRNNVectorizer()
+    vectorizer.load_state(state["_vectorizer"])
+    state["_vectorizer"] = coq2vec.CoqContextVectorizer(vectorizer, 4)
+    self.__dict__.update(state)
+
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) -> np.ndarray:
+    obls = [obl for obl, _ in lemmas]
+    return np.array([x.flatten() for x in self._vectorizer.obligations_to_vectors(obls).numpy()])
+  
+  def predict(self, obl: Obligation, lem: Lemma):
+    xs = self.transform_xs([(obl, lem)])
+    return super().predict_transformed(xs)
+
+
+class SVRCategories(SVCCategories):
+
+  _learner : ISVRLearner # use this model just for the transform_xs method
+
+  def __init__(self, learner_factory: ISVRFactory, *args, **kwargs) -> None:
+    super().__init__(*args, **kwargs)
+    self._learner = learner_factory.make_svr(*args, **kwargs)
+
+  def transform_xs(self, lemmas: Iterable[Tuple[Obligation, Lemma]]) -> np.ndarray:
+    return self._learner.transform_xs(lemmas=lemmas)
+  
+  def predict(self, obl: Obligation, lem: Lemma):
+    xs = self.transform_xs([(obl, lem)])
+    return super().predict_transformed(xs)
+  
+
 @njit
 def categorize_value(v: np.single, upper: np.single, lower: np.single):
   return \
@@ -1034,56 +862,70 @@ def categorize_value(v: np.single, upper: np.single, lower: np.single):
     2.0 if v <= upper else \
     3.0
 
-class SVCCatEnsemble:
+class SVRCatEnsemble:
   
-  _model_lower : SVRC2V
-  _model_middle : SVRC2V
-  _model_upper : SVRC2V
+  _model_lower : ISVRLearner
+  _model_middle : ISVRLearner
+  _model_upper : ISVRLearner
 
   _model_cat : SVCCategories
 
-
-  def __init__(self, svc_cat, lower_params, middle_params, upper_params, *args, **kwargs) -> None:
+  def __init__(self, svc_cat, inter_model_builder, lower_params=None, middle_params=None, upper_params=None, *args, **kwargs) -> None:
     super().__init__(*args, **kwargs)
     self._model_cat = svc_cat
-    self._model_lower = SVRC2V(svr_params = lower_params)
-    self._model_middle = SVRC2V(svr_params = middle_params)
-    self._model_upper = SVRC2V(svr_params = upper_params)
+    if "use_hypos" in kwargs:
+      self._use_hypos = kwargs["use_hypos"]
+    else:
+      self._use_hypos = False
+      
+    self._model_lower = inter_model_builder(svr_params = lower_params)
+    self._model_middle = inter_model_builder(svr_params = middle_params)
+    self._model_upper = inter_model_builder(svr_params = upper_params)
 
   def train(self, xs: np.ndarray, ys: np.ndarray):
+
+    # logging.info(f"total: {len(xs)}")
 
     ys_categories = self._model_cat.categorize(ys)
 
     xs_low = np.fromiter((x_ for i, x in enumerate(xs) for x_ in x.flatten() if ys_categories[i] == 1.0), np.single)
     xs_low = xs_low.reshape((-1, xs.shape[-1]))
+    # logging.info(f"total lower: {len(xs_low)}")
     ys_low = np.fromiter((x for i, x in enumerate(ys) if ys_categories[i] == 1.0), np.single)
 
     self._model_lower.train_transformed(xs_low, ys_low)
+    # logging.info("trained lower")
     xs_low = []
     ys_low = []
 
     xs_middle = np.fromiter((x_ for i, x in enumerate(xs) for x_ in x.flatten() if ys_categories[i] == 2.0), np.single)
     xs_middle = xs_middle.reshape((-1, xs.shape[-1]))
+    # logging.info(f"total middle: {len(xs_middle)}")
     ys_middle = np.fromiter((x for i, x in enumerate(ys) if ys_categories[i] == 2.0), np.single)
 
     self._model_middle.train_transformed(xs_middle, ys_middle)
+    # logging.info("trained middle")
     xs_middle = []
     ys_middle = []
 
     xs_upper = np.fromiter((x_ for i, x in enumerate(xs) for x_ in x.flatten() if ys_categories[i] == 3.0), np.single)
     xs_upper = xs_upper.reshape((-1, xs.shape[-1]))
+    # logging.info(f"total upper: {len(xs_upper)}")
     ys_upper = np.fromiter((x for i, x in enumerate(ys) if ys_categories[i] == 3.0), np.single)
     self._model_upper.train_transformed(xs_upper, ys_upper)
+    # logging.info("trained upper")
 
   # assumes that the input has been transformed by a c2v pass already
-  def predict(self, xs: np.ndarray):
+  def predict(self, xs: np.ndarray, xs_cat: np.ndarray):
     return np.fromiter((
-      self._model_lower.predict_transformed(np.array([x]))[0] if self._model_cat.predict(np.array([x]))[0] == 1.0 else
-      self._model_middle.predict_transformed(np.array([x]))[0] if self._model_cat.predict(np.array([x]))[0] == 2.0 else 
+      self._model_lower.predict_transformed(np.array([x]))[0] if self._model_cat.predict_transformed(np.array([xs_cat[i]]))[0] == 1.0 else
+      self._model_middle.predict_transformed(np.array([x]))[0] if self._model_cat.predict_transformed(np.array([xs_cat[i]]))[0] == 2.0 else 
       self._model_upper.predict_transformed(np.array([x]))[0]
-      for x in xs
+      for i, x in enumerate(xs)
     ), np.single, count=len(xs))
 
-  def predict_obl(self, obl: coq2vec.Obligation) -> np.ndarray:
-    xs = np.array([self._model_lower._vectorizer.obligation_to_vector(obl).numpy().flatten()])
-    return self.predict(xs)
+  def predict_obl(self, obl: Obligation, lem: Lemma) -> np.ndarray:
+    xs = self._model_lower.transform_xs([(obl, lem)])
+    # xs = np.array([self._model_lower._vectorizer.obligation_to_vector(obl).numpy().flatten()])
+    xs_cat = self._model_cat.transform_xs([(obl, lem)])
+    return self.predict(xs, xs_cat)

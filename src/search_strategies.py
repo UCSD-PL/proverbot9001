@@ -15,7 +15,7 @@ import pygraphviz as pgv
 from tqdm import tqdm, trange
 
 if sys.version_info >= (3, 10):
-    from lemma_models import Lemma, UnhandledExpr
+    import lemma_models
 
 import coq_serapy
 from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context
@@ -798,7 +798,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
                             try:
                                 score += -float(john_model.predict_obl(obl))
-                            except UnhandledExpr:
+                            except lemma_models.UnhandledExpr:
                                 print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                                 raise
                         prediction_node.score = score
@@ -980,10 +980,18 @@ def best_first_proof_search(lemma_name: str,
                 assert args.scoring_function in ["pickled", "pickled-normcert"]
                 assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
-                for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
+                for obl, sexp_obl in zip(coq.proof_context.fg_goals
+                                         + coq.proof_context.bg_goals,
+                                         coq.backend.get_all_sexp_goals()):
+                    model_ctx = lemma_models.ProofCtx(
+                      {"hypos": sexp_obl.hypotheses,
+                       "type": sexp_obl.goal,
+                       "goal_str": obl.goal,
+                       "hyp_strs": obl.hypotheses})
+                    model_lem = lemma_models.Lemma(lemma_name, model_ctx)
                     try:
-                        h_score += float(john_model.predict_obl(obl))
-                    except UnhandledExpr:
+                        h_score += float(john_model.predict_obl(obl, model_lem))
+                    except lemma_models.UnhandledExpr:
                         print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
                 if args.scoring_function == "pickled-normcert":
