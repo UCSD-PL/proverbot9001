@@ -30,7 +30,7 @@ def main():
     add_args_to_parser(parser)
     parser.add_argument("--num-workers", default=32, type=int)
     parser.add_argument("--workers-output-dir", default=Path("output"),
-                            type=Path)
+                        type=Path)
     parser.add_argument("--worker-timeout", default="6:00:00")
     parser.add_argument("--partition", default="cpu")
     parser.add_argument("--mem", default="2G")
