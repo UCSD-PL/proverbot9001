@@ -4,7 +4,7 @@ import argparse
 import time
 import json
 from pathlib import Path
-from typing import List
+from typing import List, Dict, Union
 
 import torch
 import torch.cuda
@@ -12,6 +12,10 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.optim.lr_scheduler as scheduler
 from tqdm import tqdm
+
+from ray import tune, air
+from ray.air import session
+from ray.tune.search.optuna import OptunaSearch
 
 import coq2vec
 from coq_serapy import Obligation
@@ -39,15 +43,51 @@ def main() -> None:
   argparser.add_argument("--print-timings", action='store_true')
   argparser.add_argument("--encoder-weights", type=Path)
   argparser.add_argument("-o", "--output", type=Path)
+  argparser.add_argument("--shorter-proofs-from", type=Path, default=None)
+  argparser.add_argument("--mode", choices=["train", "tune"], default="train")
   argparser.add_argument("obl_tasks_file", type=Path)
   args = argparser.parse_args()
 
   args.backend = "serapi"
   args.set_switch = True
 
-  train(args)
+  if args.mode == "train":
+    train(args)
+  else:
+    assert args.mode == "tune"
+    tune_hyperparams(args)
 
-def train(args: argparse.Namespace) -> None:
+def tune_hyperparams(args: argparse.Namespace) -> None:
+  def objective(config: Dict[str, Union[float, int]]):
+    train_args = argparse.Namespace(**vars(args))
+    train_args.learning_rate = config["learning-rate"]
+    train_args.learning_rate_decay = config["learning-rate-decay"]
+    train_args.learning_rate_step = config["learning-rate-step"]
+    train_args.gamma = config["gamma"]
+    train_args.hidden_size = config["hidden-size"]
+    train_args.num_layers = config["num-layers"]
+    session.report({"loss": train(train_args)})
+  search_space={"learning-rate": tune.loguniform(1e-12, 10),
+                "learning-rate-decay": tune.uniform(0.1, 1.0),
+                "learning-rate-step": tune.lograndint(32, 8192),
+                "gamma": tune.uniform(0.2, 0.9),
+                "hidden-size": tune.lograndint(64, 32768),
+                "num-layers": tune.randint(1, 8)}
+  algo = OptunaSearch()
+  tuner = tune.Tuner(tune.with_resources(
+                       tune.with_parameters(objective), {"cpu": 1, "gpu": 1}),
+                     tune_config=tune.TuneConfig(
+                       metric="loss",
+                       mode="min",
+                       search_alg=algo,
+                       num_samples=256),
+                     run_config=air.RunConfig(stop={"training_iteration": 5}),
+                     param_space=search_space)
+  results = tuner.fit()
+  print("Best config is:", results.get_best_result().config)
+  pass
+
+def train(args: argparse.Namespace) -> float:
   device = "cuda" if torch.cuda.is_available() else "cpu"
   with print_time("Loading tasks"):
     with args.obl_tasks_file.open("r") as f:
@@ -66,8 +106,20 @@ def train(args: argparse.Namespace) -> None:
     with torch.no_grad():
       encoded_states = v_network.obligation_encoder.\
         obligations_to_vectors_cached(obls).to(device)
-  target_v_values = torch.FloatTensor(
-    [args.gamma ** t.target_length for t in tasks]).to(device)
+  if args.shorter_proofs_from is not None:
+    with args.shorter_proofs_from.open('rb') as f:
+      _, _, _, _, _, shorter_proofs_dict, _ = torch.load(f, map_location="cpu")
+    target_v_values = torch.FloatTensor(
+      [args.gamma ** (shorter_proofs_dict[t] if t in shorter_proofs_dict 
+                      else t.target_length) for t in tasks]).to(device)
+    assert any(t in shorter_proofs_dict for t in tasks), \
+      "Didn't find any shorter proofs for our tasks"
+    for t in tasks:
+      if t in shorter_proofs_dict and shorter_proofs_dict[t] < t.target_length:
+        print(f"Found shorter length {shorter_proofs_dict[t]} for task {t}.")
+  else:
+    target_v_values = torch.FloatTensor(
+      [args.gamma ** t.target_length for t in tasks]).to(device)
 
   dataloader = data.DataLoader(data.TensorDataset(encoded_states, 
                                                   target_v_values),
@@ -116,6 +168,7 @@ def train(args: argparse.Namespace) -> None:
         erroneous_count += 1
       print(actual_value.item(), "vs", expected_value.item())
     print(f"{erroneous_count} of {len(encoded_states)} samples have the wrong v value")
+  return epoch_loss
 
 if __name__ == "__main__":
   main()
