@@ -18,7 +18,7 @@ from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 from linearize_semicolons import get_linearized
 
-from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching
+from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching, print_time
 
 unnamed_goal_number: int = 0
 
@@ -129,7 +129,15 @@ class Worker:
 
     def exit_cur_file(self) -> None:
         assert self.coq
-        self.coq.reset()
+        with print_time("Resetting command state"):
+            try:
+                self.coq.reset()
+            except coq_serapy.CoqAnomaly as e:
+                eprint(f"Got anomaly {e}")
+                if e.msg == "Timing Out":
+                    self.enter_instance()
+                else:
+                    raise
 
     def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
         assert self.coq
