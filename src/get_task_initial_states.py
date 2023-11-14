@@ -31,7 +31,7 @@ def main() -> None:
         done_tasks = [RLTask(**task_dict) for l in f
                       for task_dict, obl_dict in (json.loads(l),)]
       tasks = list(set(tasks).difference(set(done_tasks)))
-      eprint("Resumed from file {str(args.output_file)}")
+      eprint(f"Resumed from file {str(args.output_file)}")
     else:
       with args.output_file.open("w") as f:
         pass
