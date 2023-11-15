@@ -107,7 +107,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   common_network_version = 0
   iters_trained = 0
   last_iter_verified = 0
-  loss_buffer = []
+  loss_buffer: List[torch.FloatTensor] = []
 
   while signal_change.wait():
     signal_change.clear()
@@ -159,10 +159,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
 def train(args: argparse.Namespace, v_model: nn.Module,
           target_model: nn.Module,
           optimizer: optim.Optimizer,
-          replay_buffer: EncodedReplayBuffer) -> torch.FloatTensor:
+          replay_buffer: EncodedReplayBuffer) -> Optional[torch.FloatTensor]:
   samples = replay_buffer.sample(args.batch_size)
   if samples is None:
-    return
+    return None
   eprint(f"Got {len(samples)} samples to train at step {replay_buffer.buffer_steps}")
   inputs = torch.cat([start_obl.contents.view(1, args.encoding_size)
                       for start_obl, _action_records in samples], dim=0)
@@ -196,7 +196,7 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   actual_values = v_model(inputs).view(len(samples))
   device = "cuda"
   target_values = torch.FloatTensor(outputs).to(device)
-  loss = F.mse_loss(actual_values, target_values)
+  loss: torch.FloatTensor = F.mse_loss(actual_values, target_values)
   optimizer.zero_grad()
   loss.backward()
   optimizer.step()
