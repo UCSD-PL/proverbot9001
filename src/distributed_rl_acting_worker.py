@@ -100,7 +100,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
       eprint(f"Starting task ep {next_task_ep}")
     next_task, next_ep = next_task_ep
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
-    successful, samples = actor.run_task_reinforce(
+    successful, samples, negative_samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
     if next_ep == 0:
       learning_connection.encode_and_send_target_length(samples[0][0],
@@ -111,6 +111,8 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
                                  learning_connection)
     for prestate, action, poststates in samples:
       learning_connection.encode_and_send_sample(prestate, action, poststates)
+    for state in negative_samples:
+      learning_connection.encode_and_send_negative_sample(state)
     mark_task_done(args, workerid, next_task_ep)
     load_latest_q_network(args, actor.v_network)
 
@@ -142,14 +144,15 @@ class RLActor:
       evicted_worker.coq.kill()
     return self.file_workers[filename]
   def run_task_reinforce(self, task: RLTask, epsilon: float,
-                         restart: bool = True) -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
+                         restart: bool = True) -> \
+      Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]], List[Obligation]]:
     if not rl.tactic_prefix_is_usable(task.tactic_prefix):
       if self.args.verbose >= 2:
         eprint(f"Skipping job {task.to_job()} with prefix {task.tactic_prefix} "
                "because it can't purely focused")
       else:
         eprint("Skipping a job because it can't be purely focused")
-      return False, []
+      return False, [], []
     with print_time("Getting worker", guard=self.args.print_timings):
       file_worker = self._get_worker(task.src_file)
     assert file_worker.coq is not None
@@ -167,7 +170,7 @@ class RLActor:
       if restart:
         return self.run_task_reinforce(task, epsilon, restart=False)
       eprint("Encountered anomaly without restart, closing current job")
-    return False, []
+    return False, [], []
 
 TaskEpisode = Tuple[RLTask, int]
 IndexedTaskEpisode = Tuple[int, TaskEpisode]
@@ -207,6 +210,8 @@ class LearningServerConnection:
                              post_states: List[Obligation]) -> None:
     states_encoded = self.obligation_encoder.obligations_to_vectors_cached(
       [pre_state] + post_states)
+    sample_hash = hash(tuple(states_encoded[0].view(-1).tolist()))
+    eprint(f"Sending sample {sample_hash} for obligation <{hash(pre_state)}> {pre_state.to_dict()}")
     self.send_sample(states_encoded[0], hash(action), states_encoded[1:])
 
   def send_target_v(self, state_encoded: torch.FloatTensor, target_length: int) -> None:
@@ -217,6 +222,14 @@ class LearningServerConnection:
   def encode_and_send_target_length(self, state: Obligation, target_length: int) -> None:
     state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0]
     self.send_target_v(state_encoded, target_length)
+
+  def encode_and_send_negative_sample(self, state: Obligation) -> None:
+    state_encoded = self.obligation_encoder.\
+      obligations_to_vectors_cached([state])[0]
+    sample_hash = hash(tuple(state_encoded.view(-1).tolist()))
+    eprint(f"Sending negative sample {sample_hash} for obligation <{hash(state)}> {state.to_dict()}")
+    dist.send(tensor=torch.tensor(2, dtype=int), tag=4, dst=0)
+    dist.send(tensor=state_encoded, tag=7, dst=0)
 
 @dataclass
 class FileTaskState:
@@ -503,23 +516,28 @@ def experience_proof(args: argparse.Namespace,
                      predictor: TacticPredictor,
                      v_network: rl.VNetwork,
                      epsilon: float) \
-      -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
+      -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]], List[Obligation]]:
   path: List[ProofContext] = [coq.proof_context]
   initial_open_obligations = len(coq.proof_context.all_goals)
   samples: List[Tuple[Obligation, str, List[Obligation]]] = []
+  negative_samples: List[Obligation] = []
 
   for step in range(args.steps_per_episode):
     before_obl = unwrap(coq.proof_context).fg_goals[0]
     if args.verbose >= 3:
       coq_serapy.summarizeContext(coq.proof_context)
+    tcontext = FullContext(coq.local_lemmas[:-1],
+                           coq.prev_tactics,
+                           unwrap(coq.proof_context)).as_tcontext()
     actions = predictor.predictKTactics(
-      truncate_tactic_context(FullContext(coq.local_lemmas[:-1],
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context)).as_tcontext(),
+      truncate_tactic_context(tcontext,
                               30),
       args.num_predictions,
       blacklist = args.blacklisted_tactics)
-    eprint(f"Using predictions {[action.prediction for action in actions]}",
+    eprint(f"There are {len(coq.prev_tactics)} prev tactics with tail {coq.prev_tactics[-3:]}")
+    eprint(f"There are {len(coq.local_lemmas[:-1])} local lemmas with tail {coq.local_lemmas[-4:-1]}")
+    eprint(f"Tactic context hashes as {hash(tcontext)}")
+    eprint(f"Using predictions {[action.prediction for action in actions]} from obligation <{hash(before_obl)}>",
            guard=args.verbose >= 3)
     if random.random() < epsilon:
       eprint("Using best-scoring action", guard=args.verbose >= 3)
@@ -529,6 +547,9 @@ def experience_proof(args: argparse.Namespace,
       chosen_action, chosen_score = max(zip(actions, action_scores),
                                         key=lambda p: p[1])
       if chosen_score == -float("Inf"):
+        eprint(f"Adding negative sample for obligation <{hash(before_obl)}> {before_obl.to_dict()}",
+               guard=args.verbose>=3)
+        negative_samples.append(before_obl)
         break
     else:
       eprint("Using random action", guard=args.verbose >=3)
@@ -549,19 +570,22 @@ def experience_proof(args: argparse.Namespace,
                 coq_serapy.UnrecognizedError) as e:
           eprint(f"Action produced error {e}", guard=args.verbose >= 3)
       if chosen_action is None:
+        eprint(f"Adding negative sample for obligation <{hash(before_obl)}> {before_obl.to_dict()}",
+               guard=args.verbose>=3)
+        negative_samples.append(before_obl)
         break
     resuting_obls = rl.execute_action(coq, chosen_action.prediction)
     eprint(f"Taking action {chosen_action}",
            guard=args.verbose >= 2)
-    if args.verbose >= 3:
-      coq_serapy.summarizeContext(coq.proof_context)
     path.append(coq.proof_context)
+    eprint(f"Adding positive sample for obligation <{hash(before_obl)}> {before_obl.to_dict()}",
+           guard=args.verbose>=3)
     samples.append((before_obl, chosen_action.prediction, resuting_obls))
     if len(coq.proof_context.all_goals) < initial_open_obligations:
       eprint(f"Completed task with trace {[sample[1] for sample in samples]}")
-      return True, samples
+      return True, samples, negative_samples
     assert len(coq.proof_context.all_goals) > 0
     assert len(coq.proof_context.fg_goals) > 0
-  return False, samples
+  return False, samples, negative_samples
 if __name__ == "__main__":
   main()

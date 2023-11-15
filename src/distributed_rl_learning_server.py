@@ -184,6 +184,9 @@ def train(args: argparse.Namespace, v_model: nn.Module,
   outputs = []
   cur_row = 0
   for resulting_obl_lens in num_resulting_obls:
+    if len(resulting_obl_lens) == 0:
+      outputs.append(0)
+      continue
     action_outputs = []
     for num_obls in resulting_obl_lens:
       selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
@@ -231,6 +234,9 @@ class BufferPopulatingThread(Thread):
         self.receive_experience_sample(sending_worker)
       elif send_type.item() == 1:
         self.receive_verification_sample(sending_worker)
+      else:
+        assert send_type.item() == 2
+        self.receive_negative_sample(sending_worker)
 
   def receive_experience_sample(self, sending_worker: int) -> None:
     if self.ignore_after is not None and self.replay_buffer.buffer_steps >= self.ignore_after:
@@ -276,6 +282,16 @@ class BufferPopulatingThread(Thread):
       eprint("Adding new verification sample")
     self.verification_states[state_sample] = target_steps.item()
 
+  def receive_negative_sample(self, sending_worker: int) -> None:
+    device = "cuda"
+    state_sample_buffer: torch.FloatTensor = \
+      torch.zeros(self.encoding_size, dtype=torch.float32) # type: ignore
+    dist.recv(tensor=state_sample_buffer, src=sending_worker, tag=7)
+    self.replay_buffer.add_negative_sample(
+      EObligation(state_sample_buffer.to(device)))
+    self.replay_buffer.buffer_steps += 1
+    self.signal_change.set()
+
 ETransition = Tuple[int, Sequence[EObligation]]
 EFullTransition = Tuple[EObligation, int, List[EObligation]]
 class EncodedReplayBuffer:
@@ -313,11 +329,19 @@ class EncodedReplayBuffer:
   def add_transition(self, transition: EFullTransition) -> None:
     with self.lock:
       from_obl, action, _ = transition
+      eprint(f"Adding positive transition from {hash(from_obl)}")
       to_obls = tuple(transition[2])
+      assert from_obl not in self._contents or len(self._contents[from_obl]) > 0
       self._contents[from_obl] = \
         (self.window_end_position,
          {(action, to_obls)} |
          self._contents.get(from_obl, (0, set()))[1])
+      self.window_end_position += 1
+  def add_negative_sample(self, state: EObligation) -> None:
+    with self.lock:
+      assert state not in self._contents or len(self._contents[state][1]) == 0, \
+        f"State {hash(state)} already had sample {self._contents[state]}, but we're marking it as negative now"
+      self._contents[state] = (self.window_end_position, set())
       self.window_end_position += 1
 
 def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
