@@ -54,18 +54,19 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
                     r"should start with one of the following commands:"
                     r"(?: |\n)Proof using\s*([^.]+)\.",
                     coq.backend.feedback_string, re.DOTALL)
-                suggested_deps = unwrap(suggestion_match).group(2)
-                if suggested_deps.strip() == "":
-                    suggested_deps = "Type"
-                proof_cmd_match = re.match(r"Proof(\s*[^.]*)\.",
-                                           cur_proof_commands[0].strip())
-                if proof_cmd_match:
-                    proof_cmd_suffix = proof_cmd_match.group(1)
-                    if len(suggested_deps.strip().split()) > 1 and proof_cmd_suffix.strip() != "":
-                        suggested_deps = "(" + suggested_deps + ")"
-                    cur_proof_commands[0] = "Proof using " + suggested_deps + proof_cmd_suffix + ".\n"
-                else:
-                    cur_proof_commands.insert(0, "Proof using " + suggested_deps + ".\n")
+                if suggested_deps is not None:
+                    suggested_deps = unwrap(suggestion_match).group(2)
+                    if suggested_deps.strip() == "":
+                        suggested_deps = "Type"
+                    proof_cmd_match = re.match(r"Proof(\s*[^.]*)\.",
+                                               cur_proof_commands[0].strip())
+                    if proof_cmd_match:
+                        proof_cmd_suffix = proof_cmd_match.group(1)
+                        if len(suggested_deps.strip().split()) > 1 and proof_cmd_suffix.strip() != "":
+                            suggested_deps = "(" + suggested_deps + ")"
+                        cur_proof_commands[0] = "Proof using " + suggested_deps + proof_cmd_suffix + ".\n"
+                    else:
+                        cur_proof_commands.insert(0, "Proof using " + suggested_deps + ".\n")
 
             yield from cur_proof_commands
             cur_proof_commands = []
