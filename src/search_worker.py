@@ -283,7 +283,18 @@ class Worker:
                coq_serapy.kill_comments(job_lemma).strip() and \
               self.coq.sm_prefix == job_module:
                 return
-            self.skip_proof(careful)
+            try:
+                self.skip_proof(careful)
+            except coq_serapy.CoqAnomaly:
+                if restart_anomaly:
+                    self.restart_coq()
+                    self.reset_file_state()
+                    self.enter_file(job_file)
+                    eprint("Hit a coq anomaly! Restarting...",
+                           guard=self.args.verbose >= 1)
+                    self.run_into_job(job, False, careful)
+                    return
+                assert False
 
     def skip_proof(self, careful: bool) -> None:
         assert self.coq
