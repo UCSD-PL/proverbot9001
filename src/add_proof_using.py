@@ -54,7 +54,7 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
                     r"should start with one of the following commands:"
                     r"(?: |\n)Proof using\s*([^.]+)\.",
                     coq.backend.feedback_string, re.DOTALL)
-                if suggested_deps is not None:
+                if suggestion_match is not None:
                     suggested_deps = unwrap(suggestion_match).group(2)
                     if suggested_deps.strip() == "":
                         suggested_deps = "Type"
