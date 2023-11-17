@@ -715,21 +715,23 @@ def combo_b_search(lemma_name: str,
     proof_scripts = {tuple([])}
     steps_taken = 1 
     search_status = SearchStatus.INCOMPLETE
-    max_steps = 100
-    context_history = []
+    max_steps = 150
+    # context_history = []
     script_to_continue = tuple([])
-    while steps_taken < max_steps and search_status != SearchStatus.SUCCESS:
+    kvalue = args.max_term_length
+    # only to end fast
+    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
+    while steps_taken < max_steps:
         # remove it from the set
         script_context_history = []
-        proof_scripts.remove(script_to_continue)
+        # context_history = []
         for script_statement in script_to_continue:
             coq.run_stmt(script_statement)
             script_context_history.append(coq.proof_context) # keep a context history
         shuffle(predictor_list)
         for apredictor in predictor_list:
             predictions = apredictor.predictKTactics(args,
-                truncate_tactic_context(full_context_before.as_tcontext(),
-                                        args.max_term_length),
+                truncate_tactic_context(full_context_before.as_tcontext(), kvalue),
                 args.max_attempts,
                 blacklist=args.blacklisted_tactics)
             assert len(predictions) == args.max_attempts
@@ -752,7 +754,7 @@ def combo_b_search(lemma_name: str,
                         #prediction_node.setNodeColor("red")
                         continue
                     # Check if we've gone in circles
-                    if any([coq_serapy.contextSurjective(context_after, hist_context) for hist_context in context_history]): # maybe should be hist_context.obligations?
+                    if any([coq_serapy.contextSurjective(context_after, hist_context) for hist_context in script_context_history]): # maybe should be hist_context.obligations?
                         #if args.count_softfail_predictions:
                         #    num_successful_predictions += 1
                         eprint(f"Prediction in history", guard=args.verbose >= 2)
@@ -763,7 +765,7 @@ def combo_b_search(lemma_name: str,
                         continue
                     #num_successful_predictions += 1
                     # Check if the resulting context is too big
-                    context_history.append(context_after)
+                    script_context_history.append(context_after)
                     if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
                       contextIsBig(context_after):
                         eprint(f"Context big", guard=args.verbose >= 2)
@@ -811,12 +813,19 @@ def combo_b_search(lemma_name: str,
         for _ in range(len(script_to_continue)):
             coq.cancel_last()
             assert coq.proof_context
+
+
         # pick script to continue
         if len(list(proof_scripts)) > 0:
             script_to_continue = random.choice(list(proof_scripts))
+            proof_scripts.remove(script_to_continue)
         else:
-            proof_scripts.add(tuple([]))
-            script_to_continue = tuple([])
+            eprint("got down to 0!")
+            if len(script_to_continue) > 1:
+                proof_scripts.add(script_to_continue[0:-1])
+            kvalue = kvalue + 128
+            #proof_scripts.add(tuple([]))
+            #script_to_continue = tuple([])
         #eprint("script continuing...")
         #eprint(script_to_continue)
         #do not have a progress bar here right now

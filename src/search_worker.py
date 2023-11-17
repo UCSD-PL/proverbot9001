@@ -339,7 +339,6 @@ class SearchWorker(Worker):
         self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
-        print("entering file")
         super().enter_file(filename)
         self.axioms_already_added = False
 
@@ -349,7 +348,6 @@ class SearchWorker(Worker):
 
     def set_predictor(self, predictor:TacticPredictor) -> None:
         self.predictor = predictor
-        print("set predictor")
         exit()
 
     def run_job_with_random(self, job: ReportJob, restart: bool = True) -> SearchResult:
@@ -440,7 +438,6 @@ class SearchWorker(Worker):
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
-        print("running job without random")
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
