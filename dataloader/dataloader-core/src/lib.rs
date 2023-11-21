@@ -201,6 +201,12 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
         get_premise_features_size_rs(args, metadata)
     }
     #[pyfn(m)]
+    pub fn encode_prev_tactic(metadata: PickleableFPAMetadata,
+                              tactic: String) -> i64 {
+        let (_indexer, _tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
+        prev_tactic_feature(&ftmap, &vec![tactic])
+    }
+    #[pyfn(m)]
     fn decode_fpa_stem(
         _py: Python,
         args: DataloaderArgs,
@@ -274,6 +280,11 @@ fn dataloader(_py: Python, m: &PyModule) -> PyResult<()> {
     fn get_word_feature_vocab_sizes(_py: Python, metadata: PickleableFPAMetadata) -> Vec<i64> {
         let (_indexer, _tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
         ftmap.word_features_sizes()
+    }
+    #[pyfn(m)]
+    fn get_prev_tactic_vocab_size(metadata: PickleableFPAMetadata) -> i64 {
+        let (_indexer, _tokenizer, ftmap) = fpa_metadata_from_pickleable(metadata);
+        ftmap.prev_tactic_vocab_size()
     }
     #[pyfn(m)]
     fn get_vec_features_size(_py: Python, _metadata: PickleableFPAMetadata) -> i64 {

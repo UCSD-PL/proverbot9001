@@ -14,12 +14,13 @@ import shutil
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any, OrderedDict
 from glob import glob
+from dataclasses import dataclass
 
 from tqdm import tqdm, trange
 
 from gen_rl_tasks import RLTask
 from search_file import get_all_jobs
-from search_worker import project_dicts_from_args
+from search_worker import project_dicts_from_args, get_predictor
 import rl
 import util
 import torch
@@ -43,8 +44,10 @@ def main() -> None:
                                       args.num_actors)
     if num_workers_actually_needed > 0:
         if args.start_from is not None:
-            _, _, _, (_, _, _, hidden_size, num_layers), _, _, _ = \
-              torch.load(str(args.start_from), map_location=torch.device("cpu"))
+            _, _, _, (_, _, _, training_args), _, _, _ = \
+              torch.load(str(args.start_from), map_location="cpu")
+            hidden_size = training_args.hidden_size
+            num_layers = args.num_layers
         else:
             hidden_size = args.hidden_size
             num_layers = args.num_layers
@@ -205,6 +208,8 @@ def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, in
 
 def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                                 hidden_size: int, num_layers: int):
+    predictor: FeaturesPolyargPredictor = get_predictor(args) # type: ignore
+    tactic_vocab_size = predictor.prev_tactic_vocab_size
     with (args.state_dir / "workers_scheduled.txt").open('w'):
         pass
     assert num_actors > 0, num_actors
@@ -227,6 +232,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                    "-n", str(args.num_episodes),
                    "-p", str(args.num_predictions),
                    "--hidden-size", str(hidden_size),
+                   "--tactic-embedding-size", str(args.tactic_embedding_size),
                    "--num-layers", str(num_layers),
                    "--coq2vec-weights", str(args.coq2vec_weights),
                    "--supervised-weights", str(args.weightsfile),
@@ -259,6 +265,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                      "-b", str(args.batch_size),
                      "-g", str(args.gamma),
                      "--hidden-size", str(hidden_size),
+                     "--tactic-embedding-size", str(args.tactic_embedding_size),
+                     "--tactic-vocab-size", str(tactic_vocab_size),
                      "--num-layers", str(num_layers),
                      "--window-size", str(args.window_size),
                      "--train-every", str(args.train_every),
@@ -459,9 +467,11 @@ def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
       "in the weights directory!"
     common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
-    v_network_state: Tuple[dict, Any, OrderedDict[Any, torch.FloatTensor]] = \
+    v_network_state: Tuple[dict, Any,
+                           OrderedDict[Any, torch.FloatTensor],
+                           argparse.Namespace] = \
                            (common_network_weights_dict, obl_encoder_state,
-                            OrderedDict(), args.hidden_size, args.num_layers)
+                            OrderedDict(), args)
     with args.output_file.open('wb') as f:
         torch.save((False, None,
                     steps_done, v_network_state, v_network_state,
@@ -478,6 +488,16 @@ def get_shorter_proofs_dict(args: argparse.Namespace) -> Dict[RLTask, int]:
                              for l in f for task_dict, shorter_length in (json.loads(l),)]
 
     return dict(dict_entries)
+
+@dataclass
+class EObligation:
+  contents: torch.FloatTensor
+  def __hash__(self) -> int:
+    return hash(tuple(self.contents.view(-1).tolist()))
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, EObligation):
+      return False
+    return bool(torch.all(self.contents == other.contents))
 
 if __name__ == "__main__":
     main()

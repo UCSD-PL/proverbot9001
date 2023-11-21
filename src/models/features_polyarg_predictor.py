@@ -57,8 +57,10 @@ from dataloader import (features_polyarg_tensors,
                         get_num_indices,
                         get_word_feature_vocab_sizes,
                         get_vec_features_size,
+                        get_prev_tactic_vocab_size,
                         DataloaderArgs,
-                        get_fpa_words)
+                        get_fpa_words,
+                        encode_prev_tactic)
 
 import coq_serapy
 
@@ -359,6 +361,13 @@ class FeaturesPolyargPredictor(
         #         assert batch_pred.prediction == single_pred.prediction, \
         #             (batch_pred, single_pred)
         return predictions
+
+    @property
+    def prev_tactic_vocab_size(self) -> int:
+        return get_prev_tactic_vocab_size(self.metadata)
+
+    def prev_tactic_stem_idx(self, prev_tactic: str) -> int:
+        return encode_prev_tactic(self.metadata, prev_tactic)
 
     def getAllPredictionIdxs(self, context: TacticContext,
                              blacklist: List[str]) -> List[Tuple[float, int, int]]:
