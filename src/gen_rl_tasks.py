@@ -54,6 +54,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
 
+ProofSpec = Tuple[str, str, str, str]
+
 @dataclass(eq=True, unsafe_hash=True)
 class RLTask:
     project: str
@@ -90,7 +92,7 @@ class RLTask:
     @classmethod
     def from_job(cls, job: ReportJob) -> 'RLTask':
         return RLTask(job.project_dir, job.filename, job.module_prefix, job.lemma_statement, -1, -1, [], [])
-    def to_proof_spec(self) -> Tuple[str, str, str, str]:
+    def to_proof_spec(self) -> ProofSpec:
         return self.project, self.src_file, self.module_prefix, self.proof_statement
     @property
     def tactic_prefix(self) -> List[str]:

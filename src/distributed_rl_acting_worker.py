@@ -25,7 +25,7 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 #pylint: disable=wrong-import-position
 import distributed_rl as drl
 import rl
-from gen_rl_tasks import RLTask
+from gen_rl_tasks import RLTask, ProofSpec
 from models.tactic_predictor import TacticPredictor
 from search_worker import get_predictor
 from util import FileLock, eprint, safe_abbrev, print_time, unwrap
@@ -380,7 +380,6 @@ def allocate_next_task_from_file_with_retry(
   assert False
   return None
 
-ProofSpec = Tuple[str, str, str]
 ProofEpisodeSpec = Tuple[ProofSpec, int]
 
 def allocate_next_task_from_file(args: argparse.Namespace,
