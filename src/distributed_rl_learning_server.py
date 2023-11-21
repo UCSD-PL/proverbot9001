@@ -176,9 +176,6 @@ def train(args: argparse.Namespace, v_model: VModel,
                                      in samples], dim=0)
   prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
                                           for start_obl, _ in samples]).to("cuda")
-  for prev_tactic_index in prev_tactic_indices:
-    assert prev_tactic_index < v_model.prev_tactic_vocab_size,\
-      prev_tactic_index
   num_resulting_obls = [[len(resulting_obls)
                          for _action, resulting_obls in action_records]
                         for _start_obl, action_records in samples]
@@ -193,9 +190,6 @@ def train(args: argparse.Namespace, v_model: VModel,
       resulting_prev_tactics_tensor = \
           torch.LongTensor([obl.previous_tactic for obl
                             in all_resulting_obls]).to("cuda")
-      for prev_tactic_index in resulting_prev_tactics_tensor:
-          assert prev_tactic_index < v_model.prev_tactic_vocab_size,\
-      prev_tactic_index
       all_obl_scores = target_model(resulting_local_contexts_tensor,
                                     resulting_prev_tactics_tensor)
   else:
