@@ -62,6 +62,7 @@ def main() -> None:
   parser.add_argument("--learning-rate-decay", type=float, default=0.8)
   parser.add_argument("--reset-on-updated-sample", action='store_true')
   parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
+  parser.add_argument("--verbose", "-v", help="verbose output", action="count", default=0)
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -171,9 +172,9 @@ def train(args: argparse.Namespace, v_model: VModel,
   original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
   replay_buffer_samples = replay_buffer.sample(args.batch_size//2, avoid = [] if not original_target_samples else [obl for obl, target in original_target_samples] )
   if (replay_buffer_samples is None) and (original_target_samples is None):
-    eprint("No samples yet in both replay buffer or original target buffer. Skipping training")
+    eprint("No samples yet in both replay buffer or original target buffer. Skipping training", guard=args.verbose >= 1)
     return
-  eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} samples to train from replay buffer at step {replay_buffer.buffer_steps} and {len(original_target_samples) if original_target_samples else 0} to train from Original target buffer")
+  eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} samples to train from replay buffer at step {replay_buffer.buffer_steps} and {len(original_target_samples) if original_target_samples else 0} to train from Original target buffer", guard=args.verbose >= 1)
   
 
   if original_target_samples :
@@ -239,7 +240,7 @@ def train(args: argparse.Namespace, v_model: VModel,
   actual_values = v_model(local_context_input, prev_tactics_input).view(len(replay_buffer_inputs) + len(original_target_buffer_input))
   device = "cuda"
   target_values = torch.FloatTensor(outputs).to(device)
-  eprint("training to : ", outputs)
+  eprint("training to : ", outputs, guard=args.verbose >= 1)
   loss: torch.FloatTensor = F.mse_loss(actual_values, target_values)
   optimizer.zero_grad()
   loss.backward()
@@ -260,6 +261,7 @@ class BufferPopulatingThread(Thread):
     self.target_training_buffer = target_training_buffer
     self.verification_states = {}
     self.ignore_after = ignore_after
+    self.num_verification_samples_encountered = 0
     super().__init__()
     pass
   def run(self) -> None:
@@ -315,6 +317,7 @@ class BufferPopulatingThread(Thread):
     device = "cuda"
     newest_prev_tactic_sample = torch.zeros(1, dtype=int)
     dist.recv(tensor=newest_prev_tactic_sample, src=sending_worker, tag=10)
+    self.num_verification_samples_encountered += 1
     state_sample_buffer: torch.FloatTensor = \
       torch.zeros(self.encoding_size, dtype=torch.float32)  #type: ignore
     dist.recv(tensor=state_sample_buffer, src=sending_worker, tag=11)
@@ -336,8 +339,7 @@ class BufferPopulatingThread(Thread):
     #   eprint("Updating existing verification sample")
     #   vsample_changed = True
     else:
-      coin = random.random()
-      if coin < 0.3 :
+      if self.num_verification_samples_encountered % 3 == 0  :
         eprint("Adding new verification sample")
         self.verification_states[state_sample] = target_steps.item()
       else :
