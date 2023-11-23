@@ -363,34 +363,37 @@ class BufferPopulatingThread(Thread):
 
 ETransition = Tuple[int, Sequence[EObligation]]
 EFullTransition = Tuple[EObligation, int, List[EObligation]]
-StateTarget = Tuple[EObligation, int]
 
 class TrueTargetBuffer:
-  _contents: Dict[int, StateTarget]
+  _contents: Dict[EObligation, int]
   lock: Lock
-  def __init__(self, allow_partial_batches) :
+  def __init__(self, allow_partial_batches) -> None:
     self.lock = Lock()
     self._contents = {}
     self.allow_partial_batches = allow_partial_batches
+    return None
 
   def sample(self, batch_size:int) -> \
-      Optional[List[StateTarget]] :
-    if len(self._contents) >= batch_size :
-      return random.sample(self._contents.values(), batch_size)
-    if self.allow_partial_batches and len(self._contents) > 0:
-        return self._contents.values()
-    return None
+      Optional[List[Tuple[EObligation, int]]] :
+    sampled = None
+    with self.lock:
+      if len(self._contents) >= batch_size :
+        sampled = random.sample(self._contents.items(), batch_size)
+      if self.allow_partial_batches and len(self._contents) > 0:
+        sampled = list(self._contents.items())
+    return sampled
+
   
-  def add_target(self, state : EObligation, target : int):
+  def add_target(self, state : EObligation, target : int) -> None :
     with self.lock :
       global vsample_changed
-      hashed = hash(state)
-      if hashed in self._contents :
-        assert target <= self._contents[hashed][1], \
+      if state in self._contents :
+        assert target <= self._contents[state], \
           "Got sent a target value  less than the previously expected value for this state!"
-      self._contents[hashed] = (state,target)
+      self._contents[state] = target
       vsample_changed = True
-   
+
+
 
 
 class EncodedReplayBuffer:
