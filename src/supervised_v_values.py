@@ -20,7 +20,8 @@ from ray.tune.search.optuna import OptunaSearch
 import coq2vec
 from coq_serapy import Obligation
 
-from rl import VNetwork, optimizers, FileReinforcementWorker
+from rl import (VNetwork, optimizers, FileReinforcementWorker,
+                VModel, prev_tactic_from_prefix)
 from gen_rl_tasks import RLTask
 from util import timeSince, print_time
 

@@ -110,8 +110,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     successful, samples, negative_samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
     if next_ep == 0:
-      prev_tactic = (next_task.tactic_prefix[-1]
-                    if len(next_task.tactic_prefix) > 0 else "Proof.")
+      prev_tactic = rl.prev_tactic_from_prefix(next_task.tactic_prefix)
       learning_connection.encode_and_send_target_length(prev_tactic,
                                                         samples[0][1],
                                                         next_task.target_length)
@@ -523,8 +522,7 @@ def update_shorter_proofs_dict(args: argparse.Namespace,
     for task, shorter_length in shorter_proofs_dict.items():
       print(json.dumps((task.as_dict(), shorter_length)), file=shorter_proofs_handle)
 
-  prev_tactic = (task.tactic_prefix[-1]
-                 if len(task.tactic_prefix) > 0 else "Proof.")
+  prev_tactic = rl.prev_tactic_from_prefix(task.tactic_prefix)
   server_connection.encode_and_send_target_length(
       prev_tactic, starting_state, solution_length)
 

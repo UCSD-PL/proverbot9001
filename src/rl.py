@@ -1322,6 +1322,18 @@ def randomly_order_by_scores(xs: List[T], scorer: Callable[[T], float]) -> List[
         del scores_left[next_el_idx]
     return result
 
+def prev_tactic_from_prefix(tactic_prefix: List[str]) -> str:
+    bracket_depth = 0
+    for tac in reversed(tactic_prefix):
+        if tac == "{":
+            if bracket_depth > 0:
+                bracket_depth -= 1
+        elif tac == "}":
+            bracket_depth += 1
+        elif bracket_depth == 0:
+            return tac
+    return "Proof"
+
 @dataclass
 class EObligation:
   local_context: torch.FloatTensor
