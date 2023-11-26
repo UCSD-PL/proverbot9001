@@ -333,11 +333,6 @@ class BufferPopulatingThread(Thread):
         return
       eprint("Updating existing verification sample")
       vsample_changed = True
-    # elif state_sample in self.target_training_states:
-    #   assert target_steps.item() <= self.verification_states[state_sample], \
-    #     "Got sent a target value  less than the previously expected value for this state!"
-    #   eprint("Updating existing verification sample")
-    #   vsample_changed = True
     else:
       if self.num_verification_samples_encountered % 3 == 0  :
         eprint("Adding new verification sample")
