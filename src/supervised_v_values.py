@@ -23,7 +23,9 @@ from coq_serapy import Obligation
 from rl import (VNetwork, optimizers, FileReinforcementWorker,
                 VModel, prev_tactic_from_prefix)
 from gen_rl_tasks import RLTask
-from util import timeSince, print_time
+from util import timeSince, print_time, unwrap
+from search_worker import get_predictor
+from models.features_polyarg_predictor import FeaturesPolyargPredictor
 
 def main() -> None:
   argparser = argparse.ArgumentParser()
@@ -34,11 +36,13 @@ def main() -> None:
   argparser.add_argument("--batch-size", type=int, default=16)
   argparser.add_argument("--optimizer", choices=optimizers.keys(),
                          default=list(optimizers.keys())[0])
+  argparser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
   argparser.add_argument("--print-final-outputs", action='store_true')
   argparser.add_argument("--gamma", type=float, default=0.7)
   argparser.add_argument("--num-epochs",type=int, default=16)
   argparser.add_argument("--hidden-size", type=int, default=128)
   argparser.add_argument("--num-layers", type=int, default=3)
+  argparser.add_argument("--tactic-embedding-size", type=int, default=32)
   argparser.add_argument("--print-every", type=int, default=5)
   argparser.add_argument("-v", "--verbose", action='count', default=0)
   argparser.add_argument("--print-timings", action='store_true')
@@ -97,16 +101,28 @@ def train(args: argparse.Namespace) -> float:
     tasks = [task for task, obl in obl_tasks]
     obls = [obl for task, obl in obl_tasks]
   with print_time("Building model"):
-    v_network = VNetwork(args.encoder_weights, args.learning_rate,
+    predictor = get_predictor(args)
+    assert isinstance(predictor, FeaturesPolyargPredictor)
+    tactic_vocab_size = predictor.prev_tactic_vocab_size
+    v_network = VNetwork(args.encoder_weights, predictor, args.learning_rate,
                          args.learning_rate_step, args.learning_rate_decay,
-                         args.optimizer, args.hidden_size, args.num_layers)
+                         args.optimizer, tactic_vocab_size,
+                         args.tactic_embedding_size, args.hidden_size,
+                         args.num_layers)
+    assert isinstance(v_network.network, VModel)
   #with print_time(f"Tokenizing {len(obls)} states"):
   #  tokenized_states = [v_network.obligation_encoder.obligation_to_seqs(obl)
   #                      for obl in obls]
   with print_time(f"Encoding {len(obls)} states"):
     with torch.no_grad():
-      encoded_states = v_network.obligation_encoder.\
+      encoded_states = unwrap(v_network.obligation_encoder).\
         obligations_to_vectors_cached(obls).to(device)
+    prev_tactics = [prev_tactic_from_prefix(task.tactic_prefix)
+                    if len(task.tactic_prefix) > 0 else "Proof"
+                    for task in tasks]
+    prev_tactics_encoded = torch.LongTensor(
+      [predictor.prev_tactic_stem_idx(prev_tactic)
+       for prev_tactic in prev_tactics]).to(device)
   if args.shorter_proofs_from is not None:
     with args.shorter_proofs_from.open('rb') as f:
       _, _, _, _, _, shorter_proofs_dict, _ = torch.load(f, map_location="cpu")
@@ -122,7 +138,8 @@ def train(args: argparse.Namespace) -> float:
     target_v_values = torch.FloatTensor(
       [args.gamma ** t.target_length for t in tasks]).to(device)
 
-  dataloader = data.DataLoader(data.TensorDataset(encoded_states, 
+  dataloader = data.DataLoader(data.TensorDataset(encoded_states,
+                                                  prev_tactics_encoded,
                                                   target_v_values),
                                batch_size = args.batch_size,
                                num_workers = 0, shuffle=True, drop_last=True)
@@ -135,13 +152,15 @@ def train(args: argparse.Namespace) -> float:
 
   for epoch in range(args.num_epochs):
     print(f"Epoch {epoch} (learning rate "
-          f"{v_network.optimizer.param_groups[0]['lr']:.6f})")
+          f"{v_network.optimizer.param_groups[0]['lr']:.5e})")
     epoch_loss = 0.
 
-    for batch_num, (input_batch, target_batch) in \
+    for batch_num, (contexts_batch, prev_tactics_batch, target_batch) in \
         enumerate(dataloader, start=1):
+      assert isinstance(target_batch, torch.Tensor), type(target_batch)
+      assert target_batch.is_floating_point(), target_batch.type
       v_network.optimizer.zero_grad()
-      actual = v_network.network(input_batch).view(-1)
+      actual = v_network.network(contexts_batch, prev_tactics_batch).view(-1)
       loss = F.mse_loss(actual, target_batch)
       loss.backward()
       v_network.optimizer.step()
@@ -163,11 +182,14 @@ def train(args: argparse.Namespace) -> float:
   threshold = 0.1
   erroneous_count = 0
   if args.print_final_outputs:
-    actual = v_network.network(encoded_states).view(-1)
+    actual = v_network.network(encoded_states, prev_tactics_encoded).view(-1)
     for actual_value, expected_value in zip(actual, target_v_values):
       if abs(actual_value - expected_value) > threshold:
         erroneous_count += 1
-      print(actual_value.item(), "vs", expected_value.item())
+        status_string = "(Error)"
+      else:
+        status_string = ""
+      print(actual_value.item(), "vs", expected_value.item(), status_string)
     print(f"{erroneous_count} of {len(encoded_states)} samples have the wrong v value")
   return epoch_loss
 
