@@ -25,8 +25,9 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 #pylint: disable=wrong-import-position
 import distributed_rl as drl
 import rl
-from gen_rl_tasks import RLTask
+from gen_rl_tasks import RLTask, ProofSpec
 from models.tactic_predictor import TacticPredictor
+from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_worker import get_predictor
 from util import FileLock, eprint, safe_abbrev, print_time, unwrap
 #pylint: enable=wrong-import-position
@@ -50,6 +51,7 @@ def main() -> None:
   parser.add_argument("-n", "--num-episodes", type=int)
   parser.add_argument("-p", "--num-predictions", type=int)
   parser.add_argument("--hidden-size", type=int, default=128)
+  parser.add_argument("--tactic-embedding-size", type=int, default=32)
   parser.add_argument("--num-layers", type=int, default=3)
   parser.add_argument("--optimizer", choices=rl.optimizers.keys(),
                       default=list(rl.optimizers.keys())[0])
@@ -85,10 +87,15 @@ def main() -> None:
   sys.exit(0)
 
 def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
-  learning_connection = LearningServerConnection(
-    args.coq2vec_weights)
   task_eps = drl.get_all_task_episodes(args)
   actor = initialize_actor(args)
+  assert isinstance(actor.predictor, rl.MemoizingPredictor), \
+                    type(actor.predictor)
+  assert isinstance(actor.predictor.underlying_predictor,
+                    FeaturesPolyargPredictor), \
+         type(actor.predictor.underlying_predictor)
+  learning_connection = LearningServerConnection(
+    args.coq2vec_weights, actor.predictor.underlying_predictor)
   task_state = TaskState(task_eps)
   all_files = task_state.all_files()
   while True:
@@ -100,17 +107,22 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
       eprint(f"Starting task ep {next_task_ep}")
     next_task, next_ep = next_task_ep
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
-    successful, samples = actor.run_task_reinforce(
+    successful, samples, negative_samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
     if next_ep == 0:
-      learning_connection.encode_and_send_target_length(samples[0][0],
+      prev_tactic = rl.prev_tactic_from_prefix(next_task.tactic_prefix)
+      learning_connection.encode_and_send_target_length(prev_tactic,
+                                                        samples[0][1],
                                                         next_task.target_length)
     if successful and len(samples) < next_task.target_length:
       update_shorter_proofs_dict(args, all_files, next_task, len(samples),
-                                 samples[0][0],
+                                 samples[0][1],
                                  learning_connection)
-    for prestate, action, poststates in samples:
-      learning_connection.encode_and_send_sample(prestate, action, poststates)
+    for prev_tactic, prestate, action, poststates in samples:
+      learning_connection.encode_and_send_sample(prev_tactic, prestate,
+                                                 action, poststates)
+    for prev_tactic, state in negative_samples:
+      learning_connection.encode_and_send_negative_sample(prev_tactic, state)
     mark_task_done(args, workerid, next_task_ep)
     load_latest_q_network(args, actor.v_network)
 
@@ -139,19 +151,21 @@ class RLActor:
       self.file_workers.move_to_end(filename)
     if len(self.file_workers) > self.args.max_sertop_workers:
       filename, evicted_worker = self.file_workers.popitem(last=False)
-      evicted_worker.coq.kill()
+      unwrap(evicted_worker.coq).kill()
     return self.file_workers[filename]
   def run_task_reinforce(self, task: RLTask, epsilon: float,
-                         restart: bool = True) -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
+                         restart: bool = True) -> \
+      Tuple[bool, List[Tuple[str, Obligation, str, List[Obligation]]],
+                  List[Tuple[str, Obligation]]]:
     if not rl.tactic_prefix_is_usable(task.tactic_prefix):
       if self.args.verbose >= 2:
         eprint(f"Skipping job {task.to_job()} with prefix {task.tactic_prefix} "
                "because it can't purely focused")
       else:
         eprint("Skipping a job because it can't be purely focused")
-      return False, []
+      return False, [], []
     with print_time("Getting worker", guard=self.args.print_timings):
-      file_worker = self._get_worker(task.src_file)
+      file_worker = self._get_worker(str(task.src_file))
     assert file_worker.coq is not None
     try:
       with print_time("Running into task", guard=self.args.print_timings):
@@ -163,11 +177,11 @@ class RLActor:
       eprint("Encountered Coq anomaly.")
       file_worker.restart_coq()
       file_worker.reset_file_state()
-      file_worker.enter_file(task.src_file)
+      file_worker.enter_file(str(task.src_file))
       if restart:
         return self.run_task_reinforce(task, epsilon, restart=False)
       eprint("Encountered anomaly without restart, closing current job")
-    return False, []
+    return False, [], []
 
 TaskEpisode = Tuple[RLTask, int]
 IndexedTaskEpisode = Tuple[int, TaskEpisode]
@@ -183,7 +197,10 @@ def task_eps_as_dict(task_episodes: List[TaskEpisode]) \
 
 class LearningServerConnection:
   obligation_encoder: coq2vec.CoqContextVectorizer
-  def __init__(self, coq2vec_weights: Path, backend='mpi') -> None:
+  predictor: FeaturesPolyargPredictor
+  def __init__(self, coq2vec_weights: Path,
+               predictor: FeaturesPolyargPredictor,
+               backend='mpi') -> None:
     term_encoder = coq2vec.CoqTermRNNVectorizer()
     device = "cuda" if torch.cuda.is_available() else "cpu"
     term_encoder.load_state(torch.load(str(coq2vec_weights), map_location=device))
@@ -192,31 +209,70 @@ class LearningServerConnection:
     eprint("Establishing connection")
     dist.init_process_group(backend)
     eprint("Connection Initialized")
+    self.predictor = predictor
     pass
-  def send_sample(self, pre_state_encoded: torch.FloatTensor,
+  def send_sample(self, prev_tactic_encoded: int,
+                  pre_state_encoded: torch.FloatTensor,
+                  action_hashed: int,
                   action_encoded: int,
                   post_state_encodeds: List[torch.FloatTensor]) -> None:
-    dist.send(tensor=torch.tensor(0, dtype=int), tag=4, dst=0)
-    dist.send(tensor=pre_state_encoded, tag=0, dst=0)
-    dist.send(tensor=torch.LongTensor([action_encoded]), tag=1, dst=0)
-    dist.send(tensor=torch.LongTensor([len(post_state_encodeds)]), tag=2, dst=0)
+    dist.send(tensor=torch.LongTensor(0), tag=0, dst=0)
+    dist.send(tensor=torch.LongTensor([prev_tactic_encoded]),
+              tag=1, dst=0)
+    prestate_hash = hash(tuple(pre_state_encoded.view(-1).tolist() +
+                               [prev_tactic_encoded]))
+    eprint(f"Hash is {prestate_hash}")
+    dist.send(tensor=pre_state_encoded, tag=2, dst=0)
+    dist.send(tensor=torch.LongTensor([action_hashed]), tag=3, dst=0)
+    dist.send(tensor=torch.LongTensor([action_encoded]), tag=4, dst=0)
+    dist.send(tensor=torch.LongTensor([len(post_state_encodeds)]), tag=5, dst=0)
     for state in post_state_encodeds:
-      dist.send(tensor=state, tag=3, dst=0)
-  def encode_and_send_sample(self, pre_state: Obligation,
+      dist.send(tensor=state, tag=6, dst=0)
+  def encode_and_send_sample(self, prev_tactic: str,
+                             pre_state: Obligation,
                              action: str,
                              post_states: List[Obligation]) -> None:
+    prev_tactic_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
+    action_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
+    assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
     states_encoded = self.obligation_encoder.obligations_to_vectors_cached(
       [pre_state] + post_states)
-    self.send_sample(states_encoded[0], hash(action), states_encoded[1:])
+    sample_hash = hash(tuple(states_encoded[0].view(-1).tolist() +
+                             [prev_tactic_encoded]))
+    eprint(f"Sending sample {sample_hash} for previous tactic {action_encoded}"
+           f" obligation <{hash(pre_state)}> {pre_state.to_dict()}")
+    self.send_sample(prev_tactic_encoded, states_encoded[0],
+                     hash(action), action_encoded, states_encoded[1:])
 
-  def send_target_v(self, state_encoded: torch.FloatTensor, target_length: int) -> None:
-    dist.send(tensor=torch.tensor(1, dtype=int), tag=4, dst=0)
-    dist.send(tensor=state_encoded, tag=5, dst=0)
-    dist.send(tensor=torch.tensor(target_length, dtype=int), tag=6, dst=0)
+  def send_target_v(self, prev_tactic: int,
+                    local_context_encoded: torch.FloatTensor,
+                    target_length: int) -> None:
+    dist.send(tensor=torch.tensor(1, dtype=int), tag=0, dst=0)
+    dist.send(tensor=torch.LongTensor([prev_tactic]), tag=10, dst=0)
+    dist.send(tensor=local_context_encoded, tag=11, dst=0)
+    dist.send(tensor=torch.tensor(target_length, dtype=int), tag=12, dst=0)
 
-  def encode_and_send_target_length(self, state: Obligation, target_length: int) -> None:
+  def encode_and_send_target_length(self, prev_tactic: str,
+                                    state: Obligation,
+                                    target_length: int) -> None:
+    prev_tactic_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
+    assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
     state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0]
-    self.send_target_v(state_encoded, target_length)
+    self.send_target_v(prev_tactic_encoded, state_encoded, target_length)
+
+  def encode_and_send_negative_sample(self, previous_tactic: str,
+                                      state: Obligation) -> None:
+    previous_tactic_encoded = self.predictor\
+                                  .prev_tactic_stem_idx(previous_tactic)
+    assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
+    state_encoded = self.obligation_encoder.\
+      obligations_to_vectors_cached([state])[0]
+    sample_hash = hash(tuple(state_encoded.view(-1).tolist() + [previous_tactic_encoded]))
+    eprint(f"Sending negative sample {sample_hash} for previous tactic "
+           f"{previous_tactic_encoded} obligation <{hash(state)}> {state.to_dict()}")
+    dist.send(tensor=torch.tensor(2, dtype=int), tag=0, dst=0)
+    dist.send(tensor=torch.LongTensor([previous_tactic_encoded]), tag=20, dst=0)
+    dist.send(tensor=state_encoded, tag=21, dst=0)
 
 @dataclass
 class FileTaskState:
@@ -367,7 +423,6 @@ def allocate_next_task_from_file_with_retry(
   assert False
   return None
 
-ProofSpec = Tuple[str, str, str]
 ProofEpisodeSpec = Tuple[ProofSpec, int]
 
 def allocate_next_task_from_file(args: argparse.Namespace,
@@ -467,13 +522,18 @@ def update_shorter_proofs_dict(args: argparse.Namespace,
     for task, shorter_length in shorter_proofs_dict.items():
       print(json.dumps((task.as_dict(), shorter_length)), file=shorter_proofs_handle)
 
-  server_connection.encode_and_send_target_length(starting_state, solution_length)
+  prev_tactic = rl.prev_tactic_from_prefix(task.tactic_prefix)
+  server_connection.encode_and_send_target_length(
+      prev_tactic, starting_state, solution_length)
 
 def initialize_actor(args: argparse.Namespace) \
     -> RLActor:
   predictor = rl.MemoizingPredictor(get_predictor(args))
-  network = rl.VNetwork(args.coq2vec_weights, 0.0,
-                        1, 1, args.optimizer,
+  assert isinstance(predictor.underlying_predictor, FeaturesPolyargPredictor)
+  network = rl.VNetwork(args.coq2vec_weights, predictor.underlying_predictor,
+                        0.0, 1, 1, args.optimizer,
+                        predictor.underlying_predictor.prev_tactic_vocab_size,
+                        args.tactic_embedding_size,
                         args.hidden_size, args.num_layers)
   load_latest_q_network(args, network)
   return RLActor(args, predictor, network)
@@ -496,39 +556,52 @@ def load_latest_q_network(args: argparse.Namespace, v_network: rl.VNetwork) -> N
     f"common-v-network-{newest_index}.dat")
   eprint(f"Loading latest q network from {latest_q_network_path}")
   q_network_state = torch.load(latest_q_network_path, map_location="cpu")
-  v_network.network.load_state_dict(q_network_state)
+  unwrap(v_network.network).load_state_dict(q_network_state)
 
 def experience_proof(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
                      v_network: rl.VNetwork,
                      epsilon: float) \
-      -> Tuple[bool, List[Tuple[Obligation, str, List[Obligation]]]]:
-  path: List[ProofContext] = [coq.proof_context]
-  initial_open_obligations = len(coq.proof_context.all_goals)
-  samples: List[Tuple[Obligation, str, List[Obligation]]] = []
+      -> Tuple[bool, List[Tuple[str, Obligation, str, List[Obligation]]],
+                     List[Tuple[str, Obligation]]]:
+  path: List[ProofContext] = [unwrap(coq.proof_context)]
+  initial_open_obligations = len(unwrap(coq.proof_context).all_goals)
+  samples: List[Tuple[str, Obligation, str, List[Obligation]]] = []
+  negative_samples: List[Tuple[str, Obligation]] = []
 
   for step in range(args.steps_per_episode):
     before_obl = unwrap(coq.proof_context).fg_goals[0]
+    before_prev_tactic = coq.prev_tactics[-1]
     if args.verbose >= 3:
-      coq_serapy.summarizeContext(coq.proof_context)
+      coq_serapy.summarizeContext(unwrap(coq.proof_context))
+    tcontext = FullContext(coq.local_lemmas[:-1],
+                           coq.prev_tactics,
+                           unwrap(coq.proof_context)).as_tcontext()
     actions = predictor.predictKTactics(
-      truncate_tactic_context(FullContext(coq.local_lemmas[:-1],
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context)).as_tcontext(),
+      truncate_tactic_context(tcontext,
                               30),
       args.num_predictions,
       blacklist = args.blacklisted_tactics)
-    eprint(f"Using predictions {[action.prediction for action in actions]}",
+    eprint(f"There are {len(coq.prev_tactics)} prev tactics with tail {coq.prev_tactics[-3:]}")
+    eprint(f"There are {len(coq.local_lemmas[:-1])} local lemmas with tail {coq.local_lemmas[-4:-1]}")
+    eprint(f"Tactic context hashes as {hash(tcontext)}")
+    eprint(f"Using predictions {[action.prediction for action in actions]} from obligation <{hash(before_obl)}>",
            guard=args.verbose >= 3)
     if random.random() < epsilon:
       eprint("Using best-scoring action", guard=args.verbose >= 3)
+      assert isinstance(predictor, rl.MemoizingPredictor)
+      assert isinstance(predictor.underlying_predictor,
+                        FeaturesPolyargPredictor)
       action_scores = rl.evaluate_actions(
         coq, v_network, path,
         [action.prediction for action in actions])
       chosen_action, chosen_score = max(zip(actions, action_scores),
                                         key=lambda p: p[1])
       if chosen_score == -float("Inf"):
+        eprint(f"Adding negative sample for obligation <{hash(before_obl)}> {before_obl.to_dict()}",
+               guard=args.verbose>=3)
+        negative_samples.append((before_prev_tactic, before_obl))
         break
     else:
       eprint("Using random action", guard=args.verbose >=3)
@@ -536,7 +609,7 @@ def experience_proof(args: argparse.Namespace,
       for action in random.sample(actions, k=len(actions)):
         try:
           coq.run_stmt(action.prediction)
-          resulting_context = coq.proof_context
+          resulting_context = unwrap(coq.proof_context)
           coq.cancel_last_noupdate()
           if any(coq_serapy.contextSurjective(resulting_context, path_context)
                  for path_context in path):
@@ -549,19 +622,23 @@ def experience_proof(args: argparse.Namespace,
                 coq_serapy.UnrecognizedError) as e:
           eprint(f"Action produced error {e}", guard=args.verbose >= 3)
       if chosen_action is None:
+        eprint(f"Adding negative sample for obligation <{hash(before_obl)}> {before_obl.to_dict()}",
+               guard=args.verbose>=3)
+        negative_samples.append((before_prev_tactic, before_obl))
         break
+    assert chosen_action
     resuting_obls = rl.execute_action(coq, chosen_action.prediction)
     eprint(f"Taking action {chosen_action}",
            guard=args.verbose >= 2)
-    if args.verbose >= 3:
-      coq_serapy.summarizeContext(coq.proof_context)
-    path.append(coq.proof_context)
-    samples.append((before_obl, chosen_action.prediction, resuting_obls))
-    if len(coq.proof_context.all_goals) < initial_open_obligations:
+    path.append(unwrap(coq.proof_context))
+    eprint(f"Adding positive sample for obligation <{hash(before_obl)}> {before_obl.to_dict()}",
+           guard=args.verbose>=3)
+    samples.append((before_prev_tactic, before_obl, chosen_action.prediction, resuting_obls))
+    if len(unwrap(coq.proof_context).all_goals) < initial_open_obligations:
       eprint(f"Completed task with trace {[sample[1] for sample in samples]}")
-      return True, samples
-    assert len(coq.proof_context.all_goals) > 0
-    assert len(coq.proof_context.fg_goals) > 0
-  return False, samples
+      return True, samples, negative_samples
+    assert len(unwrap(coq.proof_context).all_goals) > 0
+    assert len(unwrap(coq.proof_context).fg_goals) > 0
+  return False, samples, negative_samples
 if __name__ == "__main__":
   main()

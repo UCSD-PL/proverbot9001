@@ -11,8 +11,10 @@ import math
 import pickle
 import sys
 from pathlib import Path
+from dataclasses import dataclass
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
-                    Sequence, TypeVar, Callable, OrderedDict, Iterable)
+                    Sequence, TypeVar, Callable, OrderedDict, Iterable,
+                    Iterator)
 import warnings
 
 from util import unwrap, eprint, print_time, nostderr
@@ -23,6 +25,7 @@ with print_time("Importing torch"):
     import torch.nn.functional as F
     from torch import optim
     import torch.optim.lr_scheduler as scheduler
+    import torch.cuda
 
 #pylint: disable=wrong-import-order
 from tqdm import tqdm
@@ -41,6 +44,7 @@ with print_time("Importing search code"):
     from search_strategies import completed_proof
 
     from models.tactic_predictor import (TacticPredictor, Prediction)
+    from models.features_polyarg_predictor import FeaturesPolyargPredictor
 
 optimizers = {
   "RMSprop": optim.RMSprop,
@@ -100,6 +104,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("-w", "--window-size", default=2560)
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
     parser.add_argument("--hidden-size", type=int, default=128)
+    parser.add_argument("--tactic-embedding-size", type=int, default=32)
     parser.add_argument("--num-layers", type=int, default=3)
     parser.add_argument("--batch-step", default=None, type=int)
     parser.add_argument("--lr-step", default=0.8, type=float)
@@ -301,14 +306,18 @@ class ReinforcementWorker:
         return success
 
     def check_vval_steps_task(self, task: RLTask) -> None:
-        file_worker = self._get_worker(task.src_file)
+        file_worker = self._get_worker(str(task.src_file))
+        assert file_worker.coq
         file_worker.run_into_task(task.to_job(), task.tactic_prefix)
-        check_vval_steps(self.args, file_worker.coq, self.predictor, self.v_network)
+        check_vval_steps(self.args, file_worker.coq,
+                         self.predictor, self.v_network)
 
 
-    def estimate_starting_vval(self, job: ReportJob, tactic_prefix: List[str],
+    def estimate_starting_vval(self,
+                               job: ReportJob, tactic_prefix: List[str],
                                restart: bool = True) -> float :
         file_worker = self._get_worker(job.filename)
+        assert file_worker.coq
         try:
             file_worker.run_into_task(job, tactic_prefix)
         except coq_serapy.CoqAnomaly:
@@ -320,8 +329,16 @@ class ReinforcementWorker:
             raise
 
         context: Optional[ProofContext] = file_worker.coq.proof_context
+        if len(tactic_prefix) > 0:
+            prev_tactic = tactic_prefix[-1]
+        else:
+            prev_tactic = "Proof."
         assert context is not None
-        all_obl_scores = self.v_network(context.fg_goals)
+        all_obl_scores = self.v_network(
+          context.fg_goals,
+          [prev_tactic]
+          * len(context.fg_goals))
+        assert len(context.fg_goals) == 1
 
         resulting_state_val = math.prod([s.item() for s in all_obl_scores])
 
@@ -350,6 +367,8 @@ def possibly_resume_rworker(args: argparse.Namespace) \
     # predictor = get_predictor(args)
     # predictor = DummyPredictor()
     predictor = MemoizingPredictor(get_predictor(args))
+    assert isinstance(predictor.underlying_predictor, FeaturesPolyargPredictor)
+    tactic_vocab_size = predictor.underlying_predictor.prev_tactic_vocab_size
     if args.resume == "ask" and args.output_file.exists():
         print(f"Found existing weights at {args.output_file}. Resume?")
         response = input("[Y/n] ")
@@ -365,7 +384,7 @@ def possibly_resume_rworker(args: argparse.Namespace) \
     else:
         resume = args.resume
 
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     if resume == "yes":
         is_singlethreaded, replay_buffer, steps_already_done, network_state, \
           tnetwork_state, shorter_proofs_dict, random_state = \
@@ -375,13 +394,18 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         print(f"Resuming from existing weights of {steps_already_done} steps")
         if args.start_from is not None:
             print("WARNING: Not starting from weights passed in --start-from because we're resuming from a partial run")
-        v_network = VNetwork(None, args.learning_rate,
+        v_network = VNetwork(None, predictor.underlying_predictor,
+                             args.learning_rate,
                              args.batch_step, args.lr_step,
-                             args.optimizer, args.hidden_size,
+                             args.optimizer, tactic_vocab_size,
+                             args.tactic_embedding_size,
+                             args.hidden_size,
                              args.num_layers)
-        target_network = VNetwork(None, args.learning_rate,
+        target_network = VNetwork(None, predictor.underlying_predictor,
+                                  args.learning_rate,
                                   args.batch_step, args.lr_step,
-                                  args.optimizer, args.hidden_size,
+                                  args.optimizer, tactic_vocab_size,
+                                  args.tactic_embedding_size, args.hidden_size,
                                   args.num_layers)
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
@@ -399,12 +423,19 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         replay_buffer = None
         random_state = random.getstate()
         with print_time("Building models"):
-            v_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+            v_network = VNetwork(args.coq2vec_weights,
+                                 predictor.underlying_predictor,
+                                 args.learning_rate,
                                  args.batch_step, args.lr_step, args.optimizer,
+                                 tactic_vocab_size, args.tactic_embedding_size,
                                  args.hidden_size, args.num_layers)
-            target_network = VNetwork(args.coq2vec_weights, args.learning_rate,
+            target_network = VNetwork(args.coq2vec_weights,
+                                      predictor.underlying_predictor,
+                                      args.learning_rate,
                                       args.batch_step, args.lr_step,
-                                      args.optimizer, args.hidden_size,
+                                      args.optimizer, tactic_vocab_size,
+                                      args.tactic_embedding_size,
+                                      args.hidden_size,
                                       args.num_layers)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
@@ -534,11 +565,43 @@ class CachedObligationEncoder(coq2vec.CoqContextVectorizer):
                 self.obl_cache.popitem(last=False)
         return encoded
 
+class VModel(nn.Module):
+    tactic_embedding: nn.Embedding
+    prediction_network: nn.Module
+    prev_tactic_vocab_size: int
+
+    def __init__(self, local_context_embedding_size: int,
+                 previous_tactic_vocab_size: int,
+                 previous_tactic_embedding_size: int,
+                 hidden_size: int,
+                 num_layers: int) -> None:
+        super().__init__()
+        self.tactic_embedding = nn.Embedding(previous_tactic_vocab_size,
+                                             previous_tactic_embedding_size)
+        layers: List[nn.Module] = [nn.Linear(local_context_embedding_size +
+                                   previous_tactic_embedding_size,
+                                   hidden_size)]
+        for layer_idx in range(num_layers - 1):
+            layers += [nn.ReLU(), nn.Linear(hidden_size, hidden_size)]
+        layers += [nn.ReLU(), nn.Linear(hidden_size, 1), nn.Sigmoid()]
+        self.prediction_network = nn.Sequential(*layers)
+        self.prev_tactic_vocab_size = previous_tactic_vocab_size
+        pass
+    def forward(self, local_context_embeddeds: torch.FloatTensor,
+                prev_tactic_indices: torch.LongTensor) -> torch.FloatTensor:
+        return self.prediction_network(torch.cat(
+            (local_context_embeddeds,
+             self.tactic_embedding(prev_tactic_indices)),
+            dim=1))
+
 class VNetwork:
-    obligation_encoder: Optional[coq2vec.CoqContextVectorizer]
-    network: Optional[nn.Module]
+    obligation_encoder: Optional[CachedObligationEncoder]
+    predictor: FeaturesPolyargPredictor
+    network: Optional[VModel]
     steps_trained: int
     optimizer: optim.Optimizer
+    adjuster: scheduler.LRScheduler
+    device: str
     batch_step: int
     lr_step: int
     learning_rate: float
@@ -554,6 +617,8 @@ class VNetwork:
                 self.hidden_size, self.num_layers)
 
     def _load_encoder_state(self, encoder_state: Any,
+                            previous_tactic_vocab_size: int,
+                            previous_tactic_embedding_size: int,
                             hidden_size: int,
                             num_layers: int) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
@@ -561,46 +626,43 @@ class VNetwork:
         num_hyps = 5
         assert self.obligation_encoder is None, "Can't load weights twice!"
         self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
-        insize = term_encoder.hidden_size * (num_hyps + 1)
+        local_context_embedding_size = \
+          term_encoder.hidden_size * (num_hyps + 1)
         self.hidden_size = hidden_size
         self.num_layers = num_layers
-        self.network = model_setup(insize, hidden_size, num_layers)
+        self.network = VModel(local_context_embedding_size,
+                              previous_tactic_vocab_size,
+                              previous_tactic_embedding_size,
+                              hidden_size, num_layers)
         self.network.to(self.device)
         self.optimizer: optim.Optimizer = optimizers[self.optimizer_type](self.network.parameters(),
                                                                      lr=self.learning_rate)
         self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
                                          self.lr_step)
+        self.tactic_vocab_size: int = previous_tactic_vocab_size
 
-    def load_state(self, state: Any, hidden_size: Optional[int] = None,
-                   num_layers: Optional[int] = None) -> None:
-        if len(state) == 3:
-            assert hidden_size is not None
-            assert num_layers is not None
-            network_state, encoder_state, obl_cache = state
-            self._load_encoder_state(encoder_state, hidden_size, num_layers)
-            assert self.obligation_encoder
-            network_state, encoder_state = state
-            self._load_encoder_state(encoder_state, hidden_size, num_layers)
-        else:
-            assert len(state) == 5
-            network_state, encoder_state, obl_cache, \
-              loaded_hidden_size, loaded_num_layers = state
-            if hidden_size is not None or num_layers is not None:
-                eprint("Warning: Ignoring --hidden-size and --num-layers arguments "
-                       "because we're loading an existing network.")
-            self._load_encoder_state(encoder_state, loaded_hidden_size,
-                                     loaded_num_layers)
-            assert self.obligation_encoder
-            self.obligation_encoder.obl_cache = obl_cache
+    def load_state(self, state: Any) -> None:
+        assert len(state) == 4
+        network_state, encoder_state, obl_cache, training_args = state
+        self._load_encoder_state(encoder_state,
+                                 self.tactic_vocab_size,
+                                 training_args.tactic_embedding_size,
+                                 training_args.hidden_size,
+                                 training_args.num_layers)
+        assert self.obligation_encoder
+        self.obligation_encoder.obl_cache = obl_cache
         assert self.network
         self.network.load_state_dict(network_state)
         self.network.to(self.device)
 
 
-    def __init__(self, coq2vec_weights: Optional[Path], learning_rate: float,
+    def __init__(self, coq2vec_weights: Optional[Path],
+                 predictor: FeaturesPolyargPredictor,
+                 learning_rate: float,
                  batch_step: int, lr_step: int, optimizer_type: str,
+                 tactic_vocab_size: int, tactic_embedding_size: int,
                  hidden_size: int, num_layers: int) -> None:
-        self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+        self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.batch_step = batch_step
         self.lr_step = lr_step
         self.learning_rate = learning_rate
@@ -610,34 +672,70 @@ class VNetwork:
         # Steps trained only counts from the last resume! Don't use
         # for anything more essential than printing.
         self.steps_trained = 0
-        self.total_loss = torch.tensor(0.0).to(self.device)
+        self.total_loss = torch.FloatTensor([0.0]).to(self.device)
+        self.predictor = predictor
         if coq2vec_weights is not None:
-            self._load_encoder_state(torch.load(str(coq2vec_weights), map_location=self.device), hidden_size, num_layers)
+            self._load_encoder_state(torch.load(str(coq2vec_weights),
+                                                map_location=self.device),
+                                     tactic_vocab_size,
+                                     tactic_embedding_size,
+                                     hidden_size, num_layers)
 
-    def __call__(self, obls: Union[Obligation, List[Obligation]]) -> torch.FloatTensor:
+    def __call__(self, obls: Union[Obligation, List[Obligation]],
+                 prev_tactics: Union[str, List[str]]) -> torch.FloatTensor:
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         assert self.network
         if isinstance(obls, Obligation):
+            assert isinstance(prev_tactics, int)
             obls = [obls]
+            prev_tactics = [prev_tactics]
         else:
             assert isinstance(obls, list)
+            assert isinstance(prev_tactics, list)
             if len(obls) == 0:
-                return torch.tensor([])
+                return torch.FloatTensor([])
 
         encoded = self.obligation_encoder.\
             obligations_to_vectors_cached(obls)
-        scores = self.network(encoded).view(len(obls))
+        encoded_prev_tactics = torch.LongTensor([
+          self.predictor.prev_tactic_stem_idx(prev_tactic)
+          for prev_tactic in prev_tactics])
+        scores = self.network(encoded, encoded_prev_tactics).view(len(obls))
+        return scores
+    def call_encoded(self, obls: Union[Obligation, List[Obligation]],
+                     encoded_prev_tactics: Union[int, List[int]]) \
+          -> torch.FloatTensor:
+        assert self.obligation_encoder, \
+            "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
+        assert self.network
+        if isinstance(obls, Obligation):
+            assert isinstance(encoded_prev_tactics, int)
+            obls = [obls]
+            prev_tactics = [encoded_prev_tactics]
+        else:
+            assert isinstance(obls, list)
+            assert isinstance(encoded_prev_tactics, list)
+            if len(obls) == 0:
+                return torch.FloatTensor([])
+
+        encoded = self.obligation_encoder.\
+            obligations_to_vectors_cached(obls)
+        scores = self.network(encoded, encoded_prev_tactics).view(len(obls))
         return scores
 
-    def train(self, inputs: List[Obligation],
+    def train(self, inputs: List[Tuple[int, Obligation]],
               target_outputs: List[float],
               verbosity: int = 0) -> float:
         del verbosity
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
         # with print_time("Training", guard=verbosity >= 1):
-        actual = self(inputs)
+        input_contexts = [input_context for prev_tactic, input_context in
+                          inputs]
+        input_prev_tactics = [prev_tactic
+                              for prev_tactic, input_context in inputs]
+        actual = self.call_encoded(input_contexts, input_prev_tactics)
         target = torch.FloatTensor(target_outputs).to(self.device)
         loss = F.mse_loss(actual, target)
         self.optimizer.zero_grad()
@@ -656,13 +754,14 @@ def experience_proof(args: argparse.Namespace,
                      v_network: VNetwork,
                      replay_buffer: 'ReplayBuffer',
                      epsilon: float) -> Optional[int]:
-    path: List[ProofContext] = [coq.proof_context]
-    initial_open_obligations = len(coq.proof_context.all_goals)
+    assert coq.proof_context
+    path: List[ProofContext] = [unwrap(coq.proof_context)]
+    initial_open_obligations = len(unwrap(coq.proof_context).all_goals)
     trace: List[str] = []
     for step in range(args.steps_per_episode):
         before_obl = unwrap(coq.proof_context).fg_goals[0]
         if args.verbose >= 3:
-            coq_serapy.summarizeContext(coq.proof_context)
+            coq_serapy.summarizeContext(unwrap(coq.proof_context))
         actions = predictor.predictKTactics(
             truncate_tactic_context(FullContext(coq.local_lemmas[:-1],
                                                 coq.prev_tactics,
@@ -674,6 +773,7 @@ def experience_proof(args: argparse.Namespace,
                guard=args.verbose >= 3)
         if random.random() < epsilon:
             eprint("Using best-scoring action", guard=args.verbose >= 3)
+            assert isinstance(predictor, FeaturesPolyargPredictor)
             action_scores = evaluate_actions(
                 coq, v_network, path,
                 [action.prediction for action in actions])
@@ -692,8 +792,10 @@ def experience_proof(args: argparse.Namespace,
                 try:
                     coq.run_stmt(action.prediction)
                     resulting_context = coq.proof_context
+                    assert resulting_context is not None
                     coq.cancel_last_noupdate()
-                    if any(coq_serapy.contextSurjective(resulting_context, path_context)
+                    if any(coq_serapy.contextSurjective(resulting_context,
+                                                        path_context)
                            for path_context in path):
                         continue
                     chosen_action = action
@@ -707,15 +809,19 @@ def experience_proof(args: argparse.Namespace,
                     pass
             if chosen_action is None:
                 break
+        assert chosen_action is not None
         resulting_obls = execute_action(coq, chosen_action.prediction)
         trace.append(chosen_action.prediction)
 
         eprint(f"Taking action {chosen_action}",
                guard=args.verbose >= 2)
 
+        assert coq.proof_context is not None
         if args.verbose >= 3:
             coq_serapy.summarizeContext(coq.proof_context)
-        replay_buffer.add_transition((before_obl, chosen_action.prediction, resulting_obls))
+        replay_buffer.add_transition((coq.prev_tactics[-1], before_obl,
+                                      chosen_action.prediction,
+                                      set(resulting_obls)))
         path.append(coq.proof_context)
 
         current_open_obligations = len(coq.proof_context.all_goals)
@@ -727,13 +833,18 @@ def experience_proof(args: argparse.Namespace,
 def evaluate_actions(coq: coq_serapy.CoqAgent,
                      v_network: VNetwork, path: List[ProofContext],
                      actions: List[str], verbosity: int = 0) -> List[float]:
+    assert isinstance(actions[0], str)
     resulting_contexts: List[Optional[ProofContext]] = \
         [action_result(coq, path, action, verbosity) for action in actions]
     num_output_obls: List[Optional[int]] = [len(context.fg_goals) if context else None
                                             for context in resulting_contexts]
     all_obls = [obl for context in resulting_contexts
                 for obl in (context.fg_goals if context else [])]
-    all_obl_scores = v_network(all_obls)
+    all_prev_tactics = \
+      [prev_tac for prev_tac, num_obls in
+       zip(actions, num_output_obls)
+       for _ in (range(num_obls) if num_obls is not None else [])]
+    all_obl_scores = v_network(all_obls, all_prev_tactics)
     resulting_action_scores = []
     cur_obl_idx = 0
     for num_obls in num_output_obls:
@@ -747,6 +858,7 @@ def evaluate_actions(coq: coq_serapy.CoqAgent,
 
 def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
                   action: str, verbosity: int = 0) -> Optional[ProofContext]:
+    assert isinstance(action, str)
     try:
         coq.run_stmt(action)
     except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
@@ -756,7 +868,7 @@ def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
             coq_serapy.UnrecognizedError) as e:
         eprint(f"Action produced error {e}", guard=verbosity >= 3)
         return None
-    context_after = coq.proof_context
+    context_after = unwrap(coq.proof_context)
     coq.cancel_last_noupdate()
     if any(coq_serapy.contextSurjective(context_after, path_context)
            for path_context in path):
@@ -764,9 +876,11 @@ def action_result(coq: coq_serapy.CoqAgent, path: List[ProofContext],
     return context_after
 
 def execute_action_trace(coq: coq_serapy.CoqAgent,
-                         action: str) -> List[str]:
+                         action: str) -> \
+      List[Union[Tuple[str, ProofContext], str]]:
     coq.run_stmt(action)
-    trace = [action]
+    trace: List[Union[Tuple[str, ProofContext], str]]  = \
+      [action]
 
     subgoals_closed = 0
     if len(unwrap(coq.proof_context).fg_goals) == 0 and \
@@ -802,7 +916,7 @@ def execute_action(coq: coq_serapy.CoqAgent,
        (coq.count_fg_goals() > 0 and subgoals_closed > 0):
         coq.run_stmt("{")
 
-    assert len(coq.proof_context.all_goals) == 0 or len(coq.proof_context.fg_goals) > 0
+    assert len(unwrap(coq.proof_context).all_goals) == 0 or len(unwrap(coq.proof_context).fg_goals) > 0
 
     return resulting_obls
 
@@ -810,20 +924,29 @@ def train_v_network(args: argparse.Namespace,
                     v_network: VNetwork,
                     target_network: VNetwork,
                     replay_buffer: 'ReplayBuffer'):
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     samples = replay_buffer.sample(args.batch_size)
     if samples is None:
         return
-    inputs = [start_obl for start_obl, action_records in samples]
+    inputs = [(prev_tactic, start_obl)
+              for (prev_tactic, start_obl), action_records
+              in samples]
     num_resulting_obls = [[len(resulting_obls)
                            for action, resulting_obls in action_records]
                           for starting_obl, action_records in samples]
-    all_obls = [obl
-                for starting_obl, action_records in samples
-                for action, resulting_obls in action_records
-                for obl in resulting_obls]
+    all_resulting_contexts  = \
+      [obl
+       for (prev_tactic, starting_obl) , action_records in samples
+       for action, resulting_obls in action_records
+       for obl in resulting_obls]
+    all_resulting_prev_tactics = [
+      action
+      for _, action_records in samples
+      for action, resulting_obls in action_records
+      for obl in resulting_obls]
     with torch.no_grad():
-        all_obl_scores = target_network(all_obls)
+        all_obl_scores = target_network(all_resulting_contexts,
+                                        all_resulting_prev_tactics)
     outputs = []
     cur_row = 0
     for resulting_obl_lens in num_resulting_obls:
@@ -838,7 +961,7 @@ def train_v_network(args: argparse.Namespace,
     v_network.train(inputs, outputs, verbosity=args.verbose)
     if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
         avg_loss = v_network.total_loss / args.print_loss_every
-        v_network.total_loss = torch.tensor(0.0).to(device)
+        v_network.total_loss = torch.FloatTensor([0.0]).to(device)
         print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class MemoizingPredictor(TacticPredictor):
@@ -900,7 +1023,7 @@ def save_state(args: argparse.Namespace, worker: ReinforcementWorker,
                     shorter_proofs_dict,
                     random.getstate()), f)
 
-def path_obl_length(path: List[Union[ProofContext, str]]) -> int:
+def path_obl_length(path: List[Union[Tuple[str, ProofContext], str]]) -> int:
     bracket_depth = 0
     cur_length = 0
     for context_or_bracket in path:
@@ -918,13 +1041,15 @@ def path_obl_length(path: List[Union[ProofContext, str]]) -> int:
 
 def print_path_vval_errors(args: argparse.Namespace,
                            v_network: VNetwork,
-                           path: List[Union[ProofContext, str]]) -> None:
-    for step_idx, context in enumerate(path):
-        if isinstance(context, str):
+                           path: List[Union[Tuple[str, ProofContext], str]]) \
+      -> None:
+    for step_idx, path_item in enumerate(path):
+        if isinstance(path_item, str):
             continue
+        prev_tactic, context = path_item
         target_steps = path_obl_length(path[step_idx:])
         assert len(context.fg_goals) == 1, len(context.fg_goals)
-        vval_predicted = v_network(context.fg_goals[0])
+        vval_predicted = v_network(context.fg_goals[0], prev_tactic)
         steps_predicted = math.log(max(sys.float_info.min, vval_predicted.item())) \
             / math.log(args.gamma)
         print(f"At obligation: {coq_serapy.summarizeObligation(context.fg_goals[0])}")
@@ -937,9 +1062,10 @@ def check_vval_steps(args: argparse.Namespace,
                      coq: coq_serapy.CoqAgent,
                      predictor: TacticPredictor,
                      v_network: VNetwork) -> None:
-    path: List[Union[ProofContext, str]] = [coq.proof_context]
-    trace = list(path)
-    initial_open_obligations = len(coq.proof_context.all_goals)
+    path: List[ProofContext] = [unwrap(coq.proof_context)]
+    trace: List[Union[Tuple[str, ProofContext], str]] = \
+        [(coq.prev_tactics[-1], unwrap(coq.proof_context))]
+    initial_open_obligations = len(unwrap(coq.proof_context).all_goals)
     for _step in range(args.steps_per_episode):
         actions = predictor.predictKTactics(
             truncate_tactic_context(FullContext(
@@ -949,6 +1075,7 @@ def check_vval_steps(args: argparse.Namespace,
                                     30),
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
+        assert isinstance(predictor, FeaturesPolyargPredictor)
         action_scores = evaluate_actions(coq, v_network, path,
                                          [action.prediction for action in actions],
                                          args.verbose)
@@ -956,21 +1083,21 @@ def check_vval_steps(args: argparse.Namespace,
         if best_score == -float("Inf"):
             break
         action_trace = execute_action_trace(coq, best_action.prediction)
-        current_open_obligations = len(coq.proof_context.all_goals)
+        current_open_obligations = len(unwrap(coq.proof_context).all_goals)
         if current_open_obligations < initial_open_obligations:
             break
         trace += action_trace
-        trace.append(coq.proof_context)
-        path.append(coq.proof_context)
+        trace.append((best_action.prediction, unwrap(coq.proof_context)))
+        path.append(unwrap(coq.proof_context))
     print_path_vval_errors(args, v_network, trace)
 
 def evaluate_proof(args: argparse.Namespace,
                    coq: coq_serapy.CoqAgent,
                    predictor: TacticPredictor,
                    v_network: VNetwork) -> bool:
-    path: List[ProofContext] = [coq.proof_context]
+    path: List[ProofContext] = [unwrap(coq.proof_context)]
     proof_succeeded = False
-    initial_open_obligations = len(coq.proof_context.all_goals)
+    initial_open_obligations = len(unwrap(coq.proof_context).all_goals)
     for _step in range(args.steps_per_episode):
         actions = predictor.predictKTactics(
             truncate_tactic_context(FullContext(
@@ -981,7 +1108,7 @@ def evaluate_proof(args: argparse.Namespace,
             args.num_predictions,
             blacklist=args.blacklisted_tactics)
         if args.verbose >= 1:
-            coq_serapy.summarizeContext(coq.proof_context)
+            coq_serapy.summarizeContext(unwrap(coq.proof_context))
         eprint(f"Trying predictions {[action.prediction for action in actions]}",
                guard=args.verbose >= 2)
         if args.evaluate_baseline :
@@ -990,7 +1117,8 @@ def evaluate_proof(args: argparse.Namespace,
                 if action_result(coq, path, action.prediction, args.verbose) :
                     best_action, best_score = action, action.certainty
                     break
-        else :
+        else:
+            assert isinstance(predictor, FeaturesPolyargPredictor)
             action_scores = evaluate_actions(coq, v_network, path,
                                              [action.prediction for action in actions],
                                              args.verbose)
@@ -1001,8 +1129,8 @@ def evaluate_proof(args: argparse.Namespace,
         eprint(f"Taking action {best_action} with estimated value {best_score}",
                guard=args.verbose >= 1)
         execute_action(coq, best_action.prediction)
-        path.append(coq.proof_context)
-        current_open_obligations = len(coq.proof_context.all_goals)
+        path.append(unwrap(coq.proof_context))
+        current_open_obligations = len(unwrap(coq.proof_context).all_goals)
         if current_open_obligations < initial_open_obligations:
             proof_succeeded = True
             break
@@ -1053,7 +1181,12 @@ def verify_vvals(args: argparse.Namespace,
             eprint(f"Skipping job {task} with prefix {task.tactic_prefix} because it can't purely focused")
             jobs_skipped += 1
             continue
-        vval_predicted = worker.estimate_starting_vval(task.to_job(), task.tactic_prefix)
+        assert isinstance(worker.predictor, MemoizingPredictor)
+        assert isinstance(worker.predictor.underlying_predictor,
+                          FeaturesPolyargPredictor)
+        vval_predicted = worker.estimate_starting_vval(
+            task.to_job(),
+            task.tactic_prefix)
         steps_predicted = math.log(max(sys.float_info.min, vval_predicted)) / math.log(args.gamma)
         eprint(f"Predicted vval {vval_predicted} ({steps_predicted} steps) vs "
                f"{target_steps} actual steps", guard=args.verbose >= 1)
@@ -1073,11 +1206,11 @@ def stringified_percent(total : float, outof : float) -> str:
         return "NaN"
     return f"{(total * 100 / outof):10.2f}"
 
-Transition = Tuple[str, Sequence[Obligation]]
-FullTransition = Tuple[Obligation, str, List[Obligation]]
+Transition = Tuple[str, Set[Obligation]]
+FullTransition = Tuple[int, Obligation, str, Set[Obligation]]
 
 class ReplayBuffer:
-    _contents: Dict[Obligation, Tuple[int, Set[Transition]]]
+    _contents: Dict[Tuple[int, Obligation], Tuple[int, Set[Transition]]]
     window_size: int
     window_end_position: int
     allow_partial_batches: bool
@@ -1088,8 +1221,8 @@ class ReplayBuffer:
         self.allow_partial_batches = allow_partial_batches
         self._contents = {}
 
-    def sample(self, batch_size) -> Optional[List[Tuple[Obligation, Set[Transition]]]]:
-        sample_pool: List[Tuple[Obligation, List[Transition]]] = []
+    def sample(self, batch_size) -> Optional[List[Tuple[Tuple[int, Obligation], Set[Transition]]]]:
+        sample_pool: List[Tuple[Tuple[int, Obligation], Set[Transition]]] = []
         for obl, (last_updated, transitions) in self._contents.copy().items():
             if last_updated <= self.window_end_position - self.window_size:
                 del self._contents[obl]
@@ -1102,18 +1235,19 @@ class ReplayBuffer:
         return None
 
     def add_transition(self, transition: FullTransition) -> None:
-        from_obl = transition[0]
-        action = transition[1]
-        to_obls = tuple(transition[2])
-        self._contents[from_obl] = \
+        prev_tactic = transition[0]
+        from_obl = transition[1]
+        action = transition[2]
+        to_obls = set(transition[3])
+        self._contents[(prev_tactic, from_obl)] = \
             (self.window_end_position,
              {(action, to_obls)} |
-             self._contents.get(from_obl, (0, set()))[1])
+             self._contents.get((prev_tactic, from_obl), (0, set()))[1])
         self.window_end_position += 1
 
 # NOT THREAD SAFE
 @contextlib.contextmanager
-def log_time(msg: str) -> Iterable[None]:
+def log_time(msg: str) -> Iterator[None]:
     start = time.time()
     try:
         yield
@@ -1140,11 +1274,11 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
                            cached_outputs: List[Optional[torch.FloatTensor]]) \
                            -> torch.FloatTensor:
     assert len(values) == len(cached_outputs)
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     output_list: List[Optional[torch.FloatTensor]] = list(cached_outputs)
     uncached_values: List[T] = []
     uncached_value_indices: List[int] = []
-    device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
+    device = "cuda" if torch.cuda.is_available() else "cpu"
     for i, value in enumerate(values):
         if output_list[i] is None:
             uncached_values.append(value)
@@ -1154,7 +1288,7 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
         for idx, result in zip(uncached_value_indices, new_results):
             output_list[idx] = result
     
-    return torch.cat([t.unsqueeze(0) for t in output_list], dim=0)
+    return torch.cat([unwrap(t).unsqueeze(0) for t in output_list], dim=0)
 
 def tactic_prefix_is_usable(tactic_prefix: List[str]):
     for tactic in tactic_prefix:
@@ -1163,14 +1297,6 @@ def tactic_prefix_is_usable(tactic_prefix: List[str]):
             warnings.warn("Warning: Tactic has banned prefix. This should have had been filtered out during gen_rl_task")
             return False
     return True
-
-def model_setup(insize: int, hidden_size: int,
-                num_layers: int) -> nn.Module:
-    layers = [nn.Linear(insize, hidden_size)]
-    for layer_idx in range(num_layers - 1):
-        layers += [nn.ReLU(), nn.Linear(hidden_size, hidden_size)]
-    layers += [nn.ReLU(), nn.Linear(hidden_size, 1), nn.Sigmoid()]
-    return nn.Sequential(*layers)
 
 def sample_distribution(distribution: List[float]) -> int:
     rval = random.random()
@@ -1195,6 +1321,32 @@ def randomly_order_by_scores(xs: List[T], scorer: Callable[[T], float]) -> List[
         del xs_left[next_el_idx]
         del scores_left[next_el_idx]
     return result
+
+def prev_tactic_from_prefix(tactic_prefix: List[str]) -> str:
+    bracket_depth = 0
+    for tac in reversed(tactic_prefix):
+        if tac == "{":
+            if bracket_depth > 0:
+                bracket_depth -= 1
+        elif tac == "}":
+            bracket_depth += 1
+        elif bracket_depth == 0:
+            return tac
+    return "Proof"
+
+@dataclass
+class EObligation:
+  local_context: torch.FloatTensor
+  previous_tactic: int
+  def __hash__(self) -> int:
+    return hash(tuple(self.local_context.view(-1).tolist() +
+                      [self.previous_tactic]))
+  def __eq__(self, other: object) -> bool:
+    if not isinstance(other, EObligation):
+      return False
+    return bool(torch.all(self.local_context == other.local_context)) \
+             and self.previous_tactic == other.previous_tactic
+
 
 if __name__ == "__main__":
     main()
