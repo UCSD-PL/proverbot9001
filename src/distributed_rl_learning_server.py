@@ -351,7 +351,6 @@ class EncodedReplayBuffer:
   def add_transition(self, transition: EFullTransition) -> None:
     with self.lock:
       from_obl, action, _ = transition
-      eprint(f"Adding positive transition from {hash(from_obl)}")
       to_obls = tuple(transition[2])
       existing_entry = self._contents.get(from_obl, (0, set()))
       if from_obl in self._contents and len(existing_entry[1]) == 0:
@@ -359,25 +358,31 @@ class EncodedReplayBuffer:
                "but it's already marked as a negative example! Skipping...")
       # assert from_obl not in self._contents or len(existing_entry[1]) > 0
       for existing_action, existing_to_obls in existing_entry[1]:
-        if action == existing_action and to_obls != existing_to_obls:
-          eprint(f"WARNING: Transition from state {hash(from_obl)} "
-                 "clashed with previous entry! Skipping")
+        if action == existing_action:
+          if to_obls != existing_to_obls:
+            eprint(f"WARNING: Transition from state {hash(from_obl)} "
+                   "clashed with previous entry! Skipping")
           return
         # assert action != existing_action or to_obls == existing_to_obls,\
         #   f"From state {hash(from_obl)}, taking action has {action}, " \
         #   f"resulted in obls {[hash(obl) for obl in to_obls]}, " \
         #   "but in the past it resulted in obls " \
         #   f"{[hash(obl) for obl in existing_to_obls]}."
+      eprint(f"Adding positive transition from {hash(from_obl)}")
+
       self._contents[from_obl] = \
         (self.window_end_position,
          {(action, to_obls)} | existing_entry[1])
       self.window_end_position += 1
   def add_negative_sample(self, state: EObligation) -> None:
     with self.lock:
-      if state in self._contents and len(self._contents[state][1]) > 0:
-        eprint(f"WARNING: State {hash(state)} already had sample "
-               f"{self._contents[state]}, but we're trying to mark it as negative. "
-               "Skipping...")
+      if state in self._contents
+        if len(self._contents[state][1]) > 0:
+          eprint(f"WARNING: State {hash(state)} already had sample "
+                 f"{self._contents[state]}, but we're trying to mark it as negative. "
+                 "Skipping...")
+        return
+      eprint(f"Adding negative transition from {hash(state)}")
       # assert state not in self._contents or len(self._contents[state][1]) == 0, \
       #   f"State {hash(state)} already had sample {self._contents[state]}, but we're marking it as negative now"
       self._contents[state] = (self.window_end_position, set())
