@@ -143,51 +143,62 @@ class FileReinforcementWorker(Worker):
 
     def run_into_task(self, job: ReportJob, tactic_prefix: List[str],
                       restart_anomaly: bool = True, careful: bool = False) -> None:
-        assert self.coq
-        if job.project_dir != self.cur_project or job.filename != self.cur_file \
-           or job.module_prefix != self.coq.sm_prefix \
-               or self.coq.proof_context is None \
-               or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
-            if self.coq.proof_context is not None:
-                self.finish_proof()
-            with print_time("Running into job", guard=self.args.print_timings):
-                self.run_into_job(job, restart_anomaly, careful)
-            with print_time("Running task prefix", guard=self.args.print_timings):
-                for statement in tactic_prefix:
-                    self.coq.run_stmt_noupdate(statement)
-                self.coq.update_state()
-        else:
-            with print_time("Traversing to tactic prefix", self.args.print_timings):
-                cur_path = self.coq.tactic_history.getFullHistory()[1:]
-                # this is needed because commands that are just comments don't
-                # show up in the history (because cancelling skips them).
-                target_path = [tac for tac in tactic_prefix
-                               if coq_serapy.kill_comments(tac).strip() != ""]
-                common_prefix_len = 0
-                for item1, item2 in zip(cur_path, target_path):
-                    if item1.strip() != item2.strip():
-                        break
-                    common_prefix_len += 1
-                # Heuristically assume that cancelling a command is about
-                # 1/20th as expensive as running one.
-                if len(target_path) < \
-                        (len(cur_path) - common_prefix_len) * 0.05 + \
-                        (len(target_path) - common_prefix_len):
-                    eprint(f"Decided to abort because the target path is only {len(target_path)} tactics long, "
-                           f"but the common prefix is only {common_prefix_len} tactics long, "
-                           f"so we would have to cancel {len(cur_path) - common_prefix_len} tactics "
-                           f"and rerun {len(target_path) - common_prefix_len} tactics.",
-                           guard=self.args.verbose >= 1)
-                    self.coq.run_stmt("Abort.")
-                    self.coq.run_stmt(job.lemma_statement)
-                    for cmd in target_path:
-                        self.coq.run_stmt_noupdate(cmd)
-                else:
-                    for _ in range(len(cur_path) - common_prefix_len):
-                        self.coq.cancel_last_noupdate()
-                    for cmd in target_path[common_prefix_len:]:
-                        self.coq.run_stmt_noupdate(cmd)
-                self.coq.update_state()
+        try:
+            assert self.coq
+            if job.project_dir != self.cur_project or job.filename != self.cur_file \
+               or job.module_prefix != self.coq.sm_prefix \
+                   or self.coq.proof_context is None \
+                   or job.lemma_statement.strip() != self.coq.prev_tactics[0].strip():
+                if self.coq.proof_context is not None:
+                    self.finish_proof()
+                with print_time("Running into job", guard=self.args.print_timings):
+                    self.run_into_job(job, restart_anomaly, careful)
+                with print_time("Running task prefix", guard=self.args.print_timings):
+                    for statement in tactic_prefix:
+                        self.coq.run_stmt_noupdate(statement)
+                    self.coq.update_state()
+            else:
+                with print_time("Traversing to tactic prefix", self.args.print_timings):
+                    cur_path = self.coq.tactic_history.getFullHistory()[1:]
+                    # this is needed because commands that are just comments don't
+                    # show up in the history (because cancelling skips them).
+                    target_path = [tac for tac in tactic_prefix
+                                   if coq_serapy.kill_comments(tac).strip() != ""]
+                    common_prefix_len = 0
+                    for item1, item2 in zip(cur_path, target_path):
+                        if item1.strip() != item2.strip():
+                            break
+                        common_prefix_len += 1
+                    # Heuristically assume that cancelling a command is about
+                    # 1/20th as expensive as running one.
+                    if len(target_path) < \
+                            (len(cur_path) - common_prefix_len) * 0.05 + \
+                            (len(target_path) - common_prefix_len):
+                        eprint(f"Decided to abort because the target path is only {len(target_path)} tactics long, "
+                               f"but the common prefix is only {common_prefix_len} tactics long, "
+                               f"so we would have to cancel {len(cur_path) - common_prefix_len} tactics "
+                               f"and rerun {len(target_path) - common_prefix_len} tactics.",
+                               guard=self.args.verbose >= 1)
+                        self.coq.run_stmt("Abort.")
+                        self.coq.run_stmt(job.lemma_statement)
+                        for cmd in target_path:
+                            self.coq.run_stmt_noupdate(cmd)
+                    else:
+                        for _ in range(len(cur_path) - common_prefix_len):
+                            self.coq.cancel_last_noupdate()
+                        for cmd in target_path[common_prefix_len:]:
+                            self.coq.run_stmt_noupdate(cmd)
+                    self.coq.update_state()
+        except coq_serapy.CoqAnomaly:
+            if restart_anomaly:
+                self.restart_coq()
+                self.reset_file_state()
+                self.enter_file(job_file)
+                eprint("Hit a coq anomaly! Restarting...",
+                       guard=self.args.verbose >= 1)
+                self.run_into_task(job, tactic_prefix, False, careful)
+                return
+            raise
 
 class ReinforcementWorker:
     v_network: 'VNetwork'
