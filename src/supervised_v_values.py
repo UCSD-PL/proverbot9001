@@ -72,9 +72,9 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
     train_args.hidden_size = config["hidden-size"]
     train_args.num_layers = config["num-layers"]
     session.report({"loss": train(train_args)})
-  search_space={"learning-rate": tune.loguniform(1e-12, 10),
+  search_space={"learning-rate": tune.loguniform(1e-12, 1e-1),
                 "learning-rate-decay": tune.uniform(0.1, 1.0),
-                "learning-rate-step": tune.lograndint(32, 8192),
+                "learning-rate-step": tune.lograndint(1, args.num_epochs // 2),
                 "gamma": tune.uniform(0.2, 0.9),
                 "hidden-size": tune.lograndint(64, 32768),
                 "num-layers": tune.randint(1, 8)}
