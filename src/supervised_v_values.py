@@ -3,6 +3,7 @@
 import argparse
 import time
 import json
+import math
 from pathlib import Path
 from typing import List, Dict, Union
 
@@ -69,14 +70,15 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
     train_args.learning_rate_decay = config["learning-rate-decay"]
     train_args.learning_rate_step = config["learning-rate-step"]
     train_args.gamma = config["gamma"]
-    train_args.hidden_size = config["hidden-size"]
     train_args.num_layers = config["num-layers"]
+    train_args.hidden_size = int(math.sqrt(config["internal-connections"] / (config["num-layers"])))
     session.report({"loss": train(train_args)})
   search_space={"learning-rate": tune.loguniform(1e-12, 1e-1),
                 "learning-rate-decay": tune.uniform(0.1, 1.0),
                 "learning-rate-step": tune.lograndint(1, args.num_epochs // 2),
                 "gamma": tune.uniform(0.2, 0.9),
-                "hidden-size": tune.lograndint(64, 32768),
+                # This upper limit corresponds to about 15.77 GiB of video memory
+                "internal-connections": tune.lograndint(1024, 645500000),
                 "num-layers": tune.randint(1, 8)}
   algo = OptunaSearch()
   tuner = tune.Tuner(tune.with_resources(
