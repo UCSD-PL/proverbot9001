@@ -193,7 +193,7 @@ class FileReinforcementWorker(Worker):
             if restart_anomaly:
                 self.restart_coq()
                 self.reset_file_state()
-                self.enter_file(job_file)
+                self.enter_file(job.filename)
                 eprint("Hit a coq anomaly! Restarting...",
                        guard=self.args.verbose >= 1)
                 self.run_into_task(job, tactic_prefix, False, careful)
