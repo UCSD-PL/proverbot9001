@@ -97,6 +97,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--sync-workers-every", type=int, default=16)
     parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--loss-smoothing", type=int, default=1)
+    parser.add_argument("--qos", type=str, default=None)
 
 def check_resume(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "common-v-network-*.dat"))) > 0
