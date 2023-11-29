@@ -708,10 +708,10 @@ class VNetwork:
                 return torch.FloatTensor([])
 
         encoded = self.obligation_encoder.\
-            obligations_to_vectors_cached(obls)
+            obligations_to_vectors_cached(obls).to(self.device)
         encoded_prev_tactics = torch.LongTensor([
           self.predictor.prev_tactic_stem_idx(prev_tactic)
-          for prev_tactic in prev_tactics])
+          for prev_tactic in prev_tactics]).to(self.device)
         scores = self.network(encoded, encoded_prev_tactics).view(len(obls))
         return scores
     def call_encoded(self, obls: Union[Obligation, List[Obligation]],
