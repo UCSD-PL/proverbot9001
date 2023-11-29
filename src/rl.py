@@ -675,6 +675,8 @@ class VNetwork:
                  hidden_size: int, num_layers: int, device: Optional[str] = None) -> None:
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
+        else:
+            self.device = device
         self.batch_step = batch_step
         self.lr_step = lr_step
         self.learning_rate = learning_rate
