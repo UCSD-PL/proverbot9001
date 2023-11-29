@@ -82,7 +82,7 @@ def main() -> None:
                  ] +
                  [str(p) for p in args.filenames])
         args_string = " ".join(verify_args)
-        util.eprint(f"Running as \"{args_string}\"")
+        # util.eprint(f"Running as \"{args_string}\"")
         subprocess.run(verify_args)
 
 def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
@@ -283,8 +283,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   f"{args.state_dir}/output/",
                   "\" " + " ".join(learner_args) + " \"",
                   "\" " + " ".join(actor_args) + " \""]
-    str_args = " ".join(total_args)
-    util.eprint(f"Running as {str_args}")
+    # str_args = " ".join(total_args)
+    # util.eprint(f"Running as {str_args}")
     subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
