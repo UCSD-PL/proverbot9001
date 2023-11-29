@@ -672,8 +672,9 @@ class VNetwork:
                  learning_rate: float,
                  batch_step: int, lr_step: int, optimizer_type: str,
                  tactic_vocab_size: int, tactic_embedding_size: int,
-                 hidden_size: int, num_layers: int) -> None:
-        self.device = "cuda" if torch.cuda.is_available() else "cpu"
+                 hidden_size: int, num_layers: int, device: Optional[str] = None) -> None:
+        if device is None:
+            self.device = "cuda" if torch.cuda.is_available() else "cpu"
         self.batch_step = batch_step
         self.lr_step = lr_step
         self.learning_rate = learning_rate
