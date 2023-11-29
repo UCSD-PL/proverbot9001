@@ -90,14 +90,12 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--workers-output-dir", default=Path("output"),
                         type=Path)
     parser.add_argument("--worker-timeout", default="6:00:00")
-    parser.add_argument("--partition", default="gypsum-2080ti")
-    parser.add_argument("--learning-partition", default="gpu")
+    parser.add_argument("--partition", default="gpu")
     parser.add_argument("--mem", default="2G")
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
     parser.add_argument("--sync-workers-every", type=int, default=16)
     parser.add_argument("--ignore-after", type=int, default=None)
-    parser.add_argument("--hetjob", action='store_true')
     parser.add_argument("--loss-smoothing", type=int, default=1)
 
 def check_resume(args: argparse.Namespace) -> None:
