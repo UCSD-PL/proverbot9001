@@ -376,7 +376,7 @@ class EncodedReplayBuffer:
       self.window_end_position += 1
   def add_negative_sample(self, state: EObligation) -> None:
     with self.lock:
-      if state in self._contents
+      if state in self._contents:
         if len(self._contents[state][1]) > 0:
           eprint(f"WARNING: State {hash(state)} already had sample "
                  f"{self._contents[state]}, but we're trying to mark it as negative. "

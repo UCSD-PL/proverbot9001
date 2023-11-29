@@ -64,12 +64,13 @@ def main() -> None:
   parser.add_argument("--supervised-weights", type=Path, dest="weightsfile")
   parser.add_argument("-v", "--verbose", action='count', default=0)
   parser.add_argument("-t", "--print-timings", action='store_true')
-  parser.add_argument("-w", "--workerid", required=True)
+  # parser.add_argument("-w", "--workerid", required=True)
   args = parser.parse_args()
 
-  workerid = args.workerid
-  # assert 'SLURM_ARRAY_TASK_ID' in environ
-  # workerid = int(environ['SLURM_ARRAY_TASK_ID'])
+  # workerid = args.workerid
+  envvar_name = "SLURM_NODEID"
+  assert envvar_name in os.environ
+  workerid = int(os.environ[envvar_name])
 
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)
@@ -202,7 +203,7 @@ class LearningServerConnection:
                predictor: FeaturesPolyargPredictor,
                backend='mpi') -> None:
     term_encoder = coq2vec.CoqTermRNNVectorizer()
-    device = "cuda" if torch.cuda.is_available() else "cpu"
+    device = "cpu"# "cuda" if torch.cuda.is_available() else "cpu"
     term_encoder.load_state(torch.load(str(coq2vec_weights), map_location=device))
     num_hyps = 5
     self.obligation_encoder = rl.CachedObligationEncoder(term_encoder, num_hyps)
@@ -236,7 +237,7 @@ class LearningServerConnection:
     action_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
     states_encoded = self.obligation_encoder.obligations_to_vectors_cached(
-      [pre_state] + post_states)
+      [pre_state] + post_states).to("cpu")
     sample_hash = hash(tuple(states_encoded[0].view(-1).tolist() +
                              [prev_tactic_encoded]))
     eprint(f"Sending sample {sample_hash} for previous tactic {action_encoded}"
@@ -257,7 +258,7 @@ class LearningServerConnection:
                                     target_length: int) -> None:
     prev_tactic_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
-    state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0]
+    state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0].to("cpu")
     self.send_target_v(prev_tactic_encoded, state_encoded, target_length)
 
   def encode_and_send_negative_sample(self, previous_tactic: str,
@@ -266,7 +267,7 @@ class LearningServerConnection:
                                   .prev_tactic_stem_idx(previous_tactic)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
     state_encoded = self.obligation_encoder.\
-      obligations_to_vectors_cached([state])[0]
+      obligations_to_vectors_cached([state])[0].to("cpu")
     sample_hash = hash(tuple(state_encoded.view(-1).tolist() + [previous_tactic_encoded]))
     eprint(f"Sending negative sample {sample_hash} for previous tactic "
            f"{previous_tactic_encoded} obligation <{hash(state)}> {state.to_dict()}")
@@ -534,7 +535,7 @@ def initialize_actor(args: argparse.Namespace) \
                         0.0, 1, 1, args.optimizer,
                         predictor.underlying_predictor.prev_tactic_vocab_size,
                         args.tactic_embedding_size,
-                        args.hidden_size, args.num_layers)
+                        args.hidden_size, args.num_layers, device="cpu")
   load_latest_q_network(args, network)
   return RLActor(args, predictor, network)
 

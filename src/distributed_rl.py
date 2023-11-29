@@ -217,15 +217,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
     term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
     num_hyps = 5
     encoding_size = term_size * (num_hyps + 1)
-    server_jobname = f"drl-learner-{args.output_file}"
-    actor_jobname = f"drl-actor-{args.output_file}"
 
-    actor_job_args = (["-J", actor_jobname,
-                   "-p", args.partition,
-                   "-t", str(args.worker_timeout),
-                   "--mem", args.mem])
-    actor_script_args = ([
-                   f"{cur_dir}/distributed_rl_acting_worker.py",
+    actor_args = ([
                    "--prelude", str(args.prelude),
                    "--state-dir", str(args.state_dir),
                    "-s", str(args.steps_per_episode),
@@ -252,14 +245,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                    (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
                    (["-t"] if args.print_timings else []) +
                    [str(f) for f in args.filenames])
-    learner_args = (["-J", server_jobname,
-                     "-p", args.learning_partition,
-                     "-t", str(args.worker_timeout),
-                     "-o", str(args.state_dir / args.workers_output_dir / "learner.out"),
-                     "--mem", args.mem,
-                     "--gres=gpu:1",
-                     f"{cur_dir}/distributed_rl_learning_server.py",
-                     "--state-dir", str(args.state_dir),
+    learner_args = (["--state-dir", str(args.state_dir),
                      "-e", str(encoding_size),
                      "-l", str(args.learning_rate),
                      "-b", str(args.batch_size),
@@ -286,40 +272,20 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                         if args.batch_step is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
-    if args.hetjob:
-        total_args = ["srun"] + learner_args
-        for workerid in range(num_actors):
-            total_args += ([":"] + actor_job_args +
-                           ["-o", str(args.state_dir / args.workers_output_dir
-                                 / f"actor-{workerid}.out")] +
-                           actor_script_args + ["-w", str(workerid)])
-    else:
-        salloc_script = (args.state_dir / "run_job.sh")
-        with salloc_script.open("w") as f:
-            print("#!/usr/bin/env bash", file=f)
-            print(" ".join(["srun", "-N1"] + learner_args + ["&"]), file=f)
-            for workerid in range(num_actors):
-                print(" ".join(["srun", "-N1"] + actor_job_args +
-                               ["-o", str(args.state_dir / args.workers_output_dir
-                                          / f"actor-{workerid}.out"),
-                               # "-r", str(workerid + 1)
-                               ] +
-                               actor_script_args +
-                               ["-w", str(workerid), "&"]), file=f)
-            print("wait", file=f)
-        os.chmod(str(salloc_script), stat.S_IXUSR | stat.S_IRUSR | stat.S_IWUSR)
-        total_args = ["salloc",
-                      "-p", args.partition,
-                      "-t", args.worker_timeout,
-                      "--mem", args.mem,
-                      "-N", str(num_actors + 1),
-                      "--gres=gpu:1",
-                      "-J", f"drl-all-{args.output_file}",
-                      str(salloc_script)]
-
+    total_args = ["srun",
+                  "-p", args.partition,
+                  "--gres=gpu:1",
+                  "-t", args.worker_timeout,
+                  "--mem", args.mem,
+                  "-N", str(num_actors + 1),
+                  "-J", f"drl-all-{args.output_file}",
+                  f"{cur_dir}/dist_dispatch.sh",
+                  f"{args.state_dir}/output/",
+                  "\" " + " ".join(learner_args) + " \"",
+                  "\" " + " ".join(actor_args) + " \""]
     str_args = " ".join(total_args)
     util.eprint(f"Running as {str_args}")
-    subprocess.Popen(total_args)# , stderr=subprocess.DEVNULL)
+    subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
 def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
@@ -392,7 +358,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
 def check_for_learning_worker(args: argparse.Namespace) -> None:
     # If the syncing worker dies, print a message and exit
     squeue_output = subprocess.check_output(
-        f"squeue -r -u$USER -h -n drl-learner-{args.output_file} -n drl-all-{args.output_file}",
+        f"squeue -r -u$USER -h -n drl-all-{args.output_file}",
         shell=True, text=True)
     if squeue_output.strip() == "":
         util.eprint("Learning server died! Check the logs for more details. "
@@ -457,7 +423,7 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def cancel_workers(args: argparse.Namespace) -> None:
-    subprocess.run([f"scancel -u$USER -n drl-actor-{args.output_file} -n drl-learner-{args.output_file}"],
+    subprocess.run([f"scancel -u$USER -n drl-all-{args.output_file}"],
                    shell=True, check=True)
 
 def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
