@@ -167,13 +167,13 @@ def train(args: argparse.Namespace, v_model: VModel,
           target_model: nn.Module,
           optimizer: optim.Optimizer,
           replay_buffer: EncodedReplayBuffer,
-          originaltargetbuffer : TrueTargetBuffer) -> torch.FloatTensor:
+          originaltargetbuffer : TrueTargetBuffer) -> Optional[torch.FloatTensor]:
   
   original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
   replay_buffer_samples = replay_buffer.sample(args.batch_size//2, avoid = [] if not original_target_samples else [obl for obl, target in original_target_samples] )
   if (replay_buffer_samples is None) and (original_target_samples is None):
     eprint("No samples yet in both replay buffer or original target buffer. Skipping training", guard=args.verbose >= 1)
-    return
+    return None
   eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} samples to train from replay buffer at step {replay_buffer.buffer_steps} and {len(original_target_samples) if original_target_samples else 0} to train from Original target buffer", guard=args.verbose >= 1)
   
 
@@ -186,7 +186,7 @@ def train(args: argparse.Namespace, v_model: VModel,
                                           for start_obl, _ in original_target_samples]).to("cuda")
     original_target_output = [args.gamma**target for obl,target in original_target_samples]
   else :
-    original_target_buffer_input = torch.tensor([]).to('cuda')
+    original_target_buffer_input = torch.FloatTensor([]).to('cuda')
     original_target_output = []
     
 
@@ -229,7 +229,7 @@ def train(args: argparse.Namespace, v_model: VModel,
         cur_row += num_obls
       replay_buffer_sample_outputs.append(max(action_outputs))
   else :
-    replay_buffer_inputs = torch.tensor([]).to('cuda')
+    replay_buffer_inputs = torch.FloatTensor([]).to('cuda')
     replay_buffer_sample_outputs = []
 
 
@@ -333,13 +333,18 @@ class BufferPopulatingThread(Thread):
         return
       eprint("Updating existing verification sample")
       vsample_changed = True
-    else:
-      if self.num_verification_samples_encountered % 3 == 0  :
-        eprint("Adding new verification sample")
-        self.verification_states[state_sample] = target_steps.item()
-      else :
-        eprint("Adding new original target sample")
-        self.target_training_buffer.add_target( state_sample, target_steps.item() )
+      self.verification_states[state_sample] = target_steps.item()
+    elif state_sample in self.target_training_buffer._contents :
+      eprint("Updating existing fixed training sample")
+      self.target_training_buffer.add_target(state_sample, target_steps.item())
+    elif self.num_verification_samples_encountered % 3 == 0  :
+      eprint("Adding new verification sample")
+      self.verification_states[state_sample] = target_steps.item()
+    else :
+      eprint("Adding new original target sample")
+      if self.replay_buffer.exists(state_sample) :
+        self.replay_buffer.remove(state_sample)
+      self.target_training_buffer.add_target( state_sample, target_steps.item() )
 
   def receive_negative_sample(self, sending_worker: int) -> None:
     device = "cuda"
@@ -424,6 +429,12 @@ class EncodedReplayBuffer:
         return sample_pool
       return None
 
+  def remove(self, from_obl:EObligation) -> None :
+    del self._contents[from_obl]
+  
+  def exists(self, from_obl:EObligation) -> bool:
+    return from_obl in self._contents
+    
   def add_transition(self, transition: EFullTransition) -> None:
     with self.lock:
       from_obl, action, _ = transition
