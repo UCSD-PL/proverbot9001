@@ -48,6 +48,7 @@ def main() -> None:
   argparser.add_argument("-v", "--verbose", action='count', default=0)
   argparser.add_argument("--print-timings", action='store_true')
   argparser.add_argument("--encoder-weights", type=Path)
+  argparser.add_argument("--start-from", type=Path)
   argparser.add_argument("-o", "--output", type=Path)
   argparser.add_argument("--shorter-proofs-from", type=Path, default=None)
   argparser.add_argument("--mode", choices=["train", "tune"], default="train")
@@ -108,6 +109,11 @@ def train(args: argparse.Namespace) -> float:
     tactic_vocab_size = predictor.prev_tactic_vocab_size
     v_network = VNetwork(args, args.encoder_weights, predictor)
     assert isinstance(v_network.network, VModel)
+  if args.start_from is not None:
+    _, _, _, network_state, _, _, _ = \
+      torch.load(str(args.start_from), map_location=device)
+    v_network.obligation_encoder = None
+    v_network.load_state(network_state)
   #with print_time(f"Tokenizing {len(obls)} states"):
   #  tokenized_states = [v_network.obligation_encoder.obligation_to_seqs(obl)
   #                      for obl in obls]
@@ -148,6 +154,7 @@ def train(args: argparse.Namespace) -> float:
   training_start = time.time()
   num_batches = len(encoded_states) // args.batch_size
 
+  epoch_loss = 0.
   for epoch in range(args.num_epochs):
     print(f"Epoch {epoch} (learning rate "
           f"{v_network.optimizer.param_groups[0]['lr']:.5e})")
@@ -173,9 +180,10 @@ def train(args: argparse.Namespace) -> float:
               f"{epoch_loss / batch_num:.8f}")
     adjuster.step()
 
-  with args.output.open('wb') as f:
-    torch.save((False, None, 0, v_network.get_state(), v_network.get_state(),
-                {}, None), f)
+  if args.num_epochs >= 0 or not args.start_from:
+    with args.output.open('wb') as f:
+      torch.save((False, None, 0, v_network.get_state(), v_network.get_state(),
+                  {}, None), f)
 
   threshold = 0.1
   erroneous_count = 0
