@@ -121,6 +121,7 @@ class SearchGraph:
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0),
                                       FullContext(
                                           [], [], ProofContext([], [], [], [])),
+                                      ProofContext.empty(),
                                       None)
         self.start_node.time_taken = 0.0
         if features_json:
@@ -128,15 +129,20 @@ class SearchGraph:
                                                        str(tokens_file))
         pass
 
-    def mkNode(self, prediction: Prediction, context_before: FullContext,
+    def mkNode(self, prediction: Prediction,
+               context_before: FullContext,
+               proof_context_after: ProofContext,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
 
         tooltip = ""
-        for hyp in context_before.obligations.focused_hyps:
-            tooltip += hyp[:64] + "&#10;"
-        tooltip += "-" * 64 + "&#10;"
-        tooltip += context_before.obligations.focused_goal[:64]
+        for oblidx, obligation in enumerate(proof_context_after.all_goals()):
+            if oblidx != 0:
+                tooltip += "*" * 64 + "&#10;"
+            for hyp in obligation.hypotheses:
+                tooltip += hyp[:64] + "&#10;"
+            tooltip += "-" * 64 + "&#10;"
+            tooltip += obligation.goal[:64]
 
         self.__graph.add_node(self.__next_node_id,
                               label="{}\n({:.2f})".format(
@@ -157,6 +163,7 @@ class SearchGraph:
     def mkQED(self, predictionNode: LabeledNode):
         self.mkNode(Prediction("QED", 1.0), FullContext(
             [], [], ProofContext([], [], [], [])),
+                    ProofContext([], [], [], []),
                     predictionNode,
                     fillcolor="green", style="filled")
         cur_node = predictionNode
@@ -385,6 +392,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     if args.show_failing_predictions:
                         predictionNode = g.mkNode(prediction,
                                                   full_context_before,
+                                                  context_after,
                                                   current_path[-1])
                         predictionNode.time_taken = time_taken
                         if isinstance(error, RecursionError):
@@ -398,11 +406,13 @@ def dfs_proof_search_with_graph(lemma_name: str,
 
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
+                                          context_after,
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
                 if unshelved:
                     predictionNode = g.mkNode(Prediction("Unshelve.", 1.0),
                                               full_context_before,
+                                              context_after,
                                               predictionNode)
                     predictionNode.time_taken = 0
 
@@ -469,6 +479,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
             except coq_serapy.CoqAnomaly:
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
+                                          ProofContext.empty(),
                                           current_path[-1])
                 g.setNodeColor(predictionNode, "grey25")
                 if lemma_name == "":
@@ -508,6 +519,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                                   unwrap(coq.proof_context))
                 next_node = g.mkNode(Prediction(command, 1.0),
                                      full_context_before,
+                                     ProofContext.empty(),
                                      next_node)
                 next_node.time_taken = 0.0
                 coq.run_stmt(command)
