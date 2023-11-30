@@ -106,8 +106,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("--hidden-size", type=int, default=128)
     parser.add_argument("--tactic-embedding-size", type=int, default=32)
     parser.add_argument("--num-layers", type=int, default=3)
-    parser.add_argument("--batch-step", default=None, type=int)
-    parser.add_argument("--lr-step", default=0.8, type=float)
+    parser.add_argument("--learning-rate-step", default=None, type=int)
+    parser.add_argument("--learning-rate-decay", default=0.8, type=float)
     parser.add_argument("--batches-per-proof", default=1, type=int)
     parser.add_argument("--train-every", default=1, type=int)
     parser.add_argument("--optimizer", choices=optimizers.keys(),
@@ -405,19 +405,8 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         print(f"Resuming from existing weights of {steps_already_done} steps")
         if args.start_from is not None:
             print("WARNING: Not starting from weights passed in --start-from because we're resuming from a partial run")
-        v_network = VNetwork(None, predictor.underlying_predictor,
-                             args.learning_rate,
-                             args.batch_step, args.lr_step,
-                             args.optimizer, tactic_vocab_size,
-                             args.tactic_embedding_size,
-                             args.hidden_size,
-                             args.num_layers)
-        target_network = VNetwork(None, predictor.underlying_predictor,
-                                  args.learning_rate,
-                                  args.batch_step, args.lr_step,
-                                  args.optimizer, tactic_vocab_size,
-                                  args.tactic_embedding_size, args.hidden_size,
-                                  args.num_layers)
+        v_network = VNetwork(args, None, predictor.underlying_predictor)
+        target_network = VNetwork(args, None, predictor.underlying_predictor)
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
         assert v_network.network
@@ -434,20 +423,10 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         replay_buffer = None
         random_state = random.getstate()
         with print_time("Building models"):
-            v_network = VNetwork(args.coq2vec_weights,
-                                 predictor.underlying_predictor,
-                                 args.learning_rate,
-                                 args.batch_step, args.lr_step, args.optimizer,
-                                 tactic_vocab_size, args.tactic_embedding_size,
-                                 args.hidden_size, args.num_layers)
-            target_network = VNetwork(args.coq2vec_weights,
-                                      predictor.underlying_predictor,
-                                      args.learning_rate,
-                                      args.batch_step, args.lr_step,
-                                      args.optimizer, tactic_vocab_size,
-                                      args.tactic_embedding_size,
-                                      args.hidden_size,
-                                      args.num_layers)
+            v_network = VNetwork(args, args.coq2vec_weights,
+                                 predictor.underlying_predictor)
+            target_network = VNetwork(args, args.coq2vec_weights,
+                                      predictor.underlying_predictor)
             # This ensures that the target and obligation will share a cache for coq2vec encodings
             target_network.obligation_encoder = v_network.obligation_encoder
             if args.start_from is not None:
@@ -610,14 +589,15 @@ class VNetwork:
     predictor: FeaturesPolyargPredictor
     network: Optional[VModel]
     steps_trained: int
-    optimizer: optim.Optimizer
-    adjuster: scheduler.LRScheduler
+    optimizer: Optional[optim.Optimizer]
+    adjuster: Optional[scheduler.LRScheduler]
     device: str
-    batch_step: int
-    lr_step: int
+    learning_rate_step: int
+    learning_rate_decay: float
     learning_rate: float
     hidden_size: int
     num_layers: int
+    trainable: bool
 
     def get_state(self) -> Any:
         assert self.obligation_encoder is not None
@@ -625,41 +605,45 @@ class VNetwork:
         return (self.network.state_dict(),
                 self.obligation_encoder.term_encoder.get_state(),
                 self.obligation_encoder.obl_cache,
-                self.hidden_size, self.num_layers)
+                self.training_args)
 
-    def _load_encoder_state(self, encoder_state: Any,
-                            previous_tactic_vocab_size: int,
-                            previous_tactic_embedding_size: int,
-                            hidden_size: int,
-                            num_layers: int) -> None:
+    def _load_encoder_state(self, encoder_state: Any) -> None:
         term_encoder = coq2vec.CoqTermRNNVectorizer()
         term_encoder.load_state(encoder_state)
         num_hyps = 5
         assert self.obligation_encoder is None, "Can't load weights twice!"
-        self.obligation_encoder = CachedObligationEncoder(term_encoder, num_hyps)
+        self.obligation_encoder = CachedObligationEncoder(
+          term_encoder, num_hyps)
         local_context_embedding_size = \
           term_encoder.hidden_size * (num_hyps + 1)
-        self.hidden_size = hidden_size
-        self.num_layers = num_layers
+        self.tactic_vocab_size: int = self.predictor.prev_tactic_vocab_size
         self.network = VModel(local_context_embedding_size,
-                              previous_tactic_vocab_size,
-                              previous_tactic_embedding_size,
-                              hidden_size, num_layers)
+                              self.tactic_vocab_size,
+                              self.training_args.tactic_embedding_size,
+                              self.training_args.hidden_size,
+                              self.training_args.num_layers)
         self.network.to(self.device)
-        self.optimizer: optim.Optimizer = optimizers[self.optimizer_type](self.network.parameters(),
-                                                                     lr=self.learning_rate)
-        self.adjuster = scheduler.StepLR(self.optimizer, self.batch_step,
-                                         self.lr_step)
-        self.tactic_vocab_size: int = previous_tactic_vocab_size
+        if self.trainable:
+            self.optimizer: optim.Optimizer = \
+                optimizers[self.training_args.optimizer](
+                  self.network.parameters(),
+                  lr=self.training_args.learning_rate)
+            self.adjuster = scheduler.StepLR(self.optimizer,
+                                             self.training_args.learning_rate_step,
+                                             self.training_args.learning_rate_decay)
+        else:
+            self.optimizer = None
+            self.adjuster = None
 
     def load_state(self, state: Any) -> None:
         assert len(state) == 4
         network_state, encoder_state, obl_cache, training_args = state
-        self._load_encoder_state(encoder_state,
-                                 self.tactic_vocab_size,
-                                 training_args.tactic_embedding_size,
-                                 training_args.hidden_size,
-                                 training_args.num_layers)
+        self.training_args = training_args
+        if "learning_rate" not in vars(training_args):
+            self.trainable = False
+        else:
+            self.trainable = True
+        self._load_encoder_state(encoder_state),
         assert self.obligation_encoder
         self.obligation_encoder.obl_cache = obl_cache
         assert self.network
@@ -667,22 +651,20 @@ class VNetwork:
         self.network.to(self.device)
 
 
-    def __init__(self, coq2vec_weights: Optional[Path],
+    def __init__(self, args: argparse.Namespace,
+                 coq2vec_weights: Optional[Path],
                  predictor: FeaturesPolyargPredictor,
-                 learning_rate: float,
-                 batch_step: int, lr_step: int, optimizer_type: str,
-                 tactic_vocab_size: int, tactic_embedding_size: int,
-                 hidden_size: int, num_layers: int, device: Optional[str] = None) -> None:
+                 device: Optional[str] = None) -> None:
         if device is None:
             self.device = "cuda" if torch.cuda.is_available() else "cpu"
         else:
             self.device = device
-        self.batch_step = batch_step
-        self.lr_step = lr_step
-        self.learning_rate = learning_rate
         self.obligation_encoder = None
-        self.network = None
-        self.optimizer_type = optimizer_type
+        self.training_args = args
+        if "learning_rate" not in vars(args):
+            self.trainable = False
+        else:
+            self.trainable = True
         # Steps trained only counts from the last resume! Don't use
         # for anything more essential than printing.
         self.steps_trained = 0
@@ -690,10 +672,7 @@ class VNetwork:
         self.predictor = predictor
         if coq2vec_weights is not None:
             self._load_encoder_state(torch.load(str(coq2vec_weights),
-                                                map_location=self.device),
-                                     tactic_vocab_size,
-                                     tactic_embedding_size,
-                                     hidden_size, num_layers)
+                                                map_location=self.device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]],
                  prev_tactics: Union[str, List[str]]) -> torch.FloatTensor:
@@ -744,6 +723,8 @@ class VNetwork:
         del verbosity
         assert self.obligation_encoder, \
             "No loaded encoder! Pass encoder weights to __init__ or call set_state()"
+        assert self.trainable
+        assert self.optimizer and self.adjuster
         # with print_time("Training", guard=verbosity >= 1):
         input_contexts = [input_context for prev_tactic, input_context in
                           inputs]

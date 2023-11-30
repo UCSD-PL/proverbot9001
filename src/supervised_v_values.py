@@ -106,11 +106,7 @@ def train(args: argparse.Namespace) -> float:
     predictor = get_predictor(args)
     assert isinstance(predictor, FeaturesPolyargPredictor)
     tactic_vocab_size = predictor.prev_tactic_vocab_size
-    v_network = VNetwork(args.encoder_weights, predictor, args.learning_rate,
-                         args.learning_rate_step, args.learning_rate_decay,
-                         args.optimizer, tactic_vocab_size,
-                         args.tactic_embedding_size, args.hidden_size,
-                         args.num_layers)
+    v_network = VNetwork(args, args.encoder_weights, predictor)
     assert isinstance(v_network.network, VModel)
   #with print_time(f"Tokenizing {len(obls)} states"):
   #  tokenized_states = [v_network.obligation_encoder.obligation_to_seqs(obl)

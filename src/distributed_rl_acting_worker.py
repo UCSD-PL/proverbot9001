@@ -531,11 +531,9 @@ def initialize_actor(args: argparse.Namespace) \
     -> RLActor:
   predictor = rl.MemoizingPredictor(get_predictor(args))
   assert isinstance(predictor.underlying_predictor, FeaturesPolyargPredictor)
-  network = rl.VNetwork(args.coq2vec_weights, predictor.underlying_predictor,
-                        0.0, 1, 1, args.optimizer,
-                        predictor.underlying_predictor.prev_tactic_vocab_size,
-                        args.tactic_embedding_size,
-                        args.hidden_size, args.num_layers, device="cpu")
+  network = rl.VNetwork(args, args.coq2vec_weights,
+                        predictor.underlying_predictor,
+                        device="cpu")
   load_latest_q_network(args, network)
   return RLActor(args, predictor, network)
 
