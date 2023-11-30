@@ -109,9 +109,11 @@ def main(arg_list: List[str]) -> None:
         setup_jobsstate(args.output_dir, jobs, solved_jobs)
         dispatch_workers(args, arg_list)
         with util.sighandler_context(signal.SIGINT, functools.partial(interrupt_early, args)):
-            show_progress(args)
-        cancel_workers(args)
-        write_time(args)
+            try:
+                show_progress(args)
+            finally:
+                cancel_workers(args)
+                write_time(args)
     else:
         assert len(solved_jobs) == len(jobs), \
           f"There are {len(solved_jobs)} solved jobs but only {len(jobs)} jobs total detected"
