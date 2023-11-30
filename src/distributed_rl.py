@@ -257,15 +257,15 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                      "--keep-latest", str(args.keep_latest),
                      "--optimizer", args.optimizer,
                      "--loss-smoothing", str(args.loss_smoothing),
-                     "--learning-rate-decay", str(args.lr_step),
+                     "--learning-rate-decay", str(args.learning_rate_decay),
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches
                       else [])
                      + (["--start-from", str(args.start_from)]
                         if args.start_from is not None else [])
                      + (["--ignore-after", str(args.ignore_after)]
                         if args.ignore_after is not None else [])
-                     + (["--learning-rate-step", str(args.batch_step)]
-                        if args.batch_step is not None else [])
+                     + (["--learning-rate-step", str(args.learning_rate_step)]
+                        if args.learning_rate_step is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else []))
     total_args = ["srun",
