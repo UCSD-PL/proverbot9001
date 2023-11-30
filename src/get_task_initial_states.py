@@ -61,8 +61,9 @@ def main() -> None:
                 worker.coq.proof_context.fg_goals[0].to_dict())), file=f)
             else:
               eprint("Skipping a task with unusable prefix")
-            if len(tasks_left) > 0:
-              next_task = tasks_left.pop(0)
+            if len(tasks_left) == 0:
+              break
+            next_task = tasks_left.pop(0)
             bar.update()
           else:
             cur_project = next_task.project
