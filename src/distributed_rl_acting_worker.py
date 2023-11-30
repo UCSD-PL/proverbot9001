@@ -334,7 +334,11 @@ def allocate_next_task(args: argparse.Namespace, workerid: int,
         # we might still have episodes to work on, so we'll break to our
         # episode/phase incrementing code at the end of the function.
         if len(all_files) == len(task_state.files_finished_this_ep):
-          assert task_state.cur_episode == args.num_episodes - 1 or len(all_files) == 1
+          with (args.state_dir / "actors_scheduled.txt").open('r') as f, \
+               FileLock(f):
+            num_workers_scheduled = len(list(f))
+          assert task_state.cur_episode == args.num_episodes - 1 or \
+                 len(all_files) == 1 or num_workers_scheduled == 1
           break
         # Get the number of workers taking the least-taken file.
         least_taken_count = min(taken_files[filename] for filename in all_files
