@@ -208,8 +208,6 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                                 hidden_size: int, num_layers: int):
     predictor: FeaturesPolyargPredictor = get_predictor(args) # type: ignore
     tactic_vocab_size = predictor.prev_tactic_vocab_size
-    with (args.state_dir / "workers_scheduled.txt").open('w'):
-        pass
     assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
