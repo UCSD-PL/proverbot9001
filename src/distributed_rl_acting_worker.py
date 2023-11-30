@@ -70,7 +70,7 @@ def main() -> None:
   # workerid = args.workerid
   envvar_name = "SLURM_NODEID"
   assert envvar_name in os.environ
-  workerid = int(os.environ[envvar_name])
+  workerid = int(os.environ[envvar_name]) - 1
 
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)
