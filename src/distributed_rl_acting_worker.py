@@ -108,12 +108,12 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
       eprint(f"Starting task ep {next_task_ep}")
     next_task, next_ep = next_task_ep
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
-    successful, samples, negative_samples = actor.run_task_reinforce(
+    successful, initial_obl, samples, negative_samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
     if next_ep == 0:
       prev_tactic = rl.prev_tactic_from_prefix(next_task.tactic_prefix)
       learning_connection.encode_and_send_target_length(prev_tactic,
-                                                        samples[0][1],
+                                                        initial_obl,
                                                         next_task.target_length)
     if successful and len(samples) < next_task.target_length:
       update_shorter_proofs_dict(args, all_files, next_task, len(samples),
@@ -156,15 +156,16 @@ class RLActor:
     return self.file_workers[filename]
   def run_task_reinforce(self, task: RLTask, epsilon: float,
                          restart: bool = True) -> \
-      Tuple[bool, List[Tuple[str, Obligation, str, List[Obligation]]],
-                  List[Tuple[str, Obligation]]]:
+      Tuple[bool, Obligation,
+            List[Tuple[str, Obligation, str, List[Obligation]]],
+            List[Tuple[str, Obligation]]]:
     if not rl.tactic_prefix_is_usable(task.tactic_prefix):
       if self.args.verbose >= 2:
         eprint(f"Skipping job {task.to_job()} with prefix {task.tactic_prefix} "
                "because it can't purely focused")
       else:
         eprint("Skipping a job because it can't be purely focused")
-      return False, [], []
+      return False, ProofContext.empty(), [], []
     with print_time("Getting worker", guard=self.args.print_timings):
       file_worker = self._get_worker(str(task.src_file))
     assert file_worker.coq is not None
@@ -182,7 +183,7 @@ class RLActor:
       if restart:
         return self.run_task_reinforce(task, epsilon, restart=False)
       eprint("Encountered anomaly without restart, closing current job")
-    return False, [], []
+    return False, ProofContext.empty(), [], []
 
 TaskEpisode = Tuple[RLTask, int]
 IndexedTaskEpisode = Tuple[int, TaskEpisode]
@@ -566,12 +567,14 @@ def experience_proof(args: argparse.Namespace,
                      predictor: TacticPredictor,
                      v_network: rl.VNetwork,
                      epsilon: float) \
-      -> Tuple[bool, List[Tuple[str, Obligation, str, List[Obligation]]],
-                     List[Tuple[str, Obligation]]]:
+      -> Tuple[bool, Obligation,
+               List[Tuple[str, Obligation, str, List[Obligation]]],
+               List[Tuple[str, Obligation]]]:
   path: List[ProofContext] = [unwrap(coq.proof_context)]
   initial_open_obligations = len(unwrap(coq.proof_context).all_goals)
   samples: List[Tuple[str, Obligation, str, List[Obligation]]] = []
   negative_samples: List[Tuple[str, Obligation]] = []
+  initial_obl = unwrap(coq.proof_context).fg_goals[0]
 
   for step in range(args.steps_per_episode):
     before_obl = unwrap(coq.proof_context).fg_goals[0]
@@ -639,9 +642,9 @@ def experience_proof(args: argparse.Namespace,
     samples.append((before_prev_tactic, before_obl, chosen_action.prediction, resuting_obls))
     if len(unwrap(coq.proof_context).all_goals) < initial_open_obligations:
       eprint(f"Completed task with trace {[sample[1] for sample in samples]}")
-      return True, samples, negative_samples
+      return True, initial_obl, samples, negative_samples
     assert len(unwrap(coq.proof_context).all_goals) > 0
     assert len(unwrap(coq.proof_context).fg_goals) > 0
-  return False, samples, negative_samples
+  return False, initial_obl, samples, negative_samples
 if __name__ == "__main__":
   main()
