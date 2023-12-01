@@ -722,6 +722,7 @@ def bfs_beam_proof_search(lemma_name: str,
             full_context_before = FullContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               unwrap(coq.proof_context))
+            coq.run_stmt(command)
             search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
                                  full_context_before, search_start_node)
     if coq.count_fg_goals() > 1:
@@ -906,6 +907,7 @@ def best_first_proof_search(lemma_name: str,
             full_context_before = FullContext(relevant_lemmas,
                                               coq.prev_tactics,
                                               unwrap(coq.proof_context))
+            coq.run_stmt(command)
             search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
                                         full_context_before, search_start_node)
     nodes_todo: List[AStarTask] = [AStarTask(1.0, search_start_node)]
