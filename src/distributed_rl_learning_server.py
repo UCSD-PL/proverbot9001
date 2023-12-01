@@ -186,7 +186,8 @@ def train(args: argparse.Namespace, v_model: VModel,
                                           for start_obl, _ in original_target_samples]).to("cuda")
     original_target_output = [args.gamma**target for obl,target in original_target_samples]
   else :
-    original_target_buffer_input = torch.FloatTensor([]).to('cuda')
+    original_target_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
+    original_target_prev_tactic_indices = torch.LongTensor([]).to('cuda')
     original_target_output = []
     
 
@@ -229,7 +230,8 @@ def train(args: argparse.Namespace, v_model: VModel,
         cur_row += num_obls
       replay_buffer_sample_outputs.append(max(action_outputs))
   else :
-    replay_buffer_inputs = torch.FloatTensor([]).to('cuda')
+    replay_buffer_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
+    replay_buffer_prev_tactic_indices = torch.LongTensor([]).to('cuda')
     replay_buffer_sample_outputs = []
 
 
@@ -237,7 +239,7 @@ def train(args: argparse.Namespace, v_model: VModel,
   prev_tactics_input = torch.cat( (original_target_prev_tactic_indices, replay_buffer_prev_tactic_indices) )
   outputs = replay_buffer_sample_outputs + original_target_output 
 
-  actual_values = v_model(local_context_input, prev_tactics_input).view(len(replay_buffer_inputs) + len(original_target_buffer_input))
+  actual_values = v_model(local_context_input, prev_tactics_input).view(len(replay_buffer_sample_outputs) + len(original_target_output))
   device = "cuda"
   target_values = torch.FloatTensor(outputs).to(device)
   eprint("training to : ", outputs, guard=args.verbose >= 1)
