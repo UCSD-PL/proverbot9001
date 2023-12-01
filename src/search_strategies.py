@@ -179,7 +179,7 @@ class SearchGraph:
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
-        if node_handle.attr["fillcolor"] != None and node_handle.attr["fillcolor"] != "":
+        if node_handle.attr["fillcolor"] is not None and node_handle.attr["fillcolor"] != "":
             node_handle.attr["fillcolor"] += (":" + color)
         else:
             node_handle.attr["fillcolor"] = color
@@ -574,8 +574,8 @@ class BFSNode:
 
     def setNodeColor(self, color: str) -> None:
         assert color
-        if self.color != None and self.color != "":
-            self.color = (unwrap(self.color) + ":" + color)
+        if self.color is not None and self.color != "":
+            self.color = unwrap(self.color) + ":" + color
         else:
             self.color = color
 
@@ -586,7 +586,7 @@ class BFSNode:
                 ProofContext.empty(),
                 self, "green")
         cur_node = self
-        while cur_node.previous != None:
+        while cur_node.previous is not None:
             cur_node.setNodeColor("palegreen1")
             cur_node = unwrap(cur_node.previous)
 
