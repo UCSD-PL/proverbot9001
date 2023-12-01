@@ -550,24 +550,27 @@ class BFSNode:
     score: float
     time_taken: float
     context_before: FullContext
+    proof_context_after: ProofContext
     previous: Optional["BFSNode"]
     children: List["BFSNode"]
     color: Optional[str]
 
     def __init__(self, prediction: Prediction, score: float, time_taken: float,
-                 postfix: List[str], context_before: FullContext, previous: Optional["BFSNode"],
+                 postfix: List[str], context_before: FullContext,
+                 proof_context_after: ProofContext,
+                 previous: Optional["BFSNode"],
                  color: Optional[str] = None) -> None:
         self.prediction = prediction
         self.score = score
         self.time_taken = time_taken
         self.postfix = postfix
         self.context_before = context_before
+        self.proof_context_after = context_after
         self.previous = previous
         self.children = []
         if self.previous:
             self.previous.children.append(self)
         self.color = color
-        pass
 
     def setNodeColor(self, color: str) -> None:
         assert color
@@ -577,10 +580,11 @@ class BFSNode:
             self.color = color
 
     def mkQED(self) -> None:
-        qed_node = BFSNode(Prediction("QED", 1.0), 100, 0, [],
-                           FullContext(
-                            [], [], ProofContext([], [], [], [])),
-                           self, "green")
+        BFSNode(Prediction("QED", 1.0), 100, 0, [],
+                FullContext(
+                    [], [], ProofContext([], [], [], [])),
+                ProofContext.empty(),
+                self, "green")
         cur_node = self
         while cur_node.previous != None:
             cur_node.setNodeColor("palegreen1")
@@ -715,7 +719,8 @@ def bfs_beam_proof_search(lemma_name: str,
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
-                                     ProofContext([], [], [], [])), None)
+                                     ProofContext([], [], [], [])),
+                         unwrap(coq.proof_context), None)
     search_start_node = start_node
     if args.search_prefix:
         for command in coq_serapy.read_commands(args.search_prefix):
@@ -724,7 +729,9 @@ def bfs_beam_proof_search(lemma_name: str,
                                               unwrap(coq.proof_context))
             coq.run_stmt(command)
             search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
-                                 full_context_before, search_start_node)
+                                        full_context_before,
+                                        unwrap(coq.proof_context),
+                                        search_start_node)
     if coq.count_fg_goals() > 1:
         coq.run_stmt("{")
         subgoals_stack_start = [0]
@@ -773,9 +780,8 @@ def bfs_beam_proof_search(lemma_name: str,
 
 
                     prediction_node = BFSNode(
-                        prediction,
-                        0,
-                        time_taken, postfix, full_context_before, next_node)
+                        prediction, 0, time_taken, postfix,
+                        full_context_before, context_after, next_node)
                     if error:
                         if args.count_failing_predictions:
                             num_successful_predictions += 1
@@ -900,7 +906,8 @@ def best_first_proof_search(lemma_name: str,
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
-                                     ProofContext([], [], [], [])), None)
+                                     ProofContext([], [], [], [])),
+                         unwrap(coq.proof_context), None)
     search_start_node = start_node
     if args.search_prefix:
         for command in coq_serapy.read_commands(args.search_prefix):
@@ -909,7 +916,8 @@ def best_first_proof_search(lemma_name: str,
                                               unwrap(coq.proof_context))
             coq.run_stmt(command)
             search_start_node = BFSNode(Prediction(command, 1.0), 1.0, 0.0, [],
-                                        full_context_before, search_start_node)
+                                        full_context_before, unwrap(coq.proof_context),
+                                        search_start_node)
     nodes_todo: List[AStarTask] = [AStarTask(1.0, search_start_node)]
 
     desc_name = lemma_name
@@ -951,9 +959,8 @@ def best_first_proof_search(lemma_name: str,
             postfix += ["{"] * subgoals_opened
 
             prediction_node = BFSNode(
-                prediction,
-                0,
-                time_taken, postfix, full_context_before, next_node.node)
+                prediction, 0, time_taken, postfix,
+                full_context_before, context_after, next_node.node)
             if error:
                 if args.count_failing_predictions:
                     num_successful_predictions += 1
