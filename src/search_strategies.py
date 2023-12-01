@@ -605,11 +605,13 @@ class BFSNode:
                 style=""
 
             tooltip = ""
-            for hyp in root.context_before.obligations.focused_hyps:
-                tooltip += hyp[:64] + "&#10;"
-            tooltip += "-" * 64 + "&#10;"
-            tooltip += root.context_before.obligations.focused_goal[:64]
-
+            for oblidx, obligation in enumerate(root.proof_context_after.all_goals()):
+                if oblidx != 0:
+                    tooltip += "*" * 64 + "&#10;"
+                for hyp in obligation.hypotheses:
+                    tooltip += hyp[:64] + "&#10;"
+                tooltip += "-" * 64 + "&#10;"
+                tooltip += obligation.goal[:64]
 
             graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
                            tooltip=tooltip.replace("\\", "\\\\"))
