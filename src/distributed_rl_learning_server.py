@@ -291,8 +291,11 @@ class BufferPopulatingThread(Thread):
     state_sample = EObligation(state_sample_buffer.to(device),
                                newest_prev_tactic_sample.item())
     if state_sample in self.verification_states:
-      assert target_steps.item() <= self.verification_states[state_sample], \
-        "Got sent a target value  less than the previously expected value for this state!"
+      if target_steps.item() > self.verification_states[state_sample]:
+        eprint("WARNING: Trying to add validation sample "
+               "but got a larger length than previous sample! "
+               "Skipping...")
+        return
       eprint("Updating existing verification sample")
       vsample_changed = True
     else:
@@ -356,6 +359,7 @@ class EncodedReplayBuffer:
       if from_obl in self._contents and len(existing_entry[1]) == 0:
         eprint("WARNING: Trying to add transition from {hash(from_obl)}, "
                "but it's already marked as a negative example! Skipping...")
+        return
       # assert from_obl not in self._contents or len(existing_entry[1]) > 0
       for existing_action, existing_to_obls in existing_entry[1]:
         if action == existing_action:
