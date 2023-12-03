@@ -332,10 +332,11 @@ class SearchWorker(Worker):
     axioms_already_added: bool
     def __init__(self, args: argparse.Namespace, worker_idx: int,
                  predictor: TacticPredictor,
-                 switch_dict: Optional[Dict[str, str]] = None) -> None:
+                 switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None) -> None:
         super().__init__(args, switch_dict)
         self.widx = worker_idx
         self.predictor = predictor
+        self.predictor_list = predictor_list
         self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
@@ -470,7 +471,7 @@ class SearchWorker(Worker):
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, self.predictor)
+                             self.widx, self.predictor, self.predictor_list)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE

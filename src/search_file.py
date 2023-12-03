@@ -246,7 +246,11 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
     print("end splits file", flush=True)
-    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
+    predictor_list = None
+    if args.combo_weightsfiles:
+        for predfile in self.args.combo_weightsfiles:
+            predictor_list.append(get_predictor_by_path(predfile))
+    with SearchWorker(args, worker_idx, predictor, switch_dict, predictor_list) as worker:
         print("I am starting a worker", flush=True)
         exit(0)
         while True:
@@ -255,11 +259,11 @@ def search_file_worker(args: argparse.Namespace,
                 next_job = jobs.get_nowait()
             except queue.Empty:
                 return
-            if not args.search_type == 'combo-b':
-                solution = worker.run_job(next_job, restart=not args.hardfail)
-            else:
-                print("running job with random?")
-                solution = worker.run_job_with_random(next_job, restart=not args.hardfail)
+            #if not args.search_type == 'combo-b':
+            #    solution = worker.run_job(next_job, restart=not args.hardfail)
+            #else:
+            #    solution = worker.run_job_with_random(next_job, restart=not args.hardfail)
+            solution = worker.run_job(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
     '''
     else:
