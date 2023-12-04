@@ -344,13 +344,13 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             wbar.update(len(new_scheduled_actors) - len(scheduled_actors))
             scheduled_actors = new_scheduled_actors
 
-            if len(scheduled_actors) == 0 and not learner_is_scheduled and \
-               time.time() - start_time > 5 * 60 and args.hetjob:
-                util.eprint("Het job is taking too long to schedule, and could "
-                            "be blocking other jobs from getting scheduled, "
-                            "so we're cancelling it. Try rerunning without --hetjob!")
-                cancel_workers(args)
-                sys.exit(1)
+            # if len(scheduled_actors) == 0 and not learner_is_scheduled and \
+            #    time.time() - start_time > 5 * 60 and args.hetjob:
+            #     util.eprint("Het job is taking too long to schedule, and could "
+            #                 "be blocking other jobs from getting scheduled, "
+            #                 "so we're cancelling it. Try rerunning without --hetjob!")
+            #     cancel_workers(args)
+            #     sys.exit(1)
 
 def check_for_learning_worker(args: argparse.Namespace) -> None:
     # If the syncing worker dies, print a message and exit
