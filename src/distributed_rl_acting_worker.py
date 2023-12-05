@@ -110,7 +110,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
     successful, initial_obl, samples, negative_samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
-    if next_ep == 0:
+    if successful and next_ep == 0:
       prev_tactic = rl.prev_tactic_from_prefix(next_task.tactic_prefix)
       learning_connection.encode_and_send_target_length(prev_tactic,
                                                         initial_obl,
