@@ -97,6 +97,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--sync-workers-every", type=int, default=16)
     parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--loss-smoothing", type=int, default=1)
+    parser.add_argument("--qos", type=str, default=None)
 
 def check_resume(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "common-v-network-*.dat"))) > 0
@@ -279,9 +280,9 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   f"{args.state_dir}/output/",
                   "\" " + " ".join(learner_args) + " \"",
                   "\" " + " ".join(actor_args) + " \""]
-    # str_args = " ".join(total_args)
-    # util.eprint(f"Running as {str_args}")
-    subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
+    str_args = " ".join(total_args)
+    util.eprint(f"Running as {str_args}")
+    subprocess.Popen(total_args) #, stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
 def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
@@ -343,13 +344,13 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             wbar.update(len(new_scheduled_actors) - len(scheduled_actors))
             scheduled_actors = new_scheduled_actors
 
-            if len(scheduled_actors) == 0 and not learner_is_scheduled and \
-               time.time() - start_time > 5 * 60 and args.hetjob:
-                util.eprint("Het job is taking too long to schedule, and could "
-                            "be blocking other jobs from getting scheduled, "
-                            "so we're cancelling it. Try rerunning without --hetjob!")
-                cancel_workers(args)
-                sys.exit(1)
+            # if len(scheduled_actors) == 0 and not learner_is_scheduled and \
+            #    time.time() - start_time > 5 * 60 and args.hetjob:
+            #     util.eprint("Het job is taking too long to schedule, and could "
+            #                 "be blocking other jobs from getting scheduled, "
+            #                 "so we're cancelling it. Try rerunning without --hetjob!")
+            #     cancel_workers(args)
+            #     sys.exit(1)
 
 def check_for_learning_worker(args: argparse.Namespace) -> None:
     # If the syncing worker dies, print a message and exit

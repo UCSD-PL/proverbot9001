@@ -62,6 +62,7 @@ def main() -> None:
   parser.add_argument("--learning-rate-decay", type=float, default=0.8)
   parser.add_argument("--reset-on-updated-sample", action='store_true')
   parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
+  parser.add_argument("--verbose", "-v", help="verbose output", action="count", default=0)
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -100,8 +101,9 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
                               args.learning_rate_decay)
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches)
+  true_target_buffer = TrueTargetBuffer(args.allow_partial_batches)
   signal_change = Event()
-  buffer_thread = BufferPopulatingThread(replay_buffer,
+  buffer_thread = BufferPopulatingThread(replay_buffer, true_target_buffer,
                                          signal_change, args.encoding_size,
                                          args.ignore_after)
   buffer_thread.start()
@@ -118,7 +120,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     signal_change.clear()
     if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
       steps_last_trained = replay_buffer.buffer_steps
-      loss = train(args, v_network, target_network, optimizer, replay_buffer)
+      loss = train(args, v_network, target_network, optimizer, replay_buffer, true_target_buffer)
       if args.learning_rate_step is not None and loss is not None:
         adjuster.step()
       if loss is not None:
@@ -164,52 +166,83 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
 def train(args: argparse.Namespace, v_model: VModel,
           target_model: nn.Module,
           optimizer: optim.Optimizer,
-          replay_buffer: EncodedReplayBuffer) -> Optional[torch.FloatTensor]:
-  samples = replay_buffer.sample(args.batch_size)
-  if samples is None:
+          replay_buffer: EncodedReplayBuffer,
+          originaltargetbuffer : TrueTargetBuffer) -> Optional[torch.FloatTensor]:
+  
+  original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
+  replay_buffer_samples = replay_buffer.sample(args.batch_size//2, avoid = [] if not original_target_samples else [obl for obl, target in original_target_samples] )
+  if (replay_buffer_samples is None) and (original_target_samples is None):
+    eprint("No samples yet in both replay buffer or original target buffer. Skipping training", guard=args.verbose >= 1)
     return None
-  eprint(f"Got {len(samples)} samples to train at step {replay_buffer.buffer_steps}")
+  eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} samples to train from replay buffer at step {replay_buffer.buffer_steps} and {len(original_target_samples) if original_target_samples else 0} to train from Original target buffer", guard=args.verbose >= 1)
+  
 
-  local_contexts_encoded = torch.cat([start_obl.local_context
+  if original_target_samples :
+    original_target_local_contexts_encoded = torch.cat([start_obl.local_context
+                                               .view(1, args.encoding_size)
+                                     for start_obl, _
+                                     in original_target_samples], dim=0)
+    original_target_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
+                                          for start_obl, _ in original_target_samples]).to("cuda")
+    original_target_output = [args.gamma**target for obl,target in original_target_samples]
+  else :
+    original_target_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
+    original_target_prev_tactic_indices = torch.LongTensor([]).to('cuda')
+    original_target_output = []
+    
+
+  if replay_buffer_samples :
+
+    replay_buffer_local_contexts_encoded = torch.cat([start_obl.local_context
                                                .view(1, args.encoding_size)
                                      for start_obl, _action_records
-                                     in samples], dim=0)
-  prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
-                                          for start_obl, _ in samples]).to("cuda")
-  num_resulting_obls = [[len(resulting_obls)
-                         for _action, resulting_obls in action_records]
-                        for _start_obl, action_records in samples]
-  all_resulting_obls = [obl for _start_obl, action_records in samples
-                        for _action, resulting_obls in action_records
-                        for obl in resulting_obls]
-  if len(all_resulting_obls) > 0:
-    with torch.no_grad():
-      resulting_local_contexts_tensor = \
+                                     in replay_buffer_samples], dim=0)
+    replay_buffer_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
+                                          for start_obl, _ in replay_buffer_samples]).to("cuda")
+    num_resulting_obls = [[len(resulting_obls)
+                          for _action, resulting_obls in action_records]
+                          for _start_obl, action_records in replay_buffer_samples]
+    all_resulting_obls = [obl for _start_obl, action_records in replay_buffer_samples
+                          for _action, resulting_obls in action_records
+                          for obl in resulting_obls]
+    if len(all_resulting_obls) > 0:
+      with torch.no_grad():
+        resulting_local_contexts_tensor = \
           torch.cat([obl.local_context.view(1, args.encoding_size)
                      for obl in all_resulting_obls], dim=0)
-      resulting_prev_tactics_tensor = \
-          torch.LongTensor([obl.previous_tactic for obl
-                            in all_resulting_obls]).to("cuda")
-      all_obl_scores = target_model(resulting_local_contexts_tensor,
+        resulting_prev_tactics_tensor = \
+            torch.LongTensor([obl.previous_tactic for obl
+                              in all_resulting_obls]).to("cuda")
+        all_obl_scores = target_model(resulting_local_contexts_tensor,
                                     resulting_prev_tactics_tensor)
-  else:
-      all_obl_scores = torch.FloatTensor([])
-  outputs = []
-  cur_row = 0
-  for resulting_obl_lens in num_resulting_obls:
-    if len(resulting_obl_lens) == 0:
-      outputs.append(0)
-      continue
-    action_outputs = []
-    for num_obls in resulting_obl_lens:
-      selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
-      action_outputs.append(args.gamma * math.prod(selected_obl_scores))
-      cur_row += num_obls
-    outputs.append(max(action_outputs))
-  actual_values = v_model(local_contexts_encoded,
-                          prev_tactic_indices).view(len(samples))
+    else:
+        all_obl_scores = torch.FloatTensor([]) 
+    replay_buffer_sample_outputs = []
+    cur_row = 0
+    for resulting_obl_lens in num_resulting_obls:
+      if len(resulting_obl_lens) == 0:
+        replay_buffer_sample_outputs.append(0)
+        continue
+      action_outputs = []
+      for num_obls in resulting_obl_lens:
+        selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
+        action_outputs.append(args.gamma * math.prod(selected_obl_scores))
+        cur_row += num_obls
+      replay_buffer_sample_outputs.append(max(action_outputs))
+  else :
+    replay_buffer_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
+    replay_buffer_prev_tactic_indices = torch.LongTensor([]).to('cuda')
+    replay_buffer_sample_outputs = []
+
+
+  local_context_input = torch.cat( (original_target_local_contexts_encoded, replay_buffer_local_contexts_encoded ) )
+  prev_tactics_input = torch.cat( (original_target_prev_tactic_indices, replay_buffer_prev_tactic_indices) )
+  outputs = replay_buffer_sample_outputs + original_target_output 
+
+  actual_values = v_model(local_context_input, prev_tactics_input).view(len(replay_buffer_sample_outputs) + len(original_target_output))
   device = "cuda"
   target_values = torch.FloatTensor(outputs).to(device)
+  eprint("training to : ", outputs, guard=args.verbose >= 1)
   loss: torch.FloatTensor = F.mse_loss(actual_values, target_values)
   optimizer.zero_grad()
   loss.backward()
@@ -219,15 +252,18 @@ def train(args: argparse.Namespace, v_model: VModel,
 class BufferPopulatingThread(Thread):
   replay_buffer: EncodedReplayBuffer
   verification_states: Dict[EObligation, int]
+  target_training_buffer: TrueTargetBuffer
   signal_change: Event
   ignore_after: Optional[int]
-  def __init__(self, replay_buffer: EncodedReplayBuffer,
+  def __init__(self, replay_buffer: EncodedReplayBuffer, target_training_buffer: TrueTargetBuffer,
                signal_change: Event, encoding_size: int, ignore_after: Optional[int] = None) -> None:
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
     self.encoding_size = encoding_size
+    self.target_training_buffer = target_training_buffer
     self.verification_states = {}
     self.ignore_after = ignore_after
+    self.num_verification_samples_encountered = 0
     super().__init__()
     pass
   def run(self) -> None:
@@ -283,6 +319,7 @@ class BufferPopulatingThread(Thread):
     device = "cuda"
     newest_prev_tactic_sample = torch.zeros(1, dtype=int)
     dist.recv(tensor=newest_prev_tactic_sample, src=sending_worker, tag=10)
+    self.num_verification_samples_encountered += 1
     state_sample_buffer: torch.FloatTensor = \
       torch.zeros(self.encoding_size, dtype=torch.float32)  #type: ignore
     dist.recv(tensor=state_sample_buffer, src=sending_worker, tag=11)
@@ -298,9 +335,18 @@ class BufferPopulatingThread(Thread):
         return
       eprint("Updating existing verification sample")
       vsample_changed = True
-    else:
+      self.verification_states[state_sample] = target_steps.item()
+    elif state_sample in self.target_training_buffer._contents :
+      eprint("Updating existing fixed training sample")
+      self.target_training_buffer.add_target(state_sample, target_steps.item())
+    elif self.num_verification_samples_encountered % 3 == 0  :
       eprint("Adding new verification sample")
-    self.verification_states[state_sample] = target_steps.item()
+      self.verification_states[state_sample] = target_steps.item()
+    else :
+      eprint("Adding new original target sample")
+      if self.replay_buffer.exists(state_sample) :
+        self.replay_buffer.remove(state_sample)
+      self.target_training_buffer.add_target( state_sample, target_steps.item() )
 
   def receive_negative_sample(self, sending_worker: int) -> None:
     device = "cuda"
@@ -319,6 +365,39 @@ class BufferPopulatingThread(Thread):
 
 ETransition = Tuple[int, Sequence[EObligation]]
 EFullTransition = Tuple[EObligation, int, List[EObligation]]
+
+class TrueTargetBuffer:
+  _contents: Dict[EObligation, int]
+  lock: Lock
+  def __init__(self, allow_partial_batches) -> None:
+    self.lock = Lock()
+    self._contents = {}
+    self.allow_partial_batches = allow_partial_batches
+    return None
+
+  def sample(self, batch_size:int) -> \
+      Optional[List[Tuple[EObligation, int]]] :
+    sampled = None
+    with self.lock:
+      if len(self._contents) >= batch_size :
+        sampled = random.sample(self._contents.items(), batch_size)
+      if self.allow_partial_batches and len(self._contents) > 0:
+        sampled = list(self._contents.items())
+    return sampled
+
+  
+  def add_target(self, state : EObligation, target : int) -> None :
+    with self.lock :
+      global vsample_changed
+      if state in self._contents :
+        if target < self._contents[state] :
+          eprint("Nice, Got sent a target value less than the previously expected value for this state!")
+      self._contents[state] = target
+      vsample_changed = True
+
+
+
+
 class EncodedReplayBuffer:
   buffer_steps: int
   lock: Lock
@@ -335,7 +414,7 @@ class EncodedReplayBuffer:
     self.lock = Lock()
     self.buffer_steps = 0
 
-  def sample(self, batch_size: int) -> \
+  def sample(self, batch_size: int, avoid = []) -> \
         Optional[List[Tuple[EObligation, Set[ETransition]]]]:
     with self.lock:
       sample_pool: List[Tuple[EObligation, Set[ETransition]]] = []
@@ -343,7 +422,8 @@ class EncodedReplayBuffer:
         if last_updated <= self.window_end_position - self.window_size:
           del self._contents[obl]
         else:
-          sample_pool.append((obl, transitions))
+          if not obl in avoid :
+            sample_pool.append((obl, transitions))
       eprint(f"ReplayBuffer has {len(sample_pool)} valid items")
       if len(sample_pool) >= batch_size:
         return random.sample(sample_pool, batch_size)
@@ -351,6 +431,12 @@ class EncodedReplayBuffer:
         return sample_pool
       return None
 
+  def remove(self, from_obl:EObligation) -> None :
+    del self._contents[from_obl]
+  
+  def exists(self, from_obl:EObligation) -> bool:
+    return from_obl in self._contents
+    
   def add_transition(self, transition: EFullTransition) -> None:
     with self.lock:
       from_obl, action, _ = transition
@@ -378,9 +464,10 @@ class EncodedReplayBuffer:
         (self.window_end_position,
          {(action, to_obls)} | existing_entry[1])
       self.window_end_position += 1
+
   def add_negative_sample(self, state: EObligation) -> None:
     with self.lock:
-      if state in self._contents:
+      if state in self._contents :
         if len(self._contents[state][1]) > 0:
           eprint(f"WARNING: State {hash(state)} already had sample "
                  f"{self._contents[state]}, but we're trying to mark it as negative. "
