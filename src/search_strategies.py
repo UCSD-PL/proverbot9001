@@ -611,7 +611,7 @@ class BFSNode:
                 for hyp in obligation.hypotheses:
                     tooltip += hyp[:64] + "&#10;"
                 tooltip += "-" * 64 + "&#10;"
-                tooltip += obligation.goal[:64]
+                tooltip += obligation.goal[:64] + "&#10;"
 
             graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
                            tooltip=tooltip.replace("\\", "\\\\"))
