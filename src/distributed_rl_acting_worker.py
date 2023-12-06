@@ -111,7 +111,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     cur_epsilon = compute_cur_epsilon(args, all_files, len(task_eps))
     successful, initial_obl, samples, negative_samples = actor.run_task_reinforce(
       next_task, cur_epsilon)
-    if next_ep == 0:
+    if next_ep == 0 and initial_obl is not None:
       prev_tactic = rl.prev_tactic_from_prefix(next_task.tactic_prefix)
       learning_connection.encode_and_send_target_length(prev_tactic,
                                                         initial_obl,
@@ -157,7 +157,7 @@ class RLActor:
     return self.file_workers[filename]
   def run_task_reinforce(self, task: RLTask, epsilon: float,
                          restart: bool = True) -> \
-      Tuple[bool, Obligation,
+      Tuple[bool, Optional[Obligation],
             List[Tuple[str, Obligation, str, List[Obligation]]],
             List[Tuple[str, Obligation]]]:
     if not rl.tactic_prefix_is_usable(task.tactic_prefix):
@@ -166,7 +166,7 @@ class RLActor:
                "because it can't purely focused")
       else:
         eprint("Skipping a job because it can't be purely focused")
-      return False, ProofContext.empty(), [], []
+      return False, None, [], []
     with print_time("Getting worker", guard=self.args.print_timings):
       file_worker = self._get_worker(str(task.src_file))
     assert file_worker.coq is not None
@@ -185,7 +185,7 @@ class RLActor:
       if restart:
         return self.run_task_reinforce(task, epsilon, restart=False)
       eprint("Encountered anomaly without restart, closing current job")
-    return False, ProofContext.empty(), [], []
+    return False, None, [], []
 
 TaskEpisode = Tuple[RLTask, int]
 IndexedTaskEpisode = Tuple[int, TaskEpisode]
