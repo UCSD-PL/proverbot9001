@@ -224,9 +224,9 @@ def train(args: argparse.Namespace) -> float:
       torch.save((False, None, 0, v_network.get_state(), v_network.get_state(),
                   {}, None), f)
 
-  threshold = 0.1
-  erroneous_count = 0
   if args.print_final_outputs:
+    threshold = 0.1
+    erroneous_count = 0
     actual = v_network.network(encoded_states, prev_tactics_encoded).view(-1)
     for actual_value, expected_value in zip(actual, target_v_values):
       if abs(actual_value - expected_value) > threshold:
