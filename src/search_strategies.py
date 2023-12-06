@@ -140,13 +140,16 @@ class SearchGraph:
                **kwargs) -> LabeledNode:
 
         tooltip = ""
-        for oblidx, obligation in enumerate(proof_context_after.all_goals()):
-            if oblidx != 0:
-                tooltip += "*" * 64 + "&#10;"
-            for hyp in obligation.hypotheses:
-                tooltip += hyp[:64] + "&#10;"
-            tooltip += "-" * 64 + "&#10;"
-            tooltip += obligation.goal[:64]
+        if len(proof_context_after.all_goals) == 0:
+            tooltip = "(no subgoals)"
+        else:
+            for oblidx, obligation in enumerate(proof_context_after.all_goals):
+                if oblidx != 0:
+                    tooltip += "*" * 64 + "&#10;"
+                for hyp in obligation.hypotheses:
+                    tooltip += hyp[:64] + "&#10;"
+                tooltip += "-" * 64 + "&#10;"
+                tooltip += obligation.goal[:64]
 
         self.__graph.add_node(self.__next_node_id,
                               label="{}\n({:.2f})".format(
@@ -609,13 +612,16 @@ class BFSNode:
                 style=""
 
             tooltip = ""
-            for oblidx, obligation in enumerate(root.proof_context_after.all_goals()):
-                if oblidx != 0:
-                    tooltip += "*" * 64 + "&#10;"
-                for hyp in obligation.hypotheses:
-                    tooltip += hyp[:64] + "&#10;"
-                tooltip += "-" * 64 + "&#10;"
-                tooltip += obligation.goal[:64] + "&#10;"
+            if len(root.proof_context_after.all_goals) == 0:
+                tooltip = "(no subgoals)"
+            else:
+                for oblidx, obligation in enumerate(root.proof_context_after.all_goals):
+                    if oblidx != 0:
+                        tooltip += "*" * 64 + "&#10;"
+                    for hyp in obligation.hypotheses:
+                        tooltip += hyp[:64] + "&#10;"
+                    tooltip += "-" * 64 + "&#10;"
+                    tooltip += obligation.goal[:64] + "&#10;"
 
             graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
                            tooltip=tooltip.replace("\\", "\\\\"))
