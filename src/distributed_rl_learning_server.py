@@ -514,7 +514,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   step_errors = torch.abs(predicted_steps - target_steps)
   total_error = torch.sum(step_errors).item()
   avg_error = total_error / len(items)
-  eprint(f"Average V Value error across {len(items)} initial states: {avg_error:.6f}")
+  eprint(f"Average step error across {len(items)} initial states: {avg_error:.6f}")
 
 if __name__ == "__main__":
   main()

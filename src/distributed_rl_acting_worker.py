@@ -173,7 +173,7 @@ class RLActor:
     try:
       with print_time("Running into task", guard=self.args.print_timings):
         file_worker.run_into_task(task.to_job(), task.tactic_prefix)
-      with print_time("Experienceing", guard=self.args.print_timings):
+      with print_time("Experiencing", guard=self.args.print_timings):
         return experience_proof(self.args, file_worker.coq,
                                 self.predictor, self.v_network, epsilon)
     except coq_serapy.CoqAnomaly as e:
