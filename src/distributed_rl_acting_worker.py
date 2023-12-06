@@ -6,6 +6,7 @@ import json
 import random
 import re
 import sys
+import traceback
 from glob import glob
 
 from pathlib import Path
@@ -175,8 +176,9 @@ class RLActor:
       with print_time("Experienceing", guard=self.args.print_timings):
         return experience_proof(self.args, file_worker.coq,
                                 self.predictor, self.v_network, epsilon)
-    except coq_serapy.CoqAnomaly:
-      eprint("Encountered Coq anomaly.")
+    except coq_serapy.CoqAnomaly as e:
+      eprint(f"Encountered Coq anomaly {e}.")
+      eprint(traceback.format_exc())
       file_worker.restart_coq()
       file_worker.reset_file_state()
       file_worker.enter_file(str(task.src_file))
