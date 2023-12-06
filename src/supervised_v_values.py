@@ -5,7 +5,7 @@ import time
 import json
 import math
 from pathlib import Path
-from typing import List, Dict, Union
+from typing import List, Dict, Union, cast
 
 import torch
 import torch.cuda
@@ -13,6 +13,7 @@ import torch.nn.functional as F
 import torch.utils.data as data
 import torch.optim.lr_scheduler as scheduler
 from tqdm import tqdm
+import numpy as np
 
 from ray import tune, air
 from ray.air import session
@@ -142,11 +143,31 @@ def train(args: argparse.Namespace) -> float:
     target_v_values = torch.FloatTensor(
       [args.gamma ** t.target_length for t in tasks]).to(device)
 
-  dataloader = data.DataLoader(data.TensorDataset(encoded_states,
-                                                  prev_tactics_encoded,
-                                                  target_v_values),
+  split_ratio = 0.05
+  indices = list(range(len(encoded_states)))
+  split = int((len(encoded_states) * split_ratio) /
+              args.batch_size) * args.batch_size
+  np.random.shuffle(indices)
+  train_indices, val_indices = indices[split:], indices[:split]
+  train_sampler = data.SubsetRandomSampler(train_indices)
+  valid_sampler = data.SubsetRandomSampler(val_indices)
+
+  valid_batch_size = args.batch_size // 2
+
+  full_dataset = data.TensorDataset(encoded_states,
+                                    prev_tactics_encoded,
+                                    target_v_values)
+
+  dataloader = data.DataLoader(full_dataset,
+                               sampler=train_sampler,
                                batch_size = args.batch_size,
-                               num_workers = 0, shuffle=True, drop_last=True)
+                               num_workers = 0, drop_last=True)
+
+  dataloader_valid = data.DataLoader(full_dataset,
+                                    sampler=valid_sampler,
+                                    batch_size=valid_batch_size,
+                                    num_workers=0, drop_last=True)
+  num_batches_valid = int(split / valid_batch_size)
 
   adjuster = scheduler.StepLR(v_network.optimizer, args.learning_rate_step,
                               args.learning_rate_decay)
@@ -178,6 +199,24 @@ def train(args: argparse.Namespace) -> float:
         print(f"{timeSince(training_start, progress)} "
               f"({items_processed:7} {progress * 100:5.2f}%) "
               f"{epoch_loss / batch_num:.8f}")
+    with torch.no_grad():
+      valid_accuracy = torch.tensor(0.)
+      valid_loss = torch.tensor(0.)
+      for (contexts_batch, prev_tactics_batch, target_batch) \
+          in dataloader_valid:
+        predicted = v_network.network(contexts_batch,
+                                      prev_tactics_batch).view(-1)
+        valid_batch_loss = (F.mse_loss(predicted, target_batch) \
+                            / valid_batch_size).item()
+        predicted_steps = torch.log(predicted) / math.log(args.gamma)
+        target_steps = torch.log(cast(torch.FloatTensor, target_batch)) / math.log(args.gamma)
+        valid_batch_accuracy = (torch.count_nonzero(
+          torch.abs(predicted_steps - target_steps) < 0.5)
+          / valid_batch_size).item()
+        valid_accuracy += valid_batch_accuracy / num_batches_valid
+        valid_loss += valid_batch_loss / num_batches_valid
+    print(f"Validation Loss: {valid_loss}; "
+          f"Validation accuracy: {valid_accuracy}")
     adjuster.step()
 
   if args.num_epochs >= 0 or not args.start_from:
@@ -197,7 +236,7 @@ def train(args: argparse.Namespace) -> float:
         status_string = ""
       print(actual_value.item(), "vs", expected_value.item(), status_string)
     print(f"{erroneous_count} of {len(encoded_states)} samples have the wrong v value")
-  return epoch_loss
+  return valid_loss.item()
 
 if __name__ == "__main__":
   main()
