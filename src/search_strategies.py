@@ -569,7 +569,7 @@ class BFSNode:
         self.time_taken = time_taken
         self.postfix = postfix
         self.context_before = context_before
-        self.proof_context_after = context_after
+        self.proof_context_after = proof_context_after
         self.previous = previous
         self.children = []
         if self.previous:
@@ -820,7 +820,7 @@ def bfs_beam_proof_search(lemma_name: str,
                     elif args.scoring_function == "pickled":
                         assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                         score = 0.
-                        for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
+                        for idx, obl in enumerate(coq.proof_context.fg_goals + coq.proof_context.bg_goals):
                             try:
                                 score += -float(john_model.predict_obl(obl))
                             except lemma_models.UnhandledExpr:
@@ -1007,9 +1007,10 @@ def best_first_proof_search(lemma_name: str,
                 assert args.scoring_function in ["pickled", "pickled-normcert"]
                 assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
-                for obl, sexp_obl in zip(coq.proof_context.fg_goals
-                                         + coq.proof_context.bg_goals,
-                                         coq.backend.get_all_sexp_goals()):
+                for idx, (obl, sexp_obl) in \
+                      enumerate(zip(coq.proof_context.fg_goals
+                                    + coq.proof_context.bg_goals,
+                                    coq.backend.get_all_sexp_goals())):
                     model_ctx = lemma_models.ProofCtx(
                       {"hypos": sexp_obl.hypotheses,
                        "type": sexp_obl.goal,
