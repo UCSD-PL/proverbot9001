@@ -36,9 +36,13 @@ class FeaturesExtractor:
     _num_tactics: int
     _num_tokens: int
 
-    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str]) -> None:
+    def __init__(self, tactics_path: str, tokens_path: str) -> None:
         self.tactic_map = {}
         self.token_map = {}
+        with open(tactics_path, 'r') as f:
+            common_tactic_stems = list(f)
+        with open(tokens_path, 'r') as f:
+            common_tokens = list(f)
         for idx, tactic_stem in enumerate(common_tactic_stems, start=2):
             self.tactic_map[tactic_stem] = idx
         for idx, token in enumerate(common_tokens, start=2):
