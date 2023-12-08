@@ -600,39 +600,42 @@ class BFSNode:
     def draw_graph(self, path: str) -> None:
         graph = pgv.AGraph(directed=True)
         next_node_id = 0
-        def add_subgraph(root: "BFSNode") -> int:
-            nonlocal graph
-            nonlocal next_node_id
-            label=f"{root.prediction.prediction}\nS:{root.score:.2e};C:{root.prediction.certainty:.2e}"
-            if root.color:
-                fillcolor = root.color
-                style="filled"
-            else:
-                fillcolor = "lightgrey"
-                style=""
-
+        def node_tooltip(node: "BFSNode") -> str:
             tooltip = ""
-            if len(root.proof_context_after.all_goals) == 0:
+            if len(node.proof_context_after.all_goals) == 0:
                 tooltip = "(no subgoals)"
             else:
-                for oblidx, obligation in enumerate(root.proof_context_after.all_goals):
+                for oblidx, obligation in \
+                  enumerate(node.proof_context_after.all_goals):
                     if oblidx != 0:
                         tooltip += "*" * 64 + "&#10;"
                     for hyp in obligation.hypotheses:
                         tooltip += hyp[:64] + "&#10;"
                     tooltip += "-" * 64 + "&#10;"
                     tooltip += obligation.goal[:64] + "&#10;"
+            return tooltip.replace("\\", "\\\\")
+        def node_properties(node: "BFSNode") -> Dict[str, Any]:
+            label=f"{node.prediction.prediction}\nS:{node.score:.2e};"\
+                  f"C:{node.prediction.certainty:.2e}"
+            if node.color:
+                fillcolor = node.color
+                style="filled"
+            else:
+                fillcolor = "lightgrey"
+                style=""
+            return {"label": label, "fillcolor": fillcolor,
+                    "style": style, "tooltip": node_tooltip(node)}
 
-            graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
-                           tooltip=tooltip.replace("\\", "\\\\"))
-
-            root_node_id = next_node_id
+        nodes_to_build: List[Tuple[Optional[int], BFSNode]] = \
+          [(None, self)]
+        while len(nodes_to_build) > 0:
+            parent_id, next_node = nodes_to_build.pop(0)
+            graph.add_node(next_node_id, **node_properties(next_node))
+            if parent_id is not None:
+                graph.add_edge(parent_id, next_node_id)
+            for child in next_node.children:
+                nodes_to_build.append((next_node_id, child))
             next_node_id += 1
-            for child in root.children:
-                child_id = add_subgraph(child)
-                graph.add_edge(root_node_id, child_id)
-            return root_node_id
-        add_subgraph(self)
         with nostderr():
             graph.draw(path, prog="dot")
 
