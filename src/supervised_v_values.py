@@ -51,6 +51,7 @@ def main() -> None:
   argparser.add_argument("--encoder-weights", type=Path)
   argparser.add_argument("--start-from", type=Path)
   argparser.add_argument("-o", "--output", type=Path)
+  argparser.add_argument("--evaluate", action='store_true')
   argparser.add_argument("--shorter-proofs-from", type=Path, default=None)
   argparser.add_argument("--negative-examples-from", type=Path, default=None)
   argparser.add_argument("--mode", choices=["train", "tune"], default="train")
@@ -221,31 +222,22 @@ def train(args: argparse.Namespace) -> float:
         print(f"{timeSince(training_start, progress)} "
               f"({items_processed:7} {progress * 100:5.2f}%) "
               f"{epoch_loss / batch_num:.8f}")
-    with torch.no_grad():
-      valid_accuracy = torch.tensor(0.)
-      valid_loss = torch.tensor(0.)
-      for (contexts_batch, prev_tactics_batch, target_batch) \
-          in dataloader_valid:
-        predicted = v_network.network(contexts_batch,
-                                      prev_tactics_batch).view(-1)
-        valid_batch_loss = (F.mse_loss(predicted, target_batch) \
-                            / valid_batch_size).item()
-        predicted_steps = torch.log(predicted) / math.log(args.gamma)
-        target_steps = torch.log(cast(torch.FloatTensor, target_batch)) / math.log(args.gamma)
-        valid_batch_accuracy = (torch.count_nonzero(
-          torch.abs(predicted_steps - target_steps) < 0.5)
-          / valid_batch_size).item()
-        valid_accuracy += valid_batch_accuracy / num_batches_valid
-        valid_loss += valid_batch_loss / num_batches_valid
-    print(f"Validation Loss: {valid_loss}; "
-          f"Validation accuracy: {valid_accuracy}")
+    valid_loss, valid_accuracy = validation_test(
+      v_network.network, args.gamma, dataloader_valid)
+    print(f"Validation Loss: {valid_loss.item():.3e}; "
+          f"Validation accuracy: {valid_accuracy.item() * 100:.2f}%")
     adjuster.step()
+  if args.num_epochs == 0:
+    valid_loss, valid_accuracy = validation_test(
+      v_network.network, args.gamma, dataloader_valid)
+    print(f"Validation Loss: {valid_loss.item():.3e}; "
+          f"Validation accuracy: {valid_accuracy.item() * 100:.2f}%")
+
 
   if args.num_epochs >= 0 or not args.start_from:
     with args.output.open('wb') as f:
       torch.save((False, None, 0, v_network.get_state(), v_network.get_state(),
                   {}, None), f)
-
   if args.print_final_outputs:
     threshold = 0.1
     erroneous_count = 0
@@ -259,6 +251,33 @@ def train(args: argparse.Namespace) -> float:
       print(actual_value.item(), "vs", expected_value.item(), status_string)
     print(f"{erroneous_count} of {len(encoded_states)} samples have the wrong v value")
   return valid_loss.item()
+
+def validation_test(network: VModel, gamma: float,
+                    valid_dataloader: data.DataLoader) -> \
+        Tuple[torch.FloatTensor, torch.FloatTensor]:
+  device = "cuda" if torch.cuda.is_available() else "cpu"
+  valid_accuracy = torch.FloatTensor([0.]).to(device)
+  valid_loss = torch.FloatTensor([0.]).to(device)
+  num_batches_valid = len(valid_dataloader)
+  valid_batch_size = None
+  for (contexts_batch, prev_tactics_batch, target_batch) \
+      in valid_dataloader:
+    if valid_batch_size is None:
+      valid_batch_size = len(contexts_batch)
+    with torch.no_grad():
+      predicted = network(contexts_batch, prev_tactics_batch).view(-1)
+    valid_batch_loss = cast(torch.FloatTensor,
+                            (F.mse_loss(predicted, target_batch)
+                             / valid_batch_size))
+    predicted_steps = torch.log(predicted) / math.log(gamma)
+    target_steps = torch.log(cast(torch.FloatTensor, target_batch))\
+                    / math.log(gamma)
+    valid_batch_accuracy = (torch.count_nonzero(
+      torch.abs(predicted_steps - target_steps) < 0.5)
+      / valid_batch_size).to(device)
+    valid_accuracy += valid_batch_accuracy / num_batches_valid
+    valid_loss += valid_batch_loss / num_batches_valid
+  return valid_loss, valid_accuracy
 
 if __name__ == "__main__":
   main()
