@@ -243,7 +243,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                    (["-t"] if args.print_timings else []) +
                    [str(f) for f in args.filenames])
     learner_args = (["--state-dir", str(args.state_dir),
-                     "-e", str(encoding_size),
+                     "--coq2vec-weights", str(args.coq2vec_weights),
                      "-l", str(args.learning_rate),
                      "-b", str(args.batch_size),
                      "-g", str(args.gamma),

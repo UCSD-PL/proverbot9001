@@ -8,6 +8,9 @@ import sys
 import random
 import math
 import re
+import json
+import coq2vec
+import hashlib
 from glob import glob
 
 from threading import Thread, Lock, Event
@@ -39,7 +42,7 @@ def main() -> None:
   eprint("Starting main")
   parser = argparse.ArgumentParser()
   parser.add_argument("--state-dir", type=Path, default="drl_state")
-  parser.add_argument("-e", "--encoding-size", type=int, required=True)
+  parser.add_argument("--coq2vec-weights", type=Path)
   parser.add_argument("-l", "--learning-rate", default=5e-6, type=float)
   parser.add_argument("-b", "--batch-size", default=64, type=int)
   parser.add_argument("-g", "--gamma", default=0.9, type=float)
@@ -78,7 +81,16 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   eprint("Connection established")
   assert torch.cuda.is_available(), "Training node doesn't have CUDA available!" # type: ignore
   device = "cuda"
-  v_network: VModel = VModel(args.encoding_size, args.tactic_vocab_size,
+  term_encoder = coq2vec.CoqTermRNNVectorizer()
+  term_encoder.load_state(torch.load(str(args.coq2vec_weights),
+                          map_location=device))
+  num_hyps = 5
+  obligation_encoder = coq2vec.CoqContextVectorizer(
+    term_encoder, num_hyps)
+  encoding_size = unwrap(obligation_encoder.term_encoder
+                                           .hidden_size) *\
+                  (obligation_encoder.max_num_hypotheses + 1)
+  v_network: VModel = VModel(encoding_size, args.tactic_vocab_size,
                              args.tactic_embedding_size,
                              args.hidden_size,
                              args.num_layers).to(device)
@@ -90,7 +102,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     inner_network_state, _encoder_state, _obl_cache, \
       _hidden_size, _num_layers = network_state
     v_network.load_state_dict(inner_network_state)
-  target_network: VModel = VModel(args.encoding_size, args.tactic_vocab_size,
+  target_network = VModel(encoding_size, args.tactic_vocab_size,
                              args.tactic_embedding_size,
                              args.hidden_size,
                              args.num_layers).to(device)
@@ -103,9 +115,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
                                       args.allow_partial_batches)
   true_target_buffer = TrueTargetBuffer(args.allow_partial_batches)
   signal_change = Event()
-  buffer_thread = BufferPopulatingThread(replay_buffer, true_target_buffer,
-                                         signal_change, args.encoding_size,
-                                         args.ignore_after)
+  buffer_thread = BufferPopulatingThread(
+    replay_buffer, true_target_buffer,
+    signal_change, obligation_encoder,
+    args.ignore_after)
   buffer_thread.start()
 
   steps_last_trained = 0
@@ -179,7 +192,7 @@ def train(args: argparse.Namespace, v_model: VModel,
 
   if original_target_samples :
     original_target_local_contexts_encoded = torch.cat([start_obl.local_context
-                                               .view(1, args.encoding_size)
+                                               .view(1, -1)
                                      for start_obl, _
                                      in original_target_samples], dim=0)
     original_target_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
@@ -194,7 +207,7 @@ def train(args: argparse.Namespace, v_model: VModel,
   if replay_buffer_samples :
 
     replay_buffer_local_contexts_encoded = torch.cat([start_obl.local_context
-                                               .view(1, args.encoding_size)
+                                               .view(1, -1)
                                      for start_obl, _action_records
                                      in replay_buffer_samples], dim=0)
     replay_buffer_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
@@ -208,13 +221,13 @@ def train(args: argparse.Namespace, v_model: VModel,
     if len(all_resulting_obls) > 0:
       with torch.no_grad():
         resulting_local_contexts_tensor = \
-          torch.cat([obl.local_context.view(1, args.encoding_size)
+          torch.cat([obl.local_context.view(1, -1)
                      for obl in all_resulting_obls], dim=0)
         resulting_prev_tactics_tensor = \
             torch.LongTensor([obl.previous_tactic for obl
                               in all_resulting_obls]).to("cuda")
         all_obl_scores = target_model(resulting_local_contexts_tensor,
-                                    resulting_prev_tactics_tensor)
+                                      resulting_prev_tactics_tensor)
     else:
         all_obl_scores = torch.FloatTensor([]) 
     replay_buffer_sample_outputs = []
@@ -255,11 +268,21 @@ class BufferPopulatingThread(Thread):
   target_training_buffer: TrueTargetBuffer
   signal_change: Event
   ignore_after: Optional[int]
-  def __init__(self, replay_buffer: EncodedReplayBuffer, target_training_buffer: TrueTargetBuffer,
-               signal_change: Event, encoding_size: int, ignore_after: Optional[int] = None) -> None:
+  obligation_encoder: coq2vec.CoqContextVectorizer
+  encoding_size: int
+  max_term_length: int
+  def __init__(self, replay_buffer: EncodedReplayBuffer,
+               target_training_buffer: TrueTargetBuffer,
+               signal_change: Event,
+               obl_encoder: coq2vec.CoqContextVectorizer,
+               ignore_after: Optional[int] = None) -> None:
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
-    self.encoding_size = encoding_size
+    self.obligation_encoder = obl_encoder
+    self.encoding_size = unwrap(
+      obl_encoder.term_encoder.hidden_size) * \
+                         (obl_encoder.max_num_hypotheses + 1)
+    self.max_term_length = obl_encoder.term_encoder.max_term_length
     self.target_training_buffer = target_training_buffer
     self.verification_states = {}
     self.ignore_after = ignore_after
@@ -281,32 +304,52 @@ class BufferPopulatingThread(Thread):
   def receive_experience_sample(self, sending_worker: int) -> None:
     device = "cuda"
     newest_prev_tactic_sample = torch.zeros(1, dtype=int)
-    dist.recv(tensor=newest_prev_tactic_sample, src=sending_worker, tag=1)
-    newest_prestate_sample: torch.FloatTensor = \
-      torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
-    dist.recv(tensor=newest_prestate_sample, src=sending_worker, tag=2)
-    prestate_hash = hash(tuple(newest_prestate_sample.view(-1).tolist() +
-                               [newest_prev_tactic_sample.item()]))
-    eprint(f"Experience hash is {prestate_hash}")
+    dist.recv(tensor=newest_prev_tactic_sample,
+              src=sending_worker, tag=1)
+    terms_per_state = self.obligation_encoder.max_num_hypotheses + 1
+    newest_prestate_sequence: torch.LongTensor = \
+      torch.zeros([terms_per_state, self.max_term_length],
+                  dtype=int) #type: ignore
+    dist.recv(tensor=newest_prestate_sequence, src=sending_worker, tag=2)
     newest_hashed_action_sample = torch.zeros(1, dtype=int)
-    dist.recv(tensor=newest_hashed_action_sample, src=sending_worker, tag=3)
+    dist.recv(tensor=newest_hashed_action_sample,
+              src=sending_worker, tag=3)
     newest_encoded_action_sample = torch.zeros(1, dtype=int)
     dist.recv(tensor=newest_encoded_action_sample, src=sending_worker, tag=4)
     number_of_poststates = torch.zeros(1, dtype=int)
     dist.recv(tensor=number_of_poststates, src=sending_worker, tag=5)
-    post_states = []
+    post_state_sequences: List[torch.LongTensor] = []
     for _ in range(number_of_poststates.item()):
-      newest_poststate_sample: torch.FloatTensor = \
-        torch.zeros(self.encoding_size, dtype=torch.float32) #type: ignore
-      dist.recv(tensor=newest_poststate_sample, src=sending_worker, tag=6)
-      post_states.append(EObligation(newest_poststate_sample.to(device),
-                                     newest_encoded_action_sample.item()))
+      newest_poststate_sequence: torch.LongTensor = \
+        torch.zeros([terms_per_state, self.max_term_length],
+                    dtype=int) # type: ignore
+      dist.recv(tensor=newest_poststate_sequence,
+                src=sending_worker, tag=6)
+      post_state_sequences.append(newest_poststate_sequence.unsqueeze(0))
+
+    with torch.no_grad():
+      newest_states_encoded = self.obligation_encoder\
+                                  .seq_lists_to_vectors(
+        torch.cat([newest_prestate_sequence.unsqueeze(0)]
+                  + post_state_sequences,
+                  dim=0)).view(number_of_poststates + 1, -1)
+    post_states = [EObligation(state_encoded.to(device),
+                               newest_encoded_action_sample.item())
+                   for state_encoded in newest_states_encoded[1:]]
+    newest_prestate_sample = newest_states_encoded[0]
+
     if self.ignore_after is not None and self.replay_buffer.buffer_steps >= self.ignore_after:
         eprint("Ignoring a sample, but training anyway")
     else:
         from_obl = EObligation(newest_prestate_sample.to(device),
                                newest_prev_tactic_sample.item())
-        eprint(f"From obl hash is {hash(from_obl)}")
+        sequence_hash = int.from_bytes(hashlib.md5(
+          json.dumps(newest_prestate_sequence.view(-1).tolist() +
+                     [newest_encoded_action_sample.item()],
+                     sort_keys=True).encode('utf-8')).digest())
+        eprint(f"EObligation hash is {hash(from_obl)} with action "
+               f"{newest_encoded_action_sample.item()}, "
+               f"from sequence_hash {sequence_hash}.")
         self.replay_buffer.add_transition(
           (from_obl,
            int(newest_hashed_action_sample.item()),
@@ -318,15 +361,28 @@ class BufferPopulatingThread(Thread):
     global vsample_changed
     device = "cuda"
     newest_prev_tactic_sample = torch.zeros(1, dtype=int)
-    dist.recv(tensor=newest_prev_tactic_sample, src=sending_worker, tag=10)
-    self.num_verification_samples_encountered += 1
-    state_sample_buffer: torch.FloatTensor = \
-      torch.zeros(self.encoding_size, dtype=torch.float32)  #type: ignore
-    dist.recv(tensor=state_sample_buffer, src=sending_worker, tag=11)
+    dist.recv(tensor=newest_prev_tactic_sample,
+              src=sending_worker, tag=10)
+    terms_per_state = self.obligation_encoder.max_num_hypotheses + 1
+    state_sequence_buffer: torch.LongTensor = \
+      torch.zeros([terms_per_state, self.max_term_length],
+                  dtype=int)  #type: ignore
+    dist.recv(tensor=state_sequence_buffer, src=sending_worker, tag=11)
+    sequence_hash = int.from_bytes(hashlib.md5(
+      json.dumps(state_sequence_buffer.view(-1).tolist() +
+                 [newest_prev_tactic_sample.item()],
+                 sort_keys=True).encode("utf-8")).digest())
     target_steps: torch.LongTensor = torch.zeros(1, dtype=int) #type: ignore
     dist.recv(tensor=target_steps, src=sending_worker, tag=12)
-    state_sample = EObligation(state_sample_buffer.to(device),
+    with torch.no_grad():
+      state_sample_vec = self.obligation_encoder\
+                             .seq_lists_to_vectors(
+        state_sequence_buffer.unsqueeze(0)).view(1,-1).squeeze(0)
+    state_sample = EObligation(state_sample_vec.to(device),
                                newest_prev_tactic_sample.item())
+    eprint(f"Receiving targeted sample {hash(state_sample)} "
+           f"with target {target_steps.item()}, "
+           f"from sequence hash {sequence_hash}.")
     if state_sample in self.verification_states:
       if target_steps.item() > self.verification_states[state_sample]:
         eprint("WARNING: Trying to add validation sample "
@@ -347,19 +403,31 @@ class BufferPopulatingThread(Thread):
       if self.replay_buffer.exists(state_sample) :
         self.replay_buffer.remove(state_sample)
       self.target_training_buffer.add_target( state_sample, target_steps.item() )
+    self.num_verification_samples_encountered += 1
 
   def receive_negative_sample(self, sending_worker: int) -> None:
     device = "cuda"
     newest_prev_tactic_sample = torch.zeros(1, dtype=int)
     dist.recv(tensor=newest_prev_tactic_sample, src=sending_worker, tag=20)
-    state_sample_buffer: torch.FloatTensor = \
-      torch.zeros(self.encoding_size, dtype=torch.float32) # type: ignore
-    dist.recv(tensor=state_sample_buffer, src=sending_worker, tag=21)
-    state_hash = hash(tuple(state_sample_buffer.view(-1).tolist()))
-    eprint(f"negative sample hash is {state_hash}")
-    self.replay_buffer.add_negative_sample(
-      EObligation(state_sample_buffer.to(device),
-                  newest_prev_tactic_sample.item()))
+    terms_per_state = self.obligation_encoder.max_num_hypotheses + 1
+    state_sequence_buffer: torch.LongTensor = \
+      torch.zeros([terms_per_state, self.max_term_length],
+                  dtype=int) # type: ignore
+    dist.recv(tensor=state_sequence_buffer, src=sending_worker, tag=21)
+    sequence_hash = int.from_bytes(hashlib.md5(
+      json.dumps(state_sequence_buffer.view(-1).tolist() +
+                 [newest_prev_tactic_sample.item()],
+                 sort_keys=True).encode("utf-8")).digest())
+    with torch.no_grad():
+      state_sample_vec = self.obligation_encoder\
+                             .seq_lists_to_vectors(
+        state_sequence_buffer.unsqueeze(0)).view(1, -1).squeeze(0)
+    state_hash = hash(tuple(state_sample_vec.view(-1).tolist()))
+    state_sample = EObligation(state_sample_vec.to(device),
+                               newest_prev_tactic_sample.item())
+    self.replay_buffer.add_negative_sample(state_sample)
+    eprint(f"Receiving negative sample {hash(state_sample)} "
+           f"from sequence hash {sequence_hash}.")
     self.replay_buffer.buffer_steps += 1
     self.signal_change.set()
 
@@ -380,7 +448,7 @@ class TrueTargetBuffer:
     sampled = None
     with self.lock:
       if len(self._contents) >= batch_size :
-        sampled = random.sample(self._contents.items(), batch_size)
+        sampled = random.sample(list(self._contents.items()), batch_size)
       if self.allow_partial_batches and len(self._contents) > 0:
         sampled = list(self._contents.items())
     return sampled
@@ -394,9 +462,6 @@ class TrueTargetBuffer:
           eprint("Nice, Got sent a target value less than the previously expected value for this state!")
       self._contents[state] = target
       vsample_changed = True
-
-
-
 
 class EncodedReplayBuffer:
   buffer_steps: int

@@ -7,6 +7,7 @@ import random
 import re
 import sys
 import traceback
+import hashlib
 from glob import glob
 
 from pathlib import Path
@@ -216,44 +217,45 @@ class LearningServerConnection:
     self.predictor = predictor
     pass
   def send_sample(self, prev_tactic_encoded: int,
-                  pre_state_encoded: torch.FloatTensor,
+                  pre_state_sequence: torch.LongTensor,
                   action_hashed: int,
                   action_encoded: int,
-                  post_state_encodeds: List[torch.FloatTensor]) -> None:
+                  post_state_sequences: List[torch.LongTensor]) -> None:
     dist.send(tensor=torch.LongTensor(0), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([prev_tactic_encoded]),
               tag=1, dst=0)
-    prestate_hash = hash(tuple(pre_state_encoded.view(-1).tolist() +
-                               [prev_tactic_encoded]))
-    eprint(f"Hash is {prestate_hash}")
-    dist.send(tensor=pre_state_encoded, tag=2, dst=0)
+    dist.send(tensor=pre_state_sequence, tag=2, dst=0)
     dist.send(tensor=torch.LongTensor([action_hashed]), tag=3, dst=0)
     dist.send(tensor=torch.LongTensor([action_encoded]), tag=4, dst=0)
-    dist.send(tensor=torch.LongTensor([len(post_state_encodeds)]), tag=5, dst=0)
-    for state in post_state_encodeds:
-      dist.send(tensor=state, tag=6, dst=0)
+    dist.send(tensor=torch.LongTensor([len(post_state_sequences)]), 
+              tag=5, dst=0)
+    for state_sequence in post_state_sequences:
+      dist.send(tensor=state_sequence, tag=6, dst=0)
   def encode_and_send_sample(self, prev_tactic: str,
                              pre_state: Obligation,
                              action: str,
                              post_states: List[Obligation]) -> None:
     prev_tactic_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
-    action_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
+    action_encoded = self.predictor.prev_tactic_stem_idx(action)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
-    states_encoded = self.obligation_encoder.obligations_to_vectors_cached(
+    state_sequences = self.obligation_encoder.obligations_to_seqs(
       [pre_state] + post_states).to("cpu")
-    sample_hash = hash(tuple(states_encoded[0].view(-1).tolist() +
-                             [prev_tactic_encoded]))
-    eprint(f"Sending sample {sample_hash} for previous tactic {action_encoded}"
-           f" obligation <{hash(pre_state)}> {pre_state.to_dict()}")
-    self.send_sample(prev_tactic_encoded, states_encoded[0],
-                     hash(action), action_encoded, states_encoded[1:])
+    sample_hash = int.from_bytes(hashlib.md5(
+      json.dumps(state_sequences[0].view(-1).tolist() +
+                 [prev_tactic_encoded],
+                 sort_keys=True).encode('utf-8')).digest())
+    eprint(f"Sending sample sequence {sample_hash} for previous tactic "
+           f"{prev_tactic_encoded} "
+           f"obligation <{hash(pre_state)}> {pre_state.to_dict()}")
+    self.send_sample(prev_tactic_encoded, state_sequences[0],
+                     hash(action), action_encoded, state_sequences[1:])
 
   def send_target_v(self, prev_tactic: int,
-                    local_context_encoded: torch.FloatTensor,
+                    local_context_sequence: torch.LongTensor,
                     target_length: int) -> None:
     dist.send(tensor=torch.tensor(1, dtype=int), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([prev_tactic]), tag=10, dst=0)
-    dist.send(tensor=local_context_encoded, tag=11, dst=0)
+    dist.send(tensor=local_context_sequence, tag=11, dst=0)
     dist.send(tensor=torch.tensor(target_length, dtype=int), tag=12, dst=0)
 
   def encode_and_send_target_length(self, prev_tactic: str,
@@ -261,22 +263,35 @@ class LearningServerConnection:
                                     target_length: int) -> None:
     prev_tactic_encoded = self.predictor.prev_tactic_stem_idx(prev_tactic)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
-    state_encoded = self.obligation_encoder.obligations_to_vectors_cached([state])[0].to("cpu")
-    self.send_target_v(prev_tactic_encoded, state_encoded, target_length)
+    state_sequence = self.obligation_encoder.obligations_to_seqs(
+      [state]).to("cpu").unsqueeze(0)
+    sample_hash = int.from_bytes(hashlib.md5(
+      json.dumps(state_sequence.view(-1).tolist() +
+                 [prev_tactic_encoded],
+                 sort_keys=True).encode('utf-8')).digest())
+    eprint(f"Sending targeted sequence {sample_hash} "
+           f"for previous tactic {prev_tactic_encoded} "
+           f"obligation <{hash(state)}> {state.to_dict()}")
+    self.send_target_v(prev_tactic_encoded, state_sequence,
+                       target_length)
 
   def encode_and_send_negative_sample(self, previous_tactic: str,
                                       state: Obligation) -> None:
     previous_tactic_encoded = self.predictor\
                                   .prev_tactic_stem_idx(previous_tactic)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
-    state_encoded = self.obligation_encoder.\
-      obligations_to_vectors_cached([state])[0].to("cpu")
-    sample_hash = hash(tuple(state_encoded.view(-1).tolist() + [previous_tactic_encoded]))
-    eprint(f"Sending negative sample {sample_hash} for previous tactic "
-           f"{previous_tactic_encoded} obligation <{hash(state)}> {state.to_dict()}")
+    state_sequence = self.obligation_encoder.\
+      obligations_to_seqs([state]).to("cpu").unsqueeze(0)
+    sequence_hash = int.from_bytes(hashlib.md5(
+      json.dumps(state_sequence.view(-1).tolist() +
+                 [previous_tactic_encoded],
+                 sort_keys=True).encode('utf-8')).digest())
+    eprint(f"Sending negative sequence {sequence_hash} "
+           f"for previous tactic {previous_tactic_encoded} "
+           f"obligation <{hash(state)}> {state.to_dict()}")
     dist.send(tensor=torch.tensor(2, dtype=int), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([previous_tactic_encoded]), tag=20, dst=0)
-    dist.send(tensor=state_encoded, tag=21, dst=0)
+    dist.send(tensor=state_sequence, tag=21, dst=0)
 
 @dataclass
 class FileTaskState:
@@ -591,9 +606,6 @@ def experience_proof(args: argparse.Namespace,
                               30),
       args.num_predictions,
       blacklist = args.blacklisted_tactics)
-    eprint(f"There are {len(coq.prev_tactics)} prev tactics with tail {coq.prev_tactics[-3:]}")
-    eprint(f"There are {len(coq.local_lemmas[:-1])} local lemmas with tail {coq.local_lemmas[-4:-1]}")
-    eprint(f"Tactic context hashes as {hash(tcontext)}")
     eprint(f"Using predictions {[action.prediction for action in actions]} from obligation <{hash(before_obl)}>",
            guard=args.verbose >= 3)
     if random.random() < epsilon:
@@ -643,7 +655,7 @@ def experience_proof(args: argparse.Namespace,
            guard=args.verbose>=3)
     samples.append((before_prev_tactic, before_obl, chosen_action.prediction, resuting_obls))
     if len(unwrap(coq.proof_context).all_goals) < initial_open_obligations:
-      eprint(f"Completed task with trace {[sample[1] for sample in samples]}")
+      eprint(f"Completed task with trace {[sample[0] for sample in samples]}")
       return True, initial_obl, samples, negative_samples
     assert len(unwrap(coq.proof_context).all_goals) > 0
     assert len(unwrap(coq.proof_context).fg_goals) > 0
