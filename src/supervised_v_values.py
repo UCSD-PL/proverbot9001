@@ -189,6 +189,7 @@ def train(args: argparse.Namespace) -> float:
                                     batch_size=valid_batch_size,
                                     num_workers=0, drop_last=True)
   num_batches_valid = int(split / valid_batch_size)
+  assert v_network.optimizer is not None
 
   adjuster = scheduler.StepLR(v_network.optimizer, args.learning_rate_step,
                               args.learning_rate_decay)

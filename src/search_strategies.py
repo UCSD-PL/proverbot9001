@@ -7,7 +7,7 @@ import sys
 import pickle
 import heapq
 import math
-from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast
+from typing import Dict, List, Tuple, Optional, IO, NamedTuple, cast, Any
 from dataclasses import dataclass, field
 from pathlib import Path
 
@@ -77,7 +77,7 @@ class FeaturesExtractor:
             -> Tuple[List[int], List[float]]:
         stem, argument = coq_serapy.split_tactic(action)
         stem_idx = self.tactic_map.get(stem, 1)
-        all_premises = context.hypotheses + context.relevant_lemmas
+        all_premises = list(context.hypotheses) + list(context.relevant_lemmas)
         stripped_arg = argument.strip(".").strip()
         if stripped_arg == "":
             arg_idx = 0
@@ -262,16 +262,16 @@ def time_on_path(node: LabeledNode) -> float:
 
 
 def tryPrediction(args: argparse.Namespace,
-                  coq: coq_serapy.SerapiInstance,
+                  coq: coq_serapy.CoqAgent,
                   prediction: str,
                   previousTime: float) \
                   -> Tuple[ProofContext, int, int, int,
                            Optional[Exception], float, bool]:
-    coq.quiet = True
+    assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
+    coq.backend.quiet = True
     time_left = max(args.max_proof_time - previousTime, 0)
     start_time = time.time()
-    time_per_command = (coq.hammer_timeout + args.max_tactic_time
-                        if coq.use_hammer else args.max_tactic_time)
+    time_per_command = args.max_tactic_time
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
@@ -346,7 +346,7 @@ class TqdmSpy(tqdm):
 def dfs_proof_search_with_graph(lemma_name: str,
                                 module_prefix: str,
                                 relevant_lemmas: List[str],
-                                coq: coq_serapy.SerapiInstance,
+                                coq: coq_serapy.CoqAgent,
                                 output_dir: Path,
                                 args: argparse.Namespace,
                                 bar_idx: int,
@@ -543,7 +543,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
     return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
 
 
-def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
+def completed_proof(coq: coq_serapy.CoqAgent) -> bool:
     if coq.proof_context:
         return len(coq.proof_context.all_goals) == 0 and \
             coq.tactic_history.curDepth() == 0
@@ -661,7 +661,7 @@ class BFSNode:
             curPath.append(curNode)
         return list(reversed(curPath))
 
-    def traverse_to(self, coq: coq_serapy.SerapiInstance, initial_history_len: int) -> None:
+    def traverse_to(self, coq: coq_serapy.CoqAgent, initial_history_len: int) -> None:
         # Get both the current and target histories
         full_cur_history = coq.tactic_history.getFullHistory()[initial_history_len:]
         full_node_history = [item for replay_node in self.path()[1:]
@@ -685,7 +685,7 @@ class BFSNode:
         return
 
 
-def contextInHistory(full_context: FullContext, node: BFSNode):
+def contextInHistory(full_context: ProofContext, node: BFSNode):
     return any([coq_serapy.contextSurjective(full_context,
                                                   n.context_before.obligations)
                 for n in node.path()[1:]])
@@ -712,7 +712,7 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
 def bfs_beam_proof_search(lemma_name: str,
                           module_prefix: str,
                           relevant_lemmas: List[str],
-                          coq: coq_serapy.SerapiInstance,
+                          coq: coq_serapy.CoqAgent,
                           output_dir: Path,
                           args: argparse.Namespace,
                           bar_idx: int,
@@ -826,6 +826,7 @@ def bfs_beam_proof_search(lemma_name: str,
                     elif args.scoring_function == "pickled":
                         assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                         score = 0.
+                        assert coq.proof_context is not None
                         for idx, obl in enumerate(coq.proof_context.fg_goals + coq.proof_context.bg_goals):
                             try:
                                 score += -float(john_model.predict_obl(obl))
@@ -904,7 +905,7 @@ class AStarTask:
 def best_first_proof_search(lemma_name: str,
                        module_prefix: Optional[str],
                        relevant_lemmas: List[str],
-                       coq: coq_serapy.SerapiInstance,
+                       coq: coq_serapy.CoqAgent,
                        output_dir: Path,
                        args: argparse.Namespace,
                        bar_idx: int,
@@ -1013,6 +1014,8 @@ def best_first_proof_search(lemma_name: str,
                 assert args.scoring_function in ["pickled", "pickled-normcert"]
                 assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
+                assert coq.proof_context
+                assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
                 for idx, (obl, sexp_obl) in \
                       enumerate(zip(coq.proof_context.fg_goals
                                     + coq.proof_context.bg_goals,
@@ -1021,7 +1024,7 @@ def best_first_proof_search(lemma_name: str,
                       {"hypos": sexp_obl.hypotheses,
                        "type": sexp_obl.goal,
                        "goal_str": obl.goal,
-                       "hyp_strs": obl.hypotheses})
+                       "hyp_strs": list(obl.hypotheses)})
                     model_lem = lemma_models.Lemma(lemma_name, model_ctx)
                     try:
                         h_score += float(john_model.predict_obl(obl, model_lem))
@@ -1074,7 +1077,7 @@ def best_first_proof_search(lemma_name: str,
 def dfs_estimated(lemma_name: str,
                   module_prefix: str,
                   relevant_lemmas: List[str],
-                  coq: coq_serapy.SerapiInstance,
+                  coq: coq_serapy.CoqAgent,
                   output_dir: Path,
                   args: argparse.Namespace,
                   bar_idx: int,
@@ -1085,6 +1088,7 @@ def dfs_estimated(lemma_name: str,
             john_model = pickle.load(f)
 
     est_sol_length = 0.
+    assert coq.proof_context is not None
     for obl in coq.proof_context.fg_goals:
         est_sol_length += max(1, john_model.predict_obl(obl))
     temp_args = copyArgs(args)

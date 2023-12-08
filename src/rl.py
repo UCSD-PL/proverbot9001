@@ -14,7 +14,7 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable, OrderedDict, Iterable,
-                    Iterator)
+                    Iterator, Self)
 import warnings
 
 from util import unwrap, eprint, print_time, nostderr
@@ -471,6 +471,7 @@ def reinforce_jobs(args: argparse.Namespace) -> None:
     if not is_singlethreaded:
         assert steps_already_done >= len(task_episodes), (steps_already_done, len(task_episodes))
 
+    assert worker.v_network.adjuster is not None
     if is_singlethreaded:
         for step in range(steps_already_done):
             with nostderr():
@@ -643,7 +644,7 @@ class VNetwork:
             self.trainable = False
         else:
             self.trainable = True
-        self._load_encoder_state(encoder_state),
+        self._load_encoder_state(encoder_state)
         assert self.obligation_encoder
         self.obligation_encoder.obl_cache = obl_cache
         assert self.network
@@ -957,6 +958,7 @@ def train_v_network(args: argparse.Namespace,
     if args.print_loss_every and (v_network.steps_trained + 1) % args.print_loss_every == 0:
         avg_loss = v_network.total_loss / args.print_loss_every
         v_network.total_loss = torch.FloatTensor([0.0]).to(device)
+        assert v_network.optimizer is not None
         print(f"Loss: {avg_loss}; Learning rate: {v_network.optimizer.param_groups[0]['lr']}")
 
 class MemoizingPredictor(TacticPredictor):
