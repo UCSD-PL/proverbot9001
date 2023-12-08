@@ -292,9 +292,9 @@ def show_progress(args: argparse.Namespace) -> None:
          tqdm(desc="Workers scheduled", total=num_workers_total, initial=len(workers_scheduled), dynamic_ncols=True) as wbar:
         while len(jobs_done) < len(all_jobs):
             new_workers_alive = [int(wid) for wid in
-                                 subprocess.check_output(
+                                 subprocess.run(
                                    "squeue -r -u$USER -h -n proverbot9001-worker -o%K",
-                                   shell=True, text=True).strip().split("\n")
+                                   shell=True, text=True, stdout=subprocess.PIPE).stdout.strip().split("\n")
                                  if wid != ""]
             time.sleep(0.2)
             new_jobs_done = get_already_done_jobs(args)
