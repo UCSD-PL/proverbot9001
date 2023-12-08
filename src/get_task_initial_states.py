@@ -17,6 +17,7 @@ def main() -> None:
   argparser.add_argument("--print-timings", action='store_true')
   argparser.add_argument("--prelude", default=".", type=Path)
   argparser.add_argument("--no-resume", action='store_false', dest="resume")
+  argparser.add_argument("-P", "--progress", action='store_true')
   argparser.add_argument("tasks_file", type=Path)
   argparser.add_argument("output_file", type=Path)
   args = argparser.parse_args()
