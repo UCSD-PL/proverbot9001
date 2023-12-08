@@ -26,6 +26,7 @@ def main() -> None:
 
   with args.tasks_file.open("r") as f:
     tasks = [RLTask(**json.loads(line)) for line in f]
+  start_bar_from = 0
   if args.output_file.exists():
     if args.resume:
       with args.output_file.open('r') as f:
@@ -37,7 +38,6 @@ def main() -> None:
     else:
       with args.output_file.open("w") as f:
         pass
-      start_bar_from = 0
   with args.output_file.open("a") as f:
     num_sertops = 0
     tasks_left = tasks[1:]
