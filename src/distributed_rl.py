@@ -97,6 +97,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--sync-workers-every", type=int, default=16)
     parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--loss-smoothing", type=int, default=1)
+    parser.add_argument("--dump-negative-examples", type=Path, default=None)
     parser.add_argument("--qos", type=str, default=None)
 
 def check_resume(args: argparse.Namespace) -> None:
@@ -268,7 +269,9 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                      + (["--learning-rate-step", str(args.learning_rate_step)]
                         if args.learning_rate_step is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
-                        if args.verifyv_every is not None else []))
+                        if args.verifyv_every is not None else [])
+                     + (["--dump-negative-examples", str(args.dump_negative_examples)]
+                        if args.dump_negative_examples is not None else []))
     total_args = ["srun",
                   "-p", args.partition,
                   "--gres=gpu:1",

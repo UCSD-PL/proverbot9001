@@ -59,6 +59,7 @@ def main() -> None:
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
   parser.add_argument("--verifyv-every", type=int, default=None)
   parser.add_argument("--start-from", type=Path, default=None)
+  parser.add_argument("--dump-negative-examples", type=Path, default=None)
   parser.add_argument("--ignore-after", type=int, default=None)
   parser.add_argument("--loss-smoothing", type=int, default=1)
   parser.add_argument("--learning-rate-step", type=int, default=None)
@@ -153,6 +154,12 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                                     args.learning_rate_decay)
         eprint("Resetting the optimizer and adjuster")
+      if args.dump_negative_examples is not None:
+        with args.dump_negative_examples.open('w') as f:
+          negative_examples = replay_buffer.get_negative_samples()
+          eprint(f"Dumping {len(negative_examples)} negative examples")
+          for obl in negative_examples:
+             print(json.dumps(obl.to_dict()), file=f)
       iters_trained += 1
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
@@ -543,6 +550,9 @@ class EncodedReplayBuffer:
       #   f"State {hash(state)} already had sample {self._contents[state]}, but we're marking it as negative now"
       self._contents[state] = (self.window_end_position, set())
       self.window_end_position += 1
+  def get_negative_samples(self) -> List[EObligation]:
+    return [obl for obl, (pos, transitions)  in self._contents.items()
+            if len(transitions) == 0]
 
 def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
   save_path = str(args.state_dir / "weights" / f"common-v-network-{version}.dat")

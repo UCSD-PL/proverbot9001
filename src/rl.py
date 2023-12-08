@@ -1334,14 +1334,22 @@ class EObligation:
   local_context: torch.FloatTensor
   previous_tactic: int
   def __hash__(self) -> int:
-    return hash(tuple(self.local_context.view(-1).tolist() +
-                      [self.previous_tactic]))
+    return int.from_bytes(hashlib.md5(
+      json.dumps(self.local_context.view(-1).tolist() +
+                 [self.previous_tactic],
+                 sort_keys=True).encode("utf-8")).digest())
   def __eq__(self, other: object) -> bool:
     if not isinstance(other, EObligation):
       return False
     return bool(torch.all(self.local_context == other.local_context)) \
              and self.previous_tactic == other.previous_tactic
-
+  def to_dict(self) -> Dict[str, Any]:
+    return {"local_context": self.local_context.view(-1).tolist(),
+            "previous_tactic": self.previous_tactic}
+  @classmethod
+  def from_dict(cls, d: Dict[str, Any]) -> 'EObligation':
+    return EObligation(torch.FloatTensor(d["local_context"]),
+                       d["previous_tactic"])
 
 if __name__ == "__main__":
     main()

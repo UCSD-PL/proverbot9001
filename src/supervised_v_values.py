@@ -5,7 +5,7 @@ import time
 import json
 import math
 from pathlib import Path
-from typing import List, Dict, Union, cast
+from typing import List, Dict, Union, cast, Tuple
 
 import torch
 import torch.cuda
@@ -23,7 +23,7 @@ import coq2vec
 from coq_serapy import Obligation
 
 from rl import (VNetwork, optimizers, FileReinforcementWorker,
-                VModel, prev_tactic_from_prefix)
+                VModel, prev_tactic_from_prefix, EObligation)
 from gen_rl_tasks import RLTask
 from util import timeSince, print_time, unwrap
 from search_worker import get_predictor
@@ -52,6 +52,7 @@ def main() -> None:
   argparser.add_argument("--start-from", type=Path)
   argparser.add_argument("-o", "--output", type=Path)
   argparser.add_argument("--shorter-proofs-from", type=Path, default=None)
+  argparser.add_argument("--negative-examples-from", type=Path, default=None)
   argparser.add_argument("--mode", choices=["train", "tune"], default="train")
   argparser.add_argument("obl_tasks_file", type=Path)
   args = argparser.parse_args()
@@ -120,28 +121,48 @@ def train(args: argparse.Namespace) -> float:
   #                      for obl in obls]
   with print_time(f"Encoding {len(obls)} states"):
     with torch.no_grad():
-      encoded_states = unwrap(v_network.obligation_encoder).\
+      encoded_positive_states = unwrap(v_network.obligation_encoder).\
         obligations_to_vectors_cached(obls).to(device)
-    prev_tactics = [prev_tactic_from_prefix(task.tactic_prefix)
-                    if len(task.tactic_prefix) > 0 else "Proof"
-                    for task in tasks]
-    prev_tactics_encoded = torch.LongTensor(
+    prev_tactics_positive = [prev_tactic_from_prefix(task.tactic_prefix)
+                             if len(task.tactic_prefix) > 0 else "Proof"
+                             for task in tasks]
+    prev_tactics_positive_encoded = torch.LongTensor(
       [predictor.prev_tactic_stem_idx(prev_tactic)
-       for prev_tactic in prev_tactics]).to(device)
-  if args.shorter_proofs_from is not None:
-    with args.shorter_proofs_from.open('rb') as f:
-      _, _, _, _, _, shorter_proofs_dict, _ = torch.load(f, map_location="cpu")
-    target_v_values = torch.FloatTensor(
-      [args.gamma ** (shorter_proofs_dict[t] if t in shorter_proofs_dict 
-                      else t.target_length) for t in tasks]).to(device)
-    assert any(t in shorter_proofs_dict for t in tasks), \
-      "Didn't find any shorter proofs for our tasks"
-    for t in tasks:
-      if t in shorter_proofs_dict and shorter_proofs_dict[t] < t.target_length:
-        print(f"Found shorter length {shorter_proofs_dict[t]} for task {t}.")
-  else:
-    target_v_values = torch.FloatTensor(
-      [args.gamma ** t.target_length for t in tasks]).to(device)
+       for prev_tactic in prev_tactics_positive]).to(device)
+    if args.shorter_proofs_from is not None:
+      with args.shorter_proofs_from.open('rb') as f:
+        _, _, _, _, _, shorter_proofs_dict, _ = torch.load(
+          f, map_location="cpu")
+      positive_target_v_values = torch.FloatTensor(
+        [args.gamma ** (shorter_proofs_dict[t] if t in shorter_proofs_dict
+                        else t.target_length) for t in tasks]).to(device)
+      for t in tasks:
+        if t in shorter_proofs_dict and \
+           shorter_proofs_dict[t] < t.target_length:
+          print(f"Found shorter length {shorter_proofs_dict[t]} for task {t}.")
+    else:
+      target_v_values = torch.FloatTensor(
+        [args.gamma ** t.target_length for t in tasks]).to(device)
+    if args.negative_examples_from is not None:
+      with args.negative_examples_from.open('r') as f:
+        negative_samples = \
+          [EObligation.from_dict(json.loads(l)) for l in f]
+      encoded_states = torch.cat([encoded_positive_states] +
+                                 [eobl.local_context.view(1, -1).to(device) for eobl in
+                                  negative_samples],
+                                 dim=0)
+      prev_tactics_encoded = torch.cat((prev_tactics_positive_encoded,
+                                        torch.LongTensor(
+                                          [eobl.previous_tactic for eobl
+                                           in negative_samples]).to(device)), dim=0)
+      negative_target_v_values = torch.zeros(len(negative_samples)).to(device)
+      target_v_values = cast(torch.FloatTensor,
+                             torch.cat((positive_target_v_values,
+                                        negative_target_v_values), dim=0))
+    else:
+      encoded_states = encoded_positive_states
+      prev_tactics_encoded = prev_tactics_positive_encoded
+      target_v_values = positive_target_v_values
 
   split_ratio = 0.05
   indices = list(range(len(encoded_states)))
