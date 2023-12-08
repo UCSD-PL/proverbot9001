@@ -10,6 +10,7 @@ import contextlib
 import math
 import pickle
 import sys
+import hashlib
 from pathlib import Path
 from dataclasses import dataclass
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
@@ -157,7 +158,7 @@ class FileReinforcementWorker(Worker):
                     self.run_into_job(job, restart_anomaly, careful)
                 with print_time("Running task prefix", guard=self.args.print_timings):
                     for statement in tactic_prefix:
-                        self.coq.run_stmt_noupdate(statement)
+                        self.coq.run_stmt(statement)
                     self.coq.update_state()
             else:
                 with print_time("Traversing to tactic prefix", self.args.print_timings):
