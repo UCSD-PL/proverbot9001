@@ -104,6 +104,8 @@ class RLTask:
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
     file_interactions = scraped_from_file(str(full_path.with_suffix(".v.scrape")))
+    print("the file")
+    print(full_path.with_suffix)
 
     sm_stack = coq_serapy.initial_sm_stack(job.filename)
     in_proof = False
@@ -221,7 +223,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
                               interaction.context,
                               "{"))
         if subgoals_created_by_last_tac < 0:
-            if re.match("\s*all\s*:|\s*(\d\s*,?\s*)+\s*:|\s*Focus(\s+\d+)?\s*", coq_serapy.kill_comments(interactions[interaction_idx - 1].tactic) ) :
+            if re.match("\s*all\s*:|\s*(\d\s*,?\s*)+\s*:|\s*Focus(\s+\d+)?\s*\.|\s*\d\-\d:", coq_serapy.kill_comments(interactions[interaction_idx - 1].tactic) ) :
                 return []
             assert subgoals_created_by_last_tac == -1, \
                 "Shouldn't be able to close more than one subgoal at a time. " \
