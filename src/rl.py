@@ -14,7 +14,9 @@ from pathlib import Path
 from dataclasses import dataclass
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable, OrderedDict, Iterable,
-                    Iterator, Self)
+                    Iterator)
+
+from typing_extensions import Self
 import warnings
 
 from util import unwrap, eprint, print_time, nostderr
