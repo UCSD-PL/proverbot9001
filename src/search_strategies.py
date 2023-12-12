@@ -721,23 +721,50 @@ def combo_b_search(lemma_name: str,
     kvalue = args.max_term_length
     # only to end fast
     #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
+
+    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
+
+    start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [], full_context_before, None)
+    search_node = start_node
+    nodes_to_continue = []
+    #class BFSNode:
+    #    prediction: Prediction
+    #    postfix: List[str]
+    #    score: float
+    #    time_taken: float
+    #    context_before: FullContext
+    #    previous: Optional["BFSNode"]
+    #    children: List["BFSNode"]
+    #    color: Optional[str]
+
+    #    def __init__(self, prediction: Prediction, score: float, time_taken: float,
+    #                 postfix: List[str], context_before: FullContext, previous: Optional["BFSNode"],
+    #                 color: Optional[str] = None) -> None:
+
     while steps_taken < max_steps:
         # remove it from the set
-        script_context_history = []
+        script_context_history = [search_node.context_before]
+        history_node = search_node
+        while history_node.previous is not None:
+            history_node = history_node.previous
+            script_context_history.append(history_node.context_before)
         # context_history = []
-        for script_statement in script_to_continue:
-            coq.run_stmt(script_statement)
-            script_context_history.append(coq.proof_context) # keep a context history
+        #for script_statement in script_to_continue:
+        #    coq.run_stmt(script_statement)
+        #    script_context_history.append(coq.proof_context) # keep a context history
+        
+
         shuffle(predictor_list)
         round_robin = 0
         while round_robin < args.search_width:
             apredictor = predictor_list[round_robin % len(predictor_list)]
             round_robin = round_robin + 1
             predictions = apredictor.predictKTactics(args,
-                truncate_tactic_context(full_context_before.as_tcontext(), kvalue),
+                truncate_tactic_context(search_node.context_before.as_tcontext(), kvalue),
                 args.max_attempts,
                 blacklist=args.blacklisted_tactics)
-            assert len(predictions) == args.max_attempts
+            coq.backend.setProofContext(search_node.context_before)
+            #assert len(predictions) == args.max_attempts
             if coq.use_hammer:
                 predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
                                           prediction.certainty)
@@ -775,9 +802,11 @@ def combo_b_search(lemma_name: str,
                             coq.cancel_last()
                             assert coq.proof_context
                         continue
-                    script_context_history.append(context_after)
                     #num_successful_predictions += 1
                     # Check if the proof is done
+                    current_node = BFSNode(prediction, 1.0, 0.0, [], context_after, search_node)
+                    search_node.children.append(current_node)
+                    nodes_to_continue.append(current_node)
                     if completed_proof(coq):
                         eprint("completed proof")
                         for _ in range(num_stmts):
@@ -789,6 +818,7 @@ def combo_b_search(lemma_name: str,
                             final_proof_steps.append(TacticInteraction(proof_step, script_context_history[proof_step_int]))
                             proof_step_int = proof_step_int + 1
                         final_proof_steps.append(TacticInteraction(prediction.prediction, context_after))
+                        start_node.draw_graph(graph_file)
                         return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, final_proof_steps, 0)
                     else: 
                         add_script = script_to_continue + tuple([prediction.prediction]) 
@@ -824,15 +854,25 @@ def combo_b_search(lemma_name: str,
         for _ in range(len(script_to_continue)):
             coq.cancel_last()
             assert coq.proof_context
+        
+        if len(nodes_to_continue) == 0:
+            steos_taken = max_steps
+        else:
+            myint = random.randint(0, len(nodes_to_continue) - 1)
+            search_node = nodes_to_continue[myint]
+            nodes_to_continue = [i for i in nodes_to_continue if not i == myint]
 
         # pick script to continue
-        if len(list(proof_scripts)) > 0:
-            script_to_continue = random.choice(list(proof_scripts))
-            proof_scripts.remove(script_to_continue)
-        else:
-            if len(script_to_continue) > 1:
-                proof_scripts.add(script_to_continue[0:-1])
-            kvalue = kvalue + 128
+        #if len(list(proof_scripts)) > 0:
+        #    script_to_continue = random.choice(list(proof_scripts))
+        #    proof_scripts.remove(script_to_continue)
+        #if len(list(proof_scripts)) > 0:
+        #    script_to_continue = random.choice(list(proof_scripts))
+        #    proof_scripts.remove(script_to_continue)
+        #else:
+        #    if len(script_to_continue) > 1:
+        #        proof_scripts.add(script_to_continue[0:-1])
+        #    kvalue = kvalue + 128
             #proof_scripts.add(tuple([]))
             #script_to_continue = tuple([])
         #eprint("script continuing...")
@@ -856,6 +896,7 @@ def combo_b_search(lemma_name: str,
     # not sure what to do with the normally drawn graph
     #start_node.draw_graph(graph_file)
     #if hasUnexploredNode:
+    start_node.draw_graph(graph_file)
     return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
 
 def bfs_beam_proof_search(lemma_name: str,
