@@ -715,21 +715,22 @@ def combo_b_search(lemma_name: str,
     proof_scripts = {tuple([])}
     steps_taken = 1 
     search_status = SearchStatus.INCOMPLETE
-    max_steps = 100
+    max_steps = 150
     # context_history = []
     script_to_continue = tuple([])
     kvalue = args.max_term_length
-    # only to end fast
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
 
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
 
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [], full_context_before, None)
     search_node = start_node
     nodes_to_continue = []
+    # only to end fast
+    start_node.draw_graph(graph_file)
+    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
     #class BFSNode:
     #    prediction: Prediction
-    #    postfix: List[str]
+    #    postfix: List[s#tr]
     #    score: float
     #    time_taken: float
     #    context_before: FullContext
@@ -743,11 +744,11 @@ def combo_b_search(lemma_name: str,
 
     while steps_taken < max_steps:
         # remove it from the set
-        script_context_history = [search_node.context_before]
-        history_node = search_node
-        while history_node.previous is not None:
-            history_node = history_node.previous
-            script_context_history.append(history_node.context_before)
+        #script_context_history = [search_node.context_before]
+        #history_node = search_node
+        #while history_node.previous is not None:
+        #    history_node = history_node.previous
+        #    script_context_history.append(history_node.context_before)
         # context_history = []
         #for script_statement in script_to_continue:
         #    coq.run_stmt(script_statement)
@@ -755,23 +756,34 @@ def combo_b_search(lemma_name: str,
         
 
         shuffle(predictor_list)
-        round_robin = 0
-        while round_robin < args.search_width:
-            apredictor = predictor_list[round_robin % len(predictor_list)]
-            round_robin = round_robin + 1
+        #round_robin = 0
+        for curr_predictor in range(len(predictor_list)):
+            if (args.search_width % len(predictor_list)) > curr_predictor:
+                num_to_predict = int(args.search_width/len(predictor_list)) + (args.search_width % len(predictor_list))
+            else:
+                num_to_predict = int(args.search_width/len(predictor_list))
+            if num_to_predict == 0:
+                break
+            num_predicted = 0
+            apredictor = predictor_list[curr_predictor]
+            #round_robin = round_robin + 1
             predictions = apredictor.predictKTactics(args,
                 truncate_tactic_context(search_node.context_before.as_tcontext(), kvalue),
                 args.max_attempts,
                 blacklist=args.blacklisted_tactics)
-            coq.backend.setProofContext(search_node.context_before)
             #assert len(predictions) == args.max_attempts
             if coq.use_hammer:
                 predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
                                           prediction.certainty)
                                for prediction in predictions]
             for _prediction_idx, prediction in enumerate(predictions):
+                if prediction.prediction in [childnode.prediction.prediction for childnode in search_node.children]:
+                    continue
+                #if prediction.prediction in predicted_tactics:
+                #    continue
+                #else:
+                #    predicted_tactics.add(prediction.prediction)
                 try:
-                    first_time = time.time()
                     context_after, num_stmts, \
                         subgoals_closed, subgoals_opened, \
                         error, time_taken, unshelved = \
@@ -785,54 +797,90 @@ def combo_b_search(lemma_name: str,
                         #prediction_node.setNodeColor("red")
                         continue
                     # Check if the resulting context is too big
-                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
-                      contextIsBig(context_after):
-                        eprint(f"Context big", guard=args.verbose >= 2)
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                            assert coq.proof_context
-                        continue
+                    #if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
+                    #  contextIsBig(context_after):
+                    #    eprint(f"Context big", guard=args.verbose >= 2)
+                    #    for _ in range(num_stmts):
+                    #        coq.cancel_last()
+                    #        assert coq.proof_context
+                    #    continue
+                    #if contextIsBig(context_after) or \
+                    #        contextInHistory(context_after, prediction_node):
+                    #    if args.count_softfail_predictions:
+                    #        num_successful_predictions += 1
+                    #    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
+                    #    prediction_node.setNodeColor("orange")
+                    #    for _ in range(num_stmts):
+                    #        coq.cancel_last()
+                    #    continue
                     # Check if we've gone in circles
-                    if any([coq_serapy.contextSurjective(context_after, hist_context) for hist_context in script_context_history]): # maybe should be hist_context.obligations?
+                    #if any([coq_serapy.contextSurjective(context_after, hist_context) for hist_context in script_context_history]): # maybe should be hist_context.obligations?
+                    #    #if args.count_softfail_predictions:
+                    #    #    num_successful_predictions += 1
+                    #    eprint(f"Prediction in history", guard=args.verbose >= 2)
+                    #    #prediction_node.setNodeColor("orange")
+                    #    for _ in range(num_stmts):
+                    #        coq.cancel_last()
+                    #        assert coq.proof_context
+                    #    continue
+                    if contextIsBig(context_after) or \
+                            contextInHistory(context_after, search_node):
                         #if args.count_softfail_predictions:
                         #    num_successful_predictions += 1
-                        eprint(f"Prediction in history", guard=args.verbose >= 2)
-                        #prediction_node.setNodeColor("orange")
+                        eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
                         for _ in range(num_stmts):
                             coq.cancel_last()
-                            assert coq.proof_context
+                        continue
+                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
+                        #if args.count_softfail_predictions:
+                        #    num_successful_predictions += 1
+                        for _ in range(num_stmts):
+                            coq.cancel_last()
                         continue
                     #num_successful_predictions += 1
                     # Check if the proof is done
-                    current_node = BFSNode(prediction, 1.0, 0.0, [], context_after, search_node)
-                    search_node.children.append(current_node)
+                    postfix = []
+                    if unshelved:
+                        postfix.append("Unshelve.")
+                    postfix += ["}"] * subgoals_closed
+                    postfix += ["{"] * subgoals_opened
+                    full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
+                    current_node = BFSNode(prediction, 0, time_taken, postfix, full_context_after, search_node)
                     nodes_to_continue.append(current_node)
                     if completed_proof(coq):
                         eprint("completed proof")
-                        for _ in range(num_stmts):
-                            if coq.proof_context:
-                                coq.cancel_last()
-                        final_proof_steps = []
-                        proof_step_int = 0
-                        for proof_step in script_to_continue:
-                            final_proof_steps.append(TacticInteraction(proof_step, script_context_history[proof_step_int]))
-                            proof_step_int = proof_step_int + 1
-                        final_proof_steps.append(TacticInteraction(prediction.prediction, context_after))
+                        #for _ in range(num_stmts):
+                        #    if coq.proof_context:
+                        #        coq.cancel_last()
+                        #final_proof_steps = []
+                        #proof_step_int = 0
+                        #for proof_step in script_to_continue:
+                        #    final_proof_steps.append(TacticInteraction(proof_step, script_context_history[proof_step_int]))
+                        #    proof_step_int = proof_step_int + 1
+                        #final_proof_steps.append(TacticInteraction(prediction.prediction, context_after))
+                        #start_node.draw_graph(graph_file)
+                        current_node.mkQED()
                         start_node.draw_graph(graph_file)
-                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, final_proof_steps, 0)
+                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
+                                            search_node.interactions()[1:], 0)
+                        #return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, final_proof_steps, 0)
                     else: 
-                        add_script = script_to_continue + tuple([prediction.prediction]) 
-                        len_before_add = len(proof_scripts)
-                        proof_scripts.add(add_script)
-                        if len_before_add == len(proof_scripts): 
-                            coq.cancel_last()
-                            continue
+                        #add_script = script_to_continue + tuple([prediction.prediction]) 
+                        #len_before_add = len(proof_scripts)
+                        #proof_scripts.add(add_script)
+                        #if len_before_add == len(proof_scripts): 
+                        #    coq.cancel_last()
+                        #    continue
                         # Return us to before running the prediction, so we're ready for
                         # the next one.
                         for _ in range(num_stmts):
                             coq.cancel_last()
                             assert coq.proof_context
-                        break
+                        num_predicted += 1
+                        if num_predicted >= num_to_predict:
+                            break
+                        else:
+                            continue
                 except coq_serapy.CoqAnomaly:
                     if lemma_name == "":
                         eprint("encountered unnamed goal!")
@@ -849,18 +897,24 @@ def combo_b_search(lemma_name: str,
 
                     raise
         steps_taken = steps_taken + 1
-        eprint("steps taken")
-        eprint(steps_taken)
-        for _ in range(len(script_to_continue)):
-            coq.cancel_last()
-            assert coq.proof_context
+        #eprint("steps taken")
+        #eprint(steps_taken)
+        #for _ in range(len(script_to_continue)):
+        #    coq.cancel_last()
+        #    assert coq.proof_context
         
         if len(nodes_to_continue) == 0:
-            steos_taken = max_steps
+            steps_taken = max_steps
+            next_search_node = start_node
+            eprint("no nodes to conitnue!")
         else:
             myint = random.randint(0, len(nodes_to_continue) - 1)
-            search_node = nodes_to_continue[myint]
-            nodes_to_continue = [i for i in nodes_to_continue if not i == myint]
+            next_search_node = nodes_to_continue[myint]
+            nodes_to_continue = [i for i in nodes_to_continue if not (i == myint)]
+        
+        next_search_node.traverse_to(coq, initial_history_len) 
+
+        search_node = next_search_node
 
         # pick script to continue
         #if len(list(proof_scripts)) > 0:
@@ -961,6 +1015,7 @@ def bfs_beam_proof_search(lemma_name: str,
                                             args.max_term_length),
                             args.max_attempts,
                     blacklist=args.blacklisted_tactics)
+                prednum = 0
                 for prediction in predictions:
                     if num_successful_predictions >= args.search_width:
                         break
