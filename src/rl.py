@@ -16,7 +16,6 @@ from dataclasses import dataclass
 from typing import (List, Optional, Dict, Tuple, Union, Any, Set,
                     Sequence, TypeVar, Callable, OrderedDict, Iterable,
                     Iterator)
-
 from typing_extensions import Self
 import warnings
 
@@ -674,8 +673,9 @@ class VNetwork:
         self.steps_trained = 0
         self.total_loss = torch.FloatTensor([0.0]).to(self.device)
         self.predictor = predictor
+        cur_dir = os.path.realpath(os.path.dirname(__file__))
         if coq2vec_weights is not None:
-            self._load_encoder_state(torch.load(str(coq2vec_weights),
+            self._load_encoder_state(torch.load(Path(cur_dir).joinpath(coq2vec_weights),
                                                 map_location=self.device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]],

@@ -83,7 +83,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   assert torch.cuda.is_available(), "Training node doesn't have CUDA available!" # type: ignore
   device = "cuda"
   term_encoder = coq2vec.CoqTermRNNVectorizer()
-  term_encoder.load_state(torch.load(str(args.coq2vec_weights),
+  cur_dir = os.path.realpath(os.path.dirname(__file__))
+  term_encoder.load_state(torch.load(Path(cur_dir).joinpath(args.coq2vec_weights),
                           map_location=device))
   num_hyps = 5
   obligation_encoder = coq2vec.CoqContextVectorizer(

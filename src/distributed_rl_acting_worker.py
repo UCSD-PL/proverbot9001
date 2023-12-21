@@ -208,7 +208,8 @@ class LearningServerConnection:
                backend='mpi') -> None:
     term_encoder = coq2vec.CoqTermRNNVectorizer()
     device = "cpu"# "cuda" if torch.cuda.is_available() else "cpu"
-    term_encoder.load_state(torch.load(str(coq2vec_weights), map_location=device))
+    cur_dir = os.path.realpath(os.path.dirname(__file__)) 
+    term_encoder.load_state(torch.load(Path(cur_dir).joinpath(coq2vec_weights), map_location=device))
     num_hyps = 5
     self.obligation_encoder = rl.CachedObligationEncoder(term_encoder, num_hyps)
     eprint("Establishing connection")
