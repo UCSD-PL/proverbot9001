@@ -243,7 +243,7 @@ class LearningServerConnection:
     sample_hash = int.from_bytes(hashlib.md5(
       json.dumps(state_sequences[0].view(-1).tolist() +
                  [prev_tactic_encoded],
-                 sort_keys=True).encode('utf-8')).digest())
+                 sort_keys=True).encode('utf-8')).digest(), byteorder='big')
     eprint(f"Sending sample sequence {sample_hash} for previous tactic "
            f"{prev_tactic_encoded} "
            f"obligation <{hash(pre_state)}> {pre_state.to_dict()}")
@@ -268,7 +268,7 @@ class LearningServerConnection:
     sample_hash = int.from_bytes(hashlib.md5(
       json.dumps(state_sequence.view(-1).tolist() +
                  [prev_tactic_encoded],
-                 sort_keys=True).encode('utf-8')).digest())
+                 sort_keys=True).encode('utf-8')).digest(), byteorder='big')
     eprint(f"Sending targeted sequence {sample_hash} "
            f"for previous tactic {prev_tactic_encoded} "
            f"obligation <{hash(state)}> {state.to_dict()}")
@@ -285,7 +285,7 @@ class LearningServerConnection:
     sequence_hash = int.from_bytes(hashlib.md5(
       json.dumps(state_sequence.view(-1).tolist() +
                  [previous_tactic_encoded],
-                 sort_keys=True).encode('utf-8')).digest())
+                 sort_keys=True).encode('utf-8')).digest(), byteorder='big')
     eprint(f"Sending negative sequence {sequence_hash} "
            f"for previous tactic {previous_tactic_encoded} "
            f"obligation <{hash(state)}> {state.to_dict()}")
