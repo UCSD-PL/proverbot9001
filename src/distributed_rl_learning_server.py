@@ -206,7 +206,7 @@ def train(args: argparse.Namespace, v_model: VModel,
           originaltargetbuffer : TrueTargetBuffer) -> Optional[torch.FloatTensor]:
   
   original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
-  replay_buffer_samples = replay_buffer.sample(args.batch_size//2, avoid = [] if not original_target_samples else [obl for obl, target in original_target_samples] )
+  replay_buffer_samples = replay_buffer.sample(args.batch_size//2)
   if (replay_buffer_samples is None) and (original_target_samples is None):
     eprint("No samples yet in both replay buffer or original target buffer. Skipping training", guard=args.verbose >= 1)
     return None
@@ -513,7 +513,7 @@ class EncodedReplayBuffer:
     self.lock = Lock()
     self.buffer_steps = 0
 
-  def sample(self, batch_size: int, avoid = []) -> \
+  def sample(self, batch_size: int) -> \
         Optional[List[Tuple[EObligation, Set[ETransition]]]]:
     with self.lock:
       sample_pool: List[Tuple[EObligation, Set[ETransition]]] = []
@@ -521,9 +521,9 @@ class EncodedReplayBuffer:
         if last_updated <= self.window_end_position - self.window_size:
           del self._contents[obl]
         else:
-          if not obl in avoid :
-            sample_pool.append((obl, transitions))
-      eprint(f"ReplayBuffer has {len(sample_pool)} valid items")
+          sample_pool.append((obl, transitions))
+      eprint(f"ReplayBuffer has {len(sample_pool)} valid items",
+             guard=self.verbose >= 1)
       if len(sample_pool) >= batch_size:
         return random.sample(sample_pool, batch_size)
       if self.allow_partial_batches and len(sample_pool) > 0:
