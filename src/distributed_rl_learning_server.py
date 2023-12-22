@@ -118,13 +118,14 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                               args.learning_rate_decay)
   replay_buffer = EncodedReplayBuffer(args.window_size,
-                                      args.allow_partial_batches)
+                                      args.allow_partial_batches,
+                                      args.verbose)
   true_target_buffer = TrueTargetBuffer(args.allow_partial_batches)
   signal_change = Event()
   buffer_thread = BufferPopulatingThread(
     replay_buffer, true_target_buffer,
     signal_change, obligation_encoder,
-    args.ignore_after)
+    args.verbose, args.ignore_after)
   buffer_thread.start()
 
   steps_last_trained = 0
@@ -298,11 +299,14 @@ class BufferPopulatingThread(Thread):
   obligation_encoder: coq2vec.CoqContextVectorizer
   encoding_size: int
   max_term_length: int
+  verbose: int
   def __init__(self, replay_buffer: EncodedReplayBuffer,
                target_training_buffer: TrueTargetBuffer,
                signal_change: Event,
                obl_encoder: coq2vec.CoqContextVectorizer,
+               verbose: int = 0,
                ignore_after: Optional[int] = None) -> None:
+    self.verbose = verbose
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
     self.obligation_encoder = obl_encoder
@@ -497,8 +501,11 @@ class EncodedReplayBuffer:
   window_size: int
   window_end_position: int
   allow_partial_batches: bool
+  verbose: int
   def __init__(self, window_size: int,
-               allow_partial_batches: bool) -> None:
+               allow_partial_batches: bool,
+               verbose: int = 0) -> None:
+    self.verbose = verbose
     self.window_size = window_size
     self.window_end_position = 0
     self.allow_partial_batches = allow_partial_batches
