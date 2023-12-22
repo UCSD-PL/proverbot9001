@@ -1030,7 +1030,12 @@ def best_first_proof_search(lemma_name: str,
                        "hyp_strs": list(obl.hypotheses)})
                     model_lem = lemma_models.Lemma(lemma_name, model_ctx)
                     try:
-                        h_score += float(john_model.predict_obl(obl, model_lem))
+                        obl_score = float(john_model.predict_obl(obl, model_lem))
+                        if obl_score < 0:
+                            eprint("WARNING: Got a negative score from the pickled model")
+                            with open("neg_scored_states.ndjson", 'a') as f:
+                                print(json.dumps((obl.to_dict(), obl_score)), file=f)
+                        h_score += obl_score
                     except lemma_models.UnhandledExpr:
                         print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
