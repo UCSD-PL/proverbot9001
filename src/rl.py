@@ -1338,23 +1338,30 @@ def prev_tactic_from_prefix(tactic_prefix: List[str]) -> str:
 class EObligation:
   local_context: torch.FloatTensor
   previous_tactic: int
+  context_tokens: torch.LongTensor
   def __hash__(self) -> int:
     return int.from_bytes(hashlib.md5(
-      json.dumps(self.local_context.view(-1).tolist() +
+      json.dumps(self.context_tokens.view(-1).tolist() +
                  [self.previous_tactic],
+                 sort_keys=True).encode("utf-8")).digest())
+  def context_hash(self) -> int:
+    return int.from_bytes(hashlib.md5(
+      json.dumps(self.context_tokens.view(-1).tolist(),
                  sort_keys=True).encode("utf-8")).digest())
   def __eq__(self, other: object) -> bool:
     if not isinstance(other, EObligation):
       return False
-    return bool(torch.all(self.local_context == other.local_context)) \
+    return bool(torch.all(self.context_tokens == other.context_tokens)) \
              and self.previous_tactic == other.previous_tactic
   def to_dict(self) -> Dict[str, Any]:
     return {"local_context": self.local_context.view(-1).tolist(),
-            "previous_tactic": self.previous_tactic}
+            "previous_tactic": self.previous_tactic,
+            "context_tokens": self.context_tokens.view(-1).tolist()}
   @classmethod
   def from_dict(cls, d: Dict[str, Any]) -> 'EObligation':
     return EObligation(torch.FloatTensor(d["local_context"]),
-                       d["previous_tactic"])
+                       d["previous_tactic"],
+                       torch.LongTensor(d["context_tokens"]))
 
 if __name__ == "__main__":
     main()
