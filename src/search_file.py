@@ -45,6 +45,7 @@ from typing import (List, Tuple, NamedTuple, Optional, Dict,
 from models.tactic_predictor import TacticPredictor
 import coq_serapy
 
+import torch_util
 from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
@@ -65,7 +66,7 @@ def main(arg_list: List[str]) -> None:
     # util.use_cuda = False
     # with util.silent():
 
-    if not args.gpus and util.use_cuda:
+    if not args.gpus and torch_util.use_cuda:
         torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
@@ -215,7 +216,7 @@ def search_file_worker(args: argparse.Namespace,
     predictor = get_predictor(args)
 
     # util.use_cuda = False
-    if util.use_cuda:
+    if torch_util.use_cuda:
         torch.cuda.set_device(device) # type: ignore
     util.cuda_device = device
 
@@ -365,7 +366,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
 
         num_threads = min(args.num_threads,
                           len(todo_jobs))
-        if util.use_cuda:
+        if torch_util.use_cuda:
             if args.gpus:
                 gpu_list = args.gpus.split(",")
             else:
