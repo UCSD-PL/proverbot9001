@@ -544,8 +544,9 @@ class TrueTargetBuffer:
     with self.lock :
       global vsample_changed
       if state in self._contents :
-        if target < self._contents[state] :
-          eprint("Nice, Got sent a target value less than the previously expected value for this state!")
+        if target > self._contents[state] :
+          eprint("WARNING: Got sent a target less than previous target, ignoring")
+          return
       self._contents[state] = target
       vsample_changed = True
 
