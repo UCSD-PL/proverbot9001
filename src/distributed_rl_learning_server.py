@@ -11,6 +11,7 @@ import re
 import json
 import coq2vec
 import hashlib
+import shutil
 from glob import glob
 
 from threading import Thread, Lock, Event
@@ -60,6 +61,7 @@ def main() -> None:
   parser.add_argument("--verifyv-every", type=int, default=None)
   parser.add_argument("--start-from", type=Path, default=None)
   parser.add_argument("--dump-negative-examples", type=Path, default=None)
+  parser.add_argument("--dump-replay-buffer", type=Path, default=None)
   parser.add_argument("--ignore-after", type=int, default=None)
   parser.add_argument("--loss-smoothing", type=int, default=1)
   parser.add_argument("--learning-rate-step", type=int, default=None)
@@ -161,6 +163,16 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
           eprint(f"Dumping {len(negative_examples)} negative examples")
           for obl in negative_examples:
              print(json.dumps(obl.to_dict()), file=f)
+      if args.dump_replay_buffer is not None:
+        with open(str(args.dump_replay_buffer) + ".tmp", 'w') as f:
+          samples = replay_buffer.get_buffer_contents()
+          eprint(f"Dumping {len(samples)} examples",
+                 guard=args.verbose >= 1)
+          for obl, action, next_obls in samples:
+             print(json.dumps((obl.to_dict(), action, 
+                               [next_obl.to_dict() for next_obl
+                                in next_obls] if next_obls is not None else None)), file=f)
+        shutil.copyfile(str(args.dump_replay_buffer) + ".tmp", str(args.dump_replay_buffer)) 
       iters_trained += 1
     if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
       eprint(f"Syncing target network at step {replay_buffer.buffer_steps} ({replay_buffer.buffer_steps - steps_last_synced_target} steps since last synced)")
@@ -554,6 +566,16 @@ class EncodedReplayBuffer:
   def get_negative_samples(self) -> List[EObligation]:
     return [obl for obl, (pos, transitions)  in self._contents.items()
             if len(transitions) == 0]
+  def get_buffer_contents(self) -> List[Tuple[EObligation, int,
+                                              List[EObligation]]]:
+    results: List[Tuple[EObligation, int,
+                        Optional[List[Eobligation]]]]  = []
+    for eobligation, (position, transitions) in self._contents.items():
+      if len(transitions) == 0:
+        results.append((eobligation, 0, None))
+      for action, obligations in transitions:
+        results.append((eobligation, action, obligations))
+    return results
 
 def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
   save_path = str(args.state_dir / "weights" / f"common-v-network-{version}.dat")
