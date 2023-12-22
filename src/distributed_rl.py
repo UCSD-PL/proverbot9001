@@ -101,6 +101,8 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dump-replay-buffer", type=Path, default=None)
     parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
     parser.add_argument("--qos", type=str, default=None)
+    parser.add_argument("--loss", choices=["simple", "log"],
+                        default="simple")
 
 def check_resume(args: argparse.Namespace) -> None:
     resume_exists = len(glob(str(args.state_dir / "weights" / "common-v-network-*.dat"))) > 0
@@ -264,6 +266,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                      "--optimizer", args.optimizer,
                      "--loss-smoothing", str(args.loss_smoothing),
                      "--learning-rate-decay", str(args.learning_rate_decay),
+                     "--loss", args.loss,
                    ] + (["--allow-partial-batches"] if args.allow_partial_batches
                       else [])
                      + (["--start-from", str(args.start_from)]

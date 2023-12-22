@@ -69,6 +69,8 @@ def main() -> None:
   parser.add_argument("--reset-on-updated-sample", action='store_true')
   parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
   parser.add_argument("--verbose", "-v", help="verbose output", action="count", default=0)
+  parser.add_argument("--loss", choices=["simple", "log"],
+                      default="simple")
   args = parser.parse_args()
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -276,7 +278,12 @@ def train(args: argparse.Namespace, v_model: VModel,
   device = "cuda"
   target_values = torch.FloatTensor(outputs).to(device)
   eprint("training to : ", outputs, guard=args.verbose >= 1)
-  loss: torch.FloatTensor = F.mse_loss(actual_values, target_values)
+  loss: torch.FloatTensor
+  if args.loss == "simple":
+    loss = F.mse_loss(actual_values, target_values)
+  else:
+    assert args.loss == "log"
+    loss = F.mse_loss(torch.log(actual_values), torch.log(target_values))
   optimizer.zero_grad()
   loss.backward()
   optimizer.step()
