@@ -73,6 +73,9 @@ def main() -> None:
   parser.add_argument("--loss", choices=["simple", "log"],
                       default="simple")
   args = parser.parse_args()
+  torch.manual_seed(0)
+  random.seed(0)
+  torch.use_deterministic_algorithms(True)
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
       print("1", file=f, flush=True)
@@ -406,6 +409,7 @@ class BufferPopulatingThread(Thread):
       post_state_sequences.append(newest_poststate_sequence.unsqueeze(0))
 
     with torch.no_grad():
+      torch.manual_seed(0)
       newest_states_encoded = self.obligation_encoder\
                                   .seq_lists_to_vectors(
         torch.cat([newest_prestate_sequence.unsqueeze(0)]
