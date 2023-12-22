@@ -279,9 +279,11 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                         if args.learning_rate_step is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
                         if args.verifyv_every is not None else [])
-                     + (["--dump-negative-examples", str(args.dump_negative_examples)]
-                        if args.dump_negative_examples is not None else []))
                      + (["-v"] * args.verbose)
+                     + (["--dump-negative-examples",
+                         str(args.dump_negative_examples)]
+                        if args.dump_negative_examples is not None
+                        else [])
                      + (["--dump-replay-buffer",
                         str(args.dump_replay_buffer)]
                         if args.dump_replay_buffer is not None

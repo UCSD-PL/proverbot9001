@@ -203,17 +203,21 @@ def train(args: argparse.Namespace, v_model: VModel,
           target_model: nn.Module,
           optimizer: optim.Optimizer,
           replay_buffer: EncodedReplayBuffer,
-          originaltargetbuffer : TrueTargetBuffer) -> Optional[torch.FloatTensor]:
+          originaltargetbuffer: TrueTargetBuffer) -> Optional[torch.FloatTensor]:
   
   original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
   replay_buffer_samples = replay_buffer.sample(args.batch_size//2)
   if (replay_buffer_samples is None) and (original_target_samples is None):
-    eprint("No samples yet in both replay buffer or original target buffer. Skipping training", guard=args.verbose >= 1)
+    eprint("No samples yet in both replay buffer or original target buffer. "
+           "Skipping training", guard=args.verbose >= 1)
     return None
-  eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} samples to train from replay buffer at step {replay_buffer.buffer_steps} and {len(original_target_samples) if original_target_samples else 0} to train from Original target buffer", guard=args.verbose >= 1)
+  eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} "
+         f"samples to train from replay buffer at step {replay_buffer.buffer_steps} "
+         f"and {len(original_target_samples) if original_target_samples else 0} "
+         f"to train from Original target buffer", guard=args.verbose >= 1)
   
 
-  if original_target_samples :
+  if original_target_samples:
     original_target_local_contexts_encoded = torch.cat([start_obl.local_context
                                                .view(1, -1)
                                      for start_obl, _
@@ -222,13 +226,12 @@ def train(args: argparse.Namespace, v_model: VModel,
                                           for start_obl, _ in original_target_samples]).to("cuda")
     original_target_output = [args.gamma**target for obl,target in original_target_samples]
   else :
+  else:
     original_target_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
     original_target_prev_tactic_indices = torch.LongTensor([]).to('cuda')
     original_target_output = []
     
-
-  if replay_buffer_samples :
-
+  if replay_buffer_samples:
     replay_buffer_local_contexts_encoded = torch.cat([start_obl.local_context
                                                .view(1, -1)
                                      for start_obl, _action_records
@@ -261,7 +264,9 @@ def train(args: argparse.Namespace, v_model: VModel,
         continue
       action_outputs = []
       for num_obls in resulting_obl_lens:
-        selected_obl_scores = all_obl_scores[cur_row:cur_row+num_obls]
+        selected_obl_scores = [
+          obl_score.item() for obl_score in
+          all_obl_scores[cur_row:cur_row+num_obls]]
         action_outputs.append(args.gamma * math.prod(selected_obl_scores))
         cur_row += num_obls
       replay_buffer_sample_outputs.append(max(action_outputs))
