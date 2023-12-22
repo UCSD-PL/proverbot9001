@@ -83,6 +83,7 @@ class Worker:
         if backend == 'serapi':
             backend = coq_serapy.CoqSeraPyInstance(
                 ["sertop"], root_dir=str(self.args.prelude))
+            backend.verbosity = self.args.verbose
         self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
                                        verbosity=self.args.verbose)
 
