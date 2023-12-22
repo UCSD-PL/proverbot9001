@@ -246,10 +246,11 @@ class LearningServerConnection:
                  [prev_tactic_encoded],
                  sort_keys=True).encode('utf-8')).digest(), byteorder='big')
     eprint(f"Sending sample sequence {sample_hash} for previous tactic "
-           f"{prev_tactic_encoded} "
+           f"{prev_tactic} ({prev_tactic_encoded}) "
            f"obligation <{hash(pre_state)}> {pre_state.to_dict()}")
-    self.send_sample(prev_tactic_encoded, state_sequences[0],
-                     hash(action), action_encoded, state_sequences[1:])
+    with print_time("Sending"):
+      self.send_sample(prev_tactic_encoded, state_sequences[0],
+                       hash(action), action_encoded, state_sequences[1:])
 
   def send_target_v(self, prev_tactic: int,
                     local_context_sequence: torch.LongTensor,
@@ -656,7 +657,7 @@ def experience_proof(args: argparse.Namespace,
            guard=args.verbose>=3)
     samples.append((before_prev_tactic, before_obl, chosen_action.prediction, resuting_obls))
     if len(unwrap(coq.proof_context).all_goals) < initial_open_obligations:
-      eprint(f"Completed task with trace {[sample[0] for sample in samples]}")
+      eprint(f"Completed task with trace {[sample[2] for sample in samples]}")
       return True, initial_obl, samples, negative_samples
     assert len(unwrap(coq.proof_context).all_goals) > 0
     assert len(unwrap(coq.proof_context).fg_goals) > 0
