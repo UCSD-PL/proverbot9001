@@ -15,7 +15,7 @@ import time
 import shutil
 import sys
 from glob import glob
-
+import time
 from threading import Thread, Lock, Event
 from pathlib import Path
 from typing import List, Set, Optional, Dict, Tuple, Sequence
@@ -40,6 +40,14 @@ from util import eprint, unwrap, print_time
 # pylint: enable=wrong-import-position
 eprint("Finished imports")
 
+
+import wandb
+wandb.init(project="rl_from_scratch timing experiment")
+TOTAL_TIME_RECIEVE_SAMPLE = 0
+wandb.log({"Server total time": TOTAL_TIME_RECIEVE_SAMPLE})
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def main() -> None:
   eprint("Starting main")
@@ -87,6 +95,8 @@ vsample_changed: bool = False
 def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   global vsample_changed
   eprint("Establishing connection")
+  os.environ['OMPI_MCA_btl_base_verbose'] = '100'
+  os.environ['NCCL_DEBUG'] = 'INFO'
   dist.init_process_group(backend)
   eprint("Connection established")
   assert torch.cuda.is_available(), "Training node doesn't have CUDA available!" # type: ignore
@@ -400,16 +410,37 @@ class BufferPopulatingThread(Thread):
     super().__init__()
     pass
   def run(self) -> None:
+    global TOTAL_TIME_RECIEVE_SAMPLE
     while True:
+      a = time.time()
       send_type = torch.zeros(1, dtype=int)
       sending_worker = dist.recv(tensor=send_type, tag=0)
+      b = time.time()
+      TOTAL_TIME_RECIEVE_SAMPLE += b-a
+      eprint("Time to receive sample", b-a, "Total time :",TOTAL_TIME_RECIEVE_SAMPLE)
+      wandb.log({"Server total time": TOTAL_TIME_RECIEVE_SAMPLE})
       if send_type.item() == 0:
+        a = time.time()
         self.receive_experience_sample(sending_worker)
+        b = time.time()
+        TOTAL_TIME_RECIEVE_SAMPLE += b-a
+        eprint("Time to receive experience sample", b-a, "Total time :",TOTAL_TIME_RECIEVE_SAMPLE)
+        wandb.log({"Server total time": TOTAL_TIME_RECIEVE_SAMPLE})
       elif send_type.item() == 1:
+        a = time.time()
         self.receive_verification_sample(sending_worker)
+        b = time.time()
+        TOTAL_TIME_RECIEVE_SAMPLE += b-a
+        eprint("Time to receive verification sample", b-a, "Total time :",TOTAL_TIME_RECIEVE_SAMPLE)
+        wandb.log({"Server total time": TOTAL_TIME_RECIEVE_SAMPLE})
       else:
         assert send_type.item() == 2
+        a = time.time()
         self.receive_negative_sample(sending_worker)
+        b = time.time()
+        TOTAL_TIME_RECIEVE_SAMPLE += b-a
+        eprint("Time to receive negative sample", b-a, "Total time :",TOTAL_TIME_RECIEVE_SAMPLE)
+        wandb.log({"Server total time": TOTAL_TIME_RECIEVE_SAMPLE})
 
   def receive_experience_sample(self, sending_worker: int) -> None:
     device = "cuda"
@@ -436,6 +467,7 @@ class BufferPopulatingThread(Thread):
       dist.recv(tensor=newest_poststate_sequence,
                 src=sending_worker, tag=6)
       post_state_sequences.append(newest_poststate_sequence.unsqueeze(0))
+    
 
     with torch.no_grad():
       torch.manual_seed(0)
@@ -466,7 +498,7 @@ class BufferPopulatingThread(Thread):
 
         sequence_hash = int.from_bytes(hashlib.md5(
           json.dumps(newest_prestate_sequence.view(-1).tolist(),
-                     sort_keys=True).encode('utf-8')).digest())
+                     sort_keys=True).encode('utf-8')).digest(), byteorder='big')
         eprint(f"EObligation hash is {from_obl.context_hash()} "
                f"with previous tactic "
                f"{newest_prev_tactic_sample.item()}, "
@@ -490,6 +522,10 @@ class BufferPopulatingThread(Thread):
       torch.zeros([terms_per_state, self.max_term_length],
                   dtype=int)  #type: ignore
     dist.recv(tensor=state_sequence_buffer, src=sending_worker, tag=11)
+    # sequence_hash = int.from_bytes(hashlib.md5(
+    #   json.dumps(state_sequence_buffer.view(-1).tolist() +
+    #              [newest_prev_tactic_sample.item()],
+    #              sort_keys=True).encode("utf-8")).digest())
     target_steps: torch.LongTensor = torch.zeros(1, dtype=int) #type: ignore
     dist.recv(tensor=target_steps, src=sending_worker, tag=12)
     with torch.no_grad():
@@ -538,7 +574,7 @@ class BufferPopulatingThread(Thread):
     dist.recv(tensor=state_sequence_buffer, src=sending_worker, tag=21)
     sequence_hash = int.from_bytes(hashlib.md5(
       json.dumps(state_sequence_buffer.view(-1).tolist(),
-                 sort_keys=True).encode("utf-8")).digest())
+                 sort_keys=True).encode("utf-8")).digest(), byteorder='big')
     with torch.no_grad():
       state_sample_vec = self.obligation_encoder\
                              .seq_lists_to_vectors(

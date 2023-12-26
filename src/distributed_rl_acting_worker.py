@@ -3,11 +3,15 @@
 import argparse
 import os
 import json
+import subprocess
 import random
 import re
 import sys
 import traceback
 import hashlib
+import time
+
+
 from glob import glob
 
 from pathlib import Path
@@ -33,6 +37,14 @@ from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_worker import get_predictor
 from util import FileLock, eprint, safe_abbrev, print_time, unwrap
 #pylint: enable=wrong-import-position
+
+
+TOTAL_TIME_SEND_SAMPLE = 0
+import wandb
+wandb.init(project="rl_from_scratch timing experiment")
+
+import logging
+logging.basicConfig(level=logging.DEBUG)
 
 def main() -> None:
   parser = argparse.ArgumentParser()
@@ -73,7 +85,9 @@ def main() -> None:
   envvar_name = "SLURM_NODEID"
   assert envvar_name in os.environ
   workerid = int(os.environ[envvar_name]) - 1
-
+  host = subprocess.run("hostname", text=True).stdout
+  # host = os.environ["HOST"]
+  print("Host is ", host)
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)
 
@@ -117,6 +131,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
       learning_connection.encode_and_send_target_length(prev_tactic,
                                                         initial_obl,
                                                         next_task.target_length)
+      wandb.log({f"Worker {workerid} total time": TOTAL_TIME_SEND_SAMPLE})
     if successful and len(samples) < next_task.target_length:
       update_shorter_proofs_dict(args, all_files, next_task, len(samples),
                                  samples[0][1],
@@ -124,8 +139,10 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     for prev_tactic, prestate, action, poststates in samples:
       learning_connection.encode_and_send_sample(prev_tactic, prestate,
                                                  action, poststates)
+      wandb.log({f"Worker {workerid} total time": TOTAL_TIME_SEND_SAMPLE})
     for prev_tactic, state in negative_samples:
       learning_connection.encode_and_send_negative_sample(prev_tactic, state)
+      wandb.log({f"Worker {workerid} total time": TOTAL_TIME_SEND_SAMPLE})
     mark_task_done(args, workerid, next_task_ep)
     load_latest_q_network(args, actor.v_network)
 
@@ -212,6 +229,8 @@ class LearningServerConnection:
     num_hyps = 5
     self.obligation_encoder = rl.CachedObligationEncoder(term_encoder, num_hyps)
     eprint("Establishing connection")
+    os.environ['OMPI_MCA_btl_base_verbose'] = '100'
+    os.environ['NCCL_DEBUG'] = 'INFO'
     dist.init_process_group(backend)
     eprint("Connection Initialized")
     self.predictor = predictor
@@ -221,6 +240,8 @@ class LearningServerConnection:
                   action_hashed: int,
                   action_encoded: int,
                   post_state_sequences: List[torch.LongTensor]) -> None:
+    global TOTAL_TIME_SEND_SAMPLE
+    a = time.time()
     dist.send(tensor=torch.LongTensor(0), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([prev_tactic_encoded]),
               tag=1, dst=0)
@@ -231,6 +252,11 @@ class LearningServerConnection:
               tag=5, dst=0)
     for state_sequence in post_state_sequences:
       dist.send(tensor=state_sequence, tag=6, dst=0)
+    b = time.time()
+    TOTAL_TIME_SEND_SAMPLE += b - a
+    eprint("Time to send sample", b-a, "Total time:", TOTAL_TIME_SEND_SAMPLE)
+    
+
   def encode_and_send_sample(self, prev_tactic: str,
                              pre_state: Obligation,
                              action: str,
@@ -254,10 +280,15 @@ class LearningServerConnection:
   def send_target_v(self, prev_tactic: int,
                     local_context_sequence: torch.LongTensor,
                     target_length: int) -> None:
+    global TOTAL_TIME_SEND_SAMPLE
+    a = time.time()
     dist.send(tensor=torch.tensor(1, dtype=int), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([prev_tactic]), tag=10, dst=0)
     dist.send(tensor=local_context_sequence, tag=11, dst=0)
     dist.send(tensor=torch.tensor(target_length, dtype=int), tag=12, dst=0)
+    b = time.time()
+    TOTAL_TIME_SEND_SAMPLE += b - a
+    eprint("Time to send target v", b-a, "Total time:", TOTAL_TIME_SEND_SAMPLE)
 
   def encode_and_send_target_length(self, prev_tactic: str,
                                     state: Obligation,
@@ -278,6 +309,7 @@ class LearningServerConnection:
 
   def encode_and_send_negative_sample(self, previous_tactic: str,
                                       state: Obligation) -> None:
+    global TOTAL_TIME_SEND_SAMPLE
     previous_tactic_encoded = self.predictor\
                                   .prev_tactic_stem_idx(previous_tactic)
     assert isinstance(self.obligation_encoder, rl.CachedObligationEncoder)
@@ -290,9 +322,13 @@ class LearningServerConnection:
     eprint(f"Sending negative sequence {sequence_hash} "
            f"for previous tactic {previous_tactic_encoded} "
            f"obligation <{hash(state)}> {state.to_dict()}")
+    a = time.time()
     dist.send(tensor=torch.tensor(2, dtype=int), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([previous_tactic_encoded]), tag=20, dst=0)
     dist.send(tensor=state_sequence, tag=21, dst=0)
+    b = time.time()
+    TOTAL_TIME_SEND_SAMPLE += b - a
+    eprint("Time to send target v", b-a, "Total time:", TOTAL_TIME_SEND_SAMPLE)
 
 @dataclass
 class FileTaskState:
@@ -593,7 +629,7 @@ def experience_proof(args: argparse.Namespace,
   samples: List[Tuple[str, Obligation, str, List[Obligation]]] = []
   negative_samples: List[Tuple[str, Obligation]] = []
   initial_obl = unwrap(coq.proof_context).fg_goals[0]
-
+  eprint("Starting Task")
   for step in range(args.steps_per_episode):
     before_obl = unwrap(coq.proof_context).fg_goals[0]
     before_prev_tactic = coq.prev_tactics[-1]
