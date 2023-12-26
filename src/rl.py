@@ -675,7 +675,7 @@ class VNetwork:
         self.predictor = predictor
         cur_dir = os.path.realpath(os.path.dirname(__file__))
         if coq2vec_weights is not None:
-            self._load_encoder_state(torch.load(Path(cur_dir).joinpath(coq2vec_weights),
+            self._load_encoder_state(torch.load(coq2vec_weights,
                                                 map_location=self.device))
 
     def __call__(self, obls: Union[Obligation, List[Obligation]],

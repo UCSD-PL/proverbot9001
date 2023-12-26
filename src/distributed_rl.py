@@ -216,9 +216,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
     tactic_vocab_size = predictor.prev_tactic_vocab_size
     assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    print("curr dir")
-    print(cur_dir)
-    term_size = torch.load(Path(cur_dir).joinpath(args.coq2vec_weights), map_location="cpu")[5]
+    term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
     num_hyps = 5
     encoding_size = term_size * (num_hyps + 1)
 
@@ -309,11 +307,6 @@ def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
         with open(args.tasks_file, 'r') as f:
             all_tasks = []
             i = 0
-            #for line in f:
-            #    print(i)
-            #    print(line)
-            #    all_tasks.append(RLTask(**json.loads(line)))
-            #    i = i + 1
             all_tasks = [RLTask(**json.loads(line)) for line in f]
     else:
         all_tasks = [RLTask.from_job(job) for job in get_all_jobs(args)]
@@ -455,7 +448,6 @@ def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
       "We've reached the end of training, but no common weights are found " \
       "in the weights directory!"
     common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
-    print(os.getcwd)
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
     v_network_state: Tuple[dict, Any,
                            OrderedDict[Any, torch.FloatTensor],
