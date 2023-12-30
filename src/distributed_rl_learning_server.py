@@ -115,8 +115,11 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
                              args.hidden_size,
                              args.num_layers).to(device)
   target_network.load_state_dict(v_network.state_dict())
-  optimizer: optim.Optimizer = optimizers[args.optimizer](v_network.parameters(),
-                                                          lr=args.learning_rate)
+  optimizer: optim.Optimizer = optimizers[args.optimizer](
+    [{"params": v_network.tactic_embedding.parameters(),
+      "lr": args.learning_rate * 20},
+     {"params": v_network.prediction_network.parameters()}],
+    lr=args.learning_rate)
   adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                               args.learning_rate_decay)
   replay_buffer = EncodedReplayBuffer(args.window_size,
