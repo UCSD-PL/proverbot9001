@@ -340,7 +340,7 @@ def train(args: argparse.Namespace, v_model: VModel,
 
   local_context_input = torch.cat( (original_target_local_contexts_encoded, replay_buffer_local_contexts_encoded ) )
   prev_tactics_input = torch.cat( (original_target_prev_tactic_indices, replay_buffer_prev_tactic_indices) )
-  outputs = replay_buffer_sample_outputs + original_target_output 
+  outputs = original_target_output + replay_buffer_sample_outputs
 
   actual_values = v_model(local_context_input, prev_tactics_input).view(len(replay_buffer_sample_outputs) + len(original_target_output))
   device = "cuda"
