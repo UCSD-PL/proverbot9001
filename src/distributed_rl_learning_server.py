@@ -251,6 +251,10 @@ def train(args: argparse.Namespace, v_model: VModel,
     original_target_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
                                           for start_obl, _ in original_target_samples]).to("cuda")
     original_target_output = [args.gamma**target for obl,target in original_target_samples]
+    if args.verbose >= 2:
+      for idx, (start_obl, target) in enumerate(original_target_samples):
+        eprint(f"For obl {start_obl.context_hash()}, tactic {start_obl.previous_tactic}, "
+               f"giving fixed score of {args.gamma} ** {target} = {args.gamma ** target}")
     original_target_obls = [start_obl for start_obl, _
                             in original_target_samples]
   else:
@@ -297,10 +301,15 @@ def train(args: argparse.Namespace, v_model: VModel,
         all_obl_scores = torch.FloatTensor([]) 
     replay_buffer_sample_outputs = []
     cur_row = 0
-    for starting_obl, resulting_obl_lens in \
-        zip(replay_buffer_obls, num_resulting_obls):
+    assert len(replay_buffer_obls) == len(num_resulting_obls)
+    for idx, (starting_obl, resulting_obl_lens) in \
+        enumerate(zip(replay_buffer_obls, num_resulting_obls),
+                  start=len(original_target_obls)):
       if len(resulting_obl_lens) == 0:
         replay_buffer_sample_outputs.append(0)
+        eprint(f"[{idx}] For obl {starting_obl.context_hash()}, "
+               f"tactic {starting_obl.previous_tactic}, "
+               "training as negative sample")
         continue
       action_outputs = []
       for num_obls in resulting_obl_lens:
@@ -308,7 +317,7 @@ def train(args: argparse.Namespace, v_model: VModel,
           obl_score.item() for obl_score in
           all_obl_scores[cur_row:cur_row+num_obls]]
         if args.verbose >= 1:
-          eprint(f"For obl {starting_obl.context_hash()}, "
+          eprint(f"[{idx}] For obl {starting_obl.context_hash()}, "
                  f"tactic {starting_obl.previous_tactic}, "
                  f"multiplying scores of obls:")
           for obl, obl_score in zip(all_resulting_obls[cur_row:cur_row+num_obls],
@@ -347,11 +356,11 @@ def train(args: argparse.Namespace, v_model: VModel,
     loss = F.mse_loss(torch.log(actual_values), torch.log(target_values))
   if args.verbose >= 1:
     eprint("Training obligations to values:")
-    for context, prev_tactic, output, actual_value,\
-        in zip(original_target_obls + replay_buffer_obls,
-               prev_tactics_input, outputs, actual_values):
+    for idx, (context, prev_tactic, output, actual_value) \
+        in enumerate(zip(original_target_obls + replay_buffer_obls,
+                     prev_tactics_input, outputs, actual_values)):
       # local_loss = F.mse_loss(actual_value, torch.FloatTensor([output]).to(device)[0])
-      eprint(f"{context.context_hash()}, {prev_tactic.item()}: "
+      eprint(f"[{idx}] {context.context_hash()}, {prev_tactic.item()}: "
              f"{actual_value.item():.6f} -> {output:.6f} ")
              #f"(Loss {local_loss:.6f})")
   optimizer.zero_grad()
