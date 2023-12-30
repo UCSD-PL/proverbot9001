@@ -142,6 +142,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   loss_buffer: List[torch.FloatTensor] = []
 
   time_started_waiting = time.time()
+  signal_change.wait()
+  signal_change.clear()
   while True:
   # while signal_change.wait():
     # signal_change.clear()
