@@ -227,6 +227,7 @@ def train(args: argparse.Namespace, v_model: VModel,
   
   original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
   replay_buffer_samples = replay_buffer.sample(args.batch_size//2)
+  start_obl_hashes_seen: Set[Tuple[int, int]] = set()
   if (replay_buffer_samples is None) and (original_target_samples is None):
     eprint("No samples yet in both replay buffer or original target buffer. "
            "Skipping training", guard=args.verbose >= 1)
@@ -242,6 +243,11 @@ def train(args: argparse.Namespace, v_model: VModel,
                                                .view(1, -1)
                                      for start_obl, _
                                      in original_target_samples], dim=0)
+    for start_obl, _ in original_target_samples:
+      id_tuple = (start_obl.context_hash(), start_obl.previous_tactic)
+      assert id_tuple not in start_obl_hashes_seen,\
+        f"Obl {id_tuple} showed up in original target sample twice!"
+      start_obl_hashes_seen.add(id_tuple)
     original_target_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
                                           for start_obl, _ in original_target_samples]).to("cuda")
     original_target_output = [args.gamma**target for obl,target in original_target_samples]
@@ -258,6 +264,15 @@ def train(args: argparse.Namespace, v_model: VModel,
                                                .view(1, -1)
                                      for start_obl, _action_records
                                      in replay_buffer_samples], dim=0)
+    for start_obl, _ in replay_buffer_samples:
+      id_tuple = (start_obl.context_hash(), start_obl.previous_tactic)
+      assert id_tuple not in start_obl_hashes_seen,\
+        f"Obl {id_tuple} showed up in both original target sample and replay buffer!"
+    for start_obl, _ in replay_buffer_samples:
+      id_tuple = (start_obl.context_hash(), start_obl.previous_tactic)
+      assert id_tuple not in start_obl_hashes_seen,\
+        "Obl {id_tuple} showed up in replay buffer twice!"
+      start_obl_hashes_seen.add(id_tuple)
     replay_buffer_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
                                           for start_obl, _ in replay_buffer_samples]).to("cuda")
     replay_buffer_obls = [start_obl for start_obl, _
@@ -305,6 +320,7 @@ def train(args: argparse.Namespace, v_model: VModel,
           eprint(f"And gamma for new score {action_outputs[-1]}")
         cur_row += num_obls
       replay_buffer_sample_outputs.append(max(action_outputs))
+    assert len(replay_buffer_obls) == len(replay_buffer_sample_outputs)
   else :
     replay_buffer_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
     replay_buffer_prev_tactic_indices = torch.LongTensor([]).to('cuda')
