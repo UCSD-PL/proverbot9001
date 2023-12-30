@@ -13,6 +13,7 @@ import coq2vec
 import hashlib
 import time
 import shutil
+import sys
 from glob import glob
 
 from threading import Thread, Lock, Event
@@ -306,10 +307,10 @@ def train(args: argparse.Namespace, v_model: VModel,
         enumerate(zip(replay_buffer_obls, num_resulting_obls),
                   start=len(original_target_obls)):
       if len(resulting_obl_lens) == 0:
-        replay_buffer_sample_outputs.append(0)
         eprint(f"[{idx}] For obl {starting_obl.context_hash()}, "
                f"tactic {starting_obl.previous_tactic}, "
                "training as negative sample")
+        replay_buffer_sample_outputs.append(sys.float_info.min)
         continue
       action_outputs = []
       for num_obls in resulting_obl_lens:
