@@ -457,6 +457,13 @@ class BufferPopulatingThread(Thread):
         from_obl = EObligation(newest_prestate_sample.to(device),
                                newest_prev_tactic_sample.item(),
                                newest_prestate_sequence.unsqueeze(0))
+        if from_obl in self.target_training_buffer._contents:
+          eprint(f"Skipping {from_obl.context_hash()};"
+                 f"{from_obl.previous_tactic} "
+                 "because it's already in the original target buffer",
+                 guard=self.verbose >= 1)
+          return
+
         sequence_hash = int.from_bytes(hashlib.md5(
           json.dumps(newest_prestate_sequence.view(-1).tolist(),
                      sort_keys=True).encode('utf-8')).digest())
