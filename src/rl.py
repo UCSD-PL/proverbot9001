@@ -673,7 +673,6 @@ class VNetwork:
         self.steps_trained = 0
         self.total_loss = torch.FloatTensor([0.0]).to(self.device)
         self.predictor = predictor
-        cur_dir = os.path.realpath(os.path.dirname(__file__))
         if coq2vec_weights is not None:
             self._load_encoder_state(torch.load(coq2vec_weights,
                                                 map_location=self.device))
