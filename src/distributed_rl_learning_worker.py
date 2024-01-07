@@ -26,6 +26,13 @@ from distributed_rl import (add_distrl_args_to_parser,
                             get_all_files)
 #pylint: enable=wrong-import-position
 
+
+TOTAL_TIME_SEND_SAMPLE = 0
+import wandb
+wandb.init(project="rl_from_scratch timing experiment")
+
+
+
 def main():
     assert 'SLURM_ARRAY_TASK_ID' in os.environ
     workerid = int(os.environ['SLURM_ARRAY_TASK_ID'])
