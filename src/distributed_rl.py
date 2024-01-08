@@ -101,6 +101,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dump-replay-buffer", type=Path, default=None)
     parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
     parser.add_argument("--qos", type=str, default=None)
+    parser.add_argument("--lr-reset", type=bool, default=False)
     parser.add_argument("--loss", choices=["simple", "log"],
                         default="simple")
 
@@ -291,7 +292,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   "--gres=gpu:1",
                   "-t", args.worker_timeout,
                   "--mem", args.mem,
-                  "-N", str(num_actors + 1),
+                  "-n", str(num_actors + 1),
+                  "--cpus-per-task=1",
                   "-J", f"drl-all-{args.output_file}",
                   f"{cur_dir}/dist_dispatch.sh",
                   f"{args.state_dir}/output/",
