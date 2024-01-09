@@ -19,6 +19,9 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
 3. Install Homebrew from their [website](https://brew.sh/).
 4. Install wget, git, opam, rustup, GNU awk, and graphviz through Homebrew:
    `brew install wget git opam rustup-init gawk graphviz && rustup-init`
+5. On newer MacOS systems, homebrew installs into `/opt/homebrew` not
+   `/usr/local`, so run:
+   `export CPATH=/opt/homebrew/include && export LIBRARY_PATH=/opt/homebrew/lib`.
 
 ### Linux
 1. Check your python version with `python --version` in the
