@@ -101,11 +101,16 @@ def test_feature_extraction(tree):
 
 # "/home/nmwaterman_umass_edu/proverbot9001/CompCert/lib/Parmov.v"
 
+def search_thm_name(thm, coq):
+    match = re.fullmatch("\w+ (?:SerTop\.)?([^\s]+)(?:\n.*)?", coq.locate_ident(thm))
+    if match:
+        return match.group(1)
+
 class KNN_Lemma_Model:
-    def __init__(self, *trainfiles):
+    def __init__(self):
         # k-NN parameters
         # Would likely benefit from more descriptive names (these are taken from the coqhammer paper)
-        self.T1 = 6   # Gives even more weight to higher scoring features (per coqhammer)
+        self.T1 = 6   # Gives even more weight to higher scoring features
         self.T2 = 2.7 # Gives more weight to dependencies when estimating relevance of lemmas
 
         # Counter of how many different theorems each feature appears in
@@ -117,81 +122,91 @@ class KNN_Lemma_Model:
         # Dict from theorem names to the set of lemmas used in proving that theorem
         self.theorem_dependencies = {}
 
-        self.train(trainfiles)
+        # The lemma we're currently training on. Set by count_in_proof and unset by count_after_proof.
+        self.cur_lemma_name = None
 
     def _theorems(self):
         return self.theorem_feature_counts.keys()
 
-    def train(self, trainfiles, stop_at=None):
-    
-        def _tf_idf(feature, feature_counts):
-            try:
-                term_frequency = feature_counts[feature] / feature_counts.total()
-                inverse_theorem_frequency = math.log(len(self.theorem_feature_counts)
-                                          / self.feature_occurences[feature])
-                return term_frequency * inverse_theorem_frequency
-            except ZeroDivisionError:
-                print(f"offending feature: {feature}")
-                raise
+    def _tf_idf(self, feature, feature_counts):
+        try:
+            term_frequency = feature_counts[feature] / feature_counts.total()
+            inverse_theorem_frequency = math.log(len(self.theorem_feature_counts)
+                                      / self.feature_occurences[feature])
+            return term_frequency * inverse_theorem_frequency
+        except ZeroDivisionError:
+            print(f"offending feature: {feature}")
+            raise
+
+    # These counting methods can double-count if called on the same proof twice.
+    # Is it necessary TODO anything about this?
+
+    def count_in_proof(self, coq):
+        assert not self.cur_lemma_name, "We haven't finished counting " + self.cur_lemma_name + " !"
+
+        self.cur_lemma_name = coq.module_prefix + coq.cur_lemma_name
+        #print("In proof: " + self.cur_lemma_name)
+
+        features = get_thm_features(coq)
+        self.feature_counts = Counter(features[0]) + Counter(features[1])
+        self.feature_occurences += Counter(list(self.feature_counts)) # Count each feature only once
+
+        # We need to update these before we see the proof,
+        # since we need feature weights for the current theorem
+        # in order to pick out the lemmas we'll use to prove it!
+        self.theorem_feature_counts[self.cur_lemma_name] = self.feature_counts
+        # Dict from theorems to dicts from feature names to weights
+        self.feature_weights = { thm: {f: self._tf_idf(f, feat_counts) for f in feat_counts}
+                        for thm, feat_counts in self.theorem_feature_counts.items() }
+
+
+    def count_after_proof(self, coq, cmds_run):
+        assert self.cur_lemma_name, "We weren't in the middle of counting a theorem!"
+
+        #print("After proof: " + self.cur_lemma_name)
+
+        # FIXME: This disregards namespacing, so can break if trained on multiple modules.
+        # We need to find a way to get the full, namespaced name BEFORE running the proof!
+        #full_cur_lem_name = self.cur_lemma_name #_search_thm_name(self.cur_lemma_name, coq)
+        #self.cur_lemma_name = None
+
+        hypotheses = [hyp for cmd in cmds_run for hyp in
+                    re.findall("(?:apply|rewrite)\s+(?:->|<-|with)?\s*([^\s;,)]*[^\s;,.)])", cmd)]
+
+        lemmas_used = {name for name in [search_thm_name(hyp, coq) for hyp in hypotheses if hyp] if name is not None}
+
+        self.theorem_dependencies[self.cur_lemma_name] = lemmas_used
+
+        self.cur_lemma_name = None
+
+    def train(self, prelude, *trainfiles):
 
         def _count_in_file(trainfile):
-            cmds_left = coq_serapy.load_commands(trainfile)
-
-            def search_thm_name(thm, coq):
-                match = re.fullmatch("\w+ ([^\s]+)(?:\n.*)?", coq.locate_ident(thm))
-                if match: return match.group(1)
-
             with coq_serapy.SerapiContext(
                     ["sertop", "--implicit"],
                     None,
-                    "/home/nmwaterman_umass_edu/proverbot9001/CompCert/") as coq: # TODO: Factor out coq context into object member
+                    prelude) as coq:
+
+                cmds_left = coq_serapy.load_commands(trainfile)
+
                 while cmds_left:
                     cmds_left, _cmds_run = coq.run_into_next_proof(cmds_left)
 
-                    cur_lemma_name = coq.cur_lemma_name
-
-                    if cur_lemma_name == stop_at:
-                        # Because this is the theorem we're currently trying to prove
-                        # (or for some other reason)
-                        # We can't look at its proof or any after it.
-                        return False # Don't look at any more files
-
-                    if cur_lemma_name in self._theorems():
-                        # We've already seen this one; skip!
-                        cmds_left, _cmds_run = coq.finish_proof(cmds_left)
-                        continue
-
-                    features = get_thm_features(coq)
-                    feature_counts = Counter(features[0]) + Counter(features[1])
+                    self.count_in_proof(coq)
 
                     try:
                         cmds_left, cmds_run = coq.finish_proof(cmds_left)
 
-                        full_cur_lem_name = search_thm_name(cur_lemma_name, coq)
-
-                        self.theorem_feature_counts[full_cur_lem_name] = feature_counts;
-                        self.feature_occurences += Counter(list(feature_counts)) # Count each feature only once
-
-                        hypotheses = [hyp for cmd in cmds_run for hyp in 
-                            re.findall("(?:apply|rewrite)\s+(?:->|<-|with)?\s*([^\s;,)]*[^\s;,.)])", cmd)]
-
-                        #print(hypotheses)
-
-                        lemmas_used = {name for name in [search_thm_name(hyp, coq) for hyp in hypotheses if hyp] if name is not None}
-                        
-                        self.theorem_dependencies[full_cur_lem_name] = lemmas_used
+                        self.count_after_proof(coq, cmds_run)
 
                     except AssertionError as e:
                         print(_cmds_run)
-            return True # All good, look at the next file
+                        print(e)
 
         for trainfile in trainfiles:
-            if not _count_in_file(trainfile):
-                break # stop_at was in this file, so stop!
-        
-        # Dict from theorems to dicts from feature names to weights
-        self.feature_weights = { thm: {f: _tf_idf(f, feat_counts) for f in feat_counts}
-                for thm, feat_counts in self.theorem_feature_counts.items() }
+            _count_in_file(trainfile)
+
+        return self
 
     def _theorem_similarity(self, thm1, thm2):
         return sum(( (self.feature_weights[thm1][f] + self.feature_weights[thm2][f]) ** self.T1
@@ -207,10 +222,7 @@ class KNN_Lemma_Model:
         neighbors = [thm for thm in neighbors if thm != goal]
         return neighbors[:k]
 
-    def get_relevant_lemmas(self, goal, num_lemmas, in_file=None):
-        if in_file:
-            self.train([in_file], stop_at=goal)
-
+    def get_relevant_lemmas(self, goal, num_lemmas):
         relevant_lemmas = []
         for k in range(1,len(self._theorems())):
             neighbors = self._k_neighbors(goal, k)
@@ -226,26 +238,54 @@ def test_lemma_prediction(num_lemmas, coqfile):
     total_lemmas_predicted = 0
     correct_lemmas_predicted = 0
 
-    theorems = KNN_Lemma_Model(coqfile).theorem_dependencies.items()
-
+    #total_model = KNN_Lemma_Model().train("/home/nmwaterman_umass_edu/proverbot9001/CompCert/", coqfile);
     model = KNN_Lemma_Model()
 
-    for goal, deps in theorems:
-        if deps:
-            theorems_with_deps += 1
+    with coq_serapy.SerapiContext(
+            ["sertop", "--implicit"],
+            None,
+            "/home/nmwaterman_umass_edu/proverbot9001/CompCert/") as coq:
 
-            relevant_lemmas = model.get_relevant_lemmas(goal, num_lemmas, in_file=coqfile)
-            total_lemmas_predicted += len(relevant_lemmas)
-            hits = [(i, lem) for i, lem in enumerate(relevant_lemmas) if lem in deps]
-            correct_lemmas_predicted += len(hits)
+        cmds_left = coq_serapy.load_commands(coqfile)
 
-            if hits:
-                theorems_hit += 1
-                if len(hits) == len(deps): theorems_fully_hit += 1
+        while cmds_left:
+            cmds_left, _cmds_run = coq.run_into_next_proof(cmds_left)
 
-                #print(goal)
-                #print(f"deps: {len(deps)}")
+            model.count_in_proof(coq)
+
+            cur_lemma_name = model.cur_lemma_name
+
+            predicted_lemmas = model.get_relevant_lemmas(cur_lemma_name, num_lemmas)
+            total_lemmas_predicted += len(predicted_lemmas)
+
+            try:
+                cmds_left, cmds_run = coq.finish_proof(cmds_left)
+                model.count_after_proof(coq, cmds_run)
+
+                #full_lemma_name = search_thm_name(cur_lemma_name, coq)
+                dependencies = model.theorem_dependencies[cur_lemma_name]
+                #print(cur_lemma_name + " :")
+                #print("Predicted: " + str(predicted_lemmas))
+                #print("Actual: " + str(dependencies))
+                #print()
+                hits = [(i, lem) for i, lem in enumerate(predicted_lemmas) if lem in dependencies]
+                correct_lemmas_predicted += len(hits)
+
+                theorems_with_deps += 0 < len(dependencies)
+
+                if hits:
+                    theorems_hit += 1
+                    if len(hits) == len(dependencies): theorems_fully_hit += 1
+
+                #print(cur_lemma_name)
+                #print(f"deps: {len(dependencies)}")
                 #print(f"hits: {hits}\n")
+
+
+            except AssertionError as e:
+                #print(cmds_run)
+                #print(e)
+                pass
 
     print(f"\nWith {n} relevant lemmas...")
     print(f"Correctly predicted at least one lemma for {theorems_hit}/{theorems_with_deps} theorems requiring lemmas")
