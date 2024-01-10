@@ -548,10 +548,15 @@ class BufferPopulatingThread(Thread):
     state_sample = EObligation(state_sample_vec.to(device),
                                newest_prev_tactic_sample.item(),
                                state_sequence_buffer.unsqueeze(0))
-    self.replay_buffer.add_negative_sample(state_sample)
     eprint(f"Receiving negative sample {state_sample.context_hash()} "
            f"from sequence hash {sequence_hash}.",
            guard=self.verbose >= 1)
+    if state_sample in self.target_training_buffer._contents:
+      eprint(f"Receiving negative sample that used to be in target buffer, "
+             f"removing from target buffer.", guard=self.verbose >= 1)
+      self.target_training_buffer.remove(state_sample)
+
+    self.replay_buffer.add_negative_sample(state_sample)
     self.replay_buffer.buffer_steps += 1
     self.signal_change.set()
 
@@ -587,6 +592,13 @@ class TrueTargetBuffer:
           return
       self._contents[state] = target
       vsample_changed = True
+
+  def remove_target(self, state: EObligation) -> None:
+    with self.lock:
+      assert state in self._contents, \
+        "Tried to remove an obligation that wasn't "\
+        "in the target buffer!"
+      del self._contents[state]
 
 class EncodedReplayBuffer:
   buffer_steps: int
