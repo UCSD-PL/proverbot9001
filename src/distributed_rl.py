@@ -39,8 +39,8 @@ def main() -> None:
         args.splits_file = None
 
     all_task_eps = get_all_task_episodes(args)
-    task_eps_done = setup_jobstate(args, all_task_eps)
-    num_workers_actually_needed = min(len(all_task_eps) - len(task_eps_done),
+    num_task_eps_done = setup_jobstate(args, all_task_eps)
+    num_workers_actually_needed = min(len(all_task_eps) - num_task_eps_done,
                                       args.num_actors)
     if num_workers_actually_needed > 0:
         if args.start_from is not None:
@@ -58,7 +58,7 @@ def main() -> None:
             show_progress(args, all_task_eps, num_workers_actually_needed)
         cancel_workers(args)
     elif num_workers_actually_needed < 0:
-        util.eprint(f"WARNING: there are {len(task_eps_done)} tasks eps already done, but only {len(all_task_eps)} task eps total! "
+        util.eprint(f"WARNING: there are {num_task_eps_done} tasks eps already done, but only {len(all_task_eps)} task eps total! "
                "This means that something didn't resume properly, or you resumed with a smaller task set")
     build_final_save(args, len(all_task_eps))
 
@@ -148,6 +148,52 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
             with shorter_path.open('w') as f:
                 pass
 
+
+def prepare_taken_prooffiles(args: argparse.Namespace,
+                            all_task_eps: List[Tuple[RLTask, int]])\
+                            -> int:
+    
+    task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
+    all_files = get_all_files(args)
+
+    for fidx, filename in enumerate(tqdm(all_files,
+                                         desc="Clearing all taken/file-prooffile", leave=False)):
+        with (args.state_dir / "taken" /
+              ("file-" + util.safe_abbrev(filename,
+                                          all_files) + ".txt")).open("w") as f:
+            pass
+
+    file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
+    num_te_encountered = 0
+    for done_path in tqdm( (Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))),
+                            desc="Preparing taken/file-prooffile for resuming", leave=False ):
+        with done_path.open('r') as f:
+            for line in f :
+                num_te_encountered += 1
+                task_dict, epsiode = json.loads(line)
+                task = RLTask(**task_dict)
+                if Path(task.src_file) in file_taken_dict:
+                    file_taken_dict[Path(task.src_file)].append((task, epsiode))
+                else:
+                    file_taken_dict[Path(task.src_file)] = [(task, epsiode)]
+                
+                if num_te_encountered % 10000 == 0:
+                    write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
+                    file_taken_dict.clear()
+                    
+
+    for workerid in range(args.num_actors):
+        taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
+        done_path = args.state_dir / f"done-{workerid}.txt"
+        with taken_path.open("w") as f:
+            pass
+        if not done_path.exists():
+            with done_path.open("w"):
+                pass
+    
+    return num_te_encountered
+    
+
 def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTask, int]]]:
     file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
     for done_path in (Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))):
@@ -171,22 +217,21 @@ def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTa
                 pass
     return file_taken_dict
 
-def write_done_tasks_to_taken_files(args: argparse.Namespace,
-                                    all_task_eps: List[Tuple[RLTask, int]],
+def write_done_tasks_to_taken_files(args : argparse.Namespace,
+                                    all_files: List[Path],
+                                    task_eps_idx_dict: Dict[Tuple[RLTask,int],int],
                                     file_done_task_eps: Dict[Path, List[Tuple[RLTask, int]]])\
                                     -> None:
-    task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
-    all_files = get_all_files(args)
-    for fidx, filename in enumerate(tqdm(all_files,
-                                         desc="Writing file taken files", leave=False)):
+
+    for filename in file_done_task_eps :
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
-                                          all_files) + ".txt")).open("w") as f:
+                                          all_files) + ".txt")).open("a") as f:
             for tidx, task_ep in enumerate(file_done_task_eps.get(filename, [])):
                 try:
                     task_ep_idx = task_eps_idx_dict[task_ep]
                 except KeyError:
-                    util.eprint(f"File number {fidx}, task number {tidx}")
+                    util.eprint(f"File name {filename}, task number {tidx} does not exist in task eps indx dict")
                     task, _ep = task_ep
                     for dict_task, _ in task_eps_idx_dict.keys():
                         if task.to_proof_spec() == dict_task.to_proof_spec():
@@ -200,16 +245,9 @@ def write_done_tasks_to_taken_files(args: argparse.Namespace,
 def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> List[Tuple[RLTask, int]]:
     check_resume(args)
     make_initial_filestructure(args)
+    num_task_eps_done = prepare_taken_prooffiles(args,all_task_eps)
 
-    file_taken_dict = get_file_taken_tasks(args)
-
-    write_done_tasks_to_taken_files(args, all_task_eps, file_taken_dict)
-
-    done_task_eps = []
-    for _filename, file_done_task_eps in file_taken_dict.items():
-        done_task_eps += file_done_task_eps
-
-    return done_task_eps
+    return num_task_eps_done
 
 def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                                 hidden_size: int, num_layers: int):
