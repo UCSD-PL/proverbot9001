@@ -147,6 +147,13 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
         if not shorter_path.exists():
             with shorter_path.open('w') as f:
                 pass
+    #Clearing out taken/file-prooffile for the next step
+    for fidx, filename in enumerate(tqdm(all_files,
+            desc="Clearing all taken/file-prooffile", leave=False)):
+        with (args.state_dir / "taken" /
+              ("file-" + util.safe_abbrev(filename,
+                                          all_files) + ".txt")).open("w") as f:
+            pass
 
 
 def prepare_taken_prooffiles(args: argparse.Namespace,
@@ -155,18 +162,10 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
     
     task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
     all_files = get_all_files(args)
-
-    for fidx, filename in enumerate(tqdm(all_files,
-                                         desc="Clearing all taken/file-prooffile", leave=False)):
-        with (args.state_dir / "taken" /
-              ("file-" + util.safe_abbrev(filename,
-                                          all_files) + ".txt")).open("w") as f:
-            pass
-
-    file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
     num_te_encountered = 0
-    for done_path in tqdm( (Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))),
+    for done_path in tqdm( [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))],
                             desc="Preparing taken/file-prooffile for resuming", leave=False ):
+        file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
         with done_path.open('r') as f:
             for line in f :
                 num_te_encountered += 1
@@ -178,7 +177,6 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                     file_taken_dict[Path(task.src_file)] = [(task, epsiode)]
                 
         write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
-        file_taken_dict.clear()
                     
     for workerid in range(args.num_actors):
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
@@ -214,7 +212,7 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
                     raise
                 print(json.dumps((task_ep_idx, False)), file=f, flush=True)
 
-# Returns the list of done tasks too because it can be slow to get them and we
+# Returns the number of done tasks too because it can be slow to get them and we
 # need them to set up job state anyway.
 def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> List[Tuple[RLTask, int]]:
     check_resume(args)
