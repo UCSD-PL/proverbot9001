@@ -177,11 +177,9 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                 else:
                     file_taken_dict[Path(task.src_file)] = [(task, epsiode)]
                 
-                if num_te_encountered % 10000 == 0:
-                    write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
-                    file_taken_dict.clear()
+        write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
+        file_taken_dict.clear()
                     
-
     for workerid in range(args.num_actors):
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         done_path = args.state_dir / f"done-{workerid}.txt"
@@ -192,30 +190,6 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                 pass
     
     return num_te_encountered
-    
-
-def get_file_taken_tasks(args: argparse.Namespace) -> Dict[Path, List[Tuple[RLTask, int]]]:
-    file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
-    for done_path in (Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))):
-        with done_path.open('r') as f:
-            worker_done_task_eps = [(RLTask(**task_dict), episode)
-                                    for line in f
-                                    for task_dict, episode in (json.loads(line),)]
-        for task, ep in worker_done_task_eps:
-            if Path(task.src_file) in file_taken_dict:
-                file_taken_dict[Path(task.src_file)].append((task, ep))
-            else:
-                file_taken_dict[Path(task.src_file)] = [(task, ep)]
-
-    for workerid in range(args.num_actors):
-        taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
-        done_path = args.state_dir / f"done-{workerid}.txt"
-        with taken_path.open("w") as f:
-            pass
-        if not done_path.exists():
-            with done_path.open("w"):
-                pass
-    return file_taken_dict
 
 def write_done_tasks_to_taken_files(args : argparse.Namespace,
                                     all_files: List[Path],
