@@ -528,7 +528,9 @@ def attempt_search(args: argparse.Namespace,
 
 def in_proofs_list(module: str, stmt: str, proofs_list: List[str]) -> bool:
     for proof_ident in proofs_list:
-        if (module + coq_serapy.lemma_name_from_statement(stmt)).endswith("." + proof_ident):
+        match_string = module + coq_serapy.lemma_name_from_statement(stmt)
+        if match_string.endswith("." + proof_ident) or\
+           match_string == proof_ident:
             return True
     return False
 
