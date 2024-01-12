@@ -197,7 +197,15 @@ def get_all_jobs_cluster(args: argparse.Namespace, partition: str = "test_files"
     if args.proof:
         worker_args.append(f"--proof={args.proof}")
     elif args.proofs_file:
-        worker_args.append(f"--proofs-file={str(args.proofs_file)}")
+	# In case this is a local file, or a psuedo file created by some sort
+	# of pipe, we'll copy it to a real file.
+        proofs_file_dest = str(args.output_dir / "proof-names.txt")
+        with open(args.proofs_file, 'r') as fin, \
+             open(proofs_file_dest, 'w') as fout:
+            for line in fin:
+                print(line.strip(), file=fout)
+        worker_args.append(f"--proofs-file={proofs_file_dest}")
+        args.proofs_file = proofs_file_dest
     cur_dir = os.path.realpath(os.path.dirname(__file__))
     num_job_workers = min(len(projfiles), args.num_workers-1)
     partition = vars(args).get("partition", None)
