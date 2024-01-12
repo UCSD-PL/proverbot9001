@@ -32,6 +32,7 @@ import torch
 
 from search_file import (add_args_to_parser, get_predictor,
                          SearchWorker, project_dicts_from_args)
+from rl_to_pickle import LearnedEstimator
 import util
 from util import eprint, FileLock
 import torch_util
