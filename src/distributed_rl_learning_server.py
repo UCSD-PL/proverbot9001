@@ -554,7 +554,7 @@ class BufferPopulatingThread(Thread):
     if state_sample in self.target_training_buffer._contents:
       eprint(f"Receiving negative sample that used to be in target buffer, "
              f"removing from target buffer.", guard=self.verbose >= 1)
-      self.target_training_buffer.remove(state_sample)
+      self.target_training_buffer.remove_target(state_sample)
 
     self.replay_buffer.add_negative_sample(state_sample)
     self.replay_buffer.buffer_steps += 1
