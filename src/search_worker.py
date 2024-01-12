@@ -575,3 +575,9 @@ def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
         project_dicts = [{"project_name": ".",
                           "test_files": [str(filename) for filename in args.filenames]}]
     return project_dicts
+def files_of_dict(args: argparse.Namespace,
+                  project_dict: Dict[str, Any]) -> List[str]:
+    if args.include_train_set:
+        return project_dict["train_files"] + project_dict["test_files"]
+    else:
+        return project_dict["test_files"]

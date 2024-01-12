@@ -50,7 +50,9 @@ from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, project_dicts_from_args
+from search_worker import (ReportJob, SearchWorker, get_files_jobs,
+                           get_predictor, project_dicts_from_args,
+                           files_of_dict)
 import util
 
 from tqdm import tqdm
@@ -169,6 +171,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--search-prefix", type=str, default=None)
     parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
+    parser.add_argument("--include-train-set", action='store_true')
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],
@@ -245,13 +248,14 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
     project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
-        for filename in project_dict["test_files"]:
+        for filename in files_of_dict(args, project_dict):
             fixing_duplicates = False
             file_jobs: List[Tuple[ReportJob, Any]] = []
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
                                              [Path(filename) for filename in
-                                              project_dict["test_files"]])
+                                              files_of_dict(args,
+                                                            project_dict)])
                             + "-proofs.txt"))
             try:
                 with proofs_file.open('r') as f, FileLock(f, exclusive=False):
@@ -294,11 +298,16 @@ def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
             return True
     return False
 
-def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> List[ReportJob]:
+def get_all_jobs(args: argparse.Namespace, partition: Optional[str] = None) -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
-    proj_filename_tuples = [(project_dict["project_name"], filename)
-                            for project_dict in project_dicts
-                            for filename in project_dict[partition]]
+    proj_filename_tuples = []
+    for project_dict in project_dicts:
+        if partition:
+            filenames = project_dict[partition]
+        else:
+            filenames = files_of_dict(args, project_dict)
+        proj_filename_tuples += [(project_dict["project_name"],
+                                  filename) for filename in filenames]
     jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
     if args.proofs_file is not None:
         found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
@@ -317,11 +326,11 @@ def get_all_jobs(args: argparse.Namespace, partition: str = "test_files") -> Lis
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
     project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
-        for filename in project_dict["test_files"]:
+        for filename in files_of_dict(args, project_dict):
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
                                              [Path(filename) for filename in
-                                              project_dict["test_files"]])
+                                              filenames])
                             + "-proofs.txt"))
             try:
                 os.remove(proofs_file)
@@ -399,7 +408,9 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
                             project_dicts = json.loads(splits_f.read())
                         for project_dict in project_dicts:
                             if project_dict["project_name"] == done_project:
-                                filenames = [Path(fname) for fname in project_dict["test_files"]]
+                                filenames = [Path(fname) for fname in
+                                             files_of_dict(args,
+                                                           project_dict)]
                                 break
                     else:
                         filenames = args.filenames

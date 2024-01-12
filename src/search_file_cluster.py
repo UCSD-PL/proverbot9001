@@ -32,7 +32,7 @@ import functools
 import re
 from pathlib import Path
 from datetime import datetime, timedelta
-from typing import List, NamedTuple, Dict, Any
+from typing import List, NamedTuple, Dict, Any, Optional
 from threading import Thread
 
 from tqdm import tqdm
@@ -41,7 +41,7 @@ from tqdm import tqdm
 from search_file import (add_args_to_parser,
                          get_already_done_jobs, remove_already_done_jobs,
                          project_dicts_from_args, format_arg_value)
-from search_worker import ReportJob
+from search_worker import ReportJob, files_of_dict
 import util
 
 details_css = "details.css"
@@ -73,7 +73,7 @@ def main(arg_list: List[str]) -> None:
     project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         project_output_dir = args.output_dir / project_dict["project_name"]
-        if len(project_dict["test_files"]) == 0:
+        if len(files_of_dict(args, project_dict)) == 0:
             continue
         os.makedirs(str(project_output_dir), exist_ok=True)
         for filename in [details_css, details_javascript]:
@@ -125,7 +125,7 @@ def main(arg_list: List[str]) -> None:
 
         output_files = []
         for project_dict in project_dicts:
-            if len(project_dict["test_files"]) == 0:
+            if len(files_of_dict(args, project_dict)) == 0:
                 continue
             if project_dict['project_name'] == ".":
                 report_output_name = "report.out"
@@ -143,7 +143,8 @@ def main(arg_list: List[str]) -> None:
             subprocess.run(command, stdout=subprocess.DEVNULL)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
-            show_report_progress(args.output_dir, project_dicts, output_files)
+            show_report_progress(args, args.output_dir,
+                                 project_dicts, output_files)
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                         "-o", str(args.output_dir / args.workers_output_dir
                                   / "index-report.out"),
@@ -162,17 +163,22 @@ def main(arg_list: List[str]) -> None:
                 time.sleep(0.2)
 
 
-def get_all_jobs_cluster(args: argparse.Namespace, partition: str = "test_files") -> None:
+def get_all_jobs_cluster(args: argparse.Namespace,
+                         partition: Optional[str] = None) -> None:
     if (args.output_dir / "all_jobs.txt").exists():
         return
     project_dicts = project_dicts_from_args(args)
     projfiles = []
-    for project_dict in project_dicts :
+    for project_dict in project_dicts:
+        if partition:
+            filenames = project_dict[partition]
+        else:
+            filenames = files_of_dict(args, project_dict)
         if "prelude" in project_dict :
             project_prelude = project_dict["prelude"] + "/"
-        else :
+        else:
             project_prelude = ""
-        for filename in project_dict[partition] :
+        for filename in filenames:
             projfiles.append( (project_dict["project_name"], project_prelude + filename) )
     # projfiles = [(project_dict["project_name"], filename)
     #              for project_dict in project_dicts
@@ -390,8 +396,12 @@ def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report File
                 break
             time.sleep(0.01)
 
-def show_report_progress(report_dir: Path, project_dicts: List[Dict[str, Any]], output_files: List[str]) -> None:
-    test_projects_total = len([d for d in project_dicts if len(d["test_files"]) > 0])
+def show_report_progress(args: argparse.Namespace,
+                         report_dir: Path,
+                         project_dicts: List[Dict[str, Any]],
+                         output_files: List[str]) -> None:
+    test_projects_total = len([d for d in project_dicts
+                               if len(files_of_dict(args, d)) > 0])
     num_projects_done = 0
     with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
         bars = [tqdm(desc=(project_dict["project_name"]
