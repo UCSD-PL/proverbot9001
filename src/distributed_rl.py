@@ -148,8 +148,8 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
             with shorter_path.open('w') as f:
                 pass
     #Clearing out taken/file-prooffile for the next step
-    for fidx, filename in enumerate(tqdm(all_files,
-            desc="Clearing all taken/file-prooffile", leave=False)):
+    for filename in tqdm(all_files,
+            desc="Clearing all taken/file-prooffile", leave=False):
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
                                           all_files) + ".txt")).open("w") as f:
@@ -195,7 +195,8 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
                                     file_done_task_eps: Dict[Path, List[Tuple[RLTask, int]]])\
                                     -> None:
 
-    for filename in file_done_task_eps :
+    for fidx, filename in enumerate(tqdm(file_done_task_eps.keys(),
+                                         desc="For current Done file Writing file taken files", leave=False)):
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
                                           all_files) + ".txt")).open("a") as f:
@@ -203,7 +204,7 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
                 try:
                     task_ep_idx = task_eps_idx_dict[task_ep]
                 except KeyError:
-                    util.eprint(f"File name {filename}, task number {tidx} does not exist in task eps indx dict")
+                    util.eprint(f"File {fidx}, task number {tidx} does not exist in task eps indx dict")
                     task, _ep = task_ep
                     for dict_task, _ in task_eps_idx_dict.keys():
                         if task.to_proof_spec() == dict_task.to_proof_spec():
