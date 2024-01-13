@@ -1342,11 +1342,11 @@ class EObligation:
     return int.from_bytes(hashlib.md5(
       json.dumps(self.context_tokens.view(-1).tolist() +
                  [self.previous_tactic],
-                 sort_keys=True).encode("utf-8")).digest())
+                 sort_keys=True).encode("utf-8")).digest(), byteorder='big')
   def context_hash(self) -> int:
     return int.from_bytes(hashlib.md5(
       json.dumps(self.context_tokens.view(-1).tolist(),
-                 sort_keys=True).encode("utf-8")).digest())
+                 sort_keys=True).encode("utf-8")).digest(), byteorder='big')
   def __eq__(self, other: object) -> bool:
     if not isinstance(other, EObligation):
       return False

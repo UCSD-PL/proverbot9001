@@ -39,9 +39,11 @@ def main() -> None:
         args.splits_file = None
 
     all_task_eps = get_all_task_episodes(args)
+    print("Setting up job state")
     num_task_eps_done = setup_jobstate(args, all_task_eps)
     num_workers_actually_needed = min(len(all_task_eps) - num_task_eps_done,
                                       args.num_actors)
+    print("computed num workers needed")
     if num_workers_actually_needed > 0:
         if args.start_from is not None:
             _, _, _, (_, _, _, training_args), _, _, _ = \
@@ -160,9 +162,13 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                             all_task_eps: List[Tuple[RLTask, int]])\
                             -> int:
     
+    num_te_encountered = 0
+    if args.resume == "no" :
+        return num_te_encountered
+    
     task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
     all_files = get_all_files(args)
-    num_te_encountered = 0
+    
     for done_path in tqdm( [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))],
                             desc="Preparing taken/file-prooffile for resuming", leave=False ):
         file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
@@ -217,20 +223,26 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
 # need them to set up job state anyway.
 def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> List[Tuple[RLTask, int]]:
     check_resume(args)
+    print("Done check resume")
     make_initial_filestructure(args)
+    print("Done making initial filestructure")
     num_task_eps_done = prepare_taken_prooffiles(args,all_task_eps)
-
+    print("Done preparing te")
     return num_task_eps_done
 
 def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                                 hidden_size: int, num_layers: int):
+    print("Dispatching learner and actors")
     predictor: FeaturesPolyargPredictor = get_predictor(args) # type: ignore
+    print("got predictor")
     tactic_vocab_size = predictor.prev_tactic_vocab_size
     assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
-    num_hyps = 5
-    encoding_size = term_size * (num_hyps + 1)
+    # print("Trying to load coq2vec")
+    # term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
+    # print("Loaded coq2vec weights")
+    # num_hyps = 5
+    # encoding_size = term_size * (num_hyps + 1)
 
     actor_args = ([
                    "--prelude", str(args.prelude),
@@ -303,7 +315,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   "--gres=gpu:1",
                   "-t", args.worker_timeout,
                   "--mem", args.mem,
-                  "-n", str(num_actors + 1),
+                  "-N", str(num_actors + 1),
                   "--cpus-per-task=1",
                   "-J", f"drl-all-{args.output_file}",
                   f"{cur_dir}/dist_dispatch.sh",
