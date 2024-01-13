@@ -163,26 +163,24 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                             -> int:
     
     num_te_encountered = 0
-    if args.resume == "no" :
-        return num_te_encountered
-    
-    task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
-    all_files = get_all_files(args)
-    
-    for done_path in tqdm( [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))],
-                            desc="Preparing taken/file-prooffile for resuming", leave=False ):
-        file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
-        with done_path.open('r') as f:
-            for line in f :
-                num_te_encountered += 1
-                task_dict, epsiode = json.loads(line)
-                task = RLTask(**task_dict)
-                if Path(task.src_file) in file_taken_dict:
-                    file_taken_dict[Path(task.src_file)].append((task, epsiode))
-                else:
-                    file_taken_dict[Path(task.src_file)] = [(task, epsiode)]
-                
-        write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
+    if args.resume == "yes" :
+        task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
+        all_files = get_all_files(args)
+        
+        for done_path in tqdm( [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))],
+                                desc="Preparing taken/file-prooffile for resuming", leave=False ):
+            file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
+            with done_path.open('r') as f:
+                for line in f :
+                    num_te_encountered += 1
+                    task_dict, epsiode = json.loads(line)
+                    task = RLTask(**task_dict)
+                    if Path(task.src_file) in file_taken_dict:
+                        file_taken_dict[Path(task.src_file)].append((task, epsiode))
+                    else:
+                        file_taken_dict[Path(task.src_file)] = [(task, epsiode)]
+                    
+            write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
                     
     for workerid in range(args.num_actors):
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
