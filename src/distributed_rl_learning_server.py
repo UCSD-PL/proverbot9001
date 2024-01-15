@@ -466,7 +466,7 @@ class BufferPopulatingThread(Thread):
 
         sequence_hash = int.from_bytes(hashlib.md5(
           json.dumps(newest_prestate_sequence.view(-1).tolist(),
-                     sort_keys=True).encode('utf-8')).digest())
+                     sort_keys=True).encode('utf-8')).digest(), byteorder='big')
         eprint(f"EObligation hash is {from_obl.context_hash()} "
                f"with previous tactic "
                f"{newest_prev_tactic_sample.item()}, "
@@ -501,7 +501,7 @@ class BufferPopulatingThread(Thread):
                                state_sequence_buffer.unsqueeze(0))
     sequence_hash = int.from_bytes(hashlib.md5(
       json.dumps(state_sequence_buffer.view(-1).tolist(),
-                 sort_keys=True).encode("utf-8")).digest())
+                 sort_keys=True).encode("utf-8")).digest(), byteorder='big')
     eprint(f"Receiving targeted sample {state_sample.context_hash()} "
            f"with target {target_steps.item()}, "
            f"from sequence hash {sequence_hash}.", guard=self.verbose >= 1)
@@ -538,7 +538,7 @@ class BufferPopulatingThread(Thread):
     dist.recv(tensor=state_sequence_buffer, src=sending_worker, tag=21)
     sequence_hash = int.from_bytes(hashlib.md5(
       json.dumps(state_sequence_buffer.view(-1).tolist(),
-                 sort_keys=True).encode("utf-8")).digest())
+                 sort_keys=True).encode("utf-8")).digest(), byteorder='big')
     with torch.no_grad():
       state_sample_vec = self.obligation_encoder\
                              .seq_lists_to_vectors(
