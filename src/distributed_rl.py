@@ -221,11 +221,8 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
 # need them to set up job state anyway.
 def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> List[Tuple[RLTask, int]]:
     check_resume(args)
-    print("Done check resume")
     make_initial_filestructure(args)
-    print("Done making initial filestructure")
     num_task_eps_done = prepare_taken_prooffiles(args,all_task_eps)
-    print("Done preparing te")
     return num_task_eps_done
 
 def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
@@ -236,11 +233,6 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
     tactic_vocab_size = predictor.prev_tactic_vocab_size
     assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
-    # print("Trying to load coq2vec")
-    # term_size = torch.load(args.coq2vec_weights, map_location="cpu")[5]
-    # print("Loaded coq2vec weights")
-    # num_hyps = 5
-    # encoding_size = term_size * (num_hyps + 1)
 
     actor_args = ([
                    "--prelude", str(args.prelude),
