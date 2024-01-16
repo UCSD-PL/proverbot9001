@@ -163,12 +163,12 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                             -> int:
     
     num_te_encountered = 0
-    if args.resume == "yes" :
+    done_paths = [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))]
+    if len(done_paths) > 0 :
         task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
         all_files = get_all_files(args)
         
-        for done_path in tqdm( [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))],
-                                desc="Preparing taken/file-prooffile for resuming", leave=False ):
+        for done_path in tqdm(done_paths, desc="Preparing taken/file-prooffile for resuming", leave=False):
             file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
             with done_path.open('r') as f:
                 for line in f :
