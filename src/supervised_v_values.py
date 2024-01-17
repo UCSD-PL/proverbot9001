@@ -171,6 +171,7 @@ def train(args: argparse.Namespace) -> float:
               args.batch_size) * args.batch_size
   np.random.shuffle(indices)
   train_indices, val_indices = indices[split:], indices[:split]
+  assert len(val_indices) > args.batch_size, "There's not enough validation data!"
   train_sampler = data.SubsetRandomSampler(train_indices)
   valid_sampler = data.SubsetRandomSampler(val_indices)
 
