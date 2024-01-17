@@ -527,10 +527,13 @@ def attempt_search(args: argparse.Namespace,
     return result
 
 def in_proofs_list(module: str, stmt: str, proofs_list: List[str]) -> bool:
-    for proof_ident in proofs_list:
-        match_string = module + coq_serapy.lemma_name_from_statement(stmt)
-        if match_string.endswith("." + proof_ident) or\
-           match_string == proof_ident:
+    match_string = module + coq_serapy.lemma_name_from_statement(stmt)
+    return in_qualified_proofs_list(match_string, proofs_list)
+
+def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
+    for qualified_ident in proofs_list:
+        if qualified_ident.endswith("." + job_line) or\
+           qualified_ident == job_line:
             return True
     return False
 

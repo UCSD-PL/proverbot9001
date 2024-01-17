@@ -52,7 +52,7 @@ from predict_tactic import static_predictors
 from search_results import SearchResult
 from search_worker import (ReportJob, SearchWorker, get_files_jobs,
                            get_predictor, project_dicts_from_args,
-                           files_of_dict)
+                           files_of_dict, in_qualified_proofs_list)
 import util
 
 from tqdm import tqdm
@@ -292,11 +292,6 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
 
     return already_done_jobs
 
-def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
-    for qualified_ident in proofs_list:
-        if qualified_ident.endswith("." + job_line):
-            return True
-    return False
 
 def get_all_jobs(args: argparse.Namespace, partition: Optional[str] = None) -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
