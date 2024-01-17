@@ -39,11 +39,9 @@ def main() -> None:
         args.splits_file = None
 
     all_task_eps = get_all_task_episodes(args)
-    print("Setting up job state")
     num_task_eps_done = setup_jobstate(args, all_task_eps)
     num_workers_actually_needed = min(len(all_task_eps) - num_task_eps_done,
                                       args.num_actors)
-    print("computed num workers needed")
     if num_workers_actually_needed > 0:
         if args.start_from is not None:
             _, _, _, (_, _, _, training_args), _, _, _ = \
@@ -227,9 +225,7 @@ def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, in
 
 def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                                 hidden_size: int, num_layers: int):
-    print("Dispatching learner and actors")
     predictor: FeaturesPolyargPredictor = get_predictor(args) # type: ignore
-    print("got predictor")
     tactic_vocab_size = predictor.prev_tactic_vocab_size
     assert num_actors > 0, num_actors
     cur_dir = os.path.realpath(os.path.dirname(__file__))
