@@ -53,6 +53,9 @@ from search_results import SearchResult
 from search_worker import (ReportJob, SearchWorker, get_files_jobs,
                            get_predictor, project_dicts_from_args,
                            files_of_dict, in_qualified_proofs_list)
+
+from rl_to_pickle import LearnedEstimator
+
 import util
 
 from tqdm import tqdm
