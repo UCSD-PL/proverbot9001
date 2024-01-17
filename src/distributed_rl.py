@@ -301,8 +301,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   "--gres=gpu:1",
                   "-t", args.worker_timeout,
                   "--mem", args.mem,
-                  "-N", str(num_actors + 1),
-                  "--cpus-per-task=1",
+                  "-n", str(num_actors + 1),
+                  "-c", "1",
                   "-J", f"drl-all-{args.output_file}",
                   f"{cur_dir}/dist_dispatch.sh",
                   f"{args.state_dir}/output/",
@@ -455,11 +455,14 @@ def cancel_workers(args: argparse.Namespace) -> None:
 
 def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
     save_path = latest_common_save(args)
+    predictor: FeaturesPolyargPredictor = get_predictor(args) # type: ignore
+    tactic_vocab_size = predictor.prev_tactic_vocab_size
     assert save_path is not None, \
       "We've reached the end of training, but no common weights are found " \
       "in the weights directory!"
     common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
+    args.tactic_vocab_size = tactic_vocab_size
     v_network_state: Tuple[dict, Any,
                            OrderedDict[Any, torch.FloatTensor],
                            argparse.Namespace] = \

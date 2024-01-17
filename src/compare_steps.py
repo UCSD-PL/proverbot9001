@@ -15,6 +15,7 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("reporta")
     parser.add_argument("reportb")
+    parser.add_argument("--print-same-length", action='store_true')
     parser.add_argument("--print-a-shorter", action='store_true')
     parser.add_argument("--print-a-only", action="store_true")
     parser.add_argument("--print-b-shorter", action='store_true')
@@ -89,7 +90,8 @@ def compare_steps(args: argparse.Namespace):
                             ])
             if sol_a["status"] == "SUCCESS" and sol_b["status"] == "SUCCESS":
                 if (args.print_a_shorter and sol_a['steps_taken'] < sol_b['steps_taken']) or \
-                   (args.print_b_shorter and sol_b['steps_taken'] < sol_a['steps_taken']):
+                   (args.print_b_shorter and sol_b['steps_taken'] < sol_a['steps_taken']) or \
+                   (args.print_same_length and sol_a['steps_taken'] == sol_b['steps_taken']):
                     print(f"For job {job[1]}:{job[2]}:{lemma_name}, "
                           f"{args.a_name} took {sol_a['steps_taken']} steps, "
                           f"{args.b_name} took {sol_b['steps_taken']+1} steps.")

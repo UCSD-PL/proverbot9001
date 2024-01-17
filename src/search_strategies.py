@@ -16,6 +16,7 @@ from tqdm import tqdm, trange
 
 if sys.version_info >= (3, 10):
     import lemma_models
+from rl_to_pickle import LearnedEstimator
 
 import coq_serapy
 from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context
@@ -917,7 +918,7 @@ def best_first_proof_search(lemma_name: str,
     assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
     if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
-            john_model = pickle.load(f)
+            pickled_estimator = pickle.load(f)
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
@@ -1023,22 +1024,11 @@ def best_first_proof_search(lemma_name: str,
                       enumerate(zip(coq.proof_context.fg_goals
                                     + coq.proof_context.bg_goals,
                                     coq.backend.get_all_sexp_goals())):
-                    model_ctx = lemma_models.ProofCtx(
-                      {"hypos": sexp_obl.hypotheses,
-                       "type": sexp_obl.goal,
-                       "goal_str": obl.goal,
-                       "hyp_strs": list(obl.hypotheses)})
-                    model_lem = lemma_models.Lemma(lemma_name, model_ctx)
-                    try:
-                        obl_score = float(john_model.predict_obl(obl, model_lem))
-                        if obl_score < 0:
-                            eprint("WARNING: Got a negative score from the pickled model")
-                            with open("neg_scored_states.ndjson", 'a') as f:
-                                print(json.dumps((obl.to_dict(), obl_score)), file=f)
-                        h_score += obl_score
-                    except lemma_models.UnhandledExpr:
-                        print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
-                        raise
+                    obl_score = float(pickled_estimator.predict_obl(
+                      lemma_name, obl, sexp_obl,
+                      predictor.prev_tactic_stem_idx(
+                        prediction.prediction)))
+                    h_score += obl_score
                 if args.scoring_function == "pickled-normcert":
                     normcert_score = prediction.certainty
                     path_length = 1

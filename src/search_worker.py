@@ -527,8 +527,13 @@ def attempt_search(args: argparse.Namespace,
     return result
 
 def in_proofs_list(module: str, stmt: str, proofs_list: List[str]) -> bool:
-    for proof_ident in proofs_list:
-        if (module + coq_serapy.lemma_name_from_statement(stmt)).endswith("." + proof_ident):
+    match_string = module + coq_serapy.lemma_name_from_statement(stmt)
+    return in_qualified_proofs_list(match_string, proofs_list)
+
+def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
+    for qualified_ident in proofs_list:
+        if qualified_ident.endswith("." + job_line) or\
+           qualified_ident == job_line:
             return True
     return False
 
@@ -575,3 +580,9 @@ def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
         project_dicts = [{"project_name": ".",
                           "test_files": [str(filename) for filename in args.filenames]}]
     return project_dicts
+def files_of_dict(args: argparse.Namespace,
+                  project_dict: Dict[str, Any]) -> List[str]:
+    if args.include_train_set:
+        return project_dict["train_files"] + project_dict["test_files"]
+    else:
+        return project_dict["test_files"]

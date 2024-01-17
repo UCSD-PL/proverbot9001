@@ -142,7 +142,7 @@ def train(args: argparse.Namespace) -> float:
            shorter_proofs_dict[t] < t.target_length:
           print(f"Found shorter length {shorter_proofs_dict[t]} for task {t}.")
     else:
-      target_v_values = torch.FloatTensor(
+      positive_target_v_values = torch.FloatTensor(
         [args.gamma ** t.target_length for t in tasks]).to(device)
     if args.negative_examples_from is not None:
       with args.negative_examples_from.open('r') as f:
@@ -171,6 +171,7 @@ def train(args: argparse.Namespace) -> float:
               args.batch_size) * args.batch_size
   np.random.shuffle(indices)
   train_indices, val_indices = indices[split:], indices[:split]
+  assert len(val_indices) > args.batch_size, "There's not enough validation data!"
   train_sampler = data.SubsetRandomSampler(train_indices)
   valid_sampler = data.SubsetRandomSampler(val_indices)
 

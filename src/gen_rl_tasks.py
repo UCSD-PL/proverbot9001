@@ -104,8 +104,6 @@ class RLTask:
 def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[ScrapedTactic]:
     full_path = args.prelude / job.project_dir / job.filename
     file_interactions = scraped_from_file(str(full_path.with_suffix(".v.scrape")))
-    print("the file")
-    print(full_path.with_suffix)
 
     sm_stack = coq_serapy.initial_sm_stack(job.filename)
     in_proof = False

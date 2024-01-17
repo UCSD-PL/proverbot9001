@@ -46,7 +46,8 @@ from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma
 import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
-from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
+from search_worker import (get_file_jobs, get_predictor,
+                           project_dicts_from_args, files_of_dict)
 from models.tactic_predictor import TacticPredictor
 
 import multi_project_report
@@ -70,8 +71,9 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
 
     if not args.output_dir.exists():
         os.makedirs(str(args.output_dir))
-    for project_dict in tqdm([project_dict for project_dict in project_dicts
-                              if len(project_dict["test_files"]) > 0],
+    for project_dict in tqdm([
+          project_dict for project_dict in project_dicts
+          if len(files_of_dict(args, project_dict)) > 0],
                              desc="Report Projects"):
         generate_project_report(args, predictor, project_dict, time_taken)
     if len(project_dicts) > 1:
@@ -88,12 +90,13 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
         if not destpath.exists():
             srcpath = base.parent / 'reports' / filename
             copyfile(srcpath, destpath)
-    for filename in tqdm(project_dict["test_files"], desc="Report Files", leave=False):
+    for filename in tqdm(files_of_dict(args, project_dict),
+                         desc="Report Files", leave=False):
         file_solutions = []
         output_file_prefix = args.output_dir / project_dict["project_name"] / \
               (safe_abbrev(Path(filename),
                                 [Path(path) for path in
-                                 project_dict["test_files"]]))
+                                 files_of_dict(args, project_dict)]))
         source_file = args.prelude / project_dict["project_name"] / filename
         try:
             with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
