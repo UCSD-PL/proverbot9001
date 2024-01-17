@@ -70,7 +70,7 @@ def main() -> None:
   args = parser.parse_args()
 
   # workerid = args.workerid
-  envvar_name = "SLURM_NODEID"
+  envvar_name = "SLURM_PROCID"
   assert envvar_name in os.environ
   workerid = int(os.environ[envvar_name]) - 1
 
