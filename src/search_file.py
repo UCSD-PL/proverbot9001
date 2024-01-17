@@ -309,7 +309,7 @@ def get_all_jobs(args: argparse.Namespace, partition: Optional[str] = None) -> L
     jobs = list(get_files_jobs(args, tqdm(proj_filename_tuples, desc="Getting jobs")))
     if args.proofs_file is not None:
         found_job_lines = [sm_prefix + coq_serapy.lemma_name_from_statement(stmt)
-                           for project, filename, sm_prefix, stmt, done_stmts in jobs]
+                           for project, filename, sm_prefix, stmt in jobs]
         with open(args.proofs_file, 'r') as f:
             jobs_lines = list(f)
         for job_line in jobs_lines:
