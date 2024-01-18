@@ -68,7 +68,7 @@ def main() -> None:
   parser.add_argument("-t", "--print-timings", action='store_true')
   # parser.add_argument("-w", "--workerid", required=True)
   args = parser.parse_args()
-
+  eprint("Parsed args")
   # workerid = args.workerid
   envvar_name = "SLURM_PROCID"
   assert envvar_name in os.environ
@@ -91,7 +91,17 @@ def main() -> None:
 
 def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
   task_eps = drl.get_all_task_episodes(args)
+  t = torch.cuda.get_device_properties(0).total_memory
+  r = torch.cuda.memory_reserved(0)
+  a = torch.cuda.memory_allocated(0)
+  f = r-a  # free inside reserved
+  eprint(t,r,a,f)
   actor = initialize_actor(args)
+  t = torch.cuda.get_device_properties(0).total_memory
+  r = torch.cuda.memory_reserved(0)
+  a = torch.cuda.memory_allocated(0)
+  f = r-a  # free inside reserved
+  eprint(t,r,a,f)
   assert isinstance(actor.predictor, rl.MemoizingPredictor), \
                     type(actor.predictor)
   assert isinstance(actor.predictor.underlying_predictor,
@@ -208,6 +218,12 @@ class LearningServerConnection:
                backend='mpi') -> None:
     term_encoder = coq2vec.CoqTermRNNVectorizer()
     device = "cpu"# "cuda" if torch.cuda.is_available() else "cpu"
+    eprint("Mapping to", device)
+    t = torch.cuda.get_device_properties(0).total_memory
+    r = torch.cuda.memory_reserved(0)
+    a = torch.cuda.memory_allocated(0)
+    f = r-a  # free inside reserved
+    eprint(t,r,a,f)
     term_encoder.load_state(torch.load(coq2vec_weights, map_location=device))
     num_hyps = 5
     self.obligation_encoder = rl.CachedObligationEncoder(term_encoder, num_hyps)
@@ -661,5 +677,6 @@ def experience_proof(args: argparse.Namespace,
     assert len(unwrap(coq.proof_context).all_goals) > 0
     assert len(unwrap(coq.proof_context).fg_goals) > 0
   return False, initial_obl, samples, negative_samples
+
 if __name__ == "__main__":
   main()

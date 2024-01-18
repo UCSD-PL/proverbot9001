@@ -76,7 +76,7 @@ def main() -> None:
   args = parser.parse_args()
   torch.manual_seed(0)
   random.seed(0)
-  torch.use_deterministic_algorithms(True)
+  # torch.use_deterministic_algorithms(True)
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
       print("1", file=f, flush=True)
