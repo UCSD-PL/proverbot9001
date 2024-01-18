@@ -51,7 +51,7 @@ class LearnedEstimator:
     scores = self.network(encoded,
                           torch.LongTensor([
                             previous_tactic_encoded])).view(1)
-    return math.log(scores[0].item())
+    return math.log(scores[0].item()) / math.log(self.args.gamma)
 
   def __getstate__(self) -> Any:
     return (self.network.state_dict(),
