@@ -622,7 +622,11 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
         first_line = f.readline().strip()
         hash_str = first_line[3:-3]
         if ignore_lin_hash or hash_file(filename) == hash_str:
-            return serapi_instance.read_commands(f.read())
+            contents = f.read()
+            num_lines = len(contents.split("\n"))
+            eprint(f"Parsing file with {num_lines} lines")
+            commands = serapi_instance.read_commands(contents)
+            return commands
         return None
 
 
