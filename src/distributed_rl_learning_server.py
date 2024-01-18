@@ -474,7 +474,7 @@ class BufferPopulatingThread(Thread):
                                newest_prev_tactic_sample.item(),
                                newest_prestate_sequence.unsqueeze(0))
         if from_obl in self.target_training_buffer._contents:
-          eprint(f"Skipping {from_obl.context_hash()};"
+          eprint(f"Skipping {from_obl.context_hash()}, "
                  f"{from_obl.previous_tactic} "
                  "because it's already in the original target buffer",
                  guard=self.verbose >= 1)
@@ -671,7 +671,7 @@ class EncodedReplayBuffer:
       existing_entry = self._contents.get(from_obl, (0, set()))
       if from_obl in self._contents and len(existing_entry[1]) == 0:
         eprint("WARNING: Trying to add transition from "
-               "{from_obl.context_hash()};{from_obl.previous_tactics}, "
+               "{from_obl.context_hash()}, {from_obl.previous_tactics}, "
                "but it's already marked as a negative example! Skipping...")
         return
       # assert from_obl not in self._contents or len(existing_entry[1]) > 0
@@ -679,7 +679,7 @@ class EncodedReplayBuffer:
         if action == existing_action:
           if to_obls != existing_to_obls:
             eprint(f"WARNING: Transition from state "
-                   f"{from_obl.context_hash()};"
+                   f"{from_obl.context_hash()}, "
                    f"{from_obl.previous_tactic} "
                    "clashed with previous entry! Skipping")
           return
@@ -689,7 +689,7 @@ class EncodedReplayBuffer:
         #   "but in the past it resulted in obls " \
         #   f"{[hash(obl) for obl in existing_to_obls]}."
       eprint(f"Adding positive transition from "
-             f"{from_obl.context_hash()};{from_obl.previous_tactic}",
+             f"{from_obl.context_hash()}, {from_obl.previous_tactic}",
              guard=self.verbose >= 1)
 
       self._contents[from_obl] = \
@@ -701,7 +701,7 @@ class EncodedReplayBuffer:
     with self.lock:
       if state in self._contents :
         if len(self._contents[state][1]) > 0:
-          eprint(f"WARNING: State {state.context_hash()};"
+          eprint(f"WARNING: State {state.context_hash()}, "
                  f"{state.previous_tactic} already had sample "
                  f"{self._contents[state]}, but we're trying to mark it as negative. "
                  "Skipping...")
