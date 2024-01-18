@@ -407,7 +407,8 @@ class BufferPopulatingThread(Thread):
     self.encoding_size = unwrap(
       obl_encoder.term_encoder.hidden_size) * \
                          (obl_encoder.max_num_hypotheses + 1)
-    self.max_term_length = obl_encoder.term_encoder.max_term_length
+    self.max_term_length = unwrap(obl_encoder.term_encoder
+                                  .max_term_length)
     self.target_training_buffer = target_training_buffer
     self.verification_states = {}
     self.ignore_after = ignore_after
