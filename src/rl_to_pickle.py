@@ -15,7 +15,7 @@ def main():
 
   with open(args.input_file, "rb") as f1:
       _, _, _, (network_state, encoder_state, _, training_args), \
-          _, _, _ = torch.load(f1)
+          _, _, _ = torch.load(f1, map_location="cpu")
 
   with open(args.output_file, 'wb') as f2:
     pickle.dump(LearnedEstimator(network_state, encoder_state, training_args),
