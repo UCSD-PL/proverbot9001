@@ -298,7 +298,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                         else []))
     total_args = ["srun",
                   "-p", args.partition,
-                  "--gres=gpu:1",
+                  "--gpus-per-task=1",
                   "-t", args.worker_timeout,
                   "--mem-per-cpu", args.mem,
                   "-n", str(num_actors + 1),
