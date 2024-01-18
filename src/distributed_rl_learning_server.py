@@ -220,134 +220,151 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         last_iter_verified = iters_trained
     time_started_waiting = time.time()
 
+def fairly_sample_buffers(args: argparse.Namespace,
+                          replay_buffer: EncodedReplayBuffer,
+                          original_target_buffer: TrueTargetBuffer) \
+   -> Optional[Tuple[List[ReplayBufferSample], List[TrueBufferSample]]]:
+  target_buffer_size = args.batch_size
+  tbuf_size = len(original_target_buffer)
+  rbuf_size = len(replay_buffer)
+  smaller_half = target_buffer_size // 2
+  larger_half = target_buffer_size - smaller_half
+  if tbuf_size == 0 and rbuf_size == 0:
+    return None
+  if tbuf_size + rbuf_size < target_buffer_size \
+      and not args.allow_partial_batches:
+    return None
+  if rbuf_size >= larger_half:
+    if tbuf_size >= smaller_half:
+      return (unwrap(replay_buffer.sample(larger_half)),
+              unwrap(original_target_buffer.sample(smaller_half)))
+    return (unwrap(replay_buffer.sample(target_buffer_size - tbuf_size)),
+            unwrap(original_target_buffer.sample(tbuf_size)))
+  else:
+    obuffer_samples = original_target_buffer.sample(target_buffer_size
+                                                    - rbuf_size)
+    if obuffer_samples is None:
+      obuffer_samples = []
+    return (unwrap(replay_buffer.sample(rbuf_size)), obuffer_samples)
+
+def obl_tensors(obls: List[EObligation]) -> \
+  Tuple[torch.FloatTensor, torch.LongTensor]:
+  assert len(obls) > 0
+  contexts = torch.cat([obl.local_context.view(1, -1)
+                        for obl in obls])
+  prev_tactics = torch.LongTensor(
+    [obl.previous_tactic for obl in obls]).to("cuda")
+  return (contexts, prev_tactics)
+
+def tbuf_samples_to_tensors(args: argparse.Namespace,
+                            samples: List[TrueBufferSample])\
+  -> Tuple[torch.FloatTensor, torch.LongTensor, torch.FloatTensor]:
+  if len(samples) == 0:
+    return (torch.FloatTensor([]).to("cuda"),
+            torch.LongTensor([]).to("cuda"),
+            torch.FloatTensor([]).to("cuda"))
+  contexts, prev_tactics = obl_tensors([obl for obl, _ in samples])
+  outputs = torch.FloatTensor(
+    [args.gamma ** target for obl, target in samples]).to("cuda")
+  if args.verbose >= 1:
+    for idx, (obl, target) in enumerate(samples):
+      eprint(f"[{idx}] For obl {obl.context_hash()}, "
+             f"{obl.previous_tactic}, using score "
+             f"{args.gamma} ** {target} = {args.gamma ** target}")
+  return (contexts, prev_tactics, outputs)
+
+def rbuf_samples_to_tensors(args: argparse.Namespace,
+                            target_model: VModel,
+                            samples: List[ReplayBufferSample],
+                            starting_idx: int = 0)\
+    -> Tuple[torch.FloatTensor, torch.LongTensor, torch.FloatTensor]:
+  if len(samples) == 0:
+    return (torch.FloatTensor([]).to("cuda"),
+            torch.LongTensor([]).to("cuda"),
+            torch.FloatTensor([]).to("cuda"))
+  contexts, prev_tactics = obl_tensors(
+    [start_obl for start_obl, _ in samples])
+  num_resulting_obls = [[len(resulting_obls)
+                         for _action, resulting_obls in action_records]
+                         for _start_obl, action_records in samples]
+  all_resulting_obls = [obl for _start_obl, action_records in samples
+                        for _action, resulting_obls in action_records
+                        for obl in resulting_obls]
+
+  if len(all_resulting_obls) > 0:
+    with torch.no_grad():
+      resulting_contexts, resulting_prev_tacs = \
+        obl_tensors(all_resulting_obls)
+      resulting_obl_scores = target_model(resulting_contexts,
+                                          resulting_prev_tacs)
+  else:
+      resulting_obl_scores = torch.FloatTensor([])
+
+  outputs = []
+  cur_row = 0
+
+  for idx, ((starting_obl, _), resulting_obl_lens) in \
+      enumerate(zip(samples, num_resulting_obls),
+                start=starting_idx):
+    if len(resulting_obl_lens) == 0:
+      eprint(f"[{idx}] for obl {starting_obl.context_hash()}, "
+             f"{starting_obl.previous_tactic}, "
+             "training as negative sample")
+      outputs.append(sys.float_info.min)
+      continue
+    action_outputs = []
+    for num_obls in resulting_obl_lens:
+      selected_obl_scores = [
+        obl_score.item() for obl_score in
+        resulting_obl_scores[cur_row:cur_row+num_obls]]
+      action_outputs.append(args.gamma * math.prod(selected_obl_scores))
+      if args.verbose >= 1:
+        eprint(f"[{idx}] For obl {starting_obl.context_hash()}, "
+               f"{starting_obl.previous_tactic}, "
+               "multiplying scores of obls:")
+        selected_obls = all_resulting_obls[cur_row:cur_row+num_obls]
+        for obl, obl_score in zip(selected_obls, selected_obl_scores):
+          eprint(f"{obl.context_hash()}, {obl.previous_tactic}: "
+                 f"{obl_score}")
+        eprint(f"And gamma ({args.gamma}) for new score "
+               f"{action_outputs[-1]}")
+      cur_row += num_obls
+    outputs.append(max(action_outputs))
+  return contexts, prev_tactics, torch.FloatTensor(outputs).to("cuda")
+
 def train(args: argparse.Namespace, v_model: VModel,
-          target_model: nn.Module,
+          target_model: VModel,
           optimizer: optim.Optimizer,
           replay_buffer: EncodedReplayBuffer,
-          originaltargetbuffer: TrueTargetBuffer) -> Optional[torch.FloatTensor]:
-  
-  original_target_samples = originaltargetbuffer.sample(args.batch_size//2)
-  replay_buffer_samples = replay_buffer.sample(args.batch_size//2)
+          originaltargetbuffer: TrueTargetBuffer) \
+    -> Optional[torch.FloatTensor]:
+  samples = fairly_sample_buffers(
+    args, replay_buffer, originaltargetbuffer)
+  assert samples is not None, \
+    "Shouldn't try to train before there are samples"
+  rbuf_samples, tbuf_samples = samples
   start_obl_hashes_seen: Set[Tuple[int, int]] = set()
-  if (replay_buffer_samples is None) and (original_target_samples is None):
-    eprint("No samples yet in both replay buffer or original target buffer. "
-           "Skipping training", guard=args.verbose >= 1)
-    return None
-  eprint(f"Got {len(replay_buffer_samples) if replay_buffer_samples else 0} "
-         f"samples to train from replay buffer at step {replay_buffer.buffer_steps} "
-         f"and {len(original_target_samples) if original_target_samples else 0} "
-         f"to train from Original target buffer", guard=args.verbose >= 1)
-  
+  eprint(f"Got {len(rbuf_samples)} samples from replay buffer, "
+         f"{len(tbuf_samples)} samples from true target buffer",
+         guard=args.verbose >= 1)
 
-  if original_target_samples:
-    original_target_local_contexts_encoded = torch.cat([start_obl.local_context
-                                               .view(1, -1)
-                                     for start_obl, _
-                                     in original_target_samples], dim=0)
-    for start_obl, _ in original_target_samples:
-      id_tuple = (start_obl.context_hash(), start_obl.previous_tactic)
-      assert id_tuple not in start_obl_hashes_seen,\
-        f"Obl {id_tuple} showed up in original target sample twice!"
-      start_obl_hashes_seen.add(id_tuple)
-    original_target_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
-                                          for start_obl, _ in original_target_samples]).to("cuda")
-    original_target_output = [args.gamma**target for obl,target in original_target_samples]
-    if args.verbose >= 2:
-      for idx, (start_obl, target) in enumerate(original_target_samples):
-        eprint(f"For obl {start_obl.context_hash()}, tactic {start_obl.previous_tactic}, "
-               f"giving fixed score of {args.gamma} ** {target} = {args.gamma ** target}")
-    original_target_obls = [start_obl for start_obl, _
-                            in original_target_samples]
-  else:
-    original_target_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
-    original_target_prev_tactic_indices = torch.LongTensor([]).to('cuda')
-    original_target_output = []
-    original_target_obls = []
-    
-  if replay_buffer_samples:
-    replay_buffer_local_contexts_encoded = torch.cat([start_obl.local_context
-                                               .view(1, -1)
-                                     for start_obl, _action_records
-                                     in replay_buffer_samples], dim=0)
-    for start_obl, _ in replay_buffer_samples:
-      id_tuple = (start_obl.context_hash(), start_obl.previous_tactic)
-      assert id_tuple not in start_obl_hashes_seen,\
-        f"Obl {id_tuple} showed up in both original target sample and replay buffer!"
-    for start_obl, _ in replay_buffer_samples:
-      id_tuple = (start_obl.context_hash(), start_obl.previous_tactic)
-      assert id_tuple not in start_obl_hashes_seen,\
-        "Obl {id_tuple} showed up in replay buffer twice!"
-      start_obl_hashes_seen.add(id_tuple)
-    replay_buffer_prev_tactic_indices = torch.LongTensor([start_obl.previous_tactic
-                                          for start_obl, _ in replay_buffer_samples]).to("cuda")
-    replay_buffer_obls = [start_obl for start_obl, _
-                          in replay_buffer_samples]
-    num_resulting_obls = [[len(resulting_obls)
-                          for _action, resulting_obls in action_records]
-                          for _start_obl, action_records in replay_buffer_samples]
-    all_resulting_obls = [obl for _start_obl, action_records in replay_buffer_samples
-                          for _action, resulting_obls in action_records
-                          for obl in resulting_obls]
-    if len(all_resulting_obls) > 0:
-      with torch.no_grad():
-        resulting_local_contexts_tensor = \
-          torch.cat([obl.local_context.view(1, -1)
-                     for obl in all_resulting_obls], dim=0)
-        resulting_prev_tactics_tensor = \
-            torch.LongTensor([obl.previous_tactic for obl
-                              in all_resulting_obls]).to("cuda")
-        all_obl_scores = target_model(resulting_local_contexts_tensor,
-                                      resulting_prev_tactics_tensor)
-    else:
-        all_obl_scores = torch.FloatTensor([]) 
-    replay_buffer_sample_outputs = []
-    cur_row = 0
-    assert len(replay_buffer_obls) == len(num_resulting_obls)
-    for idx, (starting_obl, resulting_obl_lens) in \
-        enumerate(zip(replay_buffer_obls, num_resulting_obls),
-                  start=len(original_target_obls)):
-      if len(resulting_obl_lens) == 0:
-        eprint(f"[{idx}] For obl {starting_obl.context_hash()}, "
-               f"tactic {starting_obl.previous_tactic}, "
-               "training as negative sample")
-        replay_buffer_sample_outputs.append(sys.float_info.min)
-        continue
-      action_outputs = []
-      for num_obls in resulting_obl_lens:
-        selected_obl_scores = [
-          obl_score.item() for obl_score in
-          all_obl_scores[cur_row:cur_row+num_obls]]
-        if args.verbose >= 1:
-          eprint(f"[{idx}] For obl {starting_obl.context_hash()}, "
-                 f"tactic {starting_obl.previous_tactic}, "
-                 f"multiplying scores of obls:")
-          for obl, obl_score in zip(all_resulting_obls[cur_row:cur_row+num_obls],
-                                    all_obl_scores[cur_row:cur_row+num_obls]) :
-              eprint(f"{obl.context_hash()}, {obl.previous_tactic}: "
-                     f"{obl_score.item()}")
-        action_outputs.append(args.gamma * math.prod(selected_obl_scores))
-        if args.verbose >= 1:
-          eprint(f"And gamma for new score {action_outputs[-1]}")
-        cur_row += num_obls
-      replay_buffer_sample_outputs.append(max(action_outputs))
-    assert len(replay_buffer_obls) == len(replay_buffer_sample_outputs)
-  else :
-    replay_buffer_local_contexts_encoded = torch.FloatTensor([]).to('cuda')
-    replay_buffer_prev_tactic_indices = torch.LongTensor([]).to('cuda')
-    replay_buffer_sample_outputs = []
-    replay_buffer_obls = []
+  tbuf_contexts, tbuf_prev_tacs, tbuf_outputs = \
+    tbuf_samples_to_tensors(args, tbuf_samples)
+  tbuf_obls = [obl for obl, _ in tbuf_samples]
 
+  rbuf_contexts, rbuf_prev_tacs, rbuf_outputs = \
+    rbuf_samples_to_tensors(args, target_model, rbuf_samples,
+                            starting_idx=len(tbuf_samples))
+  rbuf_obls = [obl for obl, _ in rbuf_samples]
 
-  local_context_input = torch.cat( (original_target_local_contexts_encoded, replay_buffer_local_contexts_encoded ) )
-  prev_tactics_input = torch.cat( (original_target_prev_tactic_indices, replay_buffer_prev_tactic_indices) )
-  outputs = original_target_output + replay_buffer_sample_outputs
+  all_contexts = torch.cat((tbuf_contexts, rbuf_contexts))
+  all_prev_tacs = torch.cat((tbuf_prev_tacs, rbuf_prev_tacs))
+  all_obls = tbuf_obls + rbuf_obls
+  target_values = torch.cat((tbuf_outputs, rbuf_outputs))
+  actual_values = v_model(all_contexts, all_prev_tacs)\
+      .view(len(tbuf_samples) + len(rbuf_samples))
 
-  actual_values = v_model(local_context_input, prev_tactics_input).view(len(replay_buffer_sample_outputs) + len(original_target_output))
   device = "cuda"
-  target_values = torch.FloatTensor(outputs).to(device)
-
-  assert len(local_context_input) == len(prev_tactics_input)
-  assert len(prev_tactics_input) == len(outputs)
 
   loss: torch.FloatTensor
   if args.loss == "simple":
@@ -358,12 +375,10 @@ def train(args: argparse.Namespace, v_model: VModel,
   if args.verbose >= 1:
     eprint("Training obligations to values:")
     for idx, (context, prev_tactic, output, actual_value) \
-        in enumerate(zip(original_target_obls + replay_buffer_obls,
-                     prev_tactics_input, outputs, actual_values)):
-      # local_loss = F.mse_loss(actual_value, torch.FloatTensor([output]).to(device)[0])
+        in enumerate(zip(tbuf_obls + rbuf_obls,
+                     all_prev_tacs, target_values, actual_values)):
       eprint(f"[{idx}] {context.context_hash()}, {prev_tactic.item()}: "
-             f"{actual_value.item():.6f} -> {output:.6f} ")
-             #f"(Loss {local_loss:.6f})")
+             f"{actual_value.item():.6f} -> {output.item():.6f} ")
   optimizer.zero_grad()
   loss.backward()
   optimizer.step()
@@ -563,6 +578,8 @@ class BufferPopulatingThread(Thread):
 ETransition = Tuple[int, Sequence[EObligation]]
 EFullTransition = Tuple[EObligation, int, List[EObligation]]
 
+TrueBufferSample = Tuple[EObligation, int]
+
 class TrueTargetBuffer:
   _contents: Dict[EObligation, int]
   lock: Lock
@@ -599,6 +616,10 @@ class TrueTargetBuffer:
         "Tried to remove an obligation that wasn't "\
         "in the target buffer!"
       del self._contents[state]
+  def __len__(self) -> int:
+    return len(self._contents)
+
+ReplayBufferSample = Tuple[EObligation, Set[ETransition]]
 
 class EncodedReplayBuffer:
   buffer_steps: int
@@ -620,7 +641,7 @@ class EncodedReplayBuffer:
     self.buffer_steps = 0
 
   def sample(self, batch_size: int) -> \
-        Optional[List[Tuple[EObligation, Set[ETransition]]]]:
+        Optional[List[ReplayBufferSample]]:
     with self.lock:
       sample_pool: List[Tuple[EObligation, Set[ETransition]]] = []
       for obl, (last_updated, transitions) in self._contents.copy().items():
@@ -695,15 +716,17 @@ class EncodedReplayBuffer:
     return [obl for obl, (pos, transitions)  in self._contents.items()
             if len(transitions) == 0]
   def get_buffer_contents(self) -> List[Tuple[EObligation, int,
-                                              List[EObligation]]]:
+                                              Optional[List[EObligation]]]]:
     results: List[Tuple[EObligation, int,
-                        Optional[List[Eobligation]]]]  = []
+                        Optional[List[EObligation]]]]  = []
     for eobligation, (position, transitions) in self._contents.items():
       if len(transitions) == 0:
         results.append((eobligation, 0, None))
       for action, obligations in transitions:
-        results.append((eobligation, action, obligations))
+        results.append((eobligation, action, list(obligations)))
     return results
+  def __len__(self) -> int:
+    return len(self._contents)
 
 def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
   save_path = str(args.state_dir / "weights" / f"common-v-network-{version}.dat")
