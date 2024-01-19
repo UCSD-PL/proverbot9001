@@ -172,11 +172,12 @@ def train(args: argparse.Namespace) -> float:
               args.batch_size) * args.batch_size
   np.random.shuffle(indices)
   train_indices, val_indices = indices[split:], indices[:split]
-  assert len(val_indices) > args.batch_size, "There's not enough validation data!"
+  valid_batch_size = args.batch_size // 2
+  assert len(val_indices) > valid_batch_size, "There's not enough validation data! "\
+    "only {len(val_indices)}, but batch size is {args.batch_size}"
   train_sampler = data.SubsetRandomSampler(train_indices)
   valid_sampler = data.SubsetRandomSampler(val_indices)
 
-  valid_batch_size = args.batch_size // 2
 
   full_dataset = data.TensorDataset(encoded_states,
                                     prev_tactics_encoded,
