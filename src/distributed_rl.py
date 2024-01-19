@@ -312,7 +312,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   "\" " + " ".join(actor_args) + " \""]
     str_args = " ".join(total_args)
     util.eprint(f"Running as {str_args}")
-    subprocess.Popen(total_args) #, stderr=subprocess.DEVNULL)
+    subprocess.Popen(total_args, stderr=subprocess.DEVNULL)
 
 TaskEpisode = Tuple[RLTask, int]
 def get_all_task_episodes(args: argparse.Namespace) -> List[TaskEpisode]:
