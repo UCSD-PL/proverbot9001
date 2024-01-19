@@ -146,7 +146,14 @@ def silent():
 import signal as sig
 @contextlib.contextmanager
 def sighandler_context(signal, f):
-    old_handler = sig.signal(signal, f)
+    def dummy_handler(*args, **kwargs):
+        pass
+    old_handler = sig.signal(signal, dummy_handler)
+    def wrapped_f(*args, **kwargs):
+        sig.signal(signal, old_handler)
+        handler_result = f(*args, **kwargs)
+        return handler_result
+    sig.signal(signal, wrapped_f)
     yield
     sig.signal(signal, old_handler)
 

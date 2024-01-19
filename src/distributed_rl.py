@@ -25,6 +25,8 @@ import rl
 import util
 import torch
 
+num_task_eps_done: int
+
 def main() -> None:
     parser = argparse.ArgumentParser(
         description="Train a state estimator using reinforcement learning"
@@ -345,6 +347,7 @@ def get_all_files(args: argparse.Namespace) -> List[Path]:
                 for filename in project_dict["test_files"]]
 
 def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]], num_actors_dispatched: int) -> None:
+    global num_task_eps_done
     num_task_eps_progress = get_num_task_eps_done(args)
     num_task_eps_done = 0
     scheduled_actors: List[int] = []
@@ -402,8 +405,10 @@ def get_num_task_eps_done(args: argparse.Namespace) -> int:
     return num_task_eps_done
 
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
+    util.eprint("Interrupting but saving results (interrupt again to cancel)")
     cancel_workers(args)
-    sys.exit(0)
+    build_final_save(args, num_task_eps_done)
+    sys.exit(1)
 
 def latest_common_save_num(args: argparse.Namespace) -> Optional[int]:
     root_dir = str(args.state_dir / "weights")
