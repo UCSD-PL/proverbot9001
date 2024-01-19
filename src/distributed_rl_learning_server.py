@@ -592,14 +592,11 @@ class TrueTargetBuffer:
 
   def sample(self, batch_size:int) -> \
       Optional[List[Tuple[EObligation, int]]] :
-    sampled = None
     with self.lock:
       if len(self._contents) >= batch_size :
-        sampled = random.sample(list(self._contents.items()), batch_size)
+        return random.sample(list(self._contents.items()), batch_size)
       elif self.allow_partial_batches and len(self._contents) > 0:
-        sampled = list(self._contents.items())
-    return sampled
-
+        return list(self._contents.items())
   
   def add_target(self, state : EObligation, target : int) -> None :
     with self.lock :
