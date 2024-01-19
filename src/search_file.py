@@ -318,7 +318,7 @@ def get_all_jobs(args: argparse.Namespace, partition: Optional[str] = None) -> L
         assert len(jobs) == len(jobs_lines), \
             f"There are {len(jobs_lines)} lines in the jobs file but only {len(jobs)} found jobs!"
     elif args.proof:
-        assert len(jobs) == 1
+        assert len(jobs) == 1, jobs
     return jobs
 
 def remove_already_done_jobs(args: argparse.Namespace) -> None:
