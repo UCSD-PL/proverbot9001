@@ -169,8 +169,11 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         eprint(f"Loss: {smoothed_loss} (learning rate {lr:.3e})")
       if vsample_changed and args.reset_on_updated_sample:
         vsample_changed = False
-        optimizer = optimizers[args.optimizer](v_network.parameters(),
-                                                                lr=args.learning_rate)
+        optimizer = optimizers[args.optimizer](
+          [{"params": v_network.tactic_embedding.parameters(),
+            "lr": args.learning_rate * 20},
+           {"params": v_network.prediction_network.parameters()}],
+          lr=args.learning_rate)
         adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                                     args.learning_rate_decay)
         eprint("Resetting the optimizer and adjuster",
@@ -203,8 +206,11 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         else:
           target_network.load_state_dict(v_network.state_dict())
         if args.reset_on_sync:
-          optimizer = optimizers[args.optimizer](v_network.parameters(),
-                                                                  lr=args.learning_rate)
+          optimizer = optimizers[args.optimizer](
+            [{"params": v_network.tactic_embedding.parameters(),
+              "lr": args.learning_rate * 20},
+             {"params": v_network.prediction_network.parameters()}],
+            lr=args.learning_rate)
           adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                                       args.learning_rate_decay)
           eprint("Resetting the optimizer and adjuster", guard=args.verbose >= 1)
