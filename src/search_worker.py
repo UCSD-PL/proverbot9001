@@ -532,7 +532,7 @@ def in_proofs_list(module: str, stmt: str, proofs_list: List[str]) -> bool:
 
 def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
     for qualified_ident in proofs_list:
-        if qualified_ident.endswith("." + job_line) or\
+        if job_line.endswith("." + qualified_ident) or\
            qualified_ident == job_line:
             return True
     return False
