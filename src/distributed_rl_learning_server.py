@@ -87,7 +87,6 @@ vsample_changed: bool = False
 
 def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   global vsample_changed
-  global learning_rate_restart
   eprint("Establishing connection")
   dist.init_process_group(backend)
   eprint("Connection established")
