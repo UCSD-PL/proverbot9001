@@ -74,7 +74,6 @@ def main() -> None:
   parser.add_argument("--verbose", "-v", help="verbose output", action="count", default=0)
   parser.add_argument("--loss", choices=["simple", "log"],
                       default="simple")
-  parser.add_argument("--dual-learning", type=bool, default=True)
   args = parser.parse_args()
   torch.manual_seed(0)
   random.seed(0)
