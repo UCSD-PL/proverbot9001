@@ -70,9 +70,11 @@ def main() -> None:
   parser.add_argument("--learning-rate-decay", type=float, default=0.8)
   parser.add_argument("--reset-on-updated-sample", action='store_true')
   parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
+  parser.add_argument("--decrease-lr-on-reset", action='store_true', dest='decrease_lr_on_reset')
   parser.add_argument("--verbose", "-v", help="verbose output", action="count", default=0)
   parser.add_argument("--loss", choices=["simple", "log"],
                       default="simple")
+  parser.add_argument("--dual-learning", type=bool, default=True)
   args = parser.parse_args()
   torch.manual_seed(0)
   random.seed(0)
@@ -86,6 +88,7 @@ vsample_changed: bool = False
 
 def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   global vsample_changed
+  global learning_rate_restart
   eprint("Establishing connection")
   dist.init_process_group(backend)
   eprint("Connection established")
@@ -123,6 +126,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     lr=args.learning_rate)
   adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                               args.learning_rate_decay)
+  learning_rate_restart = args.learning_rate
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches,
                                       args.verbose)
@@ -203,8 +207,11 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         else:
           target_network.load_state_dict(v_network.state_dict())
         if args.reset_on_sync:
+          if args.decrease_lr_on_reset:
+            learning_rate_restart = learning_rate_restart * args.learning_rate_decay
+            eprint("decreasing lr to " + str(learning_rate_restart))
           optimizer = optimizers[args.optimizer](v_network.parameters(),
-                                                                  lr=args.learning_rate)
+                                                                  lr=learning_rate_restart)
           adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                                       args.learning_rate_decay)
           eprint("Resetting the optimizer and adjuster", guard=args.verbose >= 1)
