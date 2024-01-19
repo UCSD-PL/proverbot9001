@@ -110,6 +110,7 @@ def train(args: argparse.Namespace) -> float:
     predictor = get_predictor(args)
     assert isinstance(predictor, FeaturesPolyargPredictor)
     tactic_vocab_size = predictor.prev_tactic_vocab_size
+    args.tactic_vocab_size = tactic_vocab_size
     v_network = VNetwork(args, args.encoder_weights, predictor)
     assert isinstance(v_network.network, VModel)
   if args.start_from is not None:
