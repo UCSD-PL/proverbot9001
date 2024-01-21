@@ -102,6 +102,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--dump-negative-examples", type=Path, default=None)
     parser.add_argument("--dump-replay-buffer", type=Path, default=None)
     parser.add_argument("--no-reset-on-sync", action='store_false', dest='reset_on_sync')
+    parser.add_argument("--decrease-lr-on-reset", action='store_true', dest='decrease_lr_on_reset')
     parser.add_argument("--qos", type=str, default=None)
     parser.add_argument("--lr-reset", type=bool, default=False)
     parser.add_argument("--loss", choices=["simple", "log"],
@@ -283,6 +284,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                         if args.start_from is not None else [])
                      + (["--no-reset-on-sync"]
                         if not args.reset_on_sync else [])
+                     + (["--decrease-lr-on-reset"]
+                        if args.decrease_lr_on_reset else [])
                      + (["--ignore-after", str(args.ignore_after)]
                         if args.ignore_after is not None else [])
                      + (["--learning-rate-step", str(args.learning_rate_step)]
