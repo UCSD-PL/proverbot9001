@@ -92,7 +92,7 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
                        mode="min",
                        search_alg=algo,
                        num_samples=256),
-                     run_config=air.RunConfig(stop={"training_iteration": 5}),
+                     run_config=air.RunConfig()
                      param_space=search_space)
   results = tuner.fit()
   print("Best config is:", results.get_best_result().config)
