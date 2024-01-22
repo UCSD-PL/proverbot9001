@@ -39,7 +39,11 @@ def main() -> None:
         args.splits_file = args.filenames[0]
     else:
         args.splits_file = None
+    args.catch_interrupts = True
+    args.progress = True
+    distributed_rl(args)
 
+def distributed_rl(args: argparse.Namespace):
     all_task_eps = get_all_task_episodes(args)
     num_task_eps_done = setup_jobstate(args, all_task_eps)
     num_workers_actually_needed = min(len(all_task_eps) - num_task_eps_done,
@@ -56,10 +60,11 @@ def main() -> None:
         dispatch_learner_and_actors(args, num_workers_actually_needed,
                                     hidden_size, num_layers)
         with util.sighandler_context(signal.SIGINT,
-                                     functools.partial(interrupt_early, args)):
+                                     functools.partial(interrupt_early, args),
+                                     guard=args.catch_interrupts):
             show_progress(args, all_task_eps, num_workers_actually_needed)
         cancel_workers(args)
-    elif num_workers_actually_needed < 0:
+    else:
         util.eprint(f"WARNING: there are {num_task_eps_done} tasks eps already done, but only {len(all_task_eps)} task eps total! "
                "This means that something didn't resume properly, or you resumed with a smaller task set")
     build_final_save(args, len(all_task_eps))
@@ -152,7 +157,8 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
                 pass
     #Clearing out taken/file-prooffile for the next step
     for filename in tqdm(all_files,
-            desc="Clearing all taken/file-prooffile", leave=False):
+            desc="Clearing all taken/file-prooffile", leave=False,
+            disable=not args.progress):
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
                                           all_files) + ".txt")).open("w") as f:
@@ -169,7 +175,9 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
         task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
         all_files = get_all_files(args)
         
-        for done_path in tqdm(done_paths, desc="Preparing taken/file-prooffile for resuming", leave=False):
+        for done_path in tqdm(done_paths,
+                              desc="Preparing taken/file-prooffile for resuming",
+                              leave=False, disable=not args.progress):
             file_taken_dict: Dict[Path, List[Tuple[RLTask, int]]] = {}
             with done_path.open('r') as f:
                 for line in f :
@@ -201,7 +209,9 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
                                     -> None:
 
     for fidx, filename in enumerate(tqdm(file_done_task_eps.keys(),
-                                         desc="For current Done file Writing file taken files", leave=False)):
+                                         desc="For current Done file Writing file taken files",
+                                         leave=False,
+                                         disable=not args.progress)):
         with (args.state_dir / "taken" /
               ("file-" + util.safe_abbrev(filename,
                                           all_files) + ".txt")).open("a") as f:
@@ -358,9 +368,10 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
     learner_is_scheduled = False
     start_time = time.time()
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
-              initial=num_task_eps_progress, dynamic_ncols=True) as task_eps_bar, \
+              initial=num_task_eps_progress, dynamic_ncols=True,
+              disable=not args.progress) as task_eps_bar, \
          tqdm(desc="Actors scheduled", total=num_actors_dispatched,
-              dynamic_ncols=True) as wbar:
+              dynamic_ncols=True, disable=not args.progress) as wbar:
         while num_task_eps_done < len(all_task_eps):
             num_task_eps_done = get_num_task_eps_done(args)
             # Update the bar with the tasks that have been finished
