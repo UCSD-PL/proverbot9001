@@ -324,7 +324,7 @@ def rbuf_samples_to_tensors(args: argparse.Namespace,
     if len(resulting_obl_lens) == 0:
       eprint(f"[{idx}] for obl {starting_obl.context_hash()}, "
              f"{starting_obl.previous_tactic}, "
-             "training as negative sample")
+             "training as negative sample", args.verbose >= 1)
       outputs.append(sys.float_info.min)
       continue
     action_outputs = []
