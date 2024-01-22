@@ -152,6 +152,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
     # signal_change.clear()
     # eprint(f"Waited {time.time() - time_started_waiting:.4f}s for signal")
     # if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
+    if len(replay_buffer) < args.batch_size and not args.allow_partial_batches:
+      continue
     with print_time(f"Training iter {iters_trained}"):
       steps_last_trained = replay_buffer.buffer_steps
       loss = train(args, v_network, target_network, optimizer, replay_buffer, true_target_buffer)
