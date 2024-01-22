@@ -228,8 +228,11 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
        iters_trained - last_iter_verified >= args.verifyv_every and \
        len(buffer_thread.verification_states) > 0:
       with print_time("Verifying"):
-        print_vvalue_errors(args.gamma, v_network, buffer_thread.verification_states)
+        error = print_vvalue_errors(args.gamma, v_network,
+                                    buffer_thread.verification_states)
         last_iter_verified = iters_trained
+      with (args.state_dir / "latest_error.txt").open('w') as f:
+        print(error, file=f)
     time_started_waiting = time.time()
 
 def fairly_sample_buffers(args: argparse.Namespace,
@@ -774,6 +777,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   total_error = torch.sum(step_errors).item()
   avg_error = total_error / len(items)
   eprint(f"Average step error across {len(items)} initial states: {avg_error:.6f}")
+  return avg_error
 
 if __name__ == "__main__":
   main()
