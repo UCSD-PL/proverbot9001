@@ -476,12 +476,12 @@ def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
     save_path = latest_common_save(args)
     predictor: FeaturesPolyargPredictor = get_predictor(args) # type: ignore
     tactic_vocab_size = predictor.prev_tactic_vocab_size
+    args.tactic_vocab_size = tactic_vocab_size
     assert save_path is not None, \
       "We've reached the end of training, but no common weights are found " \
       "in the weights directory!"
     common_network_weights_dict = torch.load(str(save_path), map_location="cpu")
     obl_encoder_state = torch.load(args.coq2vec_weights, map_location="cpu")
-    args.tactic_vocab_size = tactic_vocab_size
     v_network_state: Tuple[dict, Any,
                            OrderedDict[Any, torch.FloatTensor],
                            argparse.Namespace] = \
