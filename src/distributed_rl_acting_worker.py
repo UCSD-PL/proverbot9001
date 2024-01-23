@@ -153,7 +153,7 @@ class RLActor:
       self.file_workers[filename] = worker
       self.file_workers.move_to_end(filename)
     if len(self.file_workers) > self.args.max_sertop_workers:
-      filename, evicted_worker = self.file_workers.popitem(last=False)
+      _, evicted_worker = self.file_workers.popitem(last=False)
       unwrap(evicted_worker.coq).kill()
     return self.file_workers[filename]
   def run_task_reinforce(self, task: RLTask, epsilon: float,
