@@ -32,7 +32,7 @@ from tokenizer import Tokenizer
 from data import (ListDataset, RawDataset,
                   EOS_token)
 from util import (eprint, print_time, unwrap)
-from torch_util import (maybe_cuda, LongTensor, FloatTensor, ByteTensor)
+from torch_util import (LongTensor, FloatTensor, ByteTensor, use_cuda, cuda_device)
 import util
 import math
 from coq_serapy.contexts import TacticContext
@@ -112,21 +112,28 @@ FeaturesPolyargState = Tuple[Any, NeuralPredictorState]
 class GoalTokenEncoderModel(nn.Module):
     def __init__(self, stem_vocab_size: int,
                  input_vocab_size: int,
-                 hidden_size: int) -> None:
+                 hidden_size: int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.hidden_size = hidden_size
-        self._stem_embedding = maybe_cuda(
-            nn.Embedding(stem_vocab_size, hidden_size))
-        self._token_embedding = maybe_cuda(
-            nn.Embedding(input_vocab_size, hidden_size))
-        self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size,batch_first=True))
+        self._stem_embedding = \
+            nn.Embedding(stem_vocab_size, hidden_size).to(self.device)
+        self._token_embedding = \
+            nn.Embedding(input_vocab_size, hidden_size).to(self.device)
+        self._gru = nn.GRU(hidden_size, hidden_size,batch_first=True).to(self.device)
         # localize global variable for compilation
         self._EOS_token = EOS_token
 
     def forward(self, stem_batch: torch.LongTensor, goal_batch: torch.LongTensor) \
             -> torch.FloatTensor:
-        goal_var = maybe_cuda(goal_batch)
-        stem_var = maybe_cuda(stem_batch)
+        goal_var = goal_batch.to(self.device)
+        stem_var = stem_batch.to(self.device)
         batch_size = goal_batch.size()[0]
         assert stem_batch.size()[0] == batch_size
         initial_hidden = self._stem_embedding(stem_var)\
@@ -139,7 +146,7 @@ class GoalTokenEncoderModel(nn.Module):
                 .reshape([goal_var.shape[0],goal_var.shape[1],self.hidden_size]))
 
         # suffix with EOS_token embedding
-        EOS = F.relu(self._token_embedding(LongTensor([self._EOS_token])))
+        EOS = F.relu(self._token_embedding(torch.LongTensor([self._EOS_token]).to(self.device)))
         tokens_embedded_EOS = torch.cat([tokens_embedded, EOS[None,:,:].broadcast_to([batch_size,1,self.hidden_size])],dim=1)
 
 
@@ -154,14 +161,22 @@ class GoalTokenEncoderModel(nn.Module):
 class GoalTokenArgModel(nn.Module):
     def __init__(self, stem_vocab_size: int,
                  input_vocab_size: int,
-                 hidden_size: int) -> None:
+                 hidden_size: int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.encoder_model = GoalTokenEncoderModel(
             stem_vocab_size,
             input_vocab_size,
-            hidden_size)
-        self._likelyhood_layer = maybe_cuda(
-            EncoderDNN(hidden_size, hidden_size, 1, 2))
+            hidden_size, device=self.device)
+        self._likelyhood_layer = \
+            EncoderDNN(hidden_size, hidden_size, 1, 2,
+                       self.device).to(self.device)
 
     def forward(self, stem_batch: torch.LongTensor,
                 goal_batch: torch.LongTensor) -> torch.FloatTensor:
@@ -176,23 +191,32 @@ class HypArgEncoder(nn.Module):
                  token_vocab_size: int,
                  hyp_features_size: int,
                  goal_data_size: int,
-                 hidden_size: int) -> None:
+                 hidden_size: int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.hidden_size = hidden_size
-        self._stem_embedding = maybe_cuda(
-            nn.Embedding(stem_vocab_size, hidden_size))
-        self._token_embedding = maybe_cuda(
-            nn.Embedding(token_vocab_size, hidden_size))
-        self._in_hidden = maybe_cuda(EncoderDNN(
-            hidden_size + goal_data_size, hidden_size, hidden_size, 1))
-        self._hyp_gru = maybe_cuda(nn.GRU(hidden_size, hidden_size, batch_first=True))
+        self._stem_embedding = \
+            nn.Embedding(stem_vocab_size, hidden_size).to(self.device)
+        self._token_embedding = \
+            nn.Embedding(token_vocab_size, hidden_size).to(self.device)
+        self._in_hidden = EncoderDNN(
+            hidden_size + goal_data_size, hidden_size, hidden_size, 1,
+            self.device).to(self.device)
+        self._hyp_gru = nn.GRU(hidden_size, hidden_size,
+                               batch_first=True).to(self.device)
 
     def forward(self,
                 stems_batch: torch.LongTensor,
                 goals_encoded_batch: torch.FloatTensor,
                 hyps_batch: torch.LongTensor) -> torch.FloatTensor:
-        stems_var = maybe_cuda(stems_batch)
-        hyps_var = maybe_cuda(hyps_batch)
+        stems_var = stems_batch.to(self.device)
+        hyps_var = hyps_batch.to(self.device)
         batch_size = stems_batch.size()[0]
         assert goals_encoded_batch.size()[0] == batch_size
         assert hyps_batch.size()[0] == batch_size, \
@@ -219,16 +243,25 @@ class HypArgModel(nn.Module):
                  stem_vocab_size: int,
                  token_vocab_size: int,
                  hyp_features_size: int,
-                 hidden_size: int) -> None:
+                 hidden_size: int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.arg_encoder = HypArgEncoder(stem_vocab_size,
                                          token_vocab_size,
                                          hyp_features_size,
                                          goal_data_size,
-                                         hidden_size)
+                                         hidden_size,
+                                         self.device)
         self.hidden_size = hidden_size
-        self._likelyhood_decoder = maybe_cuda(EncoderDNN(
-            hidden_size + hyp_features_size, hidden_size, 1, 2))
+        self._likelyhood_decoder = EncoderDNN(
+            hidden_size + hyp_features_size, hidden_size, 1, 2,
+            self.device).to(self.device)
 
     def forward(self, stems_batch: torch.LongTensor,
                 goals_encoded_batch: torch.FloatTensor, hyps_batch: torch.LongTensor,
@@ -247,27 +280,36 @@ class FeaturesClassifier(nn.Module):
                  vecf_size: int,
                  hidden_size: int,
                  num_layers: int,
-                 stem_vocab_size: int)\
+                 stem_vocab_size: int,
+                 device: Optional[str] = None)\
             -> None:
         super().__init__()
-        self._word_features_encoder = maybe_cuda(
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
+        self._word_features_encoder = \
             WordFeaturesEncoder(wordf_sizes,
-                                hidden_size, 1, hidden_size))
-        self._features_classifier = maybe_cuda(
+                                hidden_size, 1, hidden_size,
+                                self.device).to(self.device)
+        self._features_classifier = \
             DNNClassifier(hidden_size + vecf_size,
-                          hidden_size, stem_vocab_size, num_layers))
-        self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
+                          hidden_size, stem_vocab_size,
+                          num_layers, self.device).to(self.device)
+        self._softmax = nn.LogSoftmax(dim=1).to(self.device)
         pass
 
     def forward(self,
                 word_features_batch: torch.LongTensor,
                 vec_features_batch: torch.FloatTensor) -> torch.FloatTensor:
         encoded_word_features = self._word_features_encoder(
-            maybe_cuda(word_features_batch))
+            word_features_batch.to(self.device))
         assert not torch.any(torch.isnan(encoded_word_features))
         assert not torch.any(torch.isnan(vec_features_batch))
         scores = self._features_classifier(
-            torch.cat((encoded_word_features, maybe_cuda(vec_features_batch)), dim=1))
+            torch.cat((encoded_word_features, vec_features_batch.to(self.device)), dim=1))
         assert not torch.any(torch.isnan(scores))
         stem_distribution = self._softmax(scores)
         assert not torch.any(torch.isnan(stem_distribution))
@@ -279,12 +321,19 @@ class FeaturesPolyArgModel(nn.Module):
                  stem_classifier: FeaturesClassifier,
                  goal_args_model: GoalTokenArgModel,
                  goal_encoder: EncoderRNN,
-                 hyp_model: HypArgModel) -> None:
+                 hyp_model: HypArgModel,
+                 device: Optional[str] = None) -> None:
         super().__init__()
-        self.stem_classifier = torch.jit.script(maybe_cuda(stem_classifier))
-        self.goal_args_model = torch.jit.script(maybe_cuda(goal_args_model))
-        self.goal_encoder = torch.jit.script(maybe_cuda(goal_encoder))
-        self.hyp_model = torch.jit.script(maybe_cuda(hyp_model))
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
+        self.stem_classifier = torch.jit.script(stem_classifier.to(self.device))
+        self.goal_args_model = torch.jit.script(goal_args_model.to(self.device))
+        self.goal_encoder = torch.jit.script(goal_encoder.to(self.device))
+        self.hyp_model = torch.jit.script(hyp_model.to(self.device))
 
 
 class FeaturesPolyargPredictor(
@@ -292,15 +341,21 @@ class FeaturesPolyargPredictor(
                            Tuple[Tokenizer, Embedding,
                                  List[WordFeature], List[VecFeature]],
                            NeuralPredictorState]):
-    def __init__(self) -> None:
-        self._criterion = maybe_cuda(nn.NLLLoss())
+    def __init__(self, device:Optional[str] = None) -> None:
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
+        self._criterion = nn.NLLLoss().to(self.device)
         self.training_args: Optional[argparse.Namespace] = None
         self.training_loss: Optional[float] = None
         self.num_epochs: Optional[int] = None
         # self._word_feature_functions: Optional[List[WordFeature]] = None
         # self._vec_feature_functions: Optional[List[VecFeature]] = None
-        self._softmax = maybe_cuda(nn.LogSoftmax(dim=1))
-        self._softmax2 = maybe_cuda(nn.LogSoftmax(dim=2))
+        self._softmax = nn.LogSoftmax(dim=1).to(self.device)
+        self._softmax2 = nn.LogSoftmax(dim=2).to(self.device)
         # self._tokenizer : Optional[Tokenizer] = None
         # self._embedding : Optional[Embedding] = None
         self._model: Optional[FeaturesPolyArgModel] = None
@@ -390,13 +445,15 @@ class FeaturesPolyargPredictor(
 
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width,
-            LongTensor(word_features), FloatTensor(vec_features),
+            torch.LongTensor(word_features).to(self.device),
+            torch.FloatTensor(vec_features).to(self.device),
             [encode_fpa_stem(extract_dataloader_args(self.training_args),
                              self.metadata, stem) for stem in blacklist])
 
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
-            stem_idxs, LongTensor(tokenized_goal), maybe_cuda(torch.BoolTensor(goal_mask)))
+            stem_idxs, torch.LongTensor(tokenized_goal).to(self.device),
+            torch.BoolTensor(goal_mask).to(self.device))
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
@@ -433,14 +490,15 @@ class FeaturesPolyargPredictor(
                               for context in contexts])
 
         _, stem_certainties_batch, stem_idxs_batch = self.predict_stems(
-            self._model, stem_width, LongTensor(word_features), FloatTensor(vec_features),
+            self._model, stem_width, torch.LongTensor(word_features).to(self.device),
+            torch.FloatTensor(vec_features).to(self.device),
             [encode_fpa_stem(extract_dataloader_args(self.training_args),
                              self.metadata, stem) for stem in blacklist])
 
         goal_arg_values_batch = self.goal_token_scores(
             self._model, self.training_args,
-            stem_idxs_batch, LongTensor(tokenized_goal_batch),
-            maybe_cuda(torch.BoolTensor(goal_mask)))
+            stem_idxs_batch, torch.LongTensor(tokenized_goal_batch).to(self.device),
+            torch.BoolTensor(goal_mask).to(self.device))
 
         idxs_batch = []
 
@@ -553,15 +611,15 @@ class FeaturesPolyargPredictor(
                                               self.metadata, prediction_stem)
         assert prediction_stem_idx < num_stem_poss
         stem_distributions = self._model.stem_classifier(
-            maybe_cuda(torch.LongTensor(word_features)),
-            maybe_cuda(torch.FloatTensor(vec_features)))
+            torch.LongTensor(word_features).to(self.device),
+            torch.FloatTensor(vec_features).to(self.device))
         stem_certainties, stem_idxs = stem_distributions.topk(stem_width)
         if prediction_stem_idx in stem_idxs[0]:
             merged_stem_idxs = stem_idxs
             merged_stem_certainties = stem_certainties
         else:
             merged_stem_idxs = torch.cat(
-                (maybe_cuda(torch.LongTensor([[prediction_stem_idx]])),
+                (torch.LongTensor([[prediction_stem_idx]]).to(self.device),
                  stem_idxs[:, :stem_width-1]),
                 dim=1)
             cother = stem_certainties[:, :stem_width-1]
@@ -584,8 +642,8 @@ class FeaturesPolyargPredictor(
 
         goal_arg_values = self.goal_token_scores(
             self._model, self.training_args,
-            merged_stem_idxs, LongTensor(tokenized_goal),
-            maybe_cuda(torch.BoolTensor(goal_mask)))
+            merged_stem_idxs, torch.LongTensor(tokenized_goal).to(self.device),
+            torch.BoolTensor(goal_mask).to(self.device))
 
         if len(tokenized_premises[0]) > 0:
             hyp_arg_values = self.hyp_name_scores(
@@ -620,7 +678,7 @@ class FeaturesPolyargPredictor(
         assert not torch.any(torch.isnan(vec_features))
         stem_distribution = model.stem_classifier(
             word_features, vec_features)
-        stem_distribution.index_fill(1, maybe_cuda(torch.LongTensor(blacklist_stem_indices)), -float("Inf"))
+        stem_distribution.index_fill(1, torch.LongTensor(blacklist_stem_indices).to(self.device), -float("Inf"))
         assert not torch.any(torch.isnan(stem_distribution))
         stem_probs, stem_idxs = stem_distribution.topk(k)
         assert stem_probs.size() == torch.Size([batch_size, k])
@@ -666,11 +724,11 @@ class FeaturesPolyargPredictor(
         assert len(stem_idxs.size()) == 1
         stem_width = stem_idxs.size()[0]
         num_hyps = len(tokenized_premises)
-        encoded_goals = self._model.goal_encoder(LongTensor([tokenized_goal]))
+        encoded_goals = self._model.goal_encoder(torch.LongTensor([tokenized_goal]).to(self.device))
         hyp_arg_values = self.runHypModel(stem_idxs.unsqueeze(0),
                                           encoded_goals,
-                                          LongTensor([tokenized_premises]),
-                                          FloatTensor([premise_features]))
+                                          torch.LongTensor([tokenized_premises]).to(self.device),
+                                          torch.FloatTensor([premise_features]).to(self.device))
         assert hyp_arg_values.size() == torch.Size([1, stem_width, num_hyps])
         return hyp_arg_values
 
@@ -723,7 +781,7 @@ class FeaturesPolyargPredictor(
         num_hyps = hyps_batch.size()[1]
         beam_width = stem_idxs.size()[1]
         if hypfeatures_batch.size()[1] == 0:
-            return maybe_cuda(torch.zeros(batch_size, beam_width, 0))
+            return torch.zeros(batch_size, beam_width, 0).to(self.device)
         features_size = hypfeatures_batch.size()[2]
         hyp_arg_values = \
             self._model.hyp_model(stem_idxs.view(batch_size, beam_width, 1)
@@ -888,12 +946,12 @@ class FeaturesPolyargPredictor(
                          unparsed_args: List[str],
                          metadata: Any,
                          state: NeuralPredictorState) -> None:
-        model = maybe_cuda(self._get_model(args,
-                                           get_word_feature_vocab_sizes(
-                                               metadata),
-                                           get_vec_features_size(metadata),
-                                           get_num_indices(metadata)[1],
-                                           get_num_tokens(metadata)))
+        model = self._get_model(args,
+                                get_word_feature_vocab_sizes(
+                                    metadata),
+                                get_vec_features_size(metadata),
+                                get_num_indices(metadata)[1],
+                                get_num_tokens(metadata)).to(self.device)
         model.load_state_dict(state.weights)
         self._model = model
         self.training_loss = state.loss
@@ -912,13 +970,14 @@ class FeaturesPolyargPredictor(
             FeaturesClassifier(wordf_sizes, vecf_size,
                                arg_values.hidden_size,
                                arg_values.num_layers,
-                               stem_vocab_size),
+                               stem_vocab_size, self.device),
             GoalTokenArgModel(stem_vocab_size, goal_vocab_size,
-                              arg_values.hidden_size),
+                              arg_values.hidden_size, self.device),
             EncoderRNN(goal_vocab_size, arg_values.hidden_size,
-                       arg_values.hidden_size),
+                       arg_values.hidden_size, self.device),
             HypArgModel(arg_values.hidden_size, stem_vocab_size, goal_vocab_size,
-                        hypFeaturesSize(), arg_values.hidden_size))
+                        hypFeaturesSize(), arg_values.hidden_size, self.device),
+            self.device)
 
     def _getBatchPredictionLoss(self, arg_values: Namespace,
                                 metadata,
@@ -940,33 +999,33 @@ class FeaturesPolyargPredictor(
         stemDistributions, predictedProbs, predictedStemIdxs = \
           self.predict_stems(model, stem_width, word_features_batch,
                              vec_features_batch, [])
-        stem_var = maybe_cuda(stem_idxs_batch)
+        stem_var = stem_idxs_batch.to(self.device)
         mergedStemIdxs = []
         for stem_idx, predictedStemIdxList in zip(stem_idxs_batch, predictedStemIdxs):
             if stem_idx.item() in predictedStemIdxList:
                 mergedStemIdxs.append(predictedStemIdxList)
             else:
                 mergedStemIdxs.append(
-                    torch.cat((maybe_cuda(stem_idx.view(1)),
+                    torch.cat((stem_idx.view(1).to(self.device),
                                predictedStemIdxList[:stem_width-1])))
         mergedStemIdxsT = torch.stack(mergedStemIdxs)
         correctPredictionIdxs = torch.LongTensor([list(idxList).index(stem_idx) for
                                                   idxList, stem_idx
                                                   in zip(mergedStemIdxs, stem_var)])
         if arg_values.hyp_rnn:
-            tokenized_hyps_var = maybe_cuda(tokenized_hyp_types_batch)
+            tokenized_hyps_var = tokenized_hyp_types_batch.to(self.device)
         else:
-            tokenized_hyps_var = maybe_cuda(
-                torch.zeros_like(tokenized_hyp_types_batch))
+            tokenized_hyps_var = \
+                torch.zeros_like(tokenized_hyp_types_batch).to(self.device)
 
         if arg_values.hyp_features:
-            hyp_features_var = maybe_cuda(hyp_features_batch)
+            hyp_features_var = hyp_features_batch.to(self.device)
         else:
-            hyp_features_var = maybe_cuda(torch.zeros_like(hyp_features_batch))
+            hyp_features_var = torch.zeros_like(hyp_features_batch).to(self.device)
 
         goal_arg_values = self.goal_token_scores(model, arg_values,
                                                  mergedStemIdxsT, tokenized_goals_batch,
-                                                 maybe_cuda(goal_masks_batch))
+                                                 goal_masks_batch.to(self.device))
         encoded_goals = model.goal_encoder(tokenized_goals_batch)
 
         hyp_lists_length = tokenized_hyp_types_batch.size()[1]
@@ -1013,10 +1072,10 @@ class FeaturesPolyargPredictor(
                               .expand(-1, -1, num_probs)
                               .contiguous()
                               .view(batch_size, stem_width * num_probs))
-        total_arg_var = maybe_cuda(arg_total_idxs_batch +
-                                            (correctPredictionIdxs * num_probs))\
+        total_arg_var = (arg_total_idxs_batch +
+                         (correctPredictionIdxs * num_probs)).to(self.device)\
             .view(batch_size)
-        loss = FloatTensor([0.])
+        loss = torch.FloatTensor([0.])
         assert not torch.any(torch.isnan(stemDistributions))
         assert not torch.any(torch.isnan(total_arg_distribution))
         loss += self._criterion(stemDistributions, stem_var)

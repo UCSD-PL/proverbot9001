@@ -20,7 +20,7 @@
 #
 ##########################################################################
 
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from abc import ABCMeta, abstractmethod
 
 class Embedding:
@@ -71,7 +71,7 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from util import eprint, timeSince
-from torch_util import maybe_cuda, FloatTensor
+from torch_util import maybe_cuda, FloatTensor, use_cuda, cuda_device
 from typing import TypeVar, Generic, Iterable, Tuple
 import argparse
 
@@ -123,17 +123,29 @@ class StraightlineClassifierModel(Generic[S], metaclass=ABCMeta):
         pass
 
 class DNNClassifier(nn.Module):
-    def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
-                 num_layers : int) -> None:
+    def __init__(self, input_vocab_size : int, hidden_size : int,
+                 output_vocab_size : int,
+                 num_layers : int,
+                 device: Optional[str] = None) -> None:
         super(DNNClassifier, self).__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.num_layers = num_layers
-        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        self.layers = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size,hidden_size)) for _ in range(num_layers-1)])
-        self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
-        self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
+        self.in_layer = nn.Linear(input_vocab_size,
+                                  hidden_size).to(self.device)
+        self.layers = nn.ModuleList([
+          nn.Linear(hidden_size,hidden_size).to(self.device)
+          for _ in range(num_layers-1)])
+        self.out_layer = nn.Linear(hidden_size,
+                                   output_vocab_size).to(self.device)
+        self.softmax = nn.LogSoftmax(dim=1).to(self.device)
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
-        layer_values = self.in_layer(maybe_cuda(input))
+        layer_values = self.in_layer(input.to(self.device))
         for layer in self.layers:
             layer_values = F.relu(layer_values)
             layer_values = layer(layer_values)
@@ -197,22 +209,34 @@ class DNNScorer(nn.Module):
 class WordFeaturesEncoder(nn.Module):
     def __init__(self, input_vocab_sizes : List[int],
                  hidden_size : int, num_layers : int,
-                 output_vocab_size : int) -> None:
+                 output_vocab_size : int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.num_word_features = len(input_vocab_sizes)
-        self.word_embeddings = nn.ModuleList([maybe_cuda(nn.Embedding(vocab_size,hidden_size)) for vocab_size in input_vocab_sizes])
-        self._in_layer = maybe_cuda(nn.Linear(hidden_size * len(input_vocab_sizes),
-                                              hidden_size))
-        self.layers = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size,hidden_size)) for _ in range(num_layers-1)])
-        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+        self.word_embeddings = nn.ModuleList([
+          nn.Embedding(vocab_size,hidden_size).to(self.device)
+          for vocab_size in input_vocab_sizes])
+        self._in_layer = nn.Linear(hidden_size * len(input_vocab_sizes),
+                                   hidden_size).to(self.device)
+        self.layers = nn.ModuleList([
+          nn.Linear(hidden_size,hidden_size).to(self.device)
+          for _ in range(num_layers-1)])
+        self._out_layer = nn.Linear(hidden_size,
+                                    output_vocab_size).to(self.device)
 
     def forward(self, input_vec : torch.LongTensor) -> torch.FloatTensor:
         batch_size = input_vec.size()[0]
         word_embedded_features = []
         for i,word_embedding in enumerate(self.word_embeddings):
-            word_feature_var = maybe_cuda(input_vec[:,i])
+            word_feature_var = input_vec[:,i].to(self.device)
             embedded = word_embedding(word_feature_var)\
                 .view(batch_size, self.hidden_size)
             word_embedded_features.append(embedded)
@@ -229,16 +253,27 @@ class WordFeaturesEncoder(nn.Module):
 class EncoderRNN(nn.Module):
     def __init__(self, input_vocab_size : int,
                  hidden_size : int,
-                 output_vocab_size : int) -> None:
+                 output_vocab_size : int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.hidden_size = hidden_size
-        self._word_embedding = maybe_cuda(nn.Embedding(input_vocab_size, hidden_size))
-        self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
-        self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+        self._word_embedding = nn.Embedding(input_vocab_size,
+                                            hidden_size).to(self.device)
+        self._gru = nn.GRU(hidden_size,
+                           hidden_size).to(self.device)
+        self._out_layer = nn.Linear(hidden_size,
+                                    output_vocab_size).to(self.device)
     def forward(self, input_seq : torch.LongTensor) -> torch.FloatTensor:
-        input_var = maybe_cuda(input_seq)
+        input_var = input_seq.to(self.device)
         batch_size = input_seq.size()[0]
-        hidden = maybe_cuda(torch.zeros(1, batch_size, self.hidden_size))
+        hidden = torch.zeros(1, batch_size,
+                             self.hidden_size).to(self.device)
         token_out = torch.zeros([batch_size,self.hidden_size])
         for i in range(input_seq.size()[1]):
             token_batch = self._word_embedding(input_var[:,i])\
@@ -251,14 +286,26 @@ class EncoderRNN(nn.Module):
 
 class EncoderDNN(nn.Module):
     
-    def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
-                 num_layers : int) -> None:
+    def __init__(self, input_vocab_size : int, hidden_size : int,
+                 output_vocab_size : int,
+                 num_layers : int,
+                 device: Optional[str] = None) -> None:
         super(EncoderDNN, self).__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.num_layers = num_layers
-        self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
+        self.in_layer = nn.Linear(input_vocab_size,
+                                  hidden_size).to(self.device)
         # TODO: every instance of getattr/setattr should probably be replaced with this style.
-        self.layers  = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size, hidden_size)) for i in range(num_layers-1)])
-        self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
+        self.layers = nn.ModuleList([
+          nn.Linear(hidden_size, hidden_size).to(self.device)
+          for i in range(num_layers-1)])
+        self.out_layer = nn.Linear(hidden_size,
+                                   output_vocab_size).to(self.device)
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
         layer_values = self.in_layer(input)
@@ -269,15 +316,24 @@ class EncoderDNN(nn.Module):
 
 class DecoderGRU(nn.Module):
     def __init__(self, input_size : int, hidden_size : int,
-                 num_layers : int, batch_size : int=1) -> None:
+                 num_layers : int, batch_size : int=1,
+                 device: Optional[str] = None) -> None:
         super(DecoderGRU, self).__init__()
+        if device:
+            self.device = device
+        elif use_cuda:
+            self.device = cuda_device
+        else:
+            self.device = "cpu"
         self.num_layers = num_layers
         self.batch_size = batch_size
-        self.gru = maybe_cuda(nn.GRU(input_size, hidden_size,
-                                     num_layers=self.num_layers, batch_first=True))
-        self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
+        self.gru = nn.GRU(input_size, hidden_size,
+                          num_layers=self.num_layers,
+                          batch_first=True).to(self.device)
+        self.softmax = nn.LogSoftmax(dim=1).to(self.device)
 
-    def forward(self, input : torch.FloatTensor, hidden : torch.FloatTensor) \
+    def forward(self, input : torch.FloatTensor,
+                hidden : torch.FloatTensor) \
         -> Tuple[torch.FloatTensor, torch.FloatTensor]:
         input = input.contiguous()
         hidden = hidden.expand(self.num_layers, -1, -1).contiguous()

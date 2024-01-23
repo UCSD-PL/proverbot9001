@@ -21,7 +21,7 @@
 ##########################################################################
 
 import torch
-from typing import Dict, List, Union, Callable
+from typing import Dict, List, Union, Callable, Optional
 import functools
 from models.tactic_predictor import TacticPredictor, TrainablePredictor
 from models.components import DNNClassifierModel
@@ -90,10 +90,10 @@ def loadPredictorByName(predictor_type : str) -> TacticPredictor:
     predictor_class = vars(importlib.import_module("models." + module_name))[class_name]
     return predictor_class()
 
-def loadPredictorByFile(filename : str) -> TrainablePredictor:
+def loadPredictorByFile(filename : str, device: Optional[str] = None) -> TrainablePredictor:
     predictor_type, saved_state = torch.load(str(filename), map_location='cpu')
     module_name, class_name = loadable_predictors[predictor_type]
     predictor_class = vars(importlib.import_module("models." + module_name))[class_name]
-    predictor = predictor_class()
+    predictor = predictor_class(device)
     predictor.load_saved_state(*saved_state)
     return predictor
