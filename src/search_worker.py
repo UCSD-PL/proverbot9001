@@ -539,6 +539,7 @@ def in_qualified_proofs_list(job_line: str, proofs_list: List[str]) -> bool:
 
 def get_file_jobs(args: argparse.Namespace,
                   project: str, filename: str) -> List[ReportJob]:
+    # eprint(f"Looking at file {filename}")
     arg_proofs_names = None
     if args.proofs_file:
         with open(args.proofs_file, 'r') as f:
@@ -548,6 +549,11 @@ def get_file_jobs(args: argparse.Namespace,
     cmds = coq_serapy.load_commands(args.prelude / project / filename)
     lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
                                                args.include_proof_relevant)
+    # for (module, stmt) in lemmas_in_file:
+    #     if in_proofs_list(module, stmt, arg_proofs_names):
+    #         eprint(f"{(module, stmt)} found in proofs list")
+    #     else:
+    #         eprint(f"{(module, stmt)} not found in proofs list")
     if arg_proofs_names:
         return [ReportJob(project, filename, module, stmt)
                 for (module, stmt) in lemmas_in_file
