@@ -13,7 +13,7 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search, combo_b_two_search, combo_subgoal_search, combo_b_vote_search
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 from linearize_semicolons import get_linearized
@@ -374,8 +374,9 @@ class SearchWorker(Worker):
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
         predictor_list = []
-        for predfile in self.args.combo_weightsfiles:
-            predictor_list.append(get_predictor_by_path(predfile))
+        if self.args.combo_weightsfiles is not None:
+            for predfile in self.args.combo_weightsfiles:
+                predictor_list.append(get_predictor_by_path(predfile))
 
         try:
             search_status, _, tactic_solution, steps_taken = \
@@ -583,7 +584,7 @@ def attempt_search(args: argparse.Namespace,
             result = dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
-                                                 args, bar_idx, predictor)
+                                                 args, bar_idx, predictor_list)
         elif args.search_type == 'dfs-est':
             result = dfs_estimated(lemma_name, module_prefix,
                                    context_lemmas,
@@ -596,6 +597,21 @@ def attempt_search(args: argparse.Namespace,
                                            args, bar_idx, predictor)
         elif args.search_type == 'combo-b':
             result = combo_b_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
+        elif args.search_type == 'combo-b-two':
+            result = combo_b_two_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
+        elif args.search_type == 'combo-b-vote':
+            result = combo_b_vote_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
+        elif args.search_type == 'combo-subgoal':
+            result = combo_subgoal_search(lemma_name, module_prefix,
                                            context_lemmas, coq,
                                            output_dir,
                                            args, bar_idx, predictor_list)

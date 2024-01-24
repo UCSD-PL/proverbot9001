@@ -49,7 +49,7 @@ from util import eprint, FileLock
 import search_report
 from predict_tactic import static_predictors
 from search_results import SearchResult
-from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, get_random_predictor, project_dicts_from_args
+from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, get_random_predictor, project_dicts_from_args, get_predictor_by_path
 import util
 import torch_util
 
@@ -154,7 +154,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'combo-b'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
@@ -225,8 +225,6 @@ def search_file_worker(args: argparse.Namespace,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
 
-    #if not args.search_type == 'combo-b':
-
     predictor = get_predictor(args)
 
     # util.use_cuda = False
@@ -248,7 +246,8 @@ def search_file_worker(args: argparse.Namespace,
     print("end splits file", flush=True)
     predictor_list = None
     if args.combo_weightsfiles:
-        for predfile in self.args.combo_weightsfiles:
+        predictor_list = []
+        for predfile in self.combo_weightsfiles:
             predictor_list.append(get_predictor_by_path(predfile))
     with SearchWorker(args, worker_idx, predictor, switch_dict, predictor_list) as worker:
         print("I am starting a worker", flush=True)
@@ -259,10 +258,6 @@ def search_file_worker(args: argparse.Namespace,
                 next_job = jobs.get_nowait()
             except queue.Empty:
                 return
-            #if not args.search_type == 'combo-b':
-            #    solution = worker.run_job(next_job, restart=not args.hardfail)
-            #else:
-            #    solution = worker.run_job_with_random(next_job, restart=not args.hardfail)
             solution = worker.run_job(next_job, restart=not args.hardfail)
             done.put((next_job, solution))
     '''

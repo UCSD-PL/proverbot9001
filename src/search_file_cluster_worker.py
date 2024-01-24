@@ -37,6 +37,8 @@ import torch_util
 from util import eprint, FileLock
 import random
 
+from search_worker import get_predictor_by_path
+
 
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
@@ -97,11 +99,15 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with worker_taken_file.open("w"):
         pass
 
-    #if not args.search_type == 'combo-b':
-
     predictor = get_predictor(args) #TODO: no need for initial predictor with random strategy
 
-    with SearchWorker(args, threadid, predictor, switch_dict) as worker:
+    predictor_list = None
+    if args.combo_weightsfiles:
+        predictor_list = []
+        for predfile in args.combo_weightsfiles:
+            predictor_list.append(get_predictor_by_path(predfile))
+
+    with SearchWorker(args, threadid, predictor, switch_dict, predictor_list) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
@@ -118,10 +124,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                 else:
                     eprint(f"Finished thread {threadid}")
                     break
-            if not args.search_type == 'combo-b':
-                solution = worker.run_job(current_job)
-            else:
-                solution = worker.run_job_with_random(current_job)
+            solution = worker.run_job_with_random(current_job)
             job_project, job_file, _, _ = current_job
             project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
             with (args.output_dir / job_project /
