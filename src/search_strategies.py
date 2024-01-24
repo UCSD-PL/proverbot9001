@@ -364,20 +364,20 @@ def dfs_proof_search_with_graph(lemma_name: str,
         round_robin = 0
         shuffle(predictor_list)
         predictions_lists = []
-        for curr_predictor in range(len(predictor_list)):
-            apredictor = predictor_list[curr_predictor]
-            temp_predictions = apredictor.predictKTactics(args,
-                truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            predictions_lists.append(temp_predictions)
-        all_predictions = [eachlist[i] for eachlist in predictions_lists for i in range(round(args.max_attempts/len(predictions_lists))+1)]
-        predictions = all_predictions[:args.max_attempts]
-        #predictions = predictor.predictKTactics(args,
-        #    truncate_tactic_context(full_context_before.as_tcontext(),
-        #                            args.max_term_length),
-        #    args.max_attempts,
-        #    blacklist=args.blacklisted_tactics)
+        #for curr_predictor in range(len(predictor_list)):
+        #    apredictor = predictor_list[curr_predictor]
+        #    temp_predictions = apredictor.predictKTactics(args,
+        #        truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length),
+        #        args.max_attempts,
+        #        blacklist=args.blacklisted_tactics)
+        #    predictions_lists.append(temp_predictions)
+        #all_predictions = [eachlist[i] for eachlist in predictions_lists for i in range(round(args.max_attempts/len(predictions_lists))+1)]
+        #predictions = all_predictions[:args.max_attempts]
+        predictions = predictor.predictKTactics(args,
+           truncate_tactic_context(full_context_before.as_tcontext(),
+                                    args.max_term_length),
+            args.max_attempts,
+            blacklist=args.blacklisted_tactics)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
