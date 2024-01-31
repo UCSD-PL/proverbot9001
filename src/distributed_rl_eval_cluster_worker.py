@@ -1,5 +1,6 @@
 import argparse
 import json
+import coq2vec
 import random
 import torch
 import os
@@ -86,7 +87,7 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
         else:
             file_all_ts_dict[Path(task.src_file)] = [(task_idx,task )]
 
-    predictor = MemoizingPredictor(get_predictor(args))
+    predictor = get_predictor(args) #MemoizingPredictor(get_predictor(args)) #commenting out Memoizing predictor for eval for code review as it doesn't seem useful.
     device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
     if not args.evaluate_random_baseline:
         is_distributed, replay_buffer, steps_already_done, \
@@ -99,14 +100,14 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
     if args.evaluate_random_baseline:
         # Giving dummy values for learning rate, batch step, and lr step because we
         # won't be training this network, so it won't matter.
-        v_network = VNetwork(args.coq2vec_weights, 0.0, 1, 1.0)
-        target_network = VNetwork(args.coq2vec_weights, 0.0, 1, 1.0)
+        v_network = VNetwork(args, args.coq2vec_weights, predictor, device)
+        target_network = VNetwork(args, args.coq2vec_weights,  predictor, device)
         target_network.obligation_encoder = v_network.obligation_encoder
     else:
         # Giving dummy values for learning rate, batch step, and lr step because we
         # won't be training this network, so it won't matter.
-        v_network = VNetwork(None, 0.0, 1, 1.0)
-        target_network = VNetwork(None, 0.0, 1, 1.0)
+        v_network = VNetwork(args, None, predictor, device)
+        target_network = VNetwork(args, None, predictor, device)
         target_network.obligation_encoder = v_network.obligation_encoder
         v_network.load_state(network_state)
         target_network.load_state(tnetwork_state)
