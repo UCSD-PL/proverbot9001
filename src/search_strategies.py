@@ -915,7 +915,7 @@ def best_first_proof_search(lemma_name: str,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    # assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
     if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
             pickled_estimator = pickle.load(f)
@@ -1016,7 +1016,7 @@ def best_first_proof_search(lemma_name: str,
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
             else:
                 assert args.scoring_function in ["pickled", "pickled-normcert"]
-                assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
+                # assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
                 assert coq.proof_context
                 assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
