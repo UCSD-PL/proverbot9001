@@ -110,7 +110,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
         torch.load(str(args.start_from), map_location=device)
     eprint(f"Loading initial weights from {args.start_from}")
     inner_network_state, _encoder_state, _obl_cache, \
-      _hidden_size, _num_layers = network_state
+      _args = network_state
     v_network.load_state_dict(inner_network_state)
   target_network = VModel(encoding_size, args.tactic_vocab_size,
                              args.tactic_embedding_size,
