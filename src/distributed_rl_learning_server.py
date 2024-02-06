@@ -170,7 +170,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       if len(loss_buffer) == args.loss_smoothing:
         smoothed_loss = sum(loss_buffer) / args.loss_smoothing
         lr = optimizer.param_groups[0]['lr']
-        eprint(f"Loss: {smoothed_loss} (learning rate {lr:.3e})")
+        eprint(f"Loss: {smoothed_loss} (learning rate {lr/20:.3e})")
       if vsample_changed and args.reset_on_updated_sample:
         vsample_changed = False
         optimizer = optimizers[args.optimizer](
