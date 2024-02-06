@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-CUR_DIR=$HOME/work/proverbot9001/src/
+CUR_DIR=/work/pi_brun_umass_edu/avarghese/proverbot9001/src
 
 read-opam.sh
 eval $(opam env)
