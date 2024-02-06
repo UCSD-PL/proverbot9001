@@ -199,31 +199,30 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
                                [next_obl.to_dict() for next_obl
                                 in next_obls] if next_obls is not None else None)), file=f)
         shutil.copyfile(str(args.dump_replay_buffer) + ".tmp", str(args.dump_replay_buffer)) 
-    with print_time("Syncing"):
-      if replay_buffer.buffer_steps - steps_last_synced_target >= args.sync_target_every:
-        eprint(f"Syncing target network at step {replay_buffer.buffer_steps} "
-               f"({replay_buffer.buffer_steps - steps_last_synced_target} "
-               "steps since last synced)", guard=args.verbose >= 1)
-        steps_last_synced_target = replay_buffer.buffer_steps
-        if args.ignore_after is not None and replay_buffer.buffer_steps > args.ignore_after:
-          eprint("Skipping sync because we're ignoring samples now", guard=args.verbose >= 1)
-        else:
-          target_network.load_state_dict(v_network.state_dict())
-        if args.reset_on_sync:
-          if args.decrease_lr_on_reset:
-            learning_rate_restart = learning_rate_restart * args.learning_rate_decay
-          optimizer = optimizers[args.optimizer](
-            [{"params": v_network.tactic_embedding.parameters(),
-              "lr": learning_rate_restart * 20},
-             {"params": v_network.prediction_network.parameters()}],
-            lr=learning_rate_restart)
-          adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
-                                      args.learning_rate_decay)
-          eprint("Resetting the optimizer and adjuster", guard=args.verbose >= 1)
-      if replay_buffer.buffer_steps - steps_last_synced_workers >= args.sync_workers_every:
-        steps_last_synced_workers = replay_buffer.buffer_steps
-        send_new_weights(args, v_network, common_network_version)
-        common_network_version += 1
+    if iters_trained - steps_last_synced_target >= args.sync_target_every:
+      eprint(f"Syncing target network at step {replay_buffer.buffer_steps} "
+             f"({replay_buffer.buffer_steps - steps_last_synced_target} "
+             "steps since last synced)", guard=args.verbose >= 1)
+      steps_last_synced_target = iters_trained
+      if args.ignore_after is not None and iters_trained > args.ignore_after:
+        eprint("Skipping sync because we're ignoring samples now", guard=args.verbose >= 1)
+      else:
+        target_network.load_state_dict(v_network.state_dict())
+      if args.reset_on_sync:
+        if args.decrease_lr_on_reset:
+          learning_rate_restart = learning_rate_restart * args.learning_rate_decay
+        optimizer = optimizers[args.optimizer](
+          [{"params": v_network.tactic_embedding.parameters(),
+            "lr": learning_rate_restart * 20},
+           {"params": v_network.prediction_network.parameters()}],
+          lr=learning_rate_restart)
+        adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                                    args.learning_rate_decay)
+        eprint("Resetting the optimizer and adjuster for sync", guard=args.verbose >= 1)
+    if iters_trained - steps_last_synced_workers >= args.sync_workers_every:
+      steps_last_synced_workers = replay_buffer.buffer_steps
+      send_new_weights(args, v_network, common_network_version)
+      common_network_version += 1
     if args.verifyv_every is not None and \
        iters_trained - last_iter_verified >= args.verifyv_every and \
        len(buffer_thread.verification_states) > 0:
