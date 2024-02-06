@@ -166,8 +166,8 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
 
 
 def prepare_taken_prooffiles(args: argparse.Namespace,
-                            all_task_eps: List[Tuple[RLTask, int]])\
-                            -> int:
+                             all_task_eps: List[Tuple[RLTask, int]])\
+                             -> int:
     
     num_te_encountered = 0
     done_paths = [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))]
