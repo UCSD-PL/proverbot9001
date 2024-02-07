@@ -185,7 +185,7 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
   train_indices, val_indices = indices[split:], indices[:split]
   valid_batch_size = args.batch_size // 2
   assert len(val_indices) > valid_batch_size, "There's not enough validation data! "\
-    "only {len(val_indices)}, but batch size is {args.batch_size}"
+    f"only {len(val_indices)}, but batch size is {args.batch_size}"
   train_sampler = data.SubsetRandomSampler(train_indices)
   valid_sampler = data.SubsetRandomSampler(val_indices)
 
