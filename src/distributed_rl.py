@@ -55,12 +55,17 @@ def distributed_rl(args: argparse.Namespace):
             assert training_args.gamma == args.gamma,\
                "Used a different gamma during training of start_from "\
                "weights than we're using now! "\
-               f"{training_args.gamma} training vs {args.gamma}"
-            hidden_size = training_args.hidden_size
-            num_layers = args.num_layers
-        else:
-            hidden_size = args.hidden_size
-            num_layers = args.num_layers
+               f"{training_args.gamma} start_from vs {args.gamma}"
+            assert args.hidden_size == training_args.hidden_size and\
+                   args.num_layers == training_args.num_layers,\
+               "The provided start_from network doesn't have the same "\
+               "architecture as you requested! "\
+               f"{training_args.hidden_size} hidden size in start_from vs "\
+               f"{args.hidden_size} hidden size requested; "\
+               f"{training_args.num_layers} num layers in start_from vs "\
+               f"{args.num_layers} num layers requested"
+        hidden_size = args.hidden_size
+        num_layers = args.num_layers
         dispatch_learner_and_actors(args, num_workers_actually_needed,
                                     hidden_size, num_layers)
         with util.sighandler_context(signal.SIGINT,
