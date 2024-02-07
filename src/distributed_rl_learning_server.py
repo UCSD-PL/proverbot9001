@@ -14,6 +14,8 @@ import hashlib
 import time
 import shutil
 import sys
+import functools
+import signal
 from glob import glob
 
 from threading import Thread, Lock, Event
@@ -36,7 +38,7 @@ print("Finished torch imports", file=sys.stderr)
 sys.path.append(str(Path(os.getcwd()) / "src"))
 from rl import optimizers, ReplayBuffer, EObligation, VModel
 print("Imported rl model setup", file=sys.stderr)
-from util import eprint, unwrap, print_time
+from util import eprint, unwrap, print_time, sighandler_context
 # pylint: enable=wrong-import-position
 eprint("Finished imports")
 
@@ -58,7 +60,6 @@ def main() -> None:
   parser.add_argument("--train-every", type=int, default=8)
   parser.add_argument("--sync-target-every", type=int, default=32)
   parser.add_argument("--keep-latest", default=3, type=int)
-  parser.add_argument("--sync-workers-every", type=int, default=16)
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
   parser.add_argument("--verifyv-every", type=int, default=None)
   parser.add_argument("--start-from", type=Path, default=None)
@@ -74,9 +75,11 @@ def main() -> None:
   parser.add_argument("--verbose", "-v", help="verbose output", action="count", default=0)
   parser.add_argument("--loss", choices=["simple", "log"],
                       default="simple")
+  parser.add_argument("--no-catch-interrupts", action='store_false', dest="catch_interrupts")
   args = parser.parse_args()
   torch.manual_seed(0)
   random.seed(0)
+  os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
   torch.use_deterministic_algorithms(True)
 
   with (args.state_dir / "learner_scheduled.txt").open('w') as f:
@@ -130,10 +133,11 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
                                       args.verbose)
   true_target_buffer = TrueTargetBuffer(args.allow_partial_batches)
   signal_change = Event()
+  signal_end = Event()
   buffer_thread = BufferPopulatingThread(
     replay_buffer, true_target_buffer,
-    signal_change, obligation_encoder,
-    args.verbose, args.ignore_after)
+    v_network, signal_change, signal_end, obligation_encoder,
+    args)
   buffer_thread.start()
 
   steps_last_trained = 0
@@ -147,92 +151,95 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   time_started_waiting = time.time()
   signal_change.wait()
   signal_change.clear()
-  while True:
-  # while signal_change.wait():
-    # signal_change.clear()
-    # eprint(f"Waited {time.time() - time_started_waiting:.4f}s for signal")
-    # if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
-    if len(replay_buffer) < args.batch_size and not args.allow_partial_batches:
-      continue
-    with print_time(f"Training iter {iters_trained}"):
-      steps_last_trained = replay_buffer.buffer_steps
-      loss = train(args, v_network, target_network, optimizer, replay_buffer, true_target_buffer)
-      if args.learning_rate_step is not None and loss is not None:
-        adjuster.step()
-      if loss is not None:
+  with sighandler_context(signal.SIGINT,
+                          functools.partial(interrupt_early, args,
+                                            v_network),
+                          guard=args.catch_interrupts):
+    while True:
+      if signal_end.is_set():
+        eprint("Finished learning, exiting learning server", guard=args.verbose >= 1)
+        sys.exit(0)
+    # while signal_change.wait():
+      # signal_change.clear()
+      # eprint(f"Waited {time.time() - time_started_waiting:.4f}s for signal")
+      # if replay_buffer.buffer_steps - steps_last_trained >= args.train_every:
+      if len(replay_buffer) < args.batch_size and not args.allow_partial_batches:
+        continue
+      with print_time(f"Training iter {iters_trained}"):
+        steps_last_trained = replay_buffer.buffer_steps
+        loss = train(args, v_network, target_network, optimizer, replay_buffer, true_target_buffer)
+        if args.learning_rate_step is not None and loss is not None:
+          adjuster.step()
+        if loss is not None:
+          if len(loss_buffer) == args.loss_smoothing:
+            loss_buffer = loss_buffer[1:] + [loss]
+          else:
+            eprint(f"Loss buffer is only {len(loss_buffer)} long",
+                   guard=args.verbose >= 1)
+            loss_buffer.append(loss)
+          iters_trained += 1
         if len(loss_buffer) == args.loss_smoothing:
-          loss_buffer = loss_buffer[1:] + [loss]
+          smoothed_loss = sum(loss_buffer) / args.loss_smoothing
+          lr = optimizer.param_groups[0]['lr']
+          eprint(f"Loss: {smoothed_loss} (learning rate {lr/20:.3e})")
+        if vsample_changed and args.reset_on_updated_sample:
+          vsample_changed = False
+          optimizer = optimizers[args.optimizer](
+            [{"params": v_network.tactic_embedding.parameters(),
+              "lr": args.learning_rate * 20},
+             {"params": v_network.prediction_network.parameters()}],
+            lr=args.learning_rate)
+          adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                                      args.learning_rate_decay)
+          eprint("Resetting the optimizer and adjuster",
+                 guard=args.verbose >= 1)
+        if args.dump_negative_examples is not None:
+          with args.dump_negative_examples.open('w') as f:
+            negative_examples = replay_buffer.get_negative_samples()
+            eprint(f"Dumping {len(negative_examples)} negative examples",
+                   guard=args.verbose >= 1)
+            for obl in negative_examples:
+               print(json.dumps(obl.to_dict()), file=f)
+        if args.dump_replay_buffer is not None:
+          with open(str(args.dump_replay_buffer) + ".tmp", 'w') as f:
+            samples = replay_buffer.get_buffer_contents()
+            eprint(f"Dumping {len(samples)} examples",
+                   guard=args.verbose >= 1)
+            for obl, action, next_obls in samples:
+               print(json.dumps((obl.to_dict(), action,
+                                 [next_obl.to_dict() for next_obl
+                                  in next_obls] if next_obls is not None else None)), file=f)
+          shutil.copyfile(str(args.dump_replay_buffer) + ".tmp", str(args.dump_replay_buffer))
+      if iters_trained - steps_last_synced_target >= args.sync_target_every:
+        eprint(f"Syncing target network at step {replay_buffer.buffer_steps} "
+               f"({replay_buffer.buffer_steps - steps_last_synced_target} "
+               "steps since last synced)", guard=args.verbose >= 1)
+        steps_last_synced_target = iters_trained
+        if args.ignore_after is not None and iters_trained > args.ignore_after:
+          eprint("Skipping sync because we're ignoring samples now", guard=args.verbose >= 1)
         else:
-          eprint(f"Loss buffer is only {len(loss_buffer)} long",
-                 guard=args.verbose >= 1)
-          loss_buffer.append(loss)
-        iters_trained += 1
-      if len(loss_buffer) == args.loss_smoothing:
-        smoothed_loss = sum(loss_buffer) / args.loss_smoothing
-        lr = optimizer.param_groups[0]['lr']
-        eprint(f"Loss: {smoothed_loss} (learning rate {lr/20:.3e})")
-      if vsample_changed and args.reset_on_updated_sample:
-        vsample_changed = False
-        optimizer = optimizers[args.optimizer](
-          [{"params": v_network.tactic_embedding.parameters(),
-            "lr": args.learning_rate * 20},
-           {"params": v_network.prediction_network.parameters()}],
-          lr=args.learning_rate)
-        adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
-                                    args.learning_rate_decay)
-        eprint("Resetting the optimizer and adjuster",
-               guard=args.verbose >= 1)
-      if args.dump_negative_examples is not None:
-        with args.dump_negative_examples.open('w') as f:
-          negative_examples = replay_buffer.get_negative_samples()
-          eprint(f"Dumping {len(negative_examples)} negative examples",
-                 guard=args.verbose >= 1)
-          for obl in negative_examples:
-             print(json.dumps(obl.to_dict()), file=f)
-      if args.dump_replay_buffer is not None:
-        with open(str(args.dump_replay_buffer) + ".tmp", 'w') as f:
-          samples = replay_buffer.get_buffer_contents()
-          eprint(f"Dumping {len(samples)} examples",
-                 guard=args.verbose >= 1)
-          for obl, action, next_obls in samples:
-             print(json.dumps((obl.to_dict(), action, 
-                               [next_obl.to_dict() for next_obl
-                                in next_obls] if next_obls is not None else None)), file=f)
-        shutil.copyfile(str(args.dump_replay_buffer) + ".tmp", str(args.dump_replay_buffer)) 
-    if iters_trained - steps_last_synced_target >= args.sync_target_every:
-      eprint(f"Syncing target network at step {replay_buffer.buffer_steps} "
-             f"({replay_buffer.buffer_steps - steps_last_synced_target} "
-             "steps since last synced)", guard=args.verbose >= 1)
-      steps_last_synced_target = iters_trained
-      if args.ignore_after is not None and iters_trained > args.ignore_after:
-        eprint("Skipping sync because we're ignoring samples now", guard=args.verbose >= 1)
-      else:
-        target_network.load_state_dict(v_network.state_dict())
-      if args.reset_on_sync:
-        if args.decrease_lr_on_reset:
-          learning_rate_restart = learning_rate_restart * args.learning_rate_decay
-        optimizer = optimizers[args.optimizer](
-          [{"params": v_network.tactic_embedding.parameters(),
-            "lr": learning_rate_restart * 20},
-           {"params": v_network.prediction_network.parameters()}],
-          lr=learning_rate_restart)
-        adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
-                                    args.learning_rate_decay)
-        eprint("Resetting the optimizer and adjuster for sync", guard=args.verbose >= 1)
-    if iters_trained - steps_last_synced_workers >= args.sync_workers_every:
-      steps_last_synced_workers = replay_buffer.buffer_steps
-      send_new_weights(args, v_network, common_network_version)
-      common_network_version += 1
-    if args.verifyv_every is not None and \
-       iters_trained - last_iter_verified >= args.verifyv_every and \
-       len(buffer_thread.verification_states) > 0:
-      with print_time("Verifying"):
-        error = print_vvalue_errors(args.gamma, v_network,
-                                    buffer_thread.verification_states)
-        last_iter_verified = iters_trained
-      with (args.state_dir / "latest_error.txt").open('w') as f:
-        print(error, file=f)
-    time_started_waiting = time.time()
+          target_network.load_state_dict(v_network.state_dict())
+        if args.reset_on_sync:
+          if args.decrease_lr_on_reset:
+            learning_rate_restart = learning_rate_restart * args.learning_rate_decay
+          optimizer = optimizers[args.optimizer](
+            [{"params": v_network.tactic_embedding.parameters(),
+              "lr": learning_rate_restart * 20},
+             {"params": v_network.prediction_network.parameters()}],
+            lr=learning_rate_restart)
+          adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                                      args.learning_rate_decay)
+          eprint("Resetting the optimizer and adjuster for sync", guard=args.verbose >= 1)
+      if args.verifyv_every is not None and \
+         iters_trained - last_iter_verified >= args.verifyv_every and \
+         len(buffer_thread.verification_states) > 0:
+        with print_time("Verifying"):
+          error = print_vvalue_errors(args.gamma, v_network,
+                                      buffer_thread.verification_states)
+          last_iter_verified = iters_trained
+        with (args.state_dir / "latest_error.txt").open('w') as f:
+          print(error, file=f)
+      time_started_waiting = time.time()
 
 def fairly_sample_buffers(args: argparse.Namespace,
                           replay_buffer: EncodedReplayBuffer,
@@ -403,21 +410,28 @@ class BufferPopulatingThread(Thread):
   verification_states: Dict[EObligation, int]
   target_training_buffer: TrueTargetBuffer
   signal_change: Event
+  signal_end: Event
   ignore_after: Optional[int]
   obligation_encoder: coq2vec.CoqContextVectorizer
+  v_model: VModel
+  actors_finished: List[int]
   encoding_size: int
   max_term_length: int
   verbose: int
   def __init__(self, replay_buffer: EncodedReplayBuffer,
                target_training_buffer: TrueTargetBuffer,
+               v_model: VModel,
                signal_change: Event,
+               signal_end: Event,
                obl_encoder: coq2vec.CoqContextVectorizer,
-               verbose: int = 0,
-               ignore_after: Optional[int] = None) -> None:
-    self.verbose = verbose
+               args: argparse.Namespace) -> None:
+    self.args = args
+    self.verbose = args.verbose
     self.replay_buffer = replay_buffer
     self.signal_change = signal_change
+    self.signal_end = signal_end
     self.obligation_encoder = obl_encoder
+    self.v_model = v_model
     self.encoding_size = unwrap(
       obl_encoder.term_encoder.hidden_size) * \
                          (obl_encoder.max_num_hypotheses + 1)
@@ -425,8 +439,9 @@ class BufferPopulatingThread(Thread):
                                   .max_term_length)
     self.target_training_buffer = target_training_buffer
     self.verification_states = {}
-    self.ignore_after = ignore_after
+    self.ignore_after = args.ignore_after
     self.num_verification_samples_encountered = 0
+    self.actors_finished: List[int] = []
     super().__init__()
     pass
   def run(self) -> None:
@@ -437,9 +452,19 @@ class BufferPopulatingThread(Thread):
         self.receive_experience_sample(sending_worker)
       elif send_type.item() == 1:
         self.receive_verification_sample(sending_worker)
-      else:
-        assert send_type.item() == 2
+      elif send_type.item() == 2:
         self.receive_negative_sample(sending_worker)
+      elif send_type.item() == 3:
+        self.send_latest_weights(sending_worker)
+      elif send_type.item() == 4:
+        self.actors_finished.append(sending_worker)
+        num_actors = int(os.environ["SLURM_NTASKS"]) - 1
+        if len(self.actors_finished) == num_actors:
+          save_new_weights(self.args, self.v_model, 1)
+          self.signal_end.set()
+          sys.exit(0)
+      else:
+        assert False, "Bad mesage tag"
 
   def receive_experience_sample(self, sending_worker: int) -> None:
     device = "cuda"
@@ -589,6 +614,9 @@ class BufferPopulatingThread(Thread):
     self.replay_buffer.add_negative_sample(state_sample)
     self.replay_buffer.buffer_steps += 1
     self.signal_change.set()
+  def send_latest_weights(self, target_worker: int) -> None:
+    for param in self.v_model.parameters():
+      dist.send(tensor=param.data.to("cpu"), tag=30, dst=target_worker)
 
 ETransition = Tuple[int, Sequence[EObligation]]
 EFullTransition = Tuple[EObligation, int, List[EObligation]]
@@ -742,28 +770,10 @@ class EncodedReplayBuffer:
   def __len__(self) -> int:
     return len(self._contents)
 
-def send_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
+def save_new_weights(args: argparse.Namespace, v_network: nn.Module, version: int) -> None:
   save_path = str(args.state_dir / "weights" / f"common-v-network-{version}.dat")
   torch.save(v_network.state_dict(), save_path + ".tmp")
   os.rename(save_path + ".tmp", save_path)
-  delete_old_common_weights(args)
-
-def delete_old_common_weights(args: argparse.Namespace) -> None:
-  cwd = os.getcwd()
-  root_dir = str(args.state_dir / "weights")
-  os.chdir(root_dir)
-  common_network_paths = glob("common-v-network-*.dat")
-  os.chdir(cwd)
-
-  common_save_nums = [int(unwrap(re.match(r"common-v-network-(\d+).dat", path)).group(1))
-                      for path in common_network_paths]
-  latest_common_save_num = max(common_save_nums)
-  for save_num in common_save_nums:
-    if save_num > latest_common_save_num - args.keep_latest:
-      continue
-    old_save_path = (args.state_dir / "weights" /
-                     f"common-v-network-{save_num}.dat")
-    old_save_path.unlink()
 
 def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
                         verification_samples: Dict[EObligation, int]):
@@ -779,6 +789,11 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   avg_error = total_error / len(items)
   eprint(f"Average step error across {len(items)} initial states: {avg_error:.6f}")
   return avg_error
+
+def interrupt_early(args: argparse.Namespace, v_model: VModel,
+                    *rest_args) -> None:
+  save_new_weights(args, v_model, 0)
+  sys.exit(1)
 
 if __name__ == "__main__":
   main()

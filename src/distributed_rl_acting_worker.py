@@ -27,6 +27,7 @@ sys.path.append(str(Path(os.getcwd()) / "src"))
 #pylint: disable=wrong-import-position
 import distributed_rl as drl
 import rl
+from v_model import VModel
 from gen_rl_tasks import RLTask, ProofSpec
 from models.tactic_predictor import TacticPredictor
 from models.features_polyarg_predictor import FeaturesPolyargPredictor
@@ -105,6 +106,7 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     next_task_ep = allocate_next_task(args, workerid, task_state)
     if next_task_ep is None:
       eprint(f"Finished worker {workerid}")
+      learning_connection.notify_finished()
       break
     if args.verbose > 0:
       eprint(f"Starting task ep {next_task_ep}")
@@ -127,7 +129,8 @@ def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
     for prev_tactic, state in negative_samples:
       learning_connection.encode_and_send_negative_sample(prev_tactic, state)
     mark_task_done(args, workerid, next_task_ep)
-    load_latest_q_network(args, actor.v_network)
+    learning_connection.get_latest_weights(
+      unwrap(actor.v_network.network))
 
 class RLActor:
   args: argparse.Namespace
@@ -293,6 +296,12 @@ class LearningServerConnection:
     dist.send(tensor=torch.tensor(2, dtype=int), tag=0, dst=0)
     dist.send(tensor=torch.LongTensor([previous_tactic_encoded]), tag=20, dst=0)
     dist.send(tensor=state_sequence, tag=21, dst=0)
+  def get_latest_weights(self, v_model: VModel) -> None:
+    dist.send(tensor=torch.tensor(3, dtype=int), tag=0, dst=0)
+    for param in v_model.parameters():
+      dist.recv(tensor=param.data, src=0, tag=30)
+  def notify_finished(self) -> None:
+    dist.send(tensor=torch.tensor(4, dtype=int), tag=0, dst=0)
 
 @dataclass
 class FileTaskState:

@@ -72,10 +72,11 @@ def distributed_rl(args: argparse.Namespace):
                                      functools.partial(interrupt_early, args),
                                      guard=args.catch_interrupts):
             show_progress(args, all_task_eps, num_workers_actually_needed)
-        cancel_workers(args)
     else:
         util.eprint(f"WARNING: there are {num_task_eps_done} tasks eps already done, but only {len(all_task_eps)} task eps total! "
                "This means that something didn't resume properly, or you resumed with a smaller task set")
+    wait_for_learning_server(args)
+    cancel_workers(args)
     build_final_save(args, len(all_task_eps))
 
     if args.verifyvval:
@@ -390,7 +391,6 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
 
             if learner_is_scheduled:
                 pass
-                # check_for_learning_worker(args)
             else:
                 learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
             # Get the new scheduled actors, and update the worker
@@ -400,24 +400,21 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             wbar.update(len(new_scheduled_actors) - len(scheduled_actors))
             scheduled_actors = new_scheduled_actors
 
-            # if len(scheduled_actors) == 0 and not learner_is_scheduled and \
-            #    time.time() - start_time > 5 * 60 and args.hetjob:
-            #     util.eprint("Het job is taking too long to schedule, and could "
-            #                 "be blocking other jobs from getting scheduled, "
-            #                 "so we're cancelling it. Try rerunning without --hetjob!")
-            #     cancel_workers(args)
-            #     sys.exit(1)
 
-def check_for_learning_worker(args: argparse.Namespace) -> None:
-    # If the syncing worker dies, print a message and exit
-    squeue_output = subprocess.check_output(
-        f"squeue -r -u$USER -h -n drl-all-{args.output_file}",
-        shell=True, text=True)
-    if squeue_output.strip() == "":
-        util.eprint("Learning server died! Check the logs for more details. "
-                    "Exiting...")
-        cancel_workers(args)
-        sys.exit(1)
+def wait_for_learning_server(args: argparse.Namespace) -> None:
+    squeue_all_output = subprocess.check_output(
+      [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+      shell=True, text=True).split("\n")[0].strip()
+    if squeue_all_output == "":
+        return
+    job_id = int(squeue_all_output)
+    while True:
+        squeue_step_output = subprocess.check_output(
+            f"squeue -r -u$USER -h -s{job_id}.0",
+            shell=True, text=True)
+        if squeue_step_output.strip() == "":
+            break
+        time.sleep(0.1)
 
 def get_num_task_eps_done(args: argparse.Namespace) -> int:
     num_task_eps_done: int = 0
@@ -429,6 +426,8 @@ def get_num_task_eps_done(args: argparse.Namespace) -> int:
 
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
     util.eprint("Interrupting but saving results (interrupt again to cancel)")
+    interrupt_learning_server(args)
+    wait_for_learning_server(args)
     cancel_workers(args)
     build_final_save(args, num_task_eps_done)
     sys.exit(1)
@@ -476,6 +475,14 @@ def latest_worker_save(args: argparse.Namespace,
         return None
     return (args.state_dir / "weights" /
             f"worker-{workerid}-network-{latest_save_num}.dat")
+
+def interrupt_learning_server(args: argparse.Namespace) -> None:
+    job_id = int(subprocess.check_output(
+      [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+      shell=True, text=True).split("\n")[0].strip())
+    subprocess.run([f"scancel -u$USER {job_id}.0 -s SIGINT"],
+                   shell=True)
+    pass
 
 def cancel_workers(args: argparse.Namespace) -> None:
     subprocess.run([f"scancel -u$USER -n drl-all-{args.output_file}"],
