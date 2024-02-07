@@ -44,6 +44,7 @@ def main() -> None:
     distributed_rl(args)
 
 def distributed_rl(args: argparse.Namespace):
+    check_for_duplicate_run(args)
     all_task_eps = get_all_task_episodes(args)
     num_task_eps_done = setup_jobstate(args, all_task_eps)
     num_workers_actually_needed = min(len(all_task_eps) - num_task_eps_done,
@@ -529,6 +530,14 @@ class EObligation:
     if not isinstance(other, EObligation):
       return False
     return bool(torch.all(self.contents == other.contents))
+
+def check_for_duplicate_run(args: argparse.Namespace) -> None:
+    output = subprocess.check_output(
+      [f"squeue -u$USER -n drl-all-{args.output_file} -h"],
+      shell=True, text=True)
+    assert output.strip() == "", \
+      "There's already an instance running with that output file! "\
+      "Having two would mess up job control"
 
 if __name__ == "__main__":
     main()
