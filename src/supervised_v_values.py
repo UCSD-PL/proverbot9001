@@ -86,7 +86,8 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
     train_args.gamma = config["gamma"]
     train_args.num_layers = config["num-layers"]
     train_args.hidden_size = int(math.sqrt(config["internal-connections"] / (config["num-layers"])))
-    session.report({"loss": train(train_args)})
+    valid_loss, valid_accuracy = train(train_args)
+    session.report({"loss": valid_loss, "accuracy": valid_accuracy})
   search_space={"learning-rate": tune.loguniform(1e-12, 1e-1),
                 "learning-rate-decay": tune.uniform(0.1, 1.0),
                 "learning-rate-step": tune.lograndint(1, args.num_epochs // 2),
@@ -108,7 +109,7 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
   print("Best config is:", results.get_best_result().config)
   pass
 
-def train(args: argparse.Namespace) -> float:
+def train(args: argparse.Namespace) -> Tuple[float, float]:
   device = "cuda" if torch.cuda.is_available() else "cpu"
   with print_time("Loading tasks"):
     with args.obl_tasks_file.open("r") as f:
@@ -263,7 +264,7 @@ def train(args: argparse.Namespace) -> float:
         status_string = ""
       print(actual_value.item(), "vs", expected_value.item(), status_string)
     print(f"{erroneous_count} of {len(encoded_states)} samples have the wrong v value")
-  return valid_loss.item()
+  return valid_loss.item(), valid_accuracy.item()
 
 def validation_test(network: VModel, gamma: float,
                     valid_dataloader: data.DataLoader) -> \
