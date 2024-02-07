@@ -611,6 +611,8 @@ class TrueTargetBuffer:
         return random.sample(list(self._contents.items()), batch_size)
       elif self.allow_partial_batches and len(self._contents) > 0:
         return list(self._contents.items())
+      else:
+        return None
   
   def add_target(self, state : EObligation, target : int) -> None :
     with self.lock :

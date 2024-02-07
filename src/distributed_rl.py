@@ -239,7 +239,7 @@ def write_done_tasks_to_taken_files(args : argparse.Namespace,
 
 # Returns the number of done tasks too because it can be slow to get them and we
 # need them to set up job state anyway.
-def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> List[Tuple[RLTask, int]]:
+def setup_jobstate(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int]]) -> int:
     check_resume(args)
     make_initial_filestructure(args)
     num_task_eps_done = prepare_taken_prooffiles(args,all_task_eps)
