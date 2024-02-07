@@ -212,6 +212,8 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
   training_start = time.time()
   num_batches = len(encoded_states) // args.batch_size
 
+  best_state: Tuple[float, Optional[Dict[str, Any]]] = (0., None)
+
   epoch_loss = 0.
   for epoch in range(args.num_epochs):
     print(f"Epoch {epoch} (learning rate "
@@ -240,6 +242,8 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
       v_network.network, args.gamma, dataloader_valid)
     print(f"Validation Loss: {valid_loss.item():.3e}; "
           f"Validation accuracy: {valid_accuracy.item() * 100:.2f}%")
+    if valid_accuracy > best_state[0]:
+      best_state = (valid_accuracy.item(), v_network.get_state())
     adjuster.step()
   if args.num_epochs == 0:
     valid_loss, valid_accuracy = validation_test(
@@ -249,8 +253,9 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
 
 
   if args.num_epochs >= 0 or not args.start_from:
+    print(f"Using best epoch with accuracy {best_state[0]*100:.3f}%")
     with args.output.open('wb') as f:
-      torch.save((False, None, 0, v_network.get_state(), v_network.get_state(),
+      torch.save((False, None, 0, best_state[1], best_state[1],
                   {}, None), f)
   if args.print_final_outputs:
     threshold = 0.1
