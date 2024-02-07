@@ -69,7 +69,6 @@ def main() -> None:
   parser.add_argument("-t", "--print-timings", action='store_true')
   # parser.add_argument("-w", "--workerid", required=True)
   args = parser.parse_args()
-  eprint("Parsed args")
   # workerid = args.workerid
   envvar_name = "SLURM_PROCID"
   assert envvar_name in os.environ
@@ -87,8 +86,6 @@ def main() -> None:
   args.proof = None
 
   reinforcement_act(args, workerid)
-  eprint("Done, exiting")
-  sys.exit(0)
 
 def reinforcement_act(args: argparse.Namespace, workerid: int) -> None:
   task_eps = drl.get_all_task_episodes(args)
