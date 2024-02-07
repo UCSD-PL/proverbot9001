@@ -99,8 +99,8 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
   tuner = tune.Tuner(tune.with_resources(
                        tune.with_parameters(objective), {"cpu": 1, "gpu": 1}),
                      tune_config=tune.TuneConfig(
-                       metric="loss",
-                       mode="min",
+                       metric="accuracy",
+                       mode="max",
                        search_alg=algo,
                        num_samples=256),
                      run_config=air.RunConfig(),
