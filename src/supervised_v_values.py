@@ -4,6 +4,8 @@ import argparse
 import time
 import json
 import math
+import random
+import os
 from pathlib import Path
 from typing import List, Dict, Union, cast, Tuple
 
@@ -61,7 +63,12 @@ def main() -> None:
   args.backend = "serapi"
   args.set_switch = True
 
+  os.environ["CUBLAS_WORKSPACE_CONFIG"] = ":4096:8"
+  torch.use_deterministic_algorithms(True)
+
   if args.mode == "train":
+    torch.manual_seed(0)
+    random.seed(0)
     train(args)
   else:
     assert args.mode == "tune"
@@ -69,6 +76,9 @@ def main() -> None:
 
 def tune_hyperparams(args: argparse.Namespace) -> None:
   def objective(config: Dict[str, Union[float, int]]):
+    torch.manual_seed(0)
+    random.seed(0)
+
     train_args = argparse.Namespace(**vars(args))
     train_args.learning_rate = config["learning-rate"]
     train_args.learning_rate_decay = config["learning-rate-decay"]
