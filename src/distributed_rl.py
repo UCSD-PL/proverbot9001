@@ -52,6 +52,10 @@ def distributed_rl(args: argparse.Namespace):
         if args.start_from is not None:
             _, _, _, (_, _, _, training_args), _, _, _ = \
               torch.load(str(args.start_from), map_location="cpu")
+            assert training_args.gamma == args.gamma,\
+               "Used a different gamma during training of start_from "\
+               "weights than we're using now! "\
+               f"{training_args.gamma} training vs {args.gamma}"
             hidden_size = training_args.hidden_size
             num_layers = args.num_layers
         else:
