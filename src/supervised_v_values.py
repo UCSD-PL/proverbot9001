@@ -47,7 +47,7 @@ def main() -> None:
   argparser.add_argument("--hidden-size", type=int, default=128)
   argparser.add_argument("--num-layers", type=int, default=3)
   argparser.add_argument("--tactic-embedding-size", type=int, default=32)
-  argparser.add_argument("--print-every", type=int, default=5)
+  argparser.add_argument("--print-every", type=int, default=32)
   argparser.add_argument("-v", "--verbose", action='count', default=0)
   argparser.add_argument("--print-timings", action='store_true')
   argparser.add_argument("--encoder-weights", type=Path)
