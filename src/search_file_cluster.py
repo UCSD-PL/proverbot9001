@@ -362,7 +362,7 @@ def follow_and_print(filename: str) -> None:
             if "UserWarning: TorchScript" in line or "warnings.warn" in line:
                 continue
             if line.strip() != "":
-                print(line)
+                print(line.strip())
             if close_follows:
                 break
             time.sleep(0.01)
