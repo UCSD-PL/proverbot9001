@@ -13,12 +13,10 @@ from typing import Dict, List
 from pathlib import Path
 import uuid
 from tqdm import tqdm
-
-from coq_serapy import Obligation, util
+from util import FileLock
 from distributed_rl import get_all_files
-
+import util
 from gen_rl_tasks import RLTask
-from rl import FileReinforcementWorker, tactic_prefix_is_usable
 from search_file_cluster import get_all_jobs_cluster
 from search_worker import ReportJob
 from util import eprint
@@ -27,14 +25,14 @@ def main() -> None:
   argparser = argparse.ArgumentParser()
   argparser.add_argument("-v", "--verbose", action='count', default=0)
   argparser.add_argument("--print-timings", action='store_true')
-  argparser.add_argument("--prelude", default=".", type=Path)
-  argparser.add_argument("--resume", action='store_false', dest="resume")
-  argparser.add_argument("-P", "--progress", action='store_true')
+  argparser.add_argument("--prelude", default="./CompCert", type=Path)
+  argparser.add_argument("--resume", action='store_true', dest="resume")
   argparser.add_argument("tasks_file", type=Path)
   argparser.add_argument("output_file", type=Path)
   argparser.add_argument("--num-workers", type=int, default=16)
   argparser.add_argument("--state-dir", default="drl_taskinitobl_state", type=Path)
   argparser.add_argument("--worker-alive-time", type=str, default="12:00:00")
+  argparser.add_argument("--mem", default="4G")
   args = argparser.parse_args()
   args.backend = "serapi"
   args.set_switch = True
@@ -66,11 +64,6 @@ def get_states(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) ->
 	
 
 	if num_workers_actually_needed > 0:
-
-		if args.progress :
-			progress_args = "-P"
-		else :
-			progress_args = ""
 		if args.verbose>0 :
 			verbosity_arg = "-"+"v"*args.verbose
 		else :
@@ -94,7 +87,7 @@ def get_states(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) ->
 
 
 module load opam/2.1.2 graphviz/2.49.0+py3.8.12 openmpi/4.1.3+cuda11.6.2
-python -u src/distributed_get_task_initial_states_worker.py {task_file_arg} {output_arg}  {prelude_arg} 
+python -u src/distributed_get_task_initial_states_worker.py {task_file_arg} {output_arg}  {prelude_arg} \
 	 {verbosity_arg} {statedirargs} \
 """
 			f.write(submit_script)
@@ -103,7 +96,7 @@ python -u src/distributed_get_task_initial_states_worker.py {task_file_arg} {out
 		track_progress(args, len(all_tasks))
 
 		print("Finished Getting all initial states")
-	check_success(args, all_tasks)
+	merge(args)
 
 
 
@@ -127,18 +120,24 @@ def track_progress(args: argparse.Namespace, total_num_tasks: int) -> None:
 			if jobs_done == total_num_tasks:
 				break
 
+def merge(args) :
+	all_lines = []
+	for finished_file in glob(str(args.state_dir / "finished-*.txt")):
+		with open(finished_file, 'r') as fileread:
+			for line in fileread:
+				all_lines.append(line)
+	
+	with open(args.output_file,'w') as f, FileLock(f) :
+		f.writelines(all_lines)
+				
+
 def check_success(args: argparse.Namespace, all_tasks) -> None:
 	if args.tasks_file :
 		total_num_jobs_successful = 0
 		total_num_jobs = len(all_tasks)
 		finished_tasks = defaultdict(list)
 		original_tasks = defaultdict(list)
-		for finished_file in glob(str(args.state_dir / "finished-*.txt")):
-			with open(finished_file, 'r') as f:
-				for line in f:
-					job = json.loads(line)
-					finished_tasks[int(job["target_length"])].append(job)
-					total_num_jobs_successful += 1
+		
 		
 		for task in all_tasks :
 			original_tasks[task.target_length].append(task)
@@ -171,15 +170,14 @@ def setup_jobstate(args: argparse.Namespace, all_tasks) -> int:
 			shutil.rmtree(str(args.state_dir))
 			
 	(args.state_dir).mkdir(exist_ok=True)
-	(args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
 	(args.state_dir / "taken").mkdir(exist_ok=True)
-	taken_path = args.state_dir / "takewwn" / "taken-files.txt"
+	taken_path = args.state_dir / "taken" / "taken-files.txt"
 	if not taken_path.exists():
 		with taken_path.open('w'):
 			pass
 
 	done_tasks = []
-	for workerid in range(1, args.num_eval_workers + 1):
+	for workerid in range(1, args.num_workers + 1):
 		worker_done_tasks = []
 		progress_path = args.state_dir / f"progress-{workerid}.txt"
 		if not progress_path.exists():
