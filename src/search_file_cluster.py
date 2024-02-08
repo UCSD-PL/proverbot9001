@@ -139,7 +139,9 @@ def main(arg_list: List[str]) -> None:
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
-                            "-p", project_dict['project_name']]
+                            "-p", project_dict['project_name'],
+                            "--jobs-file",
+                            str(args.output_dir / "all_jobs.txt")]
             subprocess.run(command, stdout=subprocess.DEVNULL)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
