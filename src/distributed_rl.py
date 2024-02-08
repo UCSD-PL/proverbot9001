@@ -112,7 +112,6 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--mem", default="2G")
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
-    parser.add_argument("--sync-workers-every", type=int, default=16)
     parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--loss-smoothing", type=int, default=1)
     parser.add_argument("--dump-negative-examples", type=Path, default=None)
@@ -293,7 +292,6 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                      "--window-size", str(args.window_size),
                      "--train-every", str(args.train_every),
                      "--sync-target-every", str(args.sync_target_every),
-                     "--sync-workers-every", str(args.sync_workers_every),
                      "--keep-latest", str(args.keep_latest),
                      "--optimizer", args.optimizer,
                      "--loss-smoothing", str(args.loss_smoothing),
