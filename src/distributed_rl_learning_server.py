@@ -212,7 +212,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
           shutil.copyfile(str(args.dump_replay_buffer) + ".tmp", str(args.dump_replay_buffer))
       if iters_trained - steps_last_synced_target >= args.sync_target_every:
         eprint(f"Syncing target network at step {replay_buffer.buffer_steps} "
-               f"({replay_buffer.buffer_steps - steps_last_synced_target} "
+               f"({iters_trained - steps_last_synced_target} "
                "steps since last synced)", guard=args.verbose >= 1)
         steps_last_synced_target = iters_trained
         if args.ignore_after is not None and iters_trained > args.ignore_after:
