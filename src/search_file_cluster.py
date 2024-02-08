@@ -376,7 +376,7 @@ def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report File
     set_total = False
     while not Path(filename).exists():
         time.sleep(0.1)
-    with open(filename, 'r') as f:
+    with open(filename, 'r', errors='ignore') as f:
         while True:
             line = f.readline()
             if "UserWarning: TorchScript" in line or "warnings.warn" in line:
