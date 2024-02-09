@@ -8,7 +8,7 @@ from util import FileLock
 from tqdm import tqdm
 
 from coq_serapy import Obligation
-
+from coq_serapy.coq_backend import CoqTimeoutError
 from gen_rl_tasks import RLTask
 from rl import FileReinforcementWorker, tactic_prefix_is_usable
 from util import eprint, safe_abbrev
@@ -120,13 +120,22 @@ def task_state_worker(args, workerid) :
 
 
 def get_task_state(worker, task) :
-	if tactic_prefix_is_usable(task.tactic_prefix):
+	try :
+		if tactic_prefix_is_usable(task.tactic_prefix):
+			worker.run_into_task(task.to_job(), task.tactic_prefix)
+			return worker.coq.proof_context.fg_goals[0].to_dict()
+		else:
+			eprint("Skipping a task with unusable prefix")
+			return None
+	except CoqTimeoutError:
+		eprint("Coqtimeout, Restarting Coq")
+		worker.restart_coq()
+		worker.reset_file_state()
+		worker.enter_file(task.src_file)
 		worker.run_into_task(task.to_job(), task.tactic_prefix)
 		return worker.coq.proof_context.fg_goals[0].to_dict()
-	else:
-		eprint("Skipping a task with unusable prefix")
-		return None
-	 
+
+
 
 def allocate_next_task(args: argparse.Namespace,
 											 file_all_tasks_dict: Dict[Path, List[Tuple[int, RLTask]]], # changed from file_all_te _dict
@@ -191,15 +200,15 @@ def allocate_next_task_from_file_with_retry(
 		# being written.  By retrying we get the actual file contents when
 		# there's a problem like that.
 		for i in range(num_retries):
-				try:
-						return allocate_next_task_from_file(
-							args, filename, all_files,
-							file_task_episodes, our_taken_task_episodes,
-							skip_taken_proofs)
-				except json.decoder.JSONDecodeError:
-						if i == num_retries - 1:
-								raise
-						eprint("Failed to decode, retrying", guard=args.verbose >= 1)
+			try:
+				return allocate_next_task_from_file(
+					args, filename, all_files,
+					file_task_episodes, our_taken_task_episodes,
+					skip_taken_proofs)
+			except json.decoder.JSONDecodeError:
+				if i == num_retries - 1:
+						raise
+				eprint("Failed to decode, retrying", guard=args.verbose >= 1)
 		return None
 
 
@@ -216,28 +225,28 @@ def allocate_next_task_from_file(args: argparse.Namespace,
 				taken_tasks: Set[int] = set()
 				taken_by_others_this_iter: Set[int] = set()
 				for line_num, line in enumerate(f):
-						try:
-								task_idx, taken_this_iter = json.loads(line)
-								taken_tasks.add(task_idx)
-								if task_idx not in our_taken_tasks and taken_this_iter:
-										taken_by_others_this_iter.add(task_idx)
-						except json.decoder.JSONDecodeError:
-								eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
-								raise
+					try:
+							task_idx, taken_this_iter = json.loads(line)
+							taken_tasks.add(task_idx)
+							if task_idx not in our_taken_tasks and taken_this_iter:
+									taken_by_others_this_iter.add(task_idx)
+					except json.decoder.JSONDecodeError:
+							eprint(f"Failed to parse line {filepath}:{line_num}: \"{line.strip()}\"")
+							raise
 				# Searching the tasks for a good one to take
 				proofs_taken_by_others: Set[Tuple[str, str, str] ] = set()
 				for file_task_idx, (task_idx, task) in enumerate(file_tasks):
-						if task_idx in taken_by_others_this_iter:
-								proofs_taken_by_others.add(task.to_proof_spec())
-								continue
-						if (task_idx in taken_tasks
-								or task.to_proof_spec() in proofs_taken_by_others
-										and skip_taken_proofs):
-								continue
-						eprint(f"Found an appropriate task-episode after searching "
-									 f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
-						print(json.dumps((task_idx, True)), file=f, flush=True)
-						return task_idx, task
+					if task_idx in taken_by_others_this_iter:
+							proofs_taken_by_others.add(task.to_proof_spec())
+							continue
+					if (task_idx in taken_tasks
+							or task.to_proof_spec() in proofs_taken_by_others
+									and skip_taken_proofs):
+							continue
+					eprint(f"Found an appropriate task-episode after searching "
+									f"{file_task_idx} task-episodes", guard=args.verbose >= 2)
+					print(json.dumps((task_idx, True)), file=f, flush=True)
+					return task_idx, task
 		return None
 
 
