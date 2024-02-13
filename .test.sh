@@ -25,6 +25,8 @@ python3 -m venv --system-site-packages .
 source bin/activate
 
 # run setup
+git clone https://github.com/HazardousPeach/coq2vec.git ..
+pip install -e ../coq2vec
 make setup
 
 # okay, we've got an install.
