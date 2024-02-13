@@ -272,9 +272,14 @@ class Worker:
                 unique_lemma_statement = \
                     self.last_program_statement + \
                     f" Obligation {self.obligation_num}."
+                lemma_name = coq_serapy.lemma_name_from_statement(
+                    self.last_program_statement) + \
+                    f" Obligation {self.obligation_num}."
                 self.obligation_num += 1
             else:
                 unique_lemma_statement = lemma_statement
+                lemma_name = coq_serapy.lemma_name_from_statement(
+                    lemma_statement)
             self.remaining_commands = rest_commands
             norm_job = ReportJob(self.cur_project,
                                  unwrap(self.cur_file),
@@ -297,6 +302,11 @@ class Worker:
                     self.run_into_job(job, False, careful)
                     return
                 assert False
+            except coq_serapy.CoqExn:
+                eprint("Got an error when trying to skip proof of "
+                       f"{self.coq.sm_prefix}.{lemma_name}")
+                eprint("Maybe one of your 'Proof using' declarations is wrong?")
+                raise
 
     def skip_proof(self, careful: bool) -> None:
         assert self.coq

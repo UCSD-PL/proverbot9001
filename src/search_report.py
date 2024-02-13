@@ -42,7 +42,7 @@ from dataloader import scraped_from_file, ScrapedTactic, Obligation, ProofContex
 import coq_serapy
 import coq_serapy.contexts
 
-from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name, eprint
 import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
