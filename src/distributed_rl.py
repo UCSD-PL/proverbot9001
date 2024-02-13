@@ -390,6 +390,10 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             num_task_eps_progress = new_num_task_eps_progress
 
             if learner_is_scheduled:
+                job_id_output = subprocess.check_output(
+                  [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+                  shell=True, text=True).split("\n")[0].strip()
+                assert job_id_output != "", "All workers died!"
                 pass
             else:
                 learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
