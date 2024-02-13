@@ -153,7 +153,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   signal_change.clear()
   with sighandler_context(signal.SIGINT,
                           functools.partial(interrupt_early, args,
-                                            v_network),
+                                            v_network, signal_end),
                           guard=args.catch_interrupts):
     while True:
       if signal_end.is_set():
@@ -446,6 +446,9 @@ class BufferPopulatingThread(Thread):
     pass
   def run(self) -> None:
     while True:
+      if self.signal_end.is_set():
+        eprint("Ended early, ending receiver thread", guard=self.verbose >= 1)
+        return
       send_type = torch.zeros(1, dtype=int)
       sending_worker = dist.recv(tensor=send_type, tag=0)
       if send_type.item() == 0:
@@ -791,8 +794,10 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   return avg_error
 
 def interrupt_early(args: argparse.Namespace, v_model: VModel,
+                    signal_end: Event,
                     *rest_args) -> None:
   save_new_weights(args, v_model, 0)
+  signal_end.set()
   sys.exit(1)
 
 if __name__ == "__main__":
