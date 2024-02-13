@@ -11,6 +11,7 @@ import json
 import time
 import re
 import shutil
+from datetime import datetime, timedelta
 from pathlib import Path
 from typing import List, Tuple, Optional, Dict, Any, OrderedDict
 from glob import glob
@@ -326,7 +327,6 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   "-t", args.worker_timeout,
                   "--mem-per-cpu", args.mem,
                   "-n", str(num_actors + 1),
-                  "--signal=INT@120",
                   "-c", "1",
                   "-J", f"drl-all-{args.output_file}",
                   f"{cur_dir}/dist_dispatch.sh",
@@ -397,6 +397,8 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
                 pass
             else:
                 learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
+            if timedelta(seconds=time.time() - start_time) >= parse_timeout(args.worker_timeout) - timedelta(minutes=1):
+                interrupt_early(args)
             # Get the new scheduled actors, and update the worker
             # bar.
             with (args.state_dir / "actors_scheduled.txt").open('r') as f:
@@ -404,6 +406,12 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             wbar.update(len(new_scheduled_actors) - len(scheduled_actors))
             scheduled_actors = new_scheduled_actors
 
+def parse_timeout(timestring: str) -> timedelta:
+    try:
+        t = datetime.strptime(timestring, "%H:%M:%S")
+    except ValueError:
+        t = datetime.strptime(timestring, "%M:%S")
+    return timedelta(hours=t.hour, minutes=t.minute, seconds=t.second)
 
 def wait_for_learning_server(args: argparse.Namespace) -> None:
     squeue_all_output = subprocess.check_output(
@@ -431,7 +439,7 @@ def get_num_task_eps_done(args: argparse.Namespace) -> int:
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
     util.eprint("Interrupting but saving results (interrupt again to cancel)")
     interrupt_learning_server(args)
-    wait_for_learning_server(args)
+    time.sleep(2)
     cancel_workers(args)
     build_final_save(args, num_task_eps_done)
     sys.exit(1)
@@ -481,14 +489,26 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def interrupt_learning_server(args: argparse.Namespace) -> None:
+    job_node = subprocess.check_output(
+      f"squeue -h -n drl-all-{args.output_file} -o %N | head -n 1",
+      shell=True, text=True).split("\n")[0].strip()
+    assert job_node != "", \
+      "Can't save final weights because learning server is already dead!"
+    multi_node_match = re.match("([a-zA-Z0-9]+)\[([a-zA-Z0-9]+,.*)\]", job_node)
+    if multi_node_match:
+      job_node = multi_node_match.group(1) + multi_node_match.group(2)
+    assert "[" not in job_node
     job_id_output = subprocess.check_output(
       [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
       shell=True, text=True).split("\n")[0].strip()
-    assert job_id_output != "", \
-      "Can't save final weights because learning server is already dead!"
+    assert job_id_output != ""
     job_id = int(job_id_output)
-    subprocess.run([f"scancel -u$USER {job_id}.0 -s SIGINT"],
-                   shell=True)
+    output = subprocess.check_output(
+      f"ssh {job_node} scontrol listpids {job_id} | tail -n+2 "
+      "| awk '($3 ~/0/) && ($4 ~/-/) { print $1 }' "
+      f"| ssh {job_node} xargs kill -2",
+      shell=True, text=True)
+    assert output.strip() == "", output.strip()
     pass
 
 def cancel_workers(args: argparse.Namespace) -> None:

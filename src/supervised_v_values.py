@@ -88,12 +88,21 @@ def tune_hyperparams(args: argparse.Namespace) -> None:
     train_args.hidden_size = int(math.sqrt(config["internal-connections"] / (config["num-layers"])))
     valid_loss, valid_accuracy = train(train_args)
     session.report({"loss": valid_loss, "accuracy": valid_accuracy})
-  search_space={"learning-rate": tune.loguniform(1e-12, 1e-1),
-                "learning-rate-decay": tune.uniform(0.1, 1.0),
-                "learning-rate-step": tune.lograndint(1, args.num_epochs // 2),
-                "gamma": tune.uniform(0.2, 0.9),
+  # search_space={"learning-rate": tune.loguniform(1e-12, 1e-1),
+  #               "learning-rate-decay": tune.uniform(0.1, 1.0),
+  #               "learning-rate-step": tune.lograndint(1, args.num_epochs // 2),
+  #               "gamma": tune.uniform(0.2, 0.9),
+  #               # This upper limit corresponds to about 15.77 GiB of video memory
+  #               # "internal-connections": tune.lograndint(1024, 645500000),
+  #               "internal-connections": tune.lograndint(1024, 645500),
+  #               "num-layers": tune.randint(1, 8)}
+  search_space={"learning-rate": tune.loguniform(3e-5, 3e-3),
+                "learning-rate-decay": tune.uniform(0.2, 0.7),
+                "learning-rate-step": tune.lograndint(15, args.num_epochs // 2),
+                "gamma": tune.uniform(0.59, 0.99),
                 # This upper limit corresponds to about 15.77 GiB of video memory
-                "internal-connections": tune.lograndint(1024, 645500000),
+                # "internal-connections": tune.lograndint(1024, 645500000),
+                "internal-connections": tune.lograndint(1024, 645500),
                 "num-layers": tune.randint(1, 8)}
   algo = OptunaSearch()
   tuner = tune.Tuner(tune.with_resources(
