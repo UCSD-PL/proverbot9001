@@ -481,9 +481,12 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def interrupt_learning_server(args: argparse.Namespace) -> None:
-    job_id = int(subprocess.check_output(
+    job_id_output = subprocess.check_output(
       [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
-      shell=True, text=True).split("\n")[0].strip())
+      shell=True, text=True).split("\n")[0].strip()
+    assert job_id_output != "", \
+      "Can't save final weights because learning server is already dead!"
+    job_id = int(job_id_output)
     subprocess.run([f"scancel -u$USER {job_id}.0 -s SIGINT"],
                    shell=True)
     pass
