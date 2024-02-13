@@ -252,7 +252,6 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     project_dicts = project_dicts_from_args(args)
     for project_dict in project_dicts:
         for filename in files_of_dict(args, project_dict):
-            fixing_duplicates = False
             file_jobs: List[Tuple[ReportJob, Any]] = []
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
@@ -260,14 +259,18 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                               files_of_dict(args,
                                                             project_dict)])
                             + "-proofs.txt"))
+            fixing_issues = False
             try:
                 with proofs_file.open('r') as f, FileLock(f, exclusive=False):
                     for idx, line in enumerate(f):
                         try:
                             (job_project, job_file, job_module, job_lemma), sol = json.loads(line)
                         except json.decoder.JSONDecodeError:
-                            print(f"On line {idx} in file {proofs_file}")
-                            raise
+                            print(f"On line {idx} in file {proofs_file}, "
+                                  "hit a corrupted output line, likely due to NFS. "
+                                  "Removing that line (it will have to be re-done).")
+                            fixing_issues = True
+                            continue
                         assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
                             f"doesn't match it's filename {filename}. {job_file}"
                         loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
@@ -276,13 +279,13 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                    f"file {filename} "
                                    f"found duplicate job {loaded_job}. "
                                    f"Automatically removing it...")
-                            fixing_duplicates = True
+                            fixing_issues = True
                         else:
                             assert loaded_job not in already_done_jobs, \
                               f"Already found job {loaded_job} in another file!"
                             file_jobs.append((loaded_job, sol))
                 already_done_jobs.extend([job for job, sol in file_jobs])
-                if fixing_duplicates:
+                if fixing_issues:
                     with proofs_file.open('w') as f, FileLock(f):
                         for job, sol in file_jobs:
                             print(json.dumps((job, sol)), file=f)
