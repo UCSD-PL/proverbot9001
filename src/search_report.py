@@ -42,7 +42,7 @@ from dataloader import scraped_from_file, ScrapedTactic, Obligation, ProofContex
 import coq_serapy
 import coq_serapy.contexts
 
-from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name, eprint
 import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
@@ -104,7 +104,15 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
                     job, sol = json.loads(line)
                     file_solutions.append((job, SearchResult.from_dict(sol)))
         except FileNotFoundError:
-            lemmas = get_file_jobs(args, project_dict["project_name"], filename)
+            if args.jobs_file:
+                with open(args.jobs_file, 'r') as f:
+                    all_jobs = [json.loads(l) for l in f]
+                lemmas = [job for job in all_jobs if
+                          job[0] == project_dict["project_name"] and
+                          job[1] == filename]
+            else:
+                lemmas = get_file_jobs(
+                  args, project_dict["project_name"], filename)
             assert len(lemmas) == 0, lemmas
             stats.append(ReportStats(filename, 0, 0, 0))
             continue
@@ -625,6 +633,7 @@ def main() -> None:
     arg_parser.add_argument("report_dir", type=Path)
     arg_parser.add_argument("-p", "--project", type=str, default=None)
     arg_parser.add_argument("-i", "--project-index-only", action="store_true")
+    arg_parser.add_argument("--jobs-file", default=None)
     top_args = arg_parser.parse_args()
     assert not (top_args.project and top_args.project_index_only)
 
@@ -639,6 +648,7 @@ def main() -> None:
             else:
                 setattr(args, k, eval(v))
 
+    args.jobs_file = top_args.jobs_file
     predictor = get_predictor(args)
     project_dicts = project_dicts_from_args(args)
     with open(top_args.report_dir / "time_so_far.txt", 'r') as f:

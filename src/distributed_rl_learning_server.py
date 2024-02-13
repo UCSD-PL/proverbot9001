@@ -153,7 +153,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   signal_change.clear()
   with sighandler_context(signal.SIGINT,
                           functools.partial(interrupt_early, args,
-                                            v_network),
+                                            v_network, signal_end),
                           guard=args.catch_interrupts):
     while True:
       if signal_end.is_set():
@@ -212,7 +212,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
           shutil.copyfile(str(args.dump_replay_buffer) + ".tmp", str(args.dump_replay_buffer))
       if iters_trained - steps_last_synced_target >= args.sync_target_every:
         eprint(f"Syncing target network at step {replay_buffer.buffer_steps} "
-               f"({replay_buffer.buffer_steps - steps_last_synced_target} "
+               f"({iters_trained - steps_last_synced_target} "
                "steps since last synced)", guard=args.verbose >= 1)
         steps_last_synced_target = iters_trained
         if args.ignore_after is not None and iters_trained > args.ignore_after:
@@ -446,6 +446,9 @@ class BufferPopulatingThread(Thread):
     pass
   def run(self) -> None:
     while True:
+      if self.signal_end.is_set():
+        eprint("Ended early, ending receiver thread", guard=self.verbose >= 1)
+        return
       send_type = torch.zeros(1, dtype=int)
       sending_worker = dist.recv(tensor=send_type, tag=0)
       if send_type.item() == 0:
@@ -783,16 +786,24 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
     torch.cat([obl.local_context.view(1, -1) for obl, _ in items], dim=0),
     torch.LongTensor([obl.previous_tactic for obl, _ in items]).to(device)).view(-1)
   predicted_steps = torch.log(predicted_v_values) / math.log(gamma)
+  num_predicted_zeros = torch.count_nonzero(predicted_steps == float("inf"))
   target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
   step_errors = torch.abs(predicted_steps - target_steps)
-  total_error = torch.sum(step_errors).item()
-  avg_error = total_error / len(items)
-  eprint(f"Average step error across {len(items)} initial states: {avg_error:.6f}")
+
+  total_error = torch.sum(torch.where(predicted_steps == float("inf"),
+                                      torch.zeros_like(step_errors),
+                                      step_errors)).item()
+  avg_error = total_error / (len(items) - num_predicted_zeros)
+  eprint(f"Average step error across {len(items) - num_predicted_zeros} "
+         f"initial states with finite predictions: {avg_error:.6f}")
+  eprint(f"{num_predicted_zeros} predicted as infinite steps (impossible)")
   return avg_error
 
 def interrupt_early(args: argparse.Namespace, v_model: VModel,
+                    signal_end: Event,
                     *rest_args) -> None:
   save_new_weights(args, v_model, 0)
+  signal_end.set()
   sys.exit(1)
 
 if __name__ == "__main__":

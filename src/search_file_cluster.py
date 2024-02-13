@@ -139,7 +139,9 @@ def main(arg_list: List[str]) -> None:
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
-                            "-p", project_dict['project_name']]
+                            "-p", project_dict['project_name'],
+                            "--jobs-file",
+                            str(args.output_dir / "all_jobs.txt")]
             subprocess.run(command, stdout=subprocess.DEVNULL)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):
@@ -360,7 +362,7 @@ def follow_and_print(filename: str) -> None:
             if "UserWarning: TorchScript" in line or "warnings.warn" in line:
                 continue
             if line.strip() != "":
-                print(line)
+                print(line.strip())
             if close_follows:
                 break
             time.sleep(0.01)
@@ -374,7 +376,7 @@ def follow_with_progress(filename: str, bar: tqdm, bar_prompt: str ="Report File
     set_total = False
     while not Path(filename).exists():
         time.sleep(0.1)
-    with open(filename, 'r') as f:
+    with open(filename, 'r', errors='ignore') as f:
         while True:
             line = f.readline()
             if "UserWarning: TorchScript" in line or "warnings.warn" in line:

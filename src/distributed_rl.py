@@ -326,6 +326,7 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                   "-t", args.worker_timeout,
                   "--mem-per-cpu", args.mem,
                   "-n", str(num_actors + 1),
+                  "--signal=INT@120",
                   "-c", "1",
                   "-J", f"drl-all-{args.output_file}",
                   f"{cur_dir}/dist_dispatch.sh",
@@ -389,6 +390,10 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             num_task_eps_progress = new_num_task_eps_progress
 
             if learner_is_scheduled:
+                job_id_output = subprocess.check_output(
+                  [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+                  shell=True, text=True).split("\n")[0].strip()
+                assert job_id_output != "", "All workers died!"
                 pass
             else:
                 learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
@@ -476,9 +481,12 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def interrupt_learning_server(args: argparse.Namespace) -> None:
-    job_id = int(subprocess.check_output(
+    job_id_output = subprocess.check_output(
       [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
-      shell=True, text=True).split("\n")[0].strip())
+      shell=True, text=True).split("\n")[0].strip()
+    assert job_id_output != "", \
+      "Can't save final weights because learning server is already dead!"
+    job_id = int(job_id_output)
     subprocess.run([f"scancel -u$USER {job_id}.0 -s SIGINT"],
                    shell=True)
     pass
