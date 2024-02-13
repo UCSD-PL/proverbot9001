@@ -786,11 +786,17 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
     torch.cat([obl.local_context.view(1, -1) for obl, _ in items], dim=0),
     torch.LongTensor([obl.previous_tactic for obl, _ in items]).to(device)).view(-1)
   predicted_steps = torch.log(predicted_v_values) / math.log(gamma)
+  num_predicted_zeros = torch.count_nonzero(predicted_steps == float("inf"))
   target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
   step_errors = torch.abs(predicted_steps - target_steps)
-  total_error = torch.sum(step_errors).item()
-  avg_error = total_error / len(items)
-  eprint(f"Average step error across {len(items)} initial states: {avg_error:.6f}")
+
+  total_error = torch.sum(torch.where(predicted_steps == float("inf"),
+                                      torch.zeros_like(step_errors),
+                                      step_errors)).item()
+  avg_error = total_error / (len(items) - num_predicted_zeros)
+  eprint(f"Average step error across {len(items) - num_predicted_zeros} "
+         f"initial states with finite predictions: {avg_error:.6f}")
+  eprint(f"{num_predicted_zeros} predicted as infinite steps (impossible)")
   return avg_error
 
 def interrupt_early(args: argparse.Namespace, v_model: VModel,
