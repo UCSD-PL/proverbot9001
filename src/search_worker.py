@@ -304,7 +304,7 @@ class Worker:
                 assert False
             except coq_serapy.CoqExn:
                 eprint("Got an error when trying to skip proof of "
-                       f"{self.coq.sm_prefix}.{lemma_name}")
+                       f"{self.coq.sm_prefix}{lemma_name}")
                 eprint("Maybe one of your 'Proof using' declarations is wrong?")
                 raise
 
