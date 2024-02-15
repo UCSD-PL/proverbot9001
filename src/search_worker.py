@@ -82,7 +82,7 @@ class Worker:
                 verbosity=self.args.verbose)
         if backend == 'serapi':
             backend = coq_serapy.CoqSeraPyInstance(
-                ["sertop"], root_dir=str(self.args.prelude), timeout=60)
+                ["sertop"], timeout=60)
             backend.verbosity = self.args.verbose
         self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
                                        verbosity=self.args.verbose)
@@ -207,7 +207,7 @@ class Worker:
             self.cur_project = job_project
             if self.args.set_switch:
                 self.set_switch_from_proj()
-            self.coq.backend.enterDirectory(str(self.args.prelude / self.cur_project))
+            self.coq.backend.enterDirectory(str(self.cur_project))
             self.enter_file(job_file)
         # Strip comments for comparison with lemmas encountered
         checkjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
