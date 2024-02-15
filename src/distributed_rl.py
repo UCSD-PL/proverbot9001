@@ -77,7 +77,8 @@ def distributed_rl(args: argparse.Namespace):
     else:
         util.eprint(f"WARNING: there are {num_task_eps_done} tasks eps already done, but only {len(all_task_eps)} task eps total! "
                "This means that something didn't resume properly, or you resumed with a smaller task set")
-    wait_for_learning_server(args)
+    time.sleep(5)
+    # wait_for_learning_server(args)
     cancel_workers(args)
     build_final_save(args, len(all_task_eps))
 
@@ -439,7 +440,8 @@ def get_num_task_eps_done(args: argparse.Namespace) -> int:
 def interrupt_early(args: argparse.Namespace, *_rest_args) -> None:
     util.eprint("Interrupting but saving results (interrupt again to cancel)")
     interrupt_learning_server(args)
-    time.sleep(2)
+    # wait_for_learning_server(args)
+    time.sleep(5)
     cancel_workers(args)
     build_final_save(args, num_task_eps_done)
     sys.exit(1)
@@ -489,26 +491,28 @@ def latest_worker_save(args: argparse.Namespace,
             f"worker-{workerid}-network-{latest_save_num}.dat")
 
 def interrupt_learning_server(args: argparse.Namespace) -> None:
-    job_node = subprocess.check_output(
-      f"squeue -h -n drl-all-{args.output_file} -o %N | head -n 1",
-      shell=True, text=True).split("\n")[0].strip()
-    assert job_node != "", \
-      "Can't save final weights because learning server is already dead!"
-    multi_node_match = re.match("([a-zA-Z0-9]+)\[([a-zA-Z0-9]+,.*)\]", job_node)
-    if multi_node_match:
-      job_node = multi_node_match.group(1) + multi_node_match.group(2)
-    assert "[" not in job_node
+    # job_node = subprocess.check_output(
+    #   f"squeue -h -n drl-all-{args.output_file} -o %N | head -n 1",
+    #   shell=True, text=True).split("\n")[0].strip()
+    # assert job_node != "", \
+    #   "Can't save final weights because learning server is already dead!"
+    # multi_node_match = re.match("([a-zA-Z0-9]+)\[([a-zA-Z0-9]+,.*)\]", job_node)
+    # if multi_node_match:
+    #   job_node = multi_node_match.group(1) + multi_node_match.group(2)
+    # assert "[" not in job_node
     job_id_output = subprocess.check_output(
       [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
       shell=True, text=True).split("\n")[0].strip()
     assert job_id_output != ""
     job_id = int(job_id_output)
-    output = subprocess.check_output(
-      f"ssh {job_node} scontrol listpids {job_id} | tail -n+2 "
-      "| awk '($3 ~/0/) && ($4 ~/-/) { print $1 }' "
-      f"| ssh {job_node} xargs kill -2",
+    subprocess.check_output(f"scancel -u$USER -sSIGINT {job_id}",
       shell=True, text=True)
-    assert output.strip() == "", output.strip()
+    #output = subprocess.check_output(
+    #  f"ssh {job_node} scontrol listpids {job_id} | tail -n+2 "
+    #  "| awk '($3 ~/0/) && ($4 ~/-/) { print $1 }' "
+    #  f"| ssh {job_node} xargs kill -2",
+    #  shell=True, text=True)
+    #assert output.strip() == "", output.strip()
     pass
 
 def cancel_workers(args: argparse.Namespace) -> None:
