@@ -8,3 +8,4 @@ bash src/reports_prepare_rl_pretrain.sh
 bash src/reports_train_rl.sh
 bash src/reports_makereport_search_rlweights.sh
 bash src/reports_makereport_search_baselines.sh
+bash src/reports_post_report_analysis.sh
