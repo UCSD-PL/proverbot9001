@@ -392,7 +392,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
 
             if learner_is_scheduled:
                 job_id_output = subprocess.check_output(
-                  [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+                  [f"./src/squeue-retry.sh -u$USER -n drl-all-{args.output_file} -o%A -h"],
                   shell=True, text=True).split("\n")[0].strip()
                 assert job_id_output != "", "All workers died!"
                 pass
