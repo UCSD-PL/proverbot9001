@@ -182,7 +182,7 @@ class RLActor:
       eprint(traceback.format_exc())
       file_worker.restart_coq()
       file_worker.reset_file_state()
-      self.coq.backend.enterDirectory(str(task.project))
+      file_worker.coq.backend.enterDirectory(str(task.project))
       file_worker.enter_file(str(task.src_file))
       if restart:
         return self.run_task_reinforce(task, epsilon, restart=False)
