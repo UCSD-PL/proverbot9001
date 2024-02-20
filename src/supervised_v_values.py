@@ -136,40 +136,40 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
   with print_time(f"Encoding {len(obls)} states"):
     with torch.no_grad():
       encoded_positive_states = unwrap(v_network.obligation_encoder).\
-        obligations_to_vectors_cached(obls).to(device)
+        obligations_to_vectors_cached(obls).to("cpu")
     prev_tactics_positive = [prev_tactic_from_prefix(task.tactic_prefix)
                              if len(task.tactic_prefix) > 0 else "Proof"
                              for task in tasks]
     prev_tactics_positive_encoded = torch.LongTensor(
       [predictor.prev_tactic_stem_idx(prev_tactic)
-       for prev_tactic in prev_tactics_positive]).to(device)
+       for prev_tactic in prev_tactics_positive])
     if args.shorter_proofs_from is not None:
       with args.shorter_proofs_from.open('rb') as f:
         _, _, _, _, _, shorter_proofs_dict, _ = torch.load(
           f, map_location="cpu")
       positive_target_v_values = torch.FloatTensor(
         [args.gamma ** (shorter_proofs_dict[t] if t in shorter_proofs_dict
-                        else t.target_length) for t in tasks]).to(device)
+                        else t.target_length) for t in tasks])
       for t in tasks:
         if t in shorter_proofs_dict and \
            shorter_proofs_dict[t] < t.target_length:
           print(f"Found shorter length {shorter_proofs_dict[t]} for task {t}.")
     else:
       positive_target_v_values = torch.FloatTensor(
-        [args.gamma ** t.target_length for t in tasks]).to(device)
+        [args.gamma ** t.target_length for t in tasks])
     if args.negative_examples_from is not None:
       with args.negative_examples_from.open('r') as f:
         negative_samples = \
           [EObligation.from_dict(json.loads(l)) for l in f]
       encoded_states = torch.cat([encoded_positive_states] +
-                                 [eobl.local_context.view(1, -1).to(device) for eobl in
+                                 [eobl.local_context.view(1, -1) for eobl in
                                   negative_samples],
                                  dim=0)
       prev_tactics_encoded = torch.cat((prev_tactics_positive_encoded,
                                         torch.LongTensor(
                                           [eobl.previous_tactic for eobl
-                                           in negative_samples]).to(device)), dim=0)
-      negative_target_v_values = torch.zeros(len(negative_samples)).to(device)
+                                           in negative_samples])), dim=0)
+      negative_target_v_values = torch.zeros(len(negative_samples))
       target_v_values = cast(torch.FloatTensor,
                              torch.cat((positive_target_v_values,
                                         negative_target_v_values), dim=0))
@@ -198,11 +198,13 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
   dataloader = data.DataLoader(full_dataset,
                                sampler=train_sampler,
                                batch_size = args.batch_size,
+                               pin_memory=torch.cuda.is_available(),
                                num_workers = 0, drop_last=True)
 
   dataloader_valid = data.DataLoader(full_dataset,
                                     sampler=valid_sampler,
                                     batch_size=valid_batch_size,
+                                    pin_memory=torch.cuda.is_available(),
                                     num_workers=0, drop_last=True)
   num_batches_valid = int(split / valid_batch_size)
   assert v_network.optimizer is not None
@@ -226,8 +228,8 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
       assert isinstance(target_batch, torch.Tensor), type(target_batch)
       assert target_batch.is_floating_point(), target_batch.type
       v_network.optimizer.zero_grad()
-      actual = v_network.network(contexts_batch, prev_tactics_batch).view(-1)
-      loss = F.mse_loss(actual, target_batch)
+      actual = v_network.network(contexts_batch.to(device), prev_tactics_batch.to(device)).view(-1)
+      loss = F.mse_loss(actual, target_batch.to(device))
       loss.backward()
       v_network.optimizer.step()
       epoch_loss += (loss.item() / (num_batches * args.batch_size))
@@ -285,12 +287,12 @@ def validation_test(network: VModel, gamma: float,
     if valid_batch_size is None:
       valid_batch_size = len(contexts_batch)
     with torch.no_grad():
-      predicted = network(contexts_batch, prev_tactics_batch).view(-1)
+      predicted = network(contexts_batch.to(device), prev_tactics_batch.to(device)).view(-1)
     valid_batch_loss = cast(torch.FloatTensor,
-                            (F.mse_loss(predicted, target_batch)
+                            (F.mse_loss(predicted, target_batch.to(device))
                              / valid_batch_size))
     predicted_steps = torch.log(predicted) / math.log(gamma)
-    target_steps = torch.log(cast(torch.FloatTensor, target_batch))\
+    target_steps = torch.log(cast(torch.FloatTensor, target_batch.to(device)))\
                     / math.log(gamma)
     valid_batch_accuracy = (torch.count_nonzero(
       torch.abs(predicted_steps - target_steps) < 0.5)

@@ -13,7 +13,7 @@ class VModel(nn.Module):
                  num_layers: int) -> None:
         super().__init__()
         self.tactic_embedding = nn.Embedding(previous_tactic_vocab_size,
-                                             previous_tactic_embedding_size)
+                                             previous_tactic_embedding_size).to("cuda")
         layers: List[nn.Module] = [nn.Linear(local_context_embedding_size +
                                    previous_tactic_embedding_size,
                                    hidden_size)]
