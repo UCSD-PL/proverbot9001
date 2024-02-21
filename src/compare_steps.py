@@ -30,14 +30,15 @@ def main() -> None:
 def compare_steps(args: argparse.Namespace):
 
     a_succ_steps = 0
-    a_shorter = 0
+    a_fewer_steps= 0
     b_succ_steps = 0
-    b_shorter = 0
+    b_fewer_steps= 0
+    same_proof_length = 0
     a_succ_proof_steps = 0
     a_proof_shorter = 0
     b_succ_proof_steps = 0
     b_proof_shorter = 0
-    same_length = 0
+    same_num_steps = 0
     a_succ_not_b = 0
     b_succ_not_a = 0
     both_succ = 0
@@ -101,15 +102,17 @@ def compare_steps(args: argparse.Namespace):
                 b_succ_steps += sol_b['steps_taken']
                 both_succ += 1
                 if sol_a['steps_taken'] < sol_b['steps_taken']:
-                    a_shorter += 1
-                if sol_b['steps_taken'] < sol_a['steps_taken']:
-                    b_shorter += 1
+                    a_fewer_steps += 1
+                elif sol_b['steps_taken'] < sol_a['steps_taken']:
+                    b_fewer_steps += 1
                 else:
-                    same_length += 1
+                    same_num_steps += 1
                 if len(sol_a['commands']) < len(sol_b['commands']):
                     a_proof_shorter += 1
                 elif len(sol_b['commands']) < len(sol_a['commands']):
                     b_proof_shorter += 1
+                else:
+                    same_proof_length += 1
             elif sol_b["status"] == "SUCCESS":
                 b_succ_not_a += 1
                 if args.print_b_only:
@@ -126,11 +129,12 @@ def compare_steps(args: argparse.Namespace):
     print(f"Total steps: {a_succ_steps} ({args.a_name}) vs {b_succ_steps} ({args.b_name})")
     print(f"Total solution lengths: {a_succ_proof_steps} ({args.a_name}) vs "
           f"{b_succ_proof_steps} ({args.b_name})")
-    print(f"{a_shorter} proofs where {args.a_name} was took fewer steps, "
-          f"{b_shorter} proofs where {args.b_name} was took fewer steps, "
-          f"{same_length} proofs where they were the same")
+    print(f"{a_fewer_steps} proofs where {args.a_name} was took fewer steps, "
+          f"{b_fewer_steps} proofs where {args.b_name} was took fewer steps, "
+          f"{same_num_steps} proofs where they were the same")
     print(f"{a_proof_shorter} proofs where {args.a_name}'s solution was shorter, "
-          f"{b_proof_shorter} proofs where {args.b_name}'s solution was shorter, ")
+          f"{b_proof_shorter} proofs where {args.b_name}'s solution was shorter, "
+          f"{same_proof_length} proofs where they were the same")
     print(f"{a_succ_not_b} proofs where {args.a_name} succeeded but {args.b_name} did not.")
     print(f"{b_succ_not_a} proofs where {args.b_name} succeeded but {args.a_name} did not.")
     print(f"{both_succ} proofs where both succeeded")
