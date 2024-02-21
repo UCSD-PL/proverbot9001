@@ -1,5 +1,7 @@
 import torch
+import torch.cuda
 from torch import nn
+from typing import Optional
 
 class VModel(nn.Module):
     tactic_embedding: nn.Embedding
@@ -10,10 +12,13 @@ class VModel(nn.Module):
                  previous_tactic_vocab_size: int,
                  previous_tactic_embedding_size: int,
                  hidden_size: int,
-                 num_layers: int) -> None:
+                 num_layers: int,
+                 device: Optional[str] = None) -> None:
         super().__init__()
+        if device is None:
+            device = "cuda" if torch.cuda.is_available() else "cpu"
         self.tactic_embedding = nn.Embedding(previous_tactic_vocab_size,
-                                             previous_tactic_embedding_size).to("cuda")
+                                             previous_tactic_embedding_size).to(device)
         layers: List[nn.Module] = [nn.Linear(local_context_embedding_size +
                                    previous_tactic_embedding_size,
                                    hidden_size)]
