@@ -32,6 +32,8 @@ import torch
 
 from search_file import (add_args_to_parser, get_predictor,
                          SearchWorker, project_dicts_from_args)
+if sys.version_info >= (3, 10):
+    from obl_only_to_pickle import OblOnlyLearnedEstimator
 from rl_to_pickle import LearnedEstimator
 import util
 from util import eprint, FileLock
