@@ -65,7 +65,7 @@ def write_html(output_dir: str, total_theorems: int, total_success:int,
                      ('id', 'logo')):
                 pass
             with tag('h2'):
-                text("Proofs completed: {}% ({}/{})"
+                text("Proofs Completed: {}% ({}/{})"
                      .format(stringified_percent(total_success, total_theorems),
                              total_success, total_theorems))
             with tag('table'):
