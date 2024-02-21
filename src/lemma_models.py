@@ -929,3 +929,94 @@ class SVRCatEnsemble:
     # xs = np.array([self._model_lower._vectorizer.obligation_to_vector(obl).numpy().flatten()])
     xs_cat = self._model_cat.transform_xs([(obl, lem)])
     return self.predict(xs, xs_cat)
+
+class SVCCV:
+
+  _should_CV: bool
+  _model : BaseEstimator
+
+  _svr_params : dict[Any, Any]
+  _vectorizer: coq2vec.CoqContextVectorizer
+
+  @property 
+  def svc_params(self):
+    return self._svc_params
+
+  def __init__(self, encoder_weights_path : str = "encoder_model.dat", svc_params = None, *args, **kwargs) -> None:
+
+    goal_vectorizer = coq2vec.CoqTermRNNVectorizer()
+    goal_vectorizer.load_weights(encoder_weights_path)
+
+    self._vectorizer = coq2vec.CoqContextVectorizer(goal_vectorizer, 4)
+
+
+    if svc_params:
+      self._svc_params = svc_params
+      self._model = make_pipeline(
+          StandardScaler()
+        , PCA(n_components=0.95)
+        , SVC(**svc_params, class_weight='balanced')
+      )
+      self._should_CV = False
+    else:
+      self._should_CV = True
+      self._svc_params = {}
+      ranges = [0.001, 0.01, 0.1, 1.0, 10.0, 100.0, 1000.0]
+      self._model = make_pipeline(
+          StandardScaler()
+        , PCA(n_components=0.95)
+        , GridSearchCV(
+            estimator=SVR()
+          , param_grid=[
+                {'C': ranges, 'gamma': ranges + ['scale'], 'kernel': ['rbf']},
+            ]
+          , n_jobs=-1
+          , verbose=3
+        )
+      )
+
+  def train(self, xs: np.ndarray, ys: np.ndarray):
+    self._model.fit(xs, ys)
+
+    if self._should_CV:
+      print("cross validation params after training:")
+      print(self._model[-1].best_params_)
+
+  def predict_transformed(self, xs: np.ndarray) -> np.ndarray:
+    return self._model.predict(xs)
+
+  def __getstate__(self):
+    state = self.__dict__.copy()
+
+    state["_vectorizer"] = self._vectorizer.term_encoder.get_state()
+
+    return state
+
+  def __setstate__(self, state):
+    vectorizer = coq2vec.CoqTermRNNVectorizer()
+    vectorizer.load_state(state["_vectorizer"])
+    state["_vectorizer"] = coq2vec.CoqContextVectorizer(vectorizer, 4)
+    self.__dict__.update(state)
+
+  def predict_obl(self, obl: Obligation) -> np.ndarray:
+
+    xs = np.array([self._vectorizer.obligation_to_vector(obl).numpy().flatten()])
+    return self.predict_transformed(xs)
+
+class SVCThreshold:
+  _inner_cat: SVCCV
+  _inner_model: ILearner
+  _max: float
+
+  def __init__(self, _inner_cat: SVCCV, _max: float, _inner_model: ILearner, *args, **kwargs) -> None:
+    self._max = _max
+    self._inner_cat = _inner_cat
+    self._inner_model = _inner_model
+
+  def predict_transformed(self, xs: np.ndarray) -> np.ndarray:
+    return np.fromiter((self._inner_model.predict_transformed(np.array([x]))[0][0] if not(self._inner_cat.predict_transformed(np.array([x]))[0][0]) else self._max for x in xs), dtype=np.double, count=len(xs)).reshape((1, -1))
+
+  def predict_obl(self, obl: Obligation) -> np.ndarray:
+
+    xs = np.array([self._inner_cat._vectorizer.obligation_to_vector(obl).numpy().flatten()])
+    return self.predict_transformed(xs)
