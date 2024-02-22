@@ -38,6 +38,7 @@ def main() -> None:
   argparser.add_argument("--learning-rate-decay", type=float, default=0.9)
   argparser.add_argument("--learning-rate-step", type=int, default=5)
   argparser.add_argument("--batch-size", type=int, default=16)
+  argparser.add_argument("--load-batch-size", type=int, default=16)
   argparser.add_argument("--optimizer", choices=optimizers.keys(),
                          default=list(optimizers.keys())[0])
   argparser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
@@ -135,8 +136,8 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
   #                      for obl in obls]
   with print_time(f"Encoding {len(obls)} states"):
     with torch.no_grad():
-      encoded_positive_states = unwrap(v_network.obligation_encoder).\
-        obligations_to_vectors_cached(obls).to("cpu")
+      encoded_positive_states = torch.cat([unwrap(v_network.obligation_encoder).\
+        obligations_to_vectors_cached(obls[oblindx :oblindx + args.load_batch_size]).to("cpu") for oblindx in range(0,len(obls), args.load_batch_size)])
     prev_tactics_positive = [prev_tactic_from_prefix(task.tactic_prefix)
                              if len(task.tactic_prefix) > 0 else "Proof"
                              for task in tasks]
