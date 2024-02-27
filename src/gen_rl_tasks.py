@@ -151,7 +151,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
 
     if jobs_done_output.exists() and args.resume:
         with jobs_done_output.open('r') as f:
-            jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
+            jobs_already_done = [ReportJob(**json.loads(line)) for line in f]
     else:
         with jobs_done_output.open('w') as f:
             pass
@@ -165,7 +165,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
         if args.verbosity > 0:
             eprint(f"Running job {job}")
         tasks = get_job_tasks(args, predictor, job)
-        assert len(tasks) > 0, "Job has no tasks!"
+        assert len(tasks) > 0, "Job has no tasks!" + str(job)
         with partial_output.open('a') as f:
             for task in tasks:
                 print(json.dumps(task.as_dict()), file=f)
@@ -338,7 +338,6 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
 
     annotated_cmds = annotate_cmds_in_pred(args, predictor, normalized_scrape)
     annotated_obls = obls_from_solution(annotated_cmds)
-
     tasks = []
 
     # Check for proofs that just use a term.

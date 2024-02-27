@@ -34,11 +34,11 @@ def main() -> None:
 def gen_rl_tasks_worker(args: argparse.Namespace, workerid: int) -> None:
     predictor = get_predictor(args)
     with (args.output_dir / "jobs.txt").open('r') as f:
-        all_jobs = [ReportJob(*json.loads(line)) for line in f]
+        all_jobs = [ReportJob(**json.loads(line)) for line in f]
         pass
     while True:
         with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
-            taken_jobs = [ReportJob(*json.loads(line)) for line in f]
+            taken_jobs = [ReportJob(**json.loads(line)) for line in f]
             current_job = None
             for job in all_jobs:
                 if job not in taken_jobs:
