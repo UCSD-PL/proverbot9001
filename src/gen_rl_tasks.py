@@ -165,6 +165,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
         if args.verbosity > 0:
             eprint(f"Running job {job}")
         tasks = get_job_tasks(args, predictor, job)
+        assert len(tasks) > 0, "Job has no tasks!"
         with partial_output.open('a') as f:
             for task in tasks:
                 print(json.dumps(task.as_dict()), file=f)
@@ -179,7 +180,9 @@ def get_job_tasks(args: argparse.Namespace, predictor: TacticPredictor,
     commands = get_job_interactions(args, job)
     normalized = normalize_proof_interactions(commands, args.verbosity)
     if len(normalized) == 0 : #Can happen when there is all: tac. in which case there's no hope
-        return []
+        return [RLTask(job.project_dir, job.filename, job.module_prefix,
+                       job.lemma_statement, len(commands), float("Inf"),
+                       [], [cmd[0] for cmd in commands])]
     tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
     return tasks
 
