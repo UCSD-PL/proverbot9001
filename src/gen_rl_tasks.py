@@ -341,6 +341,11 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
 
     tasks = []
 
+    # Check for proofs that just use a term.
+    if len(annotated_obls) == 1 and len(annotated_obls[0].tactic_contents) == 0:
+        return [RLTask(job.project_dir, job.filename, job.module_prefix,
+                job.lemma_statement, 1, float("Inf"), [],
+                [normalized_scrape[0][0]])]
     for aobl in annotated_obls:
         largest_prediction_rank = 0
         for cmd_idx, (cmd, prediction_rank) in \
