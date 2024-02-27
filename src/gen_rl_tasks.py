@@ -242,12 +242,13 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
                 f"Num subgoals before: {previous_num_subgoals}, "\
                 f"num subgoals after: {len(interaction.context.all_goals)}"
             num_subgoals_stack[-1] -= 1
-            output_interactions.append(
-                ScrapedTactic(
-                    interaction.relevant_lemmas,
-                    interaction.prev_tactics,
-                    interaction.context,
-                "}"))
+            if len(num_subgoals_stack) > 1:
+                output_interactions.append(
+                    ScrapedTactic(
+                        interaction.relevant_lemmas,
+                        interaction.prev_tactics,
+                        interaction.context,
+                    "}"))
             while len(num_subgoals_stack) > 1 and num_subgoals_stack[-1] == 0:
                 num_subgoals_stack.pop()
                 num_subgoals_stack[-1] -= 1
