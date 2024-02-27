@@ -269,8 +269,6 @@ def tryPrediction(args: argparse.Namespace,
                   previousTime: float) \
                   -> Tuple[ProofContext, int, int, int,
                            Optional[Exception], float, bool]:
-    assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
-    coq.backend.quiet = True
     time_left = max(args.max_proof_time - previousTime, 0)
     start_time = time.time()
     time_per_command = args.max_tactic_time
@@ -1021,6 +1019,7 @@ def best_first_proof_search(lemma_name: str,
                 h_score = 0.
                 assert coq.proof_context
                 assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
+                assert isinstance(predictor, FeaturesPolyargPredictor)
                 for idx, (obl, sexp_obl) in \
                       enumerate(zip(coq.proof_context.fg_goals
                                     + coq.proof_context.bg_goals,
