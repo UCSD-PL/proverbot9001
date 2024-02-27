@@ -108,15 +108,28 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
     sm_stack = coq_serapy.initial_sm_stack(job.filename)
     in_proof = False
     job_interactions = []
+    obl_num = 0
+    last_program_statement = ""
     for interaction in file_interactions:
         if isinstance(interaction, str):
             eprint(f"Processing {interaction}", guard=args.verbosity > 1)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
             sm_prefix = coq_serapy.sm_prefix_from_stack(sm_stack)
+            if re.match(r"\s*Next\s+Obligation\s*\.\s*",
+                        coq_serapy.kill_comments(interaction).strip()):
+                assert last_program_statement != ""
+                unique_interaction = f"{last_program_statement} Obligation {obl_num}."
+                obl_num += 1
+            else:
+                unique_interaction = interaction
             if coq_serapy.kill_comments(job.lemma_statement).strip() == \
-               coq_serapy.kill_comments(interaction).strip() and \
+               coq_serapy.kill_comments(unique_interaction).strip() and \
                sm_prefix == job.module_prefix:
                 in_proof = True
+            if re.match(r"\s*(?:(?:Local|Global)\s+)?Program\s+.*",
+                        coq_serapy.kill_comments(interaction).strip(), re.DOTALL):
+                last_program_statement = interaction
+                obl_num = 0
         elif in_proof:
             eprint(f"Processing tactic {interaction.tactic}", guard=args.verbosity > 1)
             if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
@@ -148,8 +161,6 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
 
     for job in tqdm(all_jobs,desc="Creating tasks"):
         if job in jobs_already_done and args.resume:
-            continue
-        if "Program" in coq_serapy.kill_comments(job.lemma_statement) :
             continue
         if args.verbosity > 0:
             eprint(f"Running job {job}")
