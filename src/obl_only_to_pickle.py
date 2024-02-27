@@ -12,14 +12,21 @@ def main():
   parser = argparse.ArgumentParser()
   parser.add_argument("input_file")
   parser.add_argument("output_file")
+  parser.add_argument("-v", "--verbose", dest="verbosity",
+                      action='count', default=0)
   args = parser.parse_args()
 
-  with open(args.input_file, "rb") as f1:
+  with print_time("Loading original model", guard=args.verbosity >= 1):
+    with open(args.input_file, "rb") as f1:
       model = pickle.load(f1)
 
-  with open(args.output_file, 'wb') as f2:
-    pickle.dump(OblOnlyLearnedEstimator(model),
-                f2)
+  with print_time("Building new model", guard=args.verbosity >= 1):
+    new_model = OblOnlyLearnedEstimator(model)
+
+  with print_time("Writing new model", guard=args.verbosity >=1 ):
+    with open(args.output_file, 'wb') as f2:
+      pickle.dump(new_model,
+                  f2)
 
 class OblOnlyLearnedEstimator:
   inner: SVCThreshold
