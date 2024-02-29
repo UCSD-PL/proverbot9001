@@ -3,6 +3,8 @@ import argparse
 import math
 import os
 from pathlib import Path
+import random
+import sys
 from typing import Dict, Union
 
 from ray import tune, air
@@ -28,9 +30,9 @@ def main() -> None:
   parser.add_argument("--loss", choices=["simple", "log"],
                       default="simple")
   parser.add_argument("--prelude", default=".", type=Path)
-  parser.add_argument("--output", "-o", dest="output_file",
+  parser.add_argument("--output", "-o", dest="output_folder",
                       help="output data folder name",
-                      default="data/rl_weights.dat",
+                      default="data",
                       type=Path)
   parser.add_argument("--verbose", "-v", help="verbose output",
                       action="count", default=0)
@@ -85,6 +87,8 @@ def tune_params(args: argparse.Namespace) -> None:
   def objective(config: Dict[str, Union[float, int]]):
     run_dir = os.getcwd()
     os.chdir(cwd)
+    # randomly generate an output filename for distributed_rl
+    args.output_file = args.output_folder / Path(f"rl_weights_{str(random.randint(0, 1e9))}.dat")
     train_args = argparse.Namespace(**vars(args))
     train_args.sync_workers_every = config["sync-workers-every"]
     train_args.learning_rate = config["learning-rate"]
