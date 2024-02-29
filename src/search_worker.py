@@ -159,11 +159,39 @@ class Worker:
         all_file_commands = self.original_commands
         commands_after_lemma_start = list(all_file_commands)
         sm_stack = coq_serapy.initial_sm_stack(job_file)
-        while (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module or
-               coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() !=
-               coq_serapy.kill_comments(job.lemma_statement).strip()):
+        last_program_statement = ""
+        obl_num = 0
+        while True:
+            eprint(f"Looking at command {commands_after_lemma_start[0]} "
+                   f"with sm stack {sm_stack}")
+            if (coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() !=
+                coq_serapy.kill_comments(job.lemma_statement).strip()):
+                if "add_global" in commands_after_lemma_start[0]:
+                    eprint(f"Mismatch! {coq_serapy.kill_comments(commands_after_lemma_start[0]).strip()} "
+                           f"vs {coq_serapy.kill_comments(job.lemma_statement).strip()}")
+                eprint("Job statement doesn't match, still searching")
+            if re.match(r"\s*Next\s+Obligation\s*\.\s*",
+                        coq_serapy.kill_comments(
+                          commands_after_lemma_start[0]).strip()):
+                assert last_program_statement != ""
+                obl_num += 1
+                unique_lemma_statement = \
+                  f"{last_program_statement} Obligation {obl_num}."
+            else:
+                unique_lemma_statement = commands_after_lemma_start[0]
+            if (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module
+                or kill_comments(unique_lemma_statement).strip() !=
+                coq_serapy.kill_comments(job.lemma_statement).strip()):
+                break
+
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
+            if re.match(r"\s*(?:(?:Local|Global)\s+)?Program\s+.*",
+                        coq_serapy.kill_comments(
+                          commands_after_lemma_start[0]).strip(),
+                        re.DOTALL):
+                last_program_statement = commands_after_lemma_start[0]
+                obl_num = 0
         self.remaining_commands = commands_after_lemma_start
         # Reset the sm stack in Coq to the one from the command we're
         # cancelling to.
