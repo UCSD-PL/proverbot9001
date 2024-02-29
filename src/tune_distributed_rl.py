@@ -88,7 +88,7 @@ def tune_params(args: argparse.Namespace) -> None:
     run_dir = os.getcwd()
     os.chdir(cwd)
     # randomly generate an output filename for distributed_rl
-    vars(args)["output_file"] = vars(args)["output_folder"] / Path(f"rl_weights_{str(random.randint(0, 1e9))}.dat")
+    args.output_file = args.output_folder / Path(f"rl_weights_{str(random.randint(0, 1e9))}.dat")
     train_args = argparse.Namespace(**vars(args))
     train_args.sync_workers_every = config["sync-workers-every"]
     train_args.learning_rate = config["learning-rate"]
