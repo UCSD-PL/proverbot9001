@@ -180,7 +180,7 @@ class Worker:
                  if state <= state_before_lemma}
         try:
             # Reset to the state number before the target lemma
-            self.coq.backend.backToState_noupdate(state_before_lemma)
+            self.coq.backend.backToState(state_before_lemma)
             # Finally run the lemma statement
             self.coq.run_stmt(job_lemma)
         except coq_serapy.CoqAnomaly as e:

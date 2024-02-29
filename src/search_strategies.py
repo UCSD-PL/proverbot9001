@@ -1018,12 +1018,11 @@ def best_first_proof_search(lemma_name: str,
                 # assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
                 assert coq.proof_context
-                assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
                 assert isinstance(predictor, FeaturesPolyargPredictor)
                 for idx, (obl, sexp_obl) in \
                       enumerate(zip(coq.proof_context.fg_goals
                                     + coq.proof_context.bg_goals,
-                                    coq.backend.get_all_sexp_goals())):
+                                    coq.backend.getSexpProofContext())):
                     obl_score = float(pickled_estimator.predict_obl(
                       lemma_name, obl, sexp_obl,
                       predictor.prev_tactic_stem_idx(
