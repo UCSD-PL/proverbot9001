@@ -47,7 +47,7 @@ def main():
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
     get_all_jobs_cluster(args, partition=args.data_partition + "_files")
     with open(args.output_dir / "all_jobs.txt") as f:
-        jobs = [ReportJob(**json.loads(line)) for line in f]
+        jobs = [ReportJob(*json.loads(line)) for line in f]
         jobs = [job for job in jobs if "Obligation" not in job.lemma_statement]
         assert len(jobs) > 0
     if len(solved_jobs) < len(jobs):
@@ -158,7 +158,7 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
             with open(filename, 'r') as f:
                 for line_num, line in enumerate(f):
                     try:
-                        jobs.append(ReportJob(**json.loads(line)))
+                        jobs.append(ReportJob(*json.loads(line)))
                     except JSONDecodeError:
                         util.eprint(f"In {filename}:{line_num}")
                         raise
