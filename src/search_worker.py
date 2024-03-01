@@ -164,23 +164,17 @@ class Worker:
         while True:
             eprint(f"Looking at command {commands_after_lemma_start[0]} "
                    f"with sm stack {sm_stack}")
-            if (coq_serapy.kill_comments(commands_after_lemma_start[0]).strip() !=
-                coq_serapy.kill_comments(job.lemma_statement).strip()):
-                if "add_global" in commands_after_lemma_start[0]:
-                    eprint(f"Mismatch! {coq_serapy.kill_comments(commands_after_lemma_start[0]).strip()} "
-                           f"vs {coq_serapy.kill_comments(job.lemma_statement).strip()}")
-                eprint("Job statement doesn't match, still searching")
             if re.match(r"\s*Next\s+Obligation\s*\.\s*",
                         coq_serapy.kill_comments(
                           commands_after_lemma_start[0]).strip()):
                 assert last_program_statement != ""
-                obl_num += 1
                 unique_lemma_statement = \
                   f"{last_program_statement} Obligation {obl_num}."
+                obl_num += 1
             else:
                 unique_lemma_statement = commands_after_lemma_start[0]
-            if (coq_serapy.sm_prefix_from_stack(sm_stack) != job_module
-                or kill_comments(unique_lemma_statement).strip() !=
+            if (coq_serapy.sm_prefix_from_stack(sm_stack) == job_module
+                and coq_serapy.kill_comments(unique_lemma_statement).strip() ==
                 coq_serapy.kill_comments(job.lemma_statement).strip()):
                 break
 
@@ -210,7 +204,7 @@ class Worker:
             # Reset to the state number before the target lemma
             self.coq.backend.backToState(state_before_lemma)
             # Finally run the lemma statement
-            self.coq.run_stmt(job_lemma)
+            self.coq.run_stmt(commands_after_lemma_start[0])
         except coq_serapy.CoqAnomaly as e:
             if restart_anomaly:
                 self.restart_coq()
