@@ -180,9 +180,12 @@ def get_job_tasks(args: argparse.Namespace, predictor: TacticPredictor,
     commands = get_job_interactions(args, job)
     normalized = normalize_proof_interactions(commands, args.verbosity)
     if len(normalized) == 0 : #Can happen when there is all: tac. in which case there's no hope
-        return [RLTask(job.project_dir, job.filename, job.module_prefix,
-                       job.lemma_statement, len(commands), float("Inf"),
-                       [], [cmd[0] for cmd in commands])]
+        if args.filter:
+            return []
+        else:
+            return [RLTask(job.project_dir, job.filename, job.module_prefix,
+                           job.lemma_statement, len(commands), float("Inf"),
+                           [], [cmd.tactic for cmd in commands])]
     tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
     return tasks
 
@@ -342,9 +345,12 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
 
     # Check for proofs that just use a term.
     if len(annotated_obls) == 1 and len(annotated_obls[0].tactic_contents) == 0:
-        return [RLTask(job.project_dir, job.filename, job.module_prefix,
-                job.lemma_statement, 1, float("Inf"), [],
-                [normalized_scrape[0][0]])]
+        if args.filter:
+            return []
+        else:
+            return [RLTask(job.project_dir, job.filename, job.module_prefix,
+                    job.lemma_statement, 1, float("Inf"), [],
+                    [normalized_scrape[0].tactic])]
     for aobl in annotated_obls:
         largest_prediction_rank = 0
         for cmd_idx, (cmd, prediction_rank) in \
