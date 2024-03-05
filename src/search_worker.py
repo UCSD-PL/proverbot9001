@@ -627,3 +627,15 @@ def files_of_dict(args: argparse.Namespace,
         return project_dict["train_files"] + project_dict["test_files"]
     else:
         return project_dict["test_files"]
+
+def job_summary(job: ReportJob) -> str:
+    obl_match = re.match("(.*\.)\s+Obligation (\d+)\.",
+                         job.lemma_statement,
+                         re.DOTALL)
+    if obl_match:
+        lname = coq_serapy.lemma_name_from_statement(obl_match.group(1))
+        return f"{job.module_prefix}{lname}, "\
+               f"Obligation {obl_match.group(2)}"
+    else:
+        lname = coq_serapy.lemma_name_from_statement(job.lemma_statement)
+        return f"{job.module_prefix}{lname}"
