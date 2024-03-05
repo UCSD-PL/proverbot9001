@@ -190,6 +190,8 @@ class Worker:
         # Reset the sm stack in Coq to the one from the command we're
         # cancelling to.
         self.coq._file_state.sm_stack = sm_stack
+        self.last_program_statement = last_program_statement
+        self.obligation_num = obl_num
 
         # Get the state number from before the lemma from our dict.
         checkjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
@@ -521,7 +523,7 @@ def attempt_search(args: argparse.Namespace,
     lemma_name = coq_serapy.lemma_name_from_statement(lemma_statement)
     if lemma_name == "":
         unnamed_goal_number += 1
-        lemma_name = f"Obligation{unnamed_goal_number}"
+        lemma_name = f"Obligation {unnamed_goal_number}"
 
     if args.max_search_time_per_lemma:
         timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
