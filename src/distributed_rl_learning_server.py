@@ -797,7 +797,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   eprint(f"Average step error across {len(items) - num_predicted_zeros} "
          f"initial states with finite predictions: {avg_error:.6f}")
   eprint(f"{num_predicted_zeros} predicted as infinite steps (impossible)")
-  return avg_error
+  return float(avg_error.item())
 
 def interrupt_early(args: argparse.Namespace, v_model: VModel,
                     signal_end: Event,
