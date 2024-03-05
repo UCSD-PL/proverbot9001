@@ -392,7 +392,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
 
             if learner_is_scheduled:
                 job_id_output = subprocess.check_output(
-                  [f"./src/squeue-retry.sh -u$USER -n drl-all-{args.output_file} -o%A -h"],
+                  [f"./src/squeue-retry.sh -tR -u$USER -n drl-all-{args.output_file} -o%A -h"],
                   shell=True, text=True).split("\n")[0].strip()
                 assert job_id_output != "", "All workers died!"
                 pass
@@ -416,14 +416,14 @@ def parse_timeout(timestring: str) -> timedelta:
 
 def wait_for_learning_server(args: argparse.Namespace) -> None:
     squeue_all_output = subprocess.check_output(
-      [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+      [f"squeue -u$USER -tR -n drl-all-{args.output_file} -o%A -h"],
       shell=True, text=True).split("\n")[0].strip()
     if squeue_all_output == "":
         return
     job_id = int(squeue_all_output)
     while True:
         squeue_step_output = subprocess.check_output(
-            f"squeue -r -u$USER -h -s{job_id}.0",
+            f"squeue -r -tR -u$USER -h -s{job_id}.0",
             shell=True, text=True)
         if squeue_step_output.strip() == "":
             break
@@ -501,7 +501,7 @@ def interrupt_learning_server(args: argparse.Namespace) -> None:
     #   job_node = multi_node_match.group(1) + multi_node_match.group(2)
     # assert "[" not in job_node
     job_id_output = subprocess.check_output(
-      [f"squeue -u$USER -n drl-all-{args.output_file} -o%A -h"],
+      [f"squeue -u$USER -tR -n drl-all-{args.output_file} -o%A -h"],
       shell=True, text=True).split("\n")[0].strip()
     assert job_id_output != ""
     job_id = int(job_id_output)
@@ -563,7 +563,7 @@ class EObligation:
 
 def check_for_duplicate_run(args: argparse.Namespace) -> None:
     output = subprocess.check_output(
-      [f"squeue -u$USER -n drl-all-{args.output_file} -h"],
+      [f"squeue -u$USER -tR -n drl-all-{args.output_file} -h"],
       shell=True, text=True)
     assert output.strip() == "", \
       "There's already an instance running with that output file! "\
