@@ -35,7 +35,6 @@ def main() -> None:
   argparser.add_argument("--mem", default="4G")
   argparser.add_argument("--progress", action='store_true')
   args = argparser.parse_args()
-  eprint(f"args.progress is {args.progress}")
   args.backend = "serapi"
   args.set_switch = True
   get_states(args)
