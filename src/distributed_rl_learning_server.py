@@ -65,6 +65,7 @@ def main() -> None:
   parser.add_argument("--start-from", type=Path, default=None)
   parser.add_argument("--dump-negative-examples", type=Path, default=None)
   parser.add_argument("--dump-replay-buffer", type=Path, default=None)
+  parser.add_argument("--start-after", type=int, default=None)
   parser.add_argument("--ignore-after", type=int, default=None)
   parser.add_argument("--loss-smoothing", type=int, default=1)
   parser.add_argument("--learning-rate-step", type=int, default=None)
@@ -151,6 +152,12 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   time_started_waiting = time.time()
   signal_change.wait()
   signal_change.clear()
+  if args.start_after:
+     for i in range(args.start_after - 1):
+       eprint(f"Waited {i} samples before starting "
+              "(because of --start-after)")
+       signal_change.wait()
+       signal_change.clear()
   with sighandler_context(signal.SIGINT,
                           functools.partial(interrupt_early, args,
                                             v_network, signal_end),

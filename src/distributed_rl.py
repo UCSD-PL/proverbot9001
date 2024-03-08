@@ -114,6 +114,7 @@ def add_distrl_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--mem", default="2G")
     parser.add_argument("--state-dir", default="drl_state", type=Path)
     parser.add_argument("--keep-latest", default=3, type=int)
+    parser.add_argument("--start-after", type=int, default=None)
     parser.add_argument("--ignore-after", type=int, default=None)
     parser.add_argument("--loss-smoothing", type=int, default=1)
     parser.add_argument("--dump-negative-examples", type=Path, default=None)
@@ -309,6 +310,8 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                         if args.decrease_lr_on_reset else [])
                      + (["--ignore-after", str(args.ignore_after)]
                         if args.ignore_after is not None else [])
+                     + (["--start-after", str(args.start_after)]
+                        if args.start_after is not None else [])
                      + (["--learning-rate-step", str(args.learning_rate_step)]
                         if args.learning_rate_step is not None else [])
                      + (["--verifyv-every", str(args.verifyv_every)]
