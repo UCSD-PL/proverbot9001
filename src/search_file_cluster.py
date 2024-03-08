@@ -196,6 +196,7 @@ def get_all_jobs_cluster(args: argparse.Namespace,
         pass
     worker_args = [f"--prelude={args.prelude}",
                    f"--output={args.output_dir}",
+                   f"-j{args.num_threads}",
                    "proj_files.txt",
                    "proj_files_taken.txt",
                    "proj_files_scanned.txt",
