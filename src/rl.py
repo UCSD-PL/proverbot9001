@@ -55,6 +55,10 @@ optimizers = {
   "SGD": optim.SGD,
   "Adam": optim.Adam,
 }
+schedulers = [
+  "step",
+  "plateau",
+]
 
 def main():
     eprint("Starting main")
@@ -116,6 +120,8 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("--train-every", default=1, type=int)
     parser.add_argument("--optimizer", choices=optimizers.keys(),
                         default=list(optimizers.keys())[0])
+    parser.add_argument("--scheduler", choices=schedulers,
+                        default=schedulers[0])
     parser.add_argument("--start-from", type=Path, default=None)
     parser.add_argument("--print-loss-every", default=None, type=int)
     parser.add_argument("--sync-target-every",

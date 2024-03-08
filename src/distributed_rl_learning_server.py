@@ -36,7 +36,7 @@ import torch.optim.lr_scheduler as scheduler
 print("Finished torch imports", file=sys.stderr)
 # pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
-from rl import optimizers, ReplayBuffer, EObligation, VModel
+from rl import optimizers, schedulers, ReplayBuffer, EObligation, VModel
 print("Imported rl model setup", file=sys.stderr)
 from util import eprint, unwrap, print_time, sighandler_context
 # pylint: enable=wrong-import-position
@@ -61,6 +61,7 @@ def main() -> None:
   parser.add_argument("--sync-target-every", type=int, default=32)
   parser.add_argument("--keep-latest", default=3, type=int)
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
+  parser.add_argument("--scheduler", choices=schedulers, default=schedulers[0])
   parser.add_argument("--verifyv-every", type=int, default=None)
   parser.add_argument("--start-from", type=Path, default=None)
   parser.add_argument("--dump-negative-examples", type=Path, default=None)
@@ -126,8 +127,13 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       "lr": args.learning_rate * 20},
      {"params": v_network.prediction_network.parameters()}],
     lr=args.learning_rate)
-  adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
-                              args.learning_rate_decay)
+  if args.scheduler == "step":
+      adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
+                                  args.learning_rate_decay)
+  else:
+      adjuster = scheduler.ReduceLROnPlateau(optimizer, 'min',
+                                             factor=args.learning_rate_decay,
+                                             patience=64)
   learning_rate_restart = args.learning_rate
   replay_buffer = EncodedReplayBuffer(args.window_size,
                                       args.allow_partial_batches,
@@ -175,8 +181,10 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       with print_time(f"Training iter {iters_trained}"):
         steps_last_trained = replay_buffer.buffer_steps
         loss = train(args, v_network, target_network, optimizer, replay_buffer, true_target_buffer)
-        if args.learning_rate_step is not None and loss is not None:
+        if args.learning_rate_step is not None and loss is not None and args.scheduler == "step":
           adjuster.step()
+        if args.scheduler == "plateau":
+          adjuster.step(loss)
         if loss is not None:
           if len(loss_buffer) == args.loss_smoothing:
             loss_buffer = loss_buffer[1:] + [loss]
@@ -196,6 +204,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
               "lr": args.learning_rate * 20},
              {"params": v_network.prediction_network.parameters()}],
             lr=args.learning_rate)
+          assert args.scheduler == "step"
           adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                                       args.learning_rate_decay)
           eprint("Resetting the optimizer and adjuster",
@@ -234,6 +243,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
               "lr": learning_rate_restart * 20},
              {"params": v_network.prediction_network.parameters()}],
             lr=learning_rate_restart)
+          assert args.scheduler == "step"
           adjuster = scheduler.StepLR(optimizer, args.learning_rate_step,
                                       args.learning_rate_decay)
           eprint("Resetting the optimizer and adjuster for sync", guard=args.verbose >= 1)
@@ -244,6 +254,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
           error = print_vvalue_errors(args.gamma, v_network,
                                       buffer_thread.verification_states)
           last_iter_verified = iters_trained
+          # if args.scheduler == "plateau":
+          #   adjuster.step(error)
         with (args.state_dir / "latest_error.txt").open('w') as f:
           print(error, file=f)
       time_started_waiting = time.time()
