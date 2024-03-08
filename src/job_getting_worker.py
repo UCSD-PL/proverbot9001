@@ -51,7 +51,7 @@ def run_worker(args: argparse.Namespace) -> None:
                 print(json.dumps(next_proj_file), file=f, flush=True)
             else:
                 break
-        jobs = list(get_files_jobs(args, [next_proj_file]))
+        jobs = list(set(get_files_jobs(args, [next_proj_file])))
         with (args.output_dir / args.jobs_file).open('a') as f, FileLock(f):
             for job in jobs:
                 print(json.dumps(job), file=f, flush=True)
