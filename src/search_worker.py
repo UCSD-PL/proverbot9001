@@ -143,6 +143,8 @@ class Worker:
                     self.enter_instance()
                 else:
                     raise
+            except coq_serapy.CoqTimeoutError as e:
+                self.restart_coq()
 
     def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
         assert self.coq
