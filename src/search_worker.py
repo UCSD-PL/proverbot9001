@@ -230,11 +230,13 @@ class Worker:
         # to load new includes, and set the opam switch
         assert job_project != None, "The job project is NONE!"
         if job_project != self.cur_project:
-            self.reset_file_state()
+            first_project = self.cur_project is None
             self.cur_project = job_project
             if self.args.set_switch:
                 self.set_switch_from_proj()
-            self.restart_coq()
+            if not first_project:
+                self.reset_file_state()
+                self.restart_coq()
             self.coq.backend.enterDirectory(str(self.cur_project))
             self.enter_file(job_file)
         # Strip comments for comparison with lemmas encountered
