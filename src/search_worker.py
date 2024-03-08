@@ -119,6 +119,10 @@ class Worker:
         self.remaining_commands = []
         self.obligation_num = 0
 
+    def reset_project_state(self) -> None:
+        self.reset_file_state()
+        self.cur_project = None
+
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
@@ -210,8 +214,8 @@ class Worker:
         except coq_serapy.CoqAnomaly as e:
             if restart_anomaly:
                 self.restart_coq()
-                self.reset_file_state()
                 self.enter_file(job_file)
+                self.reset_project_state()
                 eprint("Hit a coq anomaly! Restarting...",
                     guard=self.args.verbose >= 1)
                 self.run_into_job(job, True, False)
@@ -224,13 +228,13 @@ class Worker:
         job_project, job_file, job_module, job_lemma = job
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
+        assert job_project != None, "The job project is NONE!"
         if job_project != self.cur_project:
+            self.reset_file_state()
             self.cur_project = job_project
             if self.args.set_switch:
                 self.set_switch_from_proj()
-            if self.cur_project is not None:
-                self.reset_file_state()
-                self.restart_coq()
+            self.restart_coq()
             self.coq.backend.enterDirectory(str(self.cur_project))
             self.enter_file(job_file)
         # Strip comments for comparison with lemmas encountered
@@ -261,8 +265,8 @@ class Worker:
             except coq_serapy.CoqAnomaly:
                 if restart_anomaly:
                     self.restart_coq()
-                    self.reset_file_state()
                     self.enter_file(job_file)
+                    self.reset_project_state()
                     eprint("Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, False, careful)
@@ -319,8 +323,8 @@ class Worker:
             except coq_serapy.CoqAnomaly:
                 if restart_anomaly:
                     self.restart_coq()
-                    self.reset_file_state()
                     self.enter_file(job_file)
+                    self.reset_project_state()
                     eprint("Hit a coq anomaly! Restarting...",
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, False, careful)
@@ -361,7 +365,7 @@ class Worker:
                 coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
                 starting_command = coq_serapy.kill_comments(self.remaining_commands[0]).strip()
-                if starting_command.startswith("Proof"):
+                if starting_command.startswith("Proof") or coq_serapy.ending_proof(starting_command):
                     self.coq.run_stmt(starting_command)
                 for cmd in important_vernac_cmds:
                     self.coq.run_stmt(cmd)
@@ -396,7 +400,7 @@ class SearchWorker(Worker):
         super().reset_file_state()
         self.axioms_already_added = False
 
-    def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
+    def run_job(self, job: list, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
@@ -438,8 +442,8 @@ class SearchWorker(Worker):
                           file=f)
                     traceback.print_exc(file=f)
             self.restart_coq()
-            self.reset_file_state()
             self.enter_file(job_file)
+            self.reset_project_state()
             if restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
