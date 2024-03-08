@@ -30,8 +30,10 @@ from typing import List
 from pathlib import Path
 import torch
 
-from search_file import (add_args_to_parser, get_predictor,
-                         SearchWorker, project_dicts_from_args)
+from search_worker import (ReportJob, SearchWorker, get_predictor,
+                           project_dicts_from_args)
+
+from search_file import add_args_to_parser
 if sys.version_info >= (3, 10):
     from obl_only_to_pickle import OblOnlyLearnedEstimator
 from rl_to_pickle import LearnedEstimator
@@ -85,7 +87,7 @@ def main(arg_list: List[str]) -> None:
 
 def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
-        all_jobs = [json.loads(line) for line in f]
+        all_jobs = [ReportJob(*json.loads(line)) for line in f]
 
     predictor = get_predictor(args)
 
@@ -102,16 +104,16 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with SearchWorker(args, threadid, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
-                taken_jobs = [json.loads(line) for line in f]
+                taken_jobs = [ReportJob(*json.loads(line)) for line in f]
                 current_job = None
                 for job in all_jobs:
                     if job not in taken_jobs:
                         current_job = job
                         break
                 if current_job:
-                    print(json.dumps(current_job), file=f, flush=True)
+                    print(json.dumps(list(current_job)), file=f, flush=True)
                     with worker_taken_file.open("a") as f:
-                        print(json.dumps(current_job), file=f, flush=True)
+                        print(json.dumps(list(current_job)), file=f, flush=True)
                     eprint(f"Starting job {current_job}")
                 else:
                     eprint(f"Finished thread {threadid}")
@@ -125,7 +127,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                    + "-proofs.txt")
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
-                print(json.dumps((current_job, solution.to_dict())), file=f)
+                print(json.dumps((list(current_job), solution.to_dict())), file=f)
 
 if __name__ == "__main__":
     main(sys.argv[1:])
