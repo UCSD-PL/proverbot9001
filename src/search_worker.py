@@ -476,12 +476,11 @@ class SearchWorker(Worker):
                 + tactic_solution +
                 [TacticInteraction("Qed.", empty_context)])
 
-        while not coq_serapy.ending_proof(self.remaining_commands[0]):
-            self.remaining_commands.pop(0)
-        # Pop the actual Qed/Defined/Save
-        ending_command = self.remaining_commands.pop(0)
-        coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
-
+        #while not coq_serapy.ending_proof(self.remaining_commands[0]):
+        #    self.remaining_commands.pop(0)
+        ## Pop the actual Qed/Defined/Save
+        #ending_command = self.remaining_commands.pop(0)
+        self.skip_proof(False)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
