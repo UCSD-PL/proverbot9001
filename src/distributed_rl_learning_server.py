@@ -181,6 +181,9 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
       with print_time(f"Training iter {iters_trained}"):
         steps_last_trained = replay_buffer.buffer_steps
         loss = train(args, v_network, target_network, optimizer, replay_buffer, true_target_buffer)
+        if loss != loss:
+            eprint(f"Loss is NaN! Exiting...")
+            interrupt_early(args, target_network, signal_end)
         if args.learning_rate_step is not None and loss is not None and args.scheduler == "step":
           adjuster.step()
         if args.scheduler == "plateau":
