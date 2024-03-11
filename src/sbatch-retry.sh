@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CUR_DIR=src/
+CUR_DIR=/work/pi_brun_umass_edu/asanchezster/proverbot9001/src/
 BACKOFF_AMOUNT=0.001
 SFLAGS="-u $USER -h"
 while getopts ":J:" opt; do
