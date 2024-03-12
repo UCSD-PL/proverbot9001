@@ -145,8 +145,9 @@ class Worker:
                     raise
             except coq_serapy.CoqTimeoutError as e:
                 self.restart_coq()
+                self.coq.backend.enterDirectory(str(self.cur_project))
 
-    def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
+    def run_backwards_into_job(self, job: list, restart_anomaly: bool = True) -> None:
         assert self.coq
         assert not self.coq.proof_context, "Already in a proof!"
         job_project, job_file, job_module, job_lemma = job
@@ -181,7 +182,7 @@ class Worker:
                 unique_lemma_statement = commands_after_lemma_start[0]
             if (coq_serapy.sm_prefix_from_stack(sm_stack) == job_module
                 and coq_serapy.kill_comments(unique_lemma_statement).strip() ==
-                coq_serapy.kill_comments(job.lemma_statement).strip()):
+                coq_serapy.kill_comments(job_lemma).strip()):
                 break
 
             next_cmd = commands_after_lemma_start.pop(0)
@@ -236,9 +237,9 @@ class Worker:
             self.cur_project = job_project
             if self.args.set_switch:
                 self.set_switch_from_proj()
-            if not first_project:
-                self.reset_file_state()
-                self.restart_coq()
+            #if not first_project:
+            self.reset_file_state()
+            self.restart_coq()
             self.coq.backend.enterDirectory(str(self.cur_project))
             self.enter_file(job_file)
         # Strip comments for comparison with lemmas encountered
