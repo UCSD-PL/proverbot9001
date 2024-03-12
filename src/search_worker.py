@@ -147,7 +147,7 @@ class Worker:
                 self.restart_coq()
                 self.coq.backend.enterDirectory(str(self.cur_project))
 
-    def run_backwards_into_job(self, job: list, restart_anomaly: bool = True) -> None:
+    def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
         assert self.coq
         assert not self.coq.proof_context, "Already in a proof!"
         job_project, job_file, job_module, job_lemma = job
@@ -405,7 +405,7 @@ class SearchWorker(Worker):
         super().reset_file_state()
         self.axioms_already_added = False
 
-    def run_job(self, job: list, restart: bool = True) -> SearchResult:
+    def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
         assert self.coq
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
