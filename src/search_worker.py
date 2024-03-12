@@ -483,6 +483,8 @@ class SearchWorker(Worker):
         #    self.remaining_commands.pop(0)
         ## Pop the actual Qed/Defined/Save
         #ending_command = self.remaining_commands.pop(0)
+        while len(self.coq.prev_tactics) > 1:
+            self.coq.cancel_last()
         self.skip_proof(False)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
