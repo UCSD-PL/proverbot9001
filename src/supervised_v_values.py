@@ -14,7 +14,7 @@ import torch.cuda
 import torch.nn.functional as F
 import torch.utils.data as data
 import torch.optim.lr_scheduler as scheduler
-from tqdm import tqdm
+from tqdm import tqdm, trange
 import numpy as np
 
 from ray import tune, air
@@ -137,7 +137,8 @@ def train(args: argparse.Namespace) -> Tuple[float, float]:
   with print_time(f"Encoding {len(obls)} states"):
     with torch.no_grad():
       encoded_positive_states = torch.cat([unwrap(v_network.obligation_encoder).\
-        obligations_to_vectors_cached(obls[oblindx :oblindx + args.load_batch_size]).to("cpu") for oblindx in range(0,len(obls), args.load_batch_size)])
+        obligations_to_vectors_cached(obls[oblindx :oblindx + args.load_batch_size]).to("cpu")
+                                           for oblindx in trange(0,len(obls), args.load_batch_size)])
     prev_tactics_positive = [prev_tactic_from_prefix(task.tactic_prefix)
                              if len(task.tactic_prefix) > 0 else "Proof"
                              for task in tasks]
