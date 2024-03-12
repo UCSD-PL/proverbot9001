@@ -1047,7 +1047,8 @@ def best_first_proof_search(lemma_name: str,
             prediction_node.score = score
 
             # Put our new prediction node in our priority queue
-            heapq.heappush(nodes_todo, AStarTask(score, prediction_node))
+            if len(prediction_node.path()) < args.hard_depth_limit:
+                heapq.heappush(nodes_todo, AStarTask(score, prediction_node))
             # Return us to before running the prediction, so we're ready for
             # the next one.
             for _ in range(num_stmts):
