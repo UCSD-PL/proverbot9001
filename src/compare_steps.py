@@ -4,6 +4,7 @@ import argparse
 import os.path
 import json
 import csv
+import os
 from glob import glob
 from pathlib import Path
 
@@ -51,17 +52,21 @@ def compare_steps(args: argparse.Namespace):
                                    f"{args.a_name.lower()}_solution_length",
                                    f"{args.b_name.lower()}_steps_searched",
                                    f"{args.b_name.lower()}_solution_length"])
+    run_dir = os.getcwd()
+    os.chdir(args.reporta)
+    files = glob("**/*-proofs.txt", recursive=True)
+    os.chdir(run_dir)
+    print(f"{len(files)} files found found")
 
-    for filename_a in glob(os.path.join(args.reporta, "*-proofs.txt")):
-        with open(filename_a, 'r') as f:
+    for filename in files:
+        with open(os.path.join(args.reporta, filename), 'r') as f:
             proof_data_a = [json.loads(line) for line in f]
-        filename_b = os.path.join(args.reportb, os.path.basename(filename_a))
         try:
-            with open(filename_b) as f:
+            with open(os.path.join(args.reportb, filename), 'r') as f:
                 proof_data_b = [json.loads(line) for line in f]
         except FileNotFoundError:
-            print(f"Couldn't find file in directory {args.reportb} "
-                  f"cooresponding to {filename_a}")
+            print(f"Couldn't find file {filename} in directory {args.reportb} "
+                  f"(it exists in {args.reporta})")
             raise
 
         b_dict = {(line[0][2], line[0][3]): line
@@ -72,8 +77,9 @@ def compare_steps(args: argparse.Namespace):
                 job_b, sol_b = b_dict[(job[2], job[3])]
                 assert job_eq(job_b, job), (job, job_b)
             except KeyError:
-                print(f"Warning: couldn't find job {(job[2], job[3])} from file {filename_a} "
-                      f"in filename {filename_b}")
+                print(f"Warning: couldn't find job {(job[2], job[3])} "
+                      f"from file {args.reporta}/{filename}"
+                      f"in filename {args.reportb}/{filename}")
                 continue
 
             lemma_name = coq_serapy.lemma_name_from_statement(job[3])
