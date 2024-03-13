@@ -16,10 +16,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("reporta")
     parser.add_argument("reportb")
+    parser.add_argument("--print-same-steps", action='store_true')
     parser.add_argument("--print-same-length", action='store_true')
     parser.add_argument("--print-a-shorter", action='store_true')
+    parser.add_argument("--print-a-faster", action='store_true')
     parser.add_argument("--print-a-only", action="store_true")
     parser.add_argument("--print-b-shorter", action='store_true')
+    parser.add_argument("--print-b-faster", action='store_true')
     parser.add_argument("--print-b-only", action="store_true")
     parser.add_argument("--full-csv", default=None)
     parser.add_argument("--a-name", default="Report A")
@@ -96,12 +99,20 @@ def compare_steps(args: argparse.Namespace):
                             len(sol_b['commands']) - 2 if sol_b["status"] == "SUCCESS" else None,
                             ])
             if sol_a["status"] == "SUCCESS" and sol_b["status"] == "SUCCESS":
-                if (args.print_a_shorter and sol_a['steps_taken'] < sol_b['steps_taken']) or \
-                   (args.print_b_shorter and sol_b['steps_taken'] < sol_a['steps_taken']) or \
+                if (args.print_a_faster and sol_a['steps_taken'] < sol_b['steps_taken']) or \
+                   (args.print_b_faster and sol_b['steps_taken'] < sol_a['steps_taken']) or \
                    (args.print_same_length and sol_a['steps_taken'] == sol_b['steps_taken']):
                     print(f"For job {job[1]}:{job[2]}:{lemma_name}, "
                           f"{args.a_name} took {sol_a['steps_taken']} steps, "
                           f"{args.b_name} took {sol_b['steps_taken']+1} steps.")
+                if (args.print_a_shorter and len(sol_a['commands']) < len(sol_b['commands'])) or \
+                   (args.print_b_shorter and len(sol_b['commands']) < len(sol_a['commands'])) or \
+                   (args.print_same_length and len(sol_a['commands']) == len(sol_b['commands'])):
+                    sol_a_len = len(sol_a['commands']) - 2
+                    sol_b_len = len(sol_b['commands']) - 2
+                    print(f"For job {job[1]}:{job[2]}:{lemma_name}, "
+                          f"{args.a_name} had a solution of length {sol_a_len}, "
+                          f"{args.b_name} had a solution of length {sol_b_len}.")
                 a_succ_proof_steps += len(sol_a['commands']) - 2
                 b_succ_proof_steps += len(sol_b['commands']) - 2
                 a_succ_steps += sol_a['steps_taken']

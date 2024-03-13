@@ -181,13 +181,13 @@ def make_initial_filestructure(args: argparse.Namespace) -> None:
 def prepare_taken_prooffiles(args: argparse.Namespace,
                              all_task_eps: List[Tuple[RLTask, int]])\
                              -> int:
-    
+
     num_te_encountered = 0
     done_paths = [Path(p) for p in glob(str(args.state_dir / f"done-*.txt"))]
     if len(done_paths) > 0 :
         task_eps_idx_dict = {task_ep: idx for idx, task_ep in enumerate(all_task_eps)}
         all_files = get_all_files(args)
-        
+
         for done_path in tqdm(done_paths,
                               desc="Preparing taken/file-prooffile for resuming",
                               leave=False, disable=not args.progress):
@@ -201,9 +201,9 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
                         file_taken_dict[Path(task.src_file)].append((task, epsiode))
                     else:
                         file_taken_dict[Path(task.src_file)] = [(task, epsiode)]
-                    
+
             write_done_tasks_to_taken_files(args, all_files,task_eps_idx_dict, file_taken_dict )
-                    
+
     for workerid in range(args.num_actors):
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         done_path = args.state_dir / f"done-{workerid}.txt"
@@ -212,7 +212,7 @@ def prepare_taken_prooffiles(args: argparse.Namespace,
         if not done_path.exists():
             with done_path.open("w"):
                 pass
-    
+
     return num_te_encountered
 
 def write_done_tasks_to_taken_files(args : argparse.Namespace,
@@ -273,14 +273,14 @@ def dispatch_learner_and_actors(args: argparse.Namespace, num_actors: int,
                    "--backend", args.backend,
                    "--optimizer", args.optimizer,
                    ] + (["--curriculum"] if args.curriculum else []) +
-                   (["--no-interleave"] if not args.interleave else []) + 
+                   (["--no-interleave"] if not args.interleave else []) +
                    (["--progress"] if args.progress else []) +
                    (["--tasks-file", str(args.tasks_file)]
                     if args.tasks_file is not None else []) +
                    (["--include-proof-relevant"] if args.include_proof_relevant else []) +
                    ["--blacklist-tactic={tactic}" for tactic
                     in args.blacklisted_tactics] +
-                   (["-" + "v"*args.verbose] if args.verbose > 0 else []) + 
+                   (["-" + "v"*args.verbose] if args.verbose > 0 else []) +
                    (["-t"] if args.print_timings else []) +
                    [str(f) for f in args.filenames])
     learner_args = (["--state-dir", str(args.state_dir),
@@ -382,6 +382,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
     crashed_actors: List[int] = []
     learner_is_scheduled = False
     start_time = time.time()
+    actor_end_time = None
     with tqdm(desc="Task-episodes finished", total=len(all_task_eps),
               initial=num_task_eps_progress, dynamic_ncols=True,
               disable=not args.progress) as task_eps_bar, \
@@ -394,12 +395,20 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             task_eps_bar.update(new_num_task_eps_progress - num_task_eps_progress)
             num_task_eps_progress = new_num_task_eps_progress
 
+            if actor_end_time is not None:
+                assert time.time() - actor_end_time < timedelta(minutes=2), \
+                    f"It's been more than two minutes since the actors exited, "\
+                    f"and we're still at {num_task_eps_done} out of {len(all_task_eps)}. "\
+                    "Exiting..."
+
             if learner_is_scheduled:
-                job_id_output = subprocess.check_output(
-                  [f"./src/squeue-retry.sh -tR -u$USER -n drl-all-{args.output_file} -o%A -h"],
-                  shell=True, text=True).split("\n")[0].strip()
-                assert job_id_output != "", "All workers died!"
-                pass
+                if actor_end_time is None:
+                    job_id_output = subprocess.check_output(
+                      [f"./src/squeue-retry.sh -tR -u$USER "\
+                       f"-n drl-all-{args.output_file} -o%A -h"],
+                      shell=True, text=True).split("\n", maxsplit=1)[0].strip()
+                    if job_id_output == "":
+                        actor_end_time = time.time()
             else:
                 learner_is_scheduled = (args.state_dir / "learner_scheduled.txt").exists()
             if timedelta(seconds=time.time() - start_time) >= parse_timeout(args.worker_timeout) - timedelta(minutes=1):
