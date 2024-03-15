@@ -924,6 +924,7 @@ def best_first_proof_search(lemma_name: str,
             pickled_estimator = pickle.load(f)
     graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
     initial_history_len = len(coq.tactic_history.getFullHistory())
+    BFSNode.next_creation_order_index = 0
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
                                      ProofContext([], [], [], [])),
