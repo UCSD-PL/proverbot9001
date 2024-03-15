@@ -701,9 +701,8 @@ def get_leaf_descendents(node: BFSNode) -> List[BFSNode]:
 
 def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
     num_closes = len([cmd for cmd in node.postfix if cmd == "}"])
-    if num_closes == 0:
-        return []
-    num_opens = len([cmd for cmd in node.postfix if cmd == "{"])
+    assert num_closes > 0, "Called get_prunable_nodes but no subgoals were closed"
+    num_opens = 0
     significant_parent = node
     while num_opens < num_closes and significant_parent.previous is not None:
         num_opens += len([cmd for cmd in significant_parent.previous.postfix if cmd == "{"])
