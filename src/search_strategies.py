@@ -943,7 +943,7 @@ def best_first_proof_search(lemma_name: str,
     desc_name = lemma_name
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
-    assert args.max_steps != None, "When using astar search, you need a step limit. Please specify one with --max-steps"
+    assert args.max_steps != None, "When using astar or best first search, you need a step limit. Please specify one with --max-steps"
     for step in trange(args.max_steps, unit="pred", file=sys.stdout,
                        desc=desc_name, disable=(not args.progress),
                        leave=False, position=bar_idx + 1,
