@@ -561,6 +561,8 @@ class BFSNode:
     previous: Optional["BFSNode"]
     children: List["BFSNode"]
     color: Optional[str]
+    creation_order_index: int
+    next_creation_order_index: int = 0
 
     def __init__(self, prediction: Prediction, score: float, time_taken: float,
                  postfix: List[str], context_before: FullContext,
@@ -578,6 +580,8 @@ class BFSNode:
         if self.previous:
             self.previous.children.append(self)
         self.color = color
+        self.creation_order_index = BFSNode.next_creation_order_index
+        BFSNode.next_creation_order_index += 1
 
     def setNodeColor(self, color: str) -> None:
         assert color
@@ -615,8 +619,9 @@ class BFSNode:
                     tooltip += obligation.goal[:64] + "&#10;"
             return tooltip.replace("\\", "\\\\")
         def node_properties(node: "BFSNode") -> Dict[str, Any]:
-            label=f"{node.prediction.prediction}\nS:{node.score:.2e};"\
-                  f"C:{node.prediction.certainty:.2e}"
+            label=f"{node.prediction.prediction}\nS:{node.score:.2e}\n"\
+                  f"C:{node.prediction.certainty:.2e}\n"\
+                  f"{node.creation_order_index}"
             if node.color:
                 fillcolor = node.color
                 style="filled"
@@ -1057,7 +1062,10 @@ def best_first_proof_search(lemma_name: str,
                 prediction_node.setNodeColor("blue")
                 # Get unexplored nodes from the tree that are trying to
                 # solve the subgoal(s) we just solved.
-                prunable_nodes = get_prunable_nodes(prediction_node)
+                prunable_nodes = [node for node in get_prunable_nodes(prediction_node)
+                                  if node in [node.node for node in nodes_todo]]
+                for prunable_node in prunable_nodes:
+                    prunable_node.setNodeColor("yellow")
                 # Prune them from the frontier nodes
                 nodes_todo = [node for node in nodes_todo
                               if node.node not in prunable_nodes]
