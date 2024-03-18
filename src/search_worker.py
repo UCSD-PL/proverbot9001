@@ -235,7 +235,6 @@ class Worker:
             self.cur_project = job_project
             if self.args.set_switch:
                 self.set_switch_from_proj()
-            #if not first_project:
             self.reset_file_state()
             self.restart_coq()
             self.coq.backend.enterDirectory(str(self.cur_project))
