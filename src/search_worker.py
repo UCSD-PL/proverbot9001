@@ -20,7 +20,7 @@ from linearize_semicolons import get_linearized
 
 from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching, print_time
 
-unnamed_goal_number: int = 0
+obl_num: int = 0
 
 class ReportJob(NamedTuple):
     project_dir: str
@@ -43,6 +43,7 @@ class Worker:
     remaining_commands: List[str]
     original_commands: List[str]
     obligation_num: int
+    unnamed_goal_num: int
 
     def __init__(self, args: argparse.Namespace,
                  switch_dict: Optional[Dict[str, str]] = None) -> None:
@@ -54,6 +55,7 @@ class Worker:
         self.lemmas_encountered: Dict[ReportJob, int] = {}
         self.remaining_commands: List[str] = []
         self.obligation_num = 0
+        self.unnamed_goal_num = 0
         self.switch_dict = switch_dict
 
     def enter_instance(self) -> None:
@@ -118,6 +120,7 @@ class Worker:
         self.lemmas_encountered = {}
         self.remaining_commands = []
         self.obligation_num = 0
+        self.unnamed_goal_num = 0
 
     def reset_project_state(self) -> None:
         self.reset_file_state()
@@ -169,19 +172,14 @@ class Worker:
         last_program_statement = ""
         obl_num = 0
         while True:
-            eprint(f"Looking at command {commands_after_lemma_start[0]} "
-                   f"with sm stack {sm_stack}")
-            if re.match(r"\s*Next\s+Obligation\s*\.\s*",
-                        coq_serapy.kill_comments(
-                          commands_after_lemma_start[0]).strip()):
-                assert last_program_statement != ""
-                unique_lemma_statement = \
-                  f"{last_program_statement} Obligation {obl_num}."
-                obl_num += 1
-            else:
-                unique_lemma_statement = commands_after_lemma_start[0]
+            unique_lemma_stmt, _, self.obligation_num, self.unnamed_goal_num = \
+              unique_lemma_stmt_and_name(
+                commands_after_lemma_start[0],
+                commands_after_lemma_start[1:],
+                last_program_statement if last_program_statement != "" else None,
+                self.obligation_num, self.unnamed_goal_num)
             if (coq_serapy.sm_prefix_from_stack(sm_stack) == job_module
-                and coq_serapy.kill_comments(unique_lemma_statement).strip() ==
+                and unique_lemma_statement.strip() ==
                 coq_serapy.kill_comments(job_lemma).strip()):
                 break
 
@@ -298,22 +296,12 @@ class Worker:
                     self.last_program_statement = command
                     self.obligation_num = 0
             lemma_statement = run_commands[-1]
-            if re.match(r"\s*Next\s+Obligation\s*\.\s*",
-                        coq_serapy.kill_comments(
-                            lemma_statement).strip()):
-                assert self.last_program_statement
-                unique_lemma_statement = \
-                    self.last_program_statement + \
-                    f" Obligation {self.obligation_num}."
-                lemma_name = coq_serapy.lemma_name_from_statement(
-                    self.last_program_statement) + \
-                    f" Obligation {self.obligation_num}."
-                self.obligation_num += 1
-            else:
-                unique_lemma_statement = lemma_statement
-                lemma_name = coq_serapy.lemma_name_from_statement(
-                    lemma_statement)
+            unique_lemma_statement, lemma_name, self.obligation_num, self.unnamed_goal_num = \
+                unique_lemma_stmt_and_name(lemma_statement, rest_commands,
+                                           self.last_program_statement, self.obligation_num,
+                                           self.unnamed_goal_num)
             self.remaining_commands = rest_commands
+            assert rest_commands is not None
             norm_job = ReportJob(self.cur_project,
                                  unwrap(self.cur_file),
                                  self.coq.sm_prefix,
@@ -410,6 +398,8 @@ class SearchWorker(Worker):
         self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
         initial_context: ProofContext = unwrap(self.coq.proof_context)
+        # In certain rare cases (uses of "Goal") this can be different from the job_lemma
+        original_lemma_statement = self.coq.prev_tactics[-1]
         if self.args.add_axioms and not self.axioms_already_added:
             self.axioms_already_added = True
             # Cancel the lemma statement so we can run the axiom
@@ -424,7 +414,7 @@ class SearchWorker(Worker):
                             signature)
                         eprint(f"Couldn't declare axiom {axiom_name} "
                                f"at this point in the proof")
-            self.coq.run_stmt(job_lemma)
+            self.coq.run_stmt(original_lemma_statement)
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
         try:
@@ -524,7 +514,7 @@ def attempt_search(args: argparse.Namespace,
                    bar_idx: int,
                    predictor: TacticPredictor) \
         -> SearchResult:
-    global unnamed_goal_number
+    global obl_num
     if module_name:
         module_prefix = escape_lemma_name(module_name)
     else:
@@ -532,8 +522,8 @@ def attempt_search(args: argparse.Namespace,
 
     lemma_name = coq_serapy.lemma_name_from_statement(lemma_statement)
     if lemma_name == "":
-        unnamed_goal_number += 1
-        lemma_name = f"Obligation {unnamed_goal_number}"
+        obl_num  += 1
+        lemma_name = f"Obligation {obl_num}"
 
     if args.max_search_time_per_lemma:
         timer = threading.Timer(args.max_search_time_per_lemma, _thread.interrupt_main)
@@ -592,7 +582,8 @@ def get_file_jobs(args: argparse.Namespace,
         arg_proofs_names = [args.proof]
     cmds = coq_serapy.load_commands(args.prelude / project / filename)
     lemmas_in_file = coq_serapy.lemmas_in_file(filename, cmds,
-                                               args.include_proof_relevant)
+                                               args.include_proof_relevant,
+                                               disambiguate_goal_stmts = True)
     # for (module, stmt) in lemmas_in_file:
     #     if in_proofs_list(module, stmt, arg_proofs_names):
     #         eprint(f"{(module, stmt)} found in proofs list")
@@ -649,3 +640,44 @@ def job_summary(job: ReportJob) -> str:
     else:
         lname = coq_serapy.lemma_name_from_statement(job.lemma_statement)
         return f"{job.module_prefix}{lname}"
+
+# This mostly replicates functionality in coq_serapy.coq_util.lemmas_in_file, consider merging.
+def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[str],
+                               last_program_statement: Optional[str],
+                               obligation_num: int,
+                               unnamed_goal_num: int) -> Tuple[str, str, int, int]:
+    slemma = coq_serapy.kill_comments(orig_lemma_statement).strip()
+    next_obl_match = re.match(r"Next\s+Obligation\s*\.", slemma)
+    goal_match = re.match(r"\s*Goal\s+(.*)\.$", slemma)
+    if next_obl_match:
+        assert last_program_statement
+        unique_stmt = last_program_statement + f" Obligation {self.obligation_num}."
+        unique_name = coq_serapy.lemma_name_from_statement(
+            self.last_program_statement) + f" Obligation {self.obligation_num}."
+        return unique_stmt, unique_name, obligation_num + 1, unnamed_goal_num
+    elif goal_match:
+        first_ending_command = None
+        for cmd in rest_commands:
+            if coq_serapy.ending_proof(cmd):
+                 first_ending_command = cmd
+                 break
+        assert first_ending_command is not None,\
+            "Couldn't find an ending command after `Goal`."
+        named_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
+                                      first_ending_command)
+        if named_ending_match:
+            lemma_name = name_ending_match.group(1)
+            unique_stmt = \
+                f"Theorem {lemma_name}: {goal_match.group(1)}."
+            return unique_stmt, lemma_name, obligation_num, unnamed_goal_num
+        else:
+            if unnamed_goal_num == 0:
+                postfix = ""
+            else:
+                postfix = str(unnamed_goal_num - 1)
+            lemma_name = f"Unnamed_thm{postfix}"
+            unique_stmt = f"Theorem {lemma_name}: {goal_match.group(1)}."
+            return unique_stmt, lemma_name, obligation_num, unnamed_goal_num + 1
+    else:
+        return slemma, coq_serapy.lemma_name_from_statement(slemma), \
+            obligation_num, unnamed_goal_num

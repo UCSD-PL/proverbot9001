@@ -47,7 +47,8 @@ import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
 from search_worker import (get_file_jobs, get_predictor,
-                           project_dicts_from_args, files_of_dict)
+                           project_dicts_from_args, files_of_dict,
+                           unique_lemma_stmt_and_name)
 from models.tactic_predictor import TacticPredictor
 
 import multi_project_report
@@ -163,6 +164,7 @@ def blocks_from_scrape_and_sols(
         vernac_cmds_batch: List[str] = []
 
         in_proof = False
+        unnamed_goal_num = 0
         obl_num = 0
         last_program_statement = ""
 
@@ -181,16 +183,19 @@ def blocks_from_scrape_and_sols(
                                       t.tactic.strip() != "}"]
             result = lookup(sm_prefix, unique_lemma_stmt)
             if result is None:
-                return ProofBlock(cur_lemma_stmt, sm_prefix,
+                assert False, f"Couldn't find result for {unique_lemma_stmt}"
+                return ProofBlock(cur_lemma_stmt, unique_lemma_stmt,
+                                  sm_prefix,
                                   SearchStatus.SKIPPED, [],
                                   batch_without_brackets)
             else:
-                return ProofBlock(cur_lemma_stmt, sm_prefix,
+                return ProofBlock(cur_lemma_stmt, unique_lemma_stmt,
+                                  sm_prefix,
                                   result.status, result.commands,
                                   batch_without_brackets)
             tactics_interactions_batch = []
 
-        for interaction in interactions:
+        for cmd_idx, interaction in enumerate(interactions):
             if in_proof and isinstance(interaction, str):
                 in_proof = False
                 yield yield_proof()
@@ -200,14 +205,19 @@ def blocks_from_scrape_and_sols(
             elif isinstance(interaction, ScrapedTactic):
                 assert not in_proof
                 cur_lemma_stmt = vernac_cmds_batch[-1]
-                if re.match(r"\s*Next\s+Obligation\s*\.\s*",
-                            coq_serapy.kill_comments(
-                                cur_lemma_stmt).strip()):
-                    unique_lemma_stmt = \
-                      f"{last_program_statement} Obligation {obl_num}."
-                    obl_num += 1
-                else:
-                    unique_lemma_stmt = cur_lemma_stmt
+                relevant_rest_interactions = []
+                for rest_interaction in interactions[cmd_idx:]:
+                    if isinstance(rest_interaction, ScrapedTactic):
+                        relevant_rest_interactions.append(rest_interaction.tactic)
+                    else:
+                        relevant_rest_interactions.append(rest_interaction)
+                        break
+                unique_lemma_stmt, _, obl_num, unnamed_goal_num = \
+                  unique_lemma_stmt_and_name(
+                    cur_lemma_stmt,
+                    relevant_rest_interactions,
+                    last_program_statement if last_program_statement != "" else None,
+                    obl_num, unnamed_goal_num)
                 yield VernacBlock(vernac_cmds_batch[:-1])
                 vernac_cmds_batch = []
                 tactics_interactions_batch = []
@@ -300,7 +310,7 @@ def write_html(args: argparse.Namespace,
                 else:
                     assert isinstance(block, ProofBlock)
                     status_klass = classFromSearchStatus(block.status)
-                    write_lemma_button(block.lemma_statement, block.module,
+                    write_lemma_button(block.unique_lemma_statement, block.module,
                                        status_klass, tag, text)
                     with tag('div', klass='region'):
                         with tag('div', klass='predicted'):

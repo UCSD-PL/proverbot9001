@@ -61,6 +61,7 @@ class VernacBlock(NamedTuple):
 
 class ProofBlock(NamedTuple):
     lemma_statement: str
+    unique_lemma_statement: str
     module: Optional[str]
     status: SearchStatus
     predicted_tactics: List[TacticInteraction]
