@@ -361,7 +361,7 @@ class Worker:
             bool(re.match(r".*\s+with\s+.*", lemma_statement, flags=re.DOTALL)) or \
             careful
         if proof_relevant:
-            while len(self.coq.prev_tactics) > 1:
+            while len(self.coq.tactic_history.getFullHistory()) > 1:
                 self.coq.cancel_last()
             self.remaining_commands, _ = unwrap(self.coq.finish_proof(
                self.remaining_commands)) # type: ignore
@@ -435,6 +435,9 @@ class SearchWorker(Worker):
                              self.coq,
                              self.args.output_dir / self.cur_project,
                              self.widx, self.predictor)
+            while len(self.coq.tactic_history.getFullHistory()) > 1:
+                self.coq.cancel_last()
+            self.skip_proof(False)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
@@ -483,9 +486,6 @@ class SearchWorker(Worker):
         #    self.remaining_commands.pop(0)
         ## Pop the actual Qed/Defined/Save
         #ending_command = self.remaining_commands.pop(0)
-        while len(self.coq.prev_tactics) > 1:
-            self.coq.cancel_last()
-        self.skip_proof(False)
         return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
