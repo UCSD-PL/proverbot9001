@@ -257,6 +257,7 @@ class Worker:
         # or get to the end of the file and raise an assert.
         while True:
             try:
+                assert self.remaining_commands, f"Couldn't find lemma {job_lemma}"
                 assert not self.coq.proof_context, \
                     "Currently in a proof! Back up to before the current proof, "\
                     "or use coq.finish_proof(cmds) or " \
