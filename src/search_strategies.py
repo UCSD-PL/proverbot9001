@@ -694,9 +694,9 @@ class BFSNode:
 
 
 def contextInHistory(full_context: ProofContext, node: BFSNode):
-    return any([coq_serapy.contextSurjective(full_context,
+    return any((coq_serapy.contextSurjective(full_context,
                                                   n.context_before.obligations)
-                for n in node.path()[1:]])
+                for n in node.path()[1:]))
 
 def get_leaf_descendents(node: BFSNode) -> List[BFSNode]:
     if len(node.children) == 0:
