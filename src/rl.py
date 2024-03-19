@@ -131,7 +131,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics", default=[])
     parser.add_argument("--resume", choices=["no", "yes", "ask"], default="ask")
-    parser.add_argument("--save-every", type=int, default=20)
+    parser.add_argument("--save-every", type=int, default=1024)
     evalGroup = parser.add_mutually_exclusive_group()
     evalGroup.add_argument("--evaluate", action="store_true")
     evalGroup.add_argument("--evaluate-baseline", action="store_true")

@@ -59,6 +59,7 @@ def main() -> None:
   parser.add_argument("--window-size", type=int, default=2560)
   parser.add_argument("--train-every", type=int, default=8)
   parser.add_argument("--sync-target-every", type=int, default=32)
+  parser.add_argument("--save-every", type=int, default=1024)
   parser.add_argument("--keep-latest", default=3, type=int)
   parser.add_argument("--optimizer", choices=optimizers.keys(), default=list(optimizers.keys())[0])
   parser.add_argument("--scheduler", choices=schedulers, default=schedulers[0])
@@ -153,6 +154,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
   common_network_version = 0
   iters_trained = 0
   last_iter_verified = 0
+  last_iter_saved = 0
   loss_buffer: List[torch.FloatTensor] = []
 
   time_started_waiting = time.time()
@@ -261,6 +263,8 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
           #   adjuster.step(error)
         with (args.state_dir / "latest_error.txt").open('w') as f:
           print(error, file=f)
+      if iters_trained - last_iter_saved >= args.save_every:
+          save_new_weights(args, v_network, 1)
       time_started_waiting = time.time()
 
 def fairly_sample_buffers(args: argparse.Namespace,
