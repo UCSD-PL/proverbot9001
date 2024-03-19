@@ -792,7 +792,8 @@ def get_proofs(args: argparse.Namespace,
             args, idx, args.prelude / filename)
     return [(filename, module, cmd) for module, cmd in
             serapi_instance.lemmas_in_file(
-                filename, cmds, args.include_proof_relevant)]
+                filename, cmds, args.include_proof_relevant,
+                disambiguated_goal_stmts)]
 
 
 def extract_solution(args: argparse.Namespace,
