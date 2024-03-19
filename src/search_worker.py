@@ -179,7 +179,7 @@ class Worker:
                 last_program_statement if last_program_statement != "" else None,
                 self.obligation_num, self.unnamed_goal_num)
             if (coq_serapy.sm_prefix_from_stack(sm_stack) == job_module
-                and unique_lemma_statement.strip() ==
+                and unique_lemma_stmt.strip() ==
                 coq_serapy.kill_comments(job_lemma).strip()):
                 break
 
