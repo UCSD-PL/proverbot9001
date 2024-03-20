@@ -172,16 +172,17 @@ class Worker:
         last_program_statement = ""
         obl_num = 0
         while True:
-            unique_lemma_stmt, _, self.obligation_num, self.unnamed_goal_num = \
-              unique_lemma_stmt_and_name(
-                commands_after_lemma_start[0],
-                commands_after_lemma_start[1:],
-                last_program_statement if last_program_statement != "" else None,
-                self.obligation_num, self.unnamed_goal_num)
-            if (coq_serapy.sm_prefix_from_stack(sm_stack) == job_module
-                and unique_lemma_stmt.strip() ==
-                coq_serapy.kill_comments(job_lemma).strip()):
-                break
+            if coq_serapy.possibly_starting_proof(commands_after_lemma_start[0]):
+                unique_lemma_stmt, _, self.obligation_num, self.unnamed_goal_num = \
+                  unique_lemma_stmt_and_name(
+                    commands_after_lemma_start[0],
+                    commands_after_lemma_start[1:],
+                    last_program_statement if last_program_statement != "" else None,
+                    self.obligation_num, self.unnamed_goal_num)
+                if (coq_serapy.sm_prefix_from_stack(sm_stack) == job_module
+                    and unique_lemma_stmt.strip() ==
+                    coq_serapy.kill_comments(job_lemma).strip()):
+                    break
 
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
