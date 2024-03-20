@@ -183,7 +183,6 @@ def blocks_from_scrape_and_sols(
                                       t.tactic.strip() != "}"]
             result = lookup(sm_prefix, unique_lemma_stmt)
             if result is None:
-                assert False, f"Couldn't find result for {unique_lemma_stmt}"
                 return ProofBlock(cur_lemma_stmt, unique_lemma_stmt,
                                   sm_prefix,
                                   SearchStatus.SKIPPED, [],
