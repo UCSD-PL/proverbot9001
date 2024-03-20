@@ -1,5 +1,8 @@
 #!/usr/bin/env bash
 
+set -x
+set -e
+
 job_name=$1
 train_path=$3
 if [ $2 == "CompCert" ]; then
@@ -21,14 +24,14 @@ else
 fi
 
 gamma=0.85
-width=7
+width=3
 coq2vecweightspath=data/term2vec-weights-59.dat
 
 eval $(opam env)
 
 echo "Running RL training"
 
-python src/distributed_rl.py --mem=16G --num-actors=8 --supervised-weights=data/polyarg-weights-develop.dat \
+python src/distributed_rl.py --mem=16G --num-actors=16 --supervised-weights=data/polyarg-weights-develop.dat \
              --coq2vec-weights=$coq2vecweightspath $proj_split_title --prelude=./$prelude  \
               --backend=serapi --gamma=$gamma -s5 -p$width --learning-rate=0.000005 -n7 -o output/rl_$job_name/final_trained_weights_rl.pkl \
               --tasks-file=$train_path --resume=$resume -b 1024 --allow-partial-batches --sync-target-every=128 \

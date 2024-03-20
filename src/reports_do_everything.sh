@@ -26,9 +26,9 @@ bash src/reports_prepare_rl_pretrain.sh $1 $2 $3
 bash src/reports_train_rl.sh $1 $2 $3 $resume
 
 bash src/reports_makereport_search_rlweights.sh $1
-bash src/reports_makereport_search_rlweights.sh $1
+# bash src/reports_makereport_search_rlweights.sh $1
 
-bash src/reports_makereport_search_baselines.sh
-bash src/reports_makereport_search_baselines.sh
+# bash src/reports_makereport_search_baselines.sh
+# bash src/reports_makereport_search_baselines.sh
 
 bash src/reports_post_report_analysis.sh $1

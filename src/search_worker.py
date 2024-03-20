@@ -651,9 +651,9 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
     goal_match = re.match(r"\s*Goal\s+(.*)\.$", slemma)
     if next_obl_match:
         assert last_program_statement
-        unique_stmt = last_program_statement + f" Obligation {self.obligation_num}."
+        unique_stmt = last_program_statement + f" Obligation {obligation_num}."
         unique_name = coq_serapy.lemma_name_from_statement(
-            self.last_program_statement) + f" Obligation {self.obligation_num}."
+            last_program_statement) + f" Obligation {obligation_num}."
         return unique_stmt, unique_name, obligation_num + 1, unnamed_goal_num
     elif goal_match:
         first_ending_command = None

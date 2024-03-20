@@ -1,4 +1,6 @@
 #!/usr/bin/env bash
+set -x
+set -e
 
 job_name=$1
 echo "Analyzing reports"
@@ -31,10 +33,10 @@ for ((i=0; i<${#folders_rl[@]}; i++)); do
 done
 
 #LLMs are amazing at debugging bash code
-for ((i=0; i<${#folders_rl[@]}; i++)); do
-    for ((j=0; j<${#folders_baseline[@]}; j++)); do
-        folder1="${folders_rl[i]}"
-        folder2="${folders_baseline[j]}"
+for ((i=0; i<${#folders_baseline[@]}; i++)); do
+    for ((j=0; j<${#folders_rl[@]}; j++)); do
+        folder1="${folders_baseline[i]}"
+        folder2="${folders_rl[j]}"
         echo "Comparing {$folder1} with {$folder2}"
         folder1_name=$(basename $folder1)
         folder2_name=$(basename $folder2)
