@@ -8,6 +8,7 @@ import re
 import sys
 import traceback
 import hashlib
+import socket
 from glob import glob
 
 from pathlib import Path
@@ -73,7 +74,7 @@ def main() -> None:
   envvar_name = "SLURM_PROCID"
   assert envvar_name in os.environ
   workerid = int(os.environ[envvar_name]) - 1
-  eprint(os.environ["HOST"])
+  eprint(socket.gethostname())
 
   with (args.state_dir / "actors_scheduled.txt").open('a') as f, FileLock(f):
     print(workerid, file=f, flush=True)
