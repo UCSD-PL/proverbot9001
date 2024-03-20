@@ -397,7 +397,7 @@ def show_progress(args: argparse.Namespace, all_task_eps: List[Tuple[RLTask, int
             num_task_eps_progress = new_num_task_eps_progress
 
             if actor_end_time is not None:
-                assert time.time() - actor_end_time < timedelta(minutes=2), \
+                assert time.time() - actor_end_time < 120, \
                     f"It's been more than two minutes since the actors exited, "\
                     f"and we're still at {num_task_eps_done} out of {len(all_task_eps)}. "\
                     "Exiting..."
