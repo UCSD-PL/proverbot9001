@@ -664,7 +664,7 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
                  break
         assert first_ending_command is not None,\
             "Couldn't find an ending command after `Goal`."
-        named_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
+        name_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
                                       first_ending_command)
         if named_ending_match:
             lemma_name = name_ending_match.group(1)
