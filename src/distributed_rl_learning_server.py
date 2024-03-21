@@ -33,7 +33,7 @@ from torch import optim
 import torch.distributed as dist
 import torch.optim.lr_scheduler as scheduler
 
-EPSILON = 0.0000001
+EPSILON = 1e-7
 
 print("Finished torch imports", file=sys.stderr)
 # pylint: disable=wrong-import-position
@@ -394,7 +394,7 @@ def train(args: argparse.Namespace, v_model: VModel,
     loss = F.mse_loss(actual_values, target_values)
   else:
     assert args.loss == "log"
-    loss = F.mse_loss(torch.log(actual_values), torch.log(target_values))
+    loss = F.mse_loss(torch.log(F.relu(actual_values) + EPSILON), torch.log(F.relu(target_values) + EPSILON))
   if args.verbose >= 1:
     eprint("Training obligations to values:")
     for idx, (context, prev_tactic, output, actual_value) \
@@ -787,7 +787,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   predicted_v_values = vnetwork(
     torch.cat([obl.local_context.view(1, -1) for obl, _ in items], dim=0),
     torch.LongTensor([obl.previous_tactic for obl, _ in items]).to(device)).view(-1)
-  predicted_steps = torch.log(predicted_v_values) / (math.log(gamma) + EPSILON)
+  predicted_steps = torch.log(F.relu(predicted_v_values) + EPSILON) / (math.log(gamma) + EPSILON)
   num_predicted_zeros = torch.count_nonzero(predicted_steps == float("inf"))
   target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
   step_errors = torch.abs(predicted_steps - target_steps)
