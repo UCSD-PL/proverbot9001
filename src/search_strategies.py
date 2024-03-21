@@ -457,7 +457,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 elif len(current_path) < args.search_depth + new_extra_depth \
                         and len(current_path) < args.hard_depth_limit \
                         and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
+                             steps_explored + substeps_explored < args.max_steps):
                     if subgoals_closed > 0:
                         g.setNodeColor(predictionNode, "blue")
                     sub_search_result = search(pbar,
