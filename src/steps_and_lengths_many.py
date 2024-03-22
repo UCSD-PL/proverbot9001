@@ -27,6 +27,8 @@ def main() -> None:
     print(report_dir)
     lengths_sum = sum((len(entry[1]["commands"]) for entry in contents if tuple(entry[0]) in common_proofs))
     steps_sum = sum((entry[1]["steps_taken"] for entry in contents if tuple(entry[0]) in common_proofs))
+    total_successes = len([entry for entry in contents if entry[1]["status"] == "SUCCESS"])
+    print(f"Total proofs solved: {total_successes}")
     print(f"Average length: {lengths_sum / len(common_proofs)}")
     print(f"Average # steps: {steps_sum / len(common_proofs)}")
 
