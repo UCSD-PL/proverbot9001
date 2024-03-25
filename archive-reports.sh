@@ -24,7 +24,7 @@ else
 fi
 
 # Archive everything matching this find pattern.
-REPORTS=$(find . \( -name "workers_scheduled.txt" -or -name "learner_scheduled.txt" \) -or \( -type d -name "*.json.d" \)  | xargs dirname)
+REPORTS=$(echo $(find . -name "workers_scheduled.txt" -or -name "learner_scheduled.txt" | xargs dirname) $(find -type d -name "*.json.d" ))
 for report in $REPORTS; do
   SIZE=$(du -sh $report)
   echo "Compressing "$report" ("$SIZE")..."
