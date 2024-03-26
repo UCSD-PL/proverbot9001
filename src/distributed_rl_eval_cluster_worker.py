@@ -45,7 +45,7 @@ def main() -> None:
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-p", "--num-predictions", default=5, type=int)
+    parser.add_argument("--max-attempts", default=16, type=int)
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)

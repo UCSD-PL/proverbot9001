@@ -55,7 +55,7 @@ def main():
     parser.add_argument('--supervised-weights', type=Path, dest="weightsfile")
     parser.add_argument("--coq2vec-weights", type=Path)
     parser.add_argument("--max-sertop-workers", default=16, type=int)
-    parser.add_argument("-p", "--num-predictions", default=5, type=int)
+    parser.add_argument("--max-attempts", default=16, type=int)
     parser.add_argument("--blacklist-tactic", action="append",
                         dest="blacklisted_tactics")
     parser.add_argument("-s", "--steps-per-episode", default=16, type=int)
@@ -155,7 +155,7 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
         else:
             supervised_weights_arg = ""
         coq2vecweightsarg = f"--coq2vec-weights {str(args.coq2vec_weights)}"
-        predictionarg = f"-p {args.num_predictions}"
+        predictionarg = f"--max-attempts {args.max_attempts}"
         maxsertopworkersarg = f"--max-sertop-workers {args.max_sertop_workers}"
         statedirargs = f"--state-dir {str(args.state_dir)}"
     

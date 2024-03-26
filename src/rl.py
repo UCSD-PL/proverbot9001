@@ -111,6 +111,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> argparse.ArgumentPars
     parser.add_argument("-b", "--batch-size", default=32, type=int)
     parser.add_argument("-w", "--window-size", default=2560)
     parser.add_argument("-p", "--num-predictions", default=5, type=int)
+    parser.add_argument("--max-attempts", default=16, type=int)
     parser.add_argument("--hidden-size", type=int, default=128)
     parser.add_argument("--tactic-embedding-size", type=int, default=32)
     parser.add_argument("--num-layers", type=int, default=3)
@@ -1083,7 +1084,7 @@ def evaluate_proof(args: argparse.Namespace,
                 coq.prev_tactics,
                 unwrap(coq.proof_context)).as_tcontext(),
                                     30),
-            args.num_predictions,
+            args.max_attempts,
             blacklist=args.blacklisted_tactics)
         if args.verbose >= 1:
             coq_serapy.summarizeContext(unwrap(coq.proof_context))
