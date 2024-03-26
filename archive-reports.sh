@@ -6,7 +6,7 @@ ARCHIVE_DIR="/project/pi_brun_umass_edu/$USER/proverbot9001-archives"
 mkdir -p $ARCHIVE_DIR
 
 # Try to get into the right directory for executing this
-if [ -z "$SLURM_SUBMIT_DIR" ]; then
+if [ ! -z "$SLURM_SUBMIT_DIR" ]; then
   # If we're a slurm job, this script was moved before executing, but we can
   # run from the directory where the user submitted the job, which is hopefully
   # right.
@@ -23,8 +23,15 @@ else
   cd $MYDIR
 fi
 
+REPORT_TRIGGER_FILES=$(find . -name "workers_scheduled.txt" -or -name "learner_scheduled.txt")
+if [ ! -z $REPORT_TRIGGER_FILES ]; then
+  REPORT_TRIGGERED_DIRS=$(echo $REPORT_TRIGGER_FILES | dirname)
+else
+  REPORT_TRIGGERED_DIRS=""
+fi
+
 # Archive everything matching this find pattern.
-REPORTS=$(echo $(find . -name "workers_scheduled.txt" -or -name "learner_scheduled.txt" | xargs dirname | sort | uniq) $(find -type d -name "*.json.d" ))
+REPORTS=$(echo $REPORT_TRIGGERED_DIRS $(find -type d -name "*.json.d" ) | sort | uniq)
 for report in $REPORTS; do
   SIZE=$(du -sh $report)
   echo "Compressing "$report" ("$SIZE")..."
