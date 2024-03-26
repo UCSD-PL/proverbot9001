@@ -424,7 +424,7 @@ def possibly_resume_rworker(args: argparse.Namespace) \
         assert target_network.network
         v_network.network.to(device)
         target_network.network.to(device)
-        
+
         # This ensures that the target and obligation will share a cache for coq2vec encodings
         target_network.obligation_encoder = v_network.obligation_encoder
 
@@ -1266,7 +1266,7 @@ def run_network_with_cache(f: Callable[[List[T]], torch.FloatTensor],
         new_results = f(uncached_values).to(device)
         for idx, result in zip(uncached_value_indices, new_results):
             output_list[idx] = result
-    
+
     return torch.cat([unwrap(t).unsqueeze(0) for t in output_list], dim=0)
 
 def tactic_prefix_is_usable(tactic_prefix: List[str]):

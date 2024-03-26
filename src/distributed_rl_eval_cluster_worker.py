@@ -55,12 +55,12 @@ def main() -> None:
     evalGroup.add_argument("--evaluate-baseline", action="store_true")
     evalGroup.add_argument("--evaluate-random-baseline", action="store_true")
     parser.add_argument("--state-dir", default="drl_eval_state", type=Path)
-    
-    
+
+
     args = parser.parse_args()
     args.output_dir = args.state_dir
 
-    
+
     (args.state_dir).mkdir(exist_ok=True, parents=True)
 
     if args.filenames[0].suffix == ".json":
@@ -78,7 +78,7 @@ def main() -> None:
 
 
 def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> None:
-            
+
     tasks = get_all_tasks(args)
     file_all_ts_dict: Dict[Path, List[Tuple[int, RLTask]]] = {}
     for task_idx, task in enumerate(tasks):
@@ -118,7 +118,7 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
     args.allow_partial_batches = False
     worker = ReinforcementWorker(args, predictor, v_network, target_network, switch_dict_from_args(args),
                                  initial_replay_buffer = replay_buffer)
-    
+
     proofs_completed = 0
     recently_done_tasks: List[RLTask] = []
     file_our_taken_dict: Dict[Path, Set[int]] = {}
@@ -149,7 +149,7 @@ def evaluation_worker(args: argparse.Namespace, workerid: int, jobid: int) -> No
         else:
             file_our_taken_dict[src_path] = {next_task_idx}
 
-        
+
         if not tactic_prefix_is_usable(task.tactic_prefix):
             if args.verbose >= 2:
                 eprint(f"Skipping job {task} with prefix {task.tactic_prefix} "

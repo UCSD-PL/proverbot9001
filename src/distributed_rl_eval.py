@@ -72,7 +72,7 @@ def main():
     parser.add_argument("--partition", default="cpu")
     parser.add_argument("--mem", default="4G")
     args = parser.parse_args()
-    
+
     if args.filenames[0].suffix == ".json":
         args.splits_file = args.filenames[0]
         args.filenames = None
@@ -83,7 +83,7 @@ def main():
     args.num_workers = args.num_eval_workers
 
     assert args.rl_weights.exists(), "Can't find weights file {args.rl_weights}!"
-    
+
     evaluate(args)
 
 
@@ -104,19 +104,19 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
     num_workers_actually_needed = min(len(all_tasks) - num_tasks_done,
                                       args.num_eval_workers)
     print(f"Deploying {num_workers_actually_needed} workers")
-    
+
 
     if num_workers_actually_needed > 0:
         if args.tasks_file :
             task_file_arg = f"--tasks-file {str(args.tasks_file)}"
         else :
             task_file_arg = ""
-        
+
         if "gpu" in args.partition:
             partition_part = f"#SBATCH -p {args.partition} \n#SBATCH --gpus 1"
         else :
             partition_part = f"#SBATCH -p {args.partition}"
-        
+
         if args.evaluate :
             evaluate_arg = "--evaluate"
         elif args.evaluate_baseline :
@@ -145,8 +145,8 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
             blacklistedtacticsarg = " ".join( [ f"--blacklisted-tactic {tactic}" for tactic in args.blacklisted_tactics] )
         else :
             blacklistedtacticsarg = ""
-    
-    
+
+
         output_arg = f"-r {args.rl_weights}"
         prelude_arg = f"--prelude {str(args.prelude)}"
         backend_arg = f"--backend {args.backend}"
@@ -158,8 +158,8 @@ def evaluate(args: argparse.Namespace, unique_id: uuid.UUID = uuid.uuid4()) -> N
         predictionarg = f"--max-attempts {args.max_attempts}"
         maxsertopworkersarg = f"--max-sertop-workers {args.max_sertop_workers}"
         statedirargs = f"--state-dir {str(args.state_dir)}"
-    
-    
+
+
         with open("submit/submit_multi_eval_jobs.sh","w") as f:
             submit_script = f"""#!/bin/bash
 #
@@ -175,7 +175,7 @@ module add opam/2.1.2
 python -u src/distributed_rl_eval_cluster_worker.py {supervised_weights_arg} {coq2vecweightsarg} \
     compcert_projs_splits.json {prelude_arg} {backend_arg} {output_arg} {task_file_arg} {evaluate_arg} \
      {verbosity_arg} {predictionarg} {setswitchargs} {proofrelevantargs} {maxsertopworkersarg} {statedirargs} \
-     {blacklistedtacticsarg} -s {args.steps_per_episode} 
+     {blacklistedtacticsarg} -s {args.steps_per_episode}
 """
             f.write(submit_script)
         subprocess.run(f'sbatch submit/submit_multi_eval_jobs.sh', shell=True)
@@ -216,7 +216,7 @@ def check_success(args: argparse.Namespace, all_tasks) -> None:
                     job = json.loads(line)
                     finished_tasks[int(job["target_length"])].append(job)
                     total_num_jobs_successful += 1
-        
+
         for task in all_tasks :
             original_tasks[task.target_length].append(task)
 
@@ -246,7 +246,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
     if not args.eval_resume :
         if (args.state_dir).exists() :
             shutil.rmtree(str(args.state_dir))
-            
+
     (args.state_dir).mkdir(exist_ok=True)
     (args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
     (args.state_dir / "taken").mkdir(exist_ok=True)
@@ -271,7 +271,7 @@ def setup_eval_jobstate(args: argparse.Namespace) -> int:
         taken_path = args.state_dir / "taken" / f"taken-{workerid}.txt"
         with taken_path.open("w") as f:
             pass
-    
+
     file_taken_dict: Dict[Path, List[RLTask]] = {}
     for task in done_tasks:
         if Path(task.src_file) in file_taken_dict:
