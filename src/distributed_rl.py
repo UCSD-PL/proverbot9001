@@ -516,9 +516,8 @@ def interrupt_learning_server(args: argparse.Namespace) -> None:
     pass
 
 def cancel_workers(args: argparse.Namespace) -> None:
-    res = subprocess.run([f"scancel -u$USER -n drl-all-{args.output_file}"],
-                   shell=True, check=True, capture_output=True)
-    print(res)
+    subprocess.run([f"scancel -u$USER -n drl-all-{args.output_file}"],
+                   shell=True, check=True)
 
 def build_final_save(args: argparse.Namespace, steps_done: int) -> None:
     save_path = latest_common_save(args)
