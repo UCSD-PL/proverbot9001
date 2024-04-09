@@ -17,4 +17,5 @@ RUN rustc --version
 RUN python3 -m venv proverbot-env
 RUN source proverbot-env/bin/activate
 RUN make setup
+RUN make download-weights
 ENTRYPOINT ["tail", "-f", "/dev/null"]
