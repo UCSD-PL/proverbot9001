@@ -36,7 +36,7 @@ wait # generate tokens and tactics concurrently before proceeding to training
 
 make compcert-train
 
-python src/search_file.py --prelude ./CompCert/ lib/Lattice.v --weightsfile=data/polyarg-weights.dat 
+python src/search_file.py --prelude ./CompCert/ lib/Lattice.v --weightsfile=data/polyarg-weights.dat
 
 echo proofs succeeded:
 cat search-report/proofs.csv  | grep SUCCESS | wc -l
