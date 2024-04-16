@@ -22,7 +22,7 @@ else
     opam pin -yn add coq 8.10.2
     opam pin -yn add menhir 20190626
     # For SerAPI:
-    opam install -y coq-serapi
+    opam install -y coq-serapi menhir
     # Python dependencies
     source proverbot-env/bin/activate
     pip3 install --no-input -r requirements.txt
