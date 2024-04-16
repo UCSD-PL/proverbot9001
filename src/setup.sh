@@ -13,16 +13,18 @@ if [[ -f /etc/NIXOS ]]; then
 else
     git submodule init coq_serapy
     git submodule init dataloader/gestalt-ratio
+    git submodule init CompCert
     git submodule update
-    opam init -a --compiler=4.07.1
+    opam init -a --compiler=4.07.1 -y
     eval `opam config env`
     opam update
     # For Coq:
-    opam pin add coq 8.10.2
-    opam pin -y add menhir 20190626
+    opam pin -yn add coq 8.10.2
+    opam pin -yn add menhir 20190626
     # For SerAPI:
     opam install -y coq-serapi
     # Python dependencies
+    source proverbot-env/bin/activate
     pip3 install --no-input -r requirements.txt
     pip3 install --no-input -e coq_serapy
     # For py03/dataloader
