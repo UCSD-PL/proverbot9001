@@ -1,4 +1,4 @@
-FROM rust:1.77-bookworm
+FROM --platform=linux/amd64 rust:1.77-bookworm
 
 ENV APP_HOME=/home/proverbot
 WORKDIR $APP_HOME
