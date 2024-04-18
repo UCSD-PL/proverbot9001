@@ -1,6 +1,7 @@
 wheel
 scikit-learn
 sexpdata
+torch
 yattag
 pampy
 pygraphviz
@@ -9,4 +10,3 @@ pathlib_revised
 sparse_list
 tensorboard
 maturin
-numba
