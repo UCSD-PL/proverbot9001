@@ -11,6 +11,7 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
+    source ~/.bashrc
     git submodule init coq_serapy
     git submodule init dataloader/gestalt-ratio
     git submodule init CompCert
@@ -24,7 +25,6 @@ else
     # For SerAPI:
     opam install -y coq-serapi menhir
     # Python dependencies
-    source proverbot-env/bin/activate
     pip3 install --no-input -r requirements.txt
     pip3 install --no-input -e coq_serapy
     # For py03/dataloader
