@@ -1,6 +1,6 @@
 FROM rust:1.77-bookworm
 
-ENV APP_HOME=/home/app/web
+ENV APP_HOME=/home/proverbot
 WORKDIR $APP_HOME
 ADD . / $APP_HOME/
 SHELL ["/bin/bash", "-c"]
