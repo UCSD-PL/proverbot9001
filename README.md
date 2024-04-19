@@ -92,7 +92,7 @@ cd proverbot9001
 
 > **_NOTE:_** There are two ways you can run the project after this, you can either set it up on your machine or use docker and build the container and run the project inside that.
 
-### Docker setup
+### Docker Setup
 
 - Install Docker desktop on your machine as it makes things easy for you to manage and run containers.
 - Make sure Docker desktop is running. Run the following command from the root of the project (build can take ~1 hour depending on your machine spec and network speed):
@@ -111,9 +111,11 @@ This will run the container and start a bash terminal.
 
 - After this you can start running search commands and interacting with the project.
 
-> **_NOTE:_** Rest of the instructions are for setting up the project on your machine.
+### Self-hosted Setup
 
-### Create a python virtual environment
+> **_NOTE:_** These instructions are for setting up the project on your machine.
+
+#### Create a python virtual environment
 
 Next, you'll need to create a python virtual environment to work
 in. This is a good idea in general, but is also required for maturin
@@ -132,7 +134,7 @@ source proverbot-env/bin/activate
 
 Also do that now.
 
-### Install python and rust dependencies
+#### Install python and rust dependencies
 
 On MacOS, you'll need to install pygraphviz differently, so do that
 now: ` pip install --global-option=build_ext
@@ -162,7 +164,7 @@ error: command 'x86_64-linux-gnu-gcc' failed with exit status 1
 then python needs help finding your graphviz installation. Check out this github issue: https://github.com/pygraphviz/pygraphviz/issues/155, and possibly this one: https://github.com/pypa/setuptools/issues/2740
 .
 
-### Download the pre-trained weights
+#### Download the pre-trained weights
 
 Running Proverbot9001 requires training on existing proof
 files. Training takes a while, and usually you need some pretty
