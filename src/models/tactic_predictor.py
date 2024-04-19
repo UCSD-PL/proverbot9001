@@ -27,7 +27,8 @@ class TacticPredictor(metaclass=ABCMeta):
     def getOptions(self) -> List[Tuple[str, str]]: pass
 
     @abstractmethod
-    def predictKTactics(self, in_data : TacticContext, k : int) \
+    def predictKTactics(self, in_data : TacticContext, k : int,
+                        tactic_blacklist: Optional[List[str]] = None) \
         -> List[Prediction]: pass
     @abstractmethod
     def predictKTacticsWithLoss(self, in_data : TacticContext, k : int, correct : str) -> \
@@ -53,10 +54,13 @@ StateType = TypeVar('StateType', bound=PredictorState)
 
 class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, StateType],
                          metaclass=ABCMeta):
-    def train(self, args : List[str]) -> None:
+    def parse_args(self, args: List[str]) -> argparse.Namespace:
         argparser = argparse.ArgumentParser(self._description())
         self.add_args_to_parser(argparser)
-        arg_values = argparser.parse_args(args)
+        return argparser.parse_args(args)
+
+    def train(self, args : List[str]) -> None:
+        arg_values = self.parse_args(args)
         text_data = get_text_data(arg_values)
         encoded_data, encdec_state = self._encode_data(text_data, arg_values)
         del text_data
@@ -67,8 +71,8 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                            parser : argparse.ArgumentParser,
                            default_values : Dict[str, Any] = {}) \
         -> None:
-        parser.add_argument("scrape_file", type=Path2)
-        parser.add_argument("save_file", type=Path2)
+        parser.add_argument("scrape_file", type=str)
+        parser.add_argument("save_file", type=str)
         parser.add_argument("--save-all-epochs", action='store_true', dest='save_all_epochs')
         parser.add_argument("--num-threads", "-j", dest="num_threads", type=int,
                             default=default_values.get("num-threads", None))
@@ -216,10 +220,12 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
 
 import torch
 import torch.utils.data as data
+from torch.utils.data.sampler import SubsetRandomSampler
 from torch.utils.tensorboard import SummaryWriter
 import torch.optim.lr_scheduler as scheduler
 from torch import optim
 import torch.nn as nn
+import numpy as np
 from util import *
 from util import chunks, maybe_cuda
 
@@ -463,15 +469,31 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                          model : ModelType,
                          batchLoss :
                          Callable[[Sequence[torch.Tensor], ModelType],
-                                  torch.FloatTensor],
+                                  Tuple[torch.FloatTensor, torch.FloatTensor]],
                          epoch_start : int = 1) \
     -> Iterable[NeuralPredictorState]:
-    dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
-                                 batch_size=arg_values.batch_size, num_workers=0,
-                                 shuffle=True, pin_memory=True, drop_last=True)
+    split_ratio = 0.05
     dataset_size = data_tensors[0].size()[0]
+    for tensor in data_tensors:
+        assert tensor.size()[0] == dataset_size
+    indices = list(range(dataset_size))
+    split = int((dataset_size * split_ratio) / arg_values.batch_size) * arg_values.batch_size
+    np.random.shuffle(indices)
+    train_indices, val_indices = indices[split:], indices[:split]
+    train_sampler = SubsetRandomSampler(train_indices)
+    valid_sampler = SubsetRandomSampler(val_indices)
+    valid_batch_size = arg_values.batch_size // 2
+    dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
+                                 sampler=train_sampler,
+                                 batch_size=arg_values.batch_size, num_workers=0,
+                                 pin_memory=True, drop_last=True)
+    dataloader_valid = data.DataLoader(data.TensorDataset(*data_tensors),
+                                       sampler=valid_sampler,
+                                       batch_size=valid_batch_size, num_workers=0,
+                                       pin_memory=True, drop_last=True)
     # Drop the last batch in the count
-    num_batches = int(dataset_size / arg_values.batch_size)
+    num_batches = int((dataset_size - split) / arg_values.batch_size)
+    num_batches_valid = int(split / valid_batch_size)
     dataset_size = num_batches * arg_values.batch_size
     assert dataset_size > 0
     print("Initializing model...")
@@ -492,8 +514,9 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
         for batch_num, data_batch in enumerate(dataloader, start=1):
             optimizer.zero_grad()
             # with autograd.detect_anomaly():
-            loss = batchLoss(data_batch, model)
-            writer.add_scalar("Batch loss/train", loss, epoch * num_batches + batch_num)
+            loss, accuracy = batchLoss(data_batch, model)
+            writer.add_scalar("Batch loss/train", loss.item(), epoch * num_batches + batch_num)
+            writer.add_scalar("Batch accuracy/train", accuracy.item(), epoch * num_batches + batch_num)
             loss.backward()
             optimizer.step()
             epoch_loss += loss.item()
@@ -508,6 +531,19 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
                       .format(timeSince(training_start, progress),
                               items_processed, progress * 100,
                               epoch_loss / batch_num))
+        with torch.no_grad():
+            valid_accuracy = torch.tensor(0.)
+            valid_loss = torch.tensor(0.)
+            for valid_data_batch in dataloader_valid:
+               batch_loss, batch_accuracy = batchLoss(valid_data_batch, model)
+               valid_loss = cast(torch.FloatTensor, valid_loss + batch_loss)
+               valid_accuracy = cast(torch.FloatTensor, valid_accuracy + batch_accuracy)
+            writer.add_scalar("Loss/valid", valid_loss.item() / num_batches_valid,
+                              epoch * num_batches + batch_num)
+            writer.add_scalar("Accuracy/valid", valid_accuracy.item() / num_batches_valid,
+                              epoch * num_batches + batch_num)
+            print(f"Validation loss: {valid_loss.item() / num_batches_valid}; "
+                  f"Validation accuracy: {valid_accuracy.item() / num_batches_valid}")
         adjuster.step()
 
         yield NeuralPredictorState(epoch,

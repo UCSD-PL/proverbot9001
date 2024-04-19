@@ -41,7 +41,7 @@ Text = Callable[..., None]
 Line = Callable[..., None]
 
 import coq_serapy
-from coq_serapy import (ParseError, LexError, TimeoutError,
+from coq_serapy import (ParseError, LexError, CoqTimeoutError,
                         BadResponse, CoqExn, CompletedError,
                         AckError, get_stem)
 import linearize_semicolons
@@ -109,7 +109,7 @@ def run_prediction(coq : coq_serapy.SerapiInstance, prediction : str) -> Tuple[s
         coq.cancel_last()
         assert isinstance(context, str)
         return (prediction, context, None)
-    except (ParseError, LexError, BadResponse, CoqExn, TimeoutError) as e:
+    except (ParseError, LexError, BadResponse, CoqExn, CoqTimeoutError) as e:
         return (prediction, "", e)
     finally:
         coq.quiet = False
@@ -390,7 +390,7 @@ class Worker(threading.Thread):
                         actual_result_lemmas = coq.local_lemmas
                         assert isinstance(actual_result_context, str)
                     except (AckError, CompletedError, CoqExn,
-                            BadResponse, ParseError, LexError, TimeoutError):
+                            BadResponse, ParseError, LexError, CoqTimeoutError):
                         print("In file {}:".format(filename))
                         raise
 
@@ -428,7 +428,7 @@ class Worker(threading.Thread):
                     try:
                         coq.run_stmt(command)
                     except (AckError, CompletedError, CoqExn,
-                            BadResponse, ParseError, LexError, TimeoutError):
+                            BadResponse, ParseError, LexError, CoqTimeoutError):
                         print("In file {}:".format(filename))
                         raise
                     command_results.append((command,))
@@ -637,8 +637,7 @@ def write_csv(base_filename : str, output_dir : str,
                                      for item in [prediction, grade]]])
 
 def write_summary(output_dir : Path2, num_jobs : int, cur_commit : str,
-                  message : str, baseline : bool, cur_date :
-                  datetime.datetime, gresult : GlobalResult):
+                  message : str, baseline : bool, cur_date : datetime, gresult : GlobalResult):
 
     ###
     ### Write the report page out

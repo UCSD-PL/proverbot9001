@@ -20,27 +20,25 @@
 #
 ##########################################################################
 
-import fcntl
-import time
 import argparse
 import json
 import sys
 import multiprocessing
-import re
 from os import environ
-from typing import List, Optional
+from typing import List
 
 from pathlib import Path
 import torch
 
-from search_file import (add_args_to_parser, get_predictor, Worker)
-import coq_serapy
-from coq_serapy.contexts import ProofContext
+from search_file import (add_args_to_parser, get_predictor, Worker, project_dicts_from_args)
 from models.tactic_predictor import TacticPredictor
 import util
-from util import eprint, unwrap, FileLock
+from util import eprint, FileLock
 
 def main(arg_list: List[str]) -> None:
+    assert 'SLURM_ARRAY_TASK_ID' in environ
+    workerid = int(environ['SLURM_ARRAY_TASK_ID'])
+
     multiprocessing.set_start_method('spawn')
     arg_parser = argparse.ArgumentParser()
 
@@ -52,28 +50,28 @@ def main(arg_list: List[str]) -> None:
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
     args = arg_parser.parse_args(arg_list)
+    with (args.output_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
+        print(workerid, file=f)
     if args.filenames[0].suffix == ".json":
         assert args.splits_file == None
         assert len(args.filenames) == 1
         args.splits_file = args.filenames[0]
         args.filenames = []
 
-    if 'SLURM_ARRAY_TASK_ID' in environ:
-        workerid = int(environ['SLURM_ARRAY_TASK_ID'])
-    else:
-        assert False, 'SLURM_ARRAY_TASK_ID must be set'
-
     sys.setrecursionlimit(100000)
     if util.use_cuda:
         torch.cuda.set_device("cuda:0")
         util.cuda_device = "cuda:0"
+    
+    if not args.predictor and not args.weightsfile:
+        print("You must specify a weightsfile or a predictor.")
+        parser.print_help()
+        sys.exit(1)
 
-    predictor = get_predictor(arg_parser, args)
-    with (args.output_dir / "workers_scheduled.txt").open('a') as f, FileLock(f):
-        print(workerid, file=f)
+
+
     workers = [multiprocessing.Process(target=run_worker,
-                                       args=(args, widx,
-                                             predictor))
+                                       args=(args, widx, workerid))
                for widx in range(args.num_threads)]
     for worker in workers:
         worker.start()
@@ -81,19 +79,23 @@ def main(arg_list: List[str]) -> None:
         worker.join()
     eprint(f"Finished worker {workerid}")
 
-def run_worker(args: argparse.Namespace, workerid: int,
-               predictor: TacticPredictor) -> None:
+def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
+    
+    predictor = get_predictor(args)
+    
+    project_dicts = project_dicts_from_args(args)
+    if any(["switch" in item for item in project_dicts]):
+        switch_dict = {item["project_name"]: item["switch"]
+                        for item in project_dicts}
+    else:
+        switch_dict = None
+    worker_taken_file = args.output_dir / f"worker-{workerid}-taken.txt"
+    with worker_taken_file.open("w"):
+        pass
 
-    if args.splits_file:
-        with args.splits_file.open('r') as f:
-            project_dicts = json.loads(f.read())
-        if any(["switch" in item for item in project_dicts]):
-            switch_dict = {item["project_name"]: item["switch"]
-                           for item in project_dicts}
-
-    with Worker(args, workerid, predictor, switch_dict) as worker:
+    with Worker(args, threadid, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
@@ -104,13 +106,19 @@ def run_worker(args: argparse.Namespace, workerid: int,
                         break
                 if current_job:
                     print(json.dumps(current_job), file=f, flush=True)
+                    with worker_taken_file.open("a") as f:
+                        print(json.dumps(current_job), file=f, flush=True)
                     eprint(f"Starting job {current_job}")
                 else:
+                    eprint(f"Finished thread {threadid}")
                     break
             solution = worker.run_job(current_job)
             job_project, job_file, _, _ = current_job
+            project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
             with (args.output_dir / job_project /
-                  (util.safe_abbrev(Path(job_file), args.filenames) + "-proofs.txt")
+                  (util.safe_abbrev(Path(job_file), [Path(filename) for filename in
+                                                     project_dict["test_files"]])
+                   + "-proofs.txt")
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
                 print(json.dumps((current_job, solution.to_dict())), file=f)

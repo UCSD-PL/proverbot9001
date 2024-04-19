@@ -35,7 +35,7 @@ from compcert_linearizer_failures import compcert_failures
 
 import coq_serapy as serapi_instance
 from coq_serapy import (AckError, CompletedError, CoqExn,
-                        BadResponse, TimeoutError, ParseError,
+                        BadResponse, CoqTimeoutError, ParseError,
                         NoSuchGoalError, CoqAnomaly)
 
 from typing import (Optional, List, Iterator, Iterable, Any, Match,
@@ -119,7 +119,7 @@ def linearize_commands(args: argparse.Namespace, file_idx: int,
                 linearized_commands = list(linearize_proof(coq, theorem_name, batch_handled,
                                                            args.verbose, skip_nochange_tac))
                 yield from linearized_commands
-            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, TimeoutError, NoSuchGoalError) as e:
+            except (BadResponse, CoqExn, LinearizerCouldNotLinearize, ParseError, CoqTimeoutError, NoSuchGoalError) as e:
                 if args.verbose:
                     eprint("Aborting current proof linearization!")
                     eprint("Proof of:\n{}\nin file {}".format(
@@ -555,7 +555,7 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
     except (CoqExn, BadResponse, AckError, CompletedError):
         eprint("In file {}".format(filename))
         raise
-    except serapi_instance.TimeoutError:
+    except serapi_instance.CoqTimeoutError:
         eprint("Timed out while lifting commands! Skipping linearization...")
         return commands
 
@@ -591,7 +591,7 @@ def get_linearized(args: argparse.Namespace, coqargs: List[str],
             fresh_commands = original_commands
         except (CoqAnomaly, CoqExn):
             fresh_commands = original_commands
-        save_lin(fresh_commands, local_filename)
+        save_lin(fresh_commands, local_filename, args.text_encoding)
 
         return fresh_commands
     else:
@@ -619,9 +619,9 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
             return None
 
 
-def save_lin(commands: List[str], filename: str) -> None:
+def save_lin(commands: List[str], filename: str, text_encoding: str) -> None:
     output_file = filename + '.lin'
-    with open(output_file, 'w') as f:
+    with open(output_file, 'w', encoding=text_encoding) as f:
         print(hash_file(filename), file=f)
         for command in commands:
             print(command, file=f)
@@ -656,9 +656,9 @@ def main():
                 arg_values, 0, original_commands,
                 coqargs, arg_values.prelude,
                 local_filename, filename, False)
-            serapi_instance.save_lin(fresh_commands, local_filename)
+            save_lin(fresh_commands, local_filename, arg_values.text_encoding)
         except CoqAnomaly:
-            serapi_instance.save_lin(original_commands, local_filename)
+            save_lin(original_commands, local_filename, arg_values.text_encoding)
 
 
 if __name__ == "__main__":

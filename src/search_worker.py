@@ -5,14 +5,17 @@ import subprocess
 import re
 import os
 import traceback
-from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator
+import json
+from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator, Any
 from pathlib import Path
 
 import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
+from predict_tactic import (loadPredictorByFile,
+                            loadPredictorByName)
 
 from util import unwrap, eprint, escape_lemma_name
 
@@ -54,12 +57,45 @@ class Worker:
         self.switch_dict = switch_dict
         self.axioms_already_added = False
 
+    def enter_instance(self, filename: str = None) -> None:
+        if self.args.backend == 'auto':
+            coq_serapy.setup_opam_env()
+            version_string = subprocess.run(["sertop", "--version"],
+                                            stdout=subprocess.PIPE,
+                                            text=True, check=True).stdout
+            version_match = re.fullmatch(r"\d+\.(\d+).*", version_string,
+                                         flags=re.DOTALL)
+            assert version_match, f"Can't match version string \"{version_string}\""
+            minor_version = int(version_match.group(1))
+            assert minor_version >= 10, \
+                    "Versions of Coq before 8.10 are not supported! "\
+                    f"Currently installed coq is {version_string}"
+            if minor_version >= 16:
+                backend = 'lsp'
+            else:
+                backend = 'serapi'
+        else:
+            backend = self.args.backend
+
+        if backend == 'lsp':
+            if filename:
+                backend = coq_serapy.CoqLSPyInstance(
+                    "coq-lsp", set_env=self.args.set_switch, # concise=False,
+                    root_dir=str(self.args.prelude),
+                    verbosity=self.args.verbose, initialFilename=filename)
+            else:
+                backend = coq_serapy.CoqLSPyInstance(
+                    "coq-lsp", set_env=self.args.set_switch, # concise=False,
+                    root_dir=str(self.args.prelude),
+                    verbosity=self.args.verbose)
+        if backend == 'serapi':
+            backend = coq_serapy.CoqSeraPyInstance(
+                ["sertop"], root_dir=str(self.args.prelude))
+        self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
+                                       verbosity=self.args.verbose)
+
     def __enter__(self) -> 'Worker':
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
-                                    None, str(self.args.prelude),
-                                    use_hammer=self.args.use_hammer)
-        self.coq.quiet = True
-        self.coq.verbose = self.args.verbose
+        self.enter_instance()
         return self
     def __exit__(self, type, value, traceback) -> None:
         assert self.coq
@@ -77,16 +113,12 @@ class Worker:
                 switch = self.switch_dict[self.cur_project]
             else:
                 return
-        self.coq.set_switch(switch)
+        coq_serapy.set_switch(switch)
 
-    def restart_coq(self) -> None:
+    def restart_coq(self, filename: str = None) -> None:
         assert self.coq
         self.coq.kill()
-        self.coq = coq_serapy.SerapiInstance(['sertop', '--implicit'],
-                                    None, str(self.args.prelude / self.cur_project),
-                                    use_hammer=self.args.use_hammer)
-        self.coq.quiet = True
-        self.coq.verbose = self.args.verbose
+        self.enter_instance(filename)
 
     def reset_file_state(self) -> None:
         self.last_program_statement = None
@@ -97,15 +129,14 @@ class Worker:
     def enter_file(self, filename: str) -> None:
         assert self.coq
         self.cur_file = filename
-        module_name = coq_serapy.get_module_from_filename(filename)
-        self.coq.run_stmt(f"Module {module_name}.")
+        self.coq.enter_file(filename)
         self.remaining_commands = coq_serapy.load_commands_preserve(
             self.args, 1, self.args.prelude / self.cur_project / filename)
         self.axioms_already_added = False
 
     def exit_cur_file(self) -> None:
-        for sec_or_mod, _ in reversed(self.coq.sm_stack):
-            self.coq.run_stmt(f"Reset {sec_or_mod}.")
+        assert self.coq
+        self.coq.reset()
 
     def run_into_job(self, job: ReportJob, restart_anomaly: bool, careful: bool) -> None:
         assert self.coq
@@ -114,15 +145,17 @@ class Worker:
         # If we need to change projects, we'll have to reset the coq instance
         # to load new includes, and set the opam switch
         if job_project != self.cur_project:
-            self.reset_file_state()
+            if self.cur_project is not None:
+                self.reset_file_state()
             self.cur_project = job_project
-            self.set_switch_from_proj()
-            self.restart_coq()
-            self.enter_file(job_file)
+            if self.args.set_switch:
+                self.set_switch_from_proj()
         # If the job is in a different file load the jobs file from scratch.
         if job_file != self.cur_file:
             if self.cur_file:
+                self.reset_file_state()
                 self.exit_cur_file()
+            self.restart_coq(job_file)
             self.enter_file(job_file)
 
         # This loop has three exit cases.  Either it will hit the correct job
@@ -137,7 +170,7 @@ class Worker:
                                       self.remaining_commands)))
                     assert rest_commands, f"Couldn't find lemma {job_lemma}"
             except coq_serapy.CoqAnomaly:
-                if restart:
+                if restart_anomaly:
                     self.restart_coq()
                     self.reset_file_state()
                     self.enter_file(job_file)
@@ -164,17 +197,16 @@ class Worker:
                             coq_serapy.kill_comments(
                                 command).strip()):
                     self.last_program_statement = command
+                    self.obligation_num = 0
             lemma_statement = run_commands[-1]
             if re.match(r"\s*Next\s+Obligation\s*\.\s*",
                         coq_serapy.kill_comments(
                             lemma_statement).strip()):
                 assert self.last_program_statement
-                obligation_num = 0
-                while self.coq.local_lemmas[-(obligation_num+2)] == ":":
-                    obligation_num += 1
                 unique_lemma_statement = \
                     self.last_program_statement + \
-                    f" Obligation {obligation_num}."
+                    f" Obligation {self.obligation_num}."
+                self.obligation_num += 1
             else:
                 unique_lemma_statement = lemma_statement
             self.remaining_commands = rest_commands
@@ -182,7 +214,20 @@ class Worker:
               self.coq.sm_prefix == job_module:
                 return
             else:
-                self.skip_proof(lemma_statement, careful)
+                try:
+                    self.skip_proof(lemma_statement, careful)
+                except coq_serapy.SerapiException:
+                    if not careful:
+                        eprint(f"Hit a problem, possibly due to admitting proofs! Restarting file with --careful...",
+                               guard=self.args.verbose >= 1)
+                        self.reset_file_state()
+                        self.exit_cur_file()
+                        self.enter_file(job_file)
+                        self.run_into_job(job, restart_anomaly, True)
+                        return
+                    eprint(f"Failed getting to before: {job_lemma}")
+                    eprint(f"In file {job_file}")
+                    raise
                 self.lemmas_encountered.append(ReportJob(self.cur_project,
                                                          unwrap(self.cur_file),
                                                          self.coq.sm_prefix,
@@ -245,10 +290,12 @@ class Worker:
                                f"at this point in the proof")
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
+        context_lemmas = context_lemmas_from_args(self.args, self.coq)
         try:
-            search_status, tactic_solution = \
+            search_status, _, tactic_solution, steps_taken = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
+                             context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
                              self.widx, self.predictor)
@@ -269,21 +316,20 @@ class Worker:
             if restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
                 return self.run_job(job, restart=False)
-            else:
-                if self.args.log_hard_anomalies:
-                    with self.args.log_hard_anomalies.open('a') as f:
-                        print(
-                            f"HARD ANOMALY at "
-                            f"{job_file}:{job_lemma}",
-                            file=f)
-                        traceback.print_exc(file=f)
+            if self.args.log_hard_anomalies:
+                with self.args.log_hard_anomalies.open('a') as f:
+                    print(
+                        f"HARD ANOMALY at "
+                        f"{job_file}:{job_lemma}",
+                        file=f)
+                    traceback.print_exc(file=f)
 
-                search_status = SearchStatus.CRASHED
-                solution: List[TacticInteraction] = []
-                eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
-                       "due to multiple failures",
-                       guard=self.args.verbose >= 1)
-                return SearchResult(search_status, solution)
+            search_status = SearchStatus.CRASHED
+            solution: List[TacticInteraction] = []
+            eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
+                   "due to multiple failures",
+                   guard=self.args.verbose >= 1)
+            return SearchResult(search_status, context_lemmas, solution, 0)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -304,25 +350,14 @@ class Worker:
         coq_serapy.admit_proof(self.coq, job_lemma, ending_command)
 
         self.lemmas_encountered.append(job)
-        return SearchResult(search_status, solution)
+        return SearchResult(search_status, context_lemmas, solution, steps_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
     return coq.check_term(lemma_name).replace("\n", "")
 
-import _thread
-import threading
-
-# This method attempts to complete proofs using search.
-def attempt_search(args: argparse.Namespace,
-                   lemma_statement: str,
-                   module_name: Optional[str],
-                   coq: coq_serapy.SerapiInstance,
-                   output_dir: Path,
-                   bar_idx: int,
-                   predictor: TacticPredictor) \
-        -> SearchResult:
-    global unnamed_goal_number
+def context_lemmas_from_args(args: argparse.Namespace,
+                             coq: coq_serapy.SerapiInstance) -> List[str]:
     if args.add_env_lemmas:
         with args.add_env_lemmas.open('r') as f:
             env_lemmas = [get_lemma_declaration_from_name(coq,
@@ -337,7 +372,23 @@ def attempt_search(args: argparse.Namespace,
     elif args.relevant_lemmas == "searchabout":
         relevant_lemmas = coq.get_lemmas_about_head()
     else:
-        assert False, args.relevant_lemmas
+        assert False, f"Unrecognized relevant lemmas option {args.relevant_lemmas}"
+    return env_lemmas + relevant_lemmas
+
+import _thread
+import threading
+
+# This method attempts to complete proofs using search.
+def attempt_search(args: argparse.Namespace,
+                   lemma_statement: str,
+                   module_name: Optional[str],
+                   context_lemmas: List[str],
+                   coq: coq_serapy.SerapiInstance,
+                   output_dir: Path,
+                   bar_idx: int,
+                   predictor: TacticPredictor) \
+        -> SearchResult:
+    global unnamed_goal_number
     if module_name:
         module_prefix = escape_lemma_name(module_name)
     else:
@@ -354,16 +405,23 @@ def attempt_search(args: argparse.Namespace,
     try:
         if args.search_type == 'dfs':
             result = dfs_proof_search_with_graph(lemma_name, module_prefix,
-                                                 env_lemmas + relevant_lemmas,
+                                                 context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor)
+        elif args.search_type == 'dfs-est':
+            result = dfs_estimated(lemma_name, module_prefix,
+                                   context_lemmas,
+                                   coq, output_dir,
+                                   args, bar_idx, predictor)
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
-                                           env_lemmas + relevant_lemmas, coq,
+                                           context_lemmas, coq,
+                                           output_dir,
                                            args, bar_idx, predictor)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
-                                             env_lemmas + relevant_lemmas, coq,
+                                             context_lemmas, coq,
+                                             output_dir,
                                              args, bar_idx, predictor)
         else:
             assert False, args.search_type
@@ -403,3 +461,22 @@ def get_files_jobs(args: argparse.Namespace,
                    -> Iterator[ReportJob]:
     for project, filename in proj_filename_tuples:
         yield from get_file_jobs(args, project, filename)
+
+def get_predictor(args: argparse.Namespace) -> TacticPredictor:
+    predictor: TacticPredictor
+    if args.weightsfile:
+        predictor = loadPredictorByFile(args.weightsfile)
+    elif args.predictor:
+        predictor = loadPredictorByName(args.predictor)
+    else:
+        raise ValueError("Can't load a predictor from given args!")
+    return predictor
+
+def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
+    if args.splits_file:
+        with Path(args.splits_file).open('r') as f:
+            project_dicts = json.loads(f.read())
+    else:
+        project_dicts = [{"project_name": ".",
+                          "test_files": [str(filename) for filename in args.filenames]}]
+    return project_dicts

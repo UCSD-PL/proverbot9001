@@ -21,10 +21,12 @@ import coq_serapy
 from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context
 import tokenizer
 from models.tactic_predictor import Prediction, TacticPredictor
+from models.features_polyarg_predictor import FeaturesPolyargPredictor
 from search_results import TacticInteraction, SearchResult, SearchStatus
-from util import nostderr, unwrap, eprint, mybarfmt
+from util import nostderr, unwrap, eprint, mybarfmt, copyArgs, FileLock
 
 from value_estimator import Estimator
+import dataloader
 
 unnamed_goal_number: int = 0
 
@@ -34,15 +36,13 @@ class FeaturesExtractor:
     _num_tactics: int
     _num_tokens: int
 
-    def __init__(self, tacticsfile: str, tokensfile: str) -> None:
+    def __init__(self, common_tactic_stems: List[str], common_tokens: List[str]) -> None:
         self.tactic_map = {}
         self.token_map = {}
-        with open(tacticsfile, 'r') as f:
-            for idx, line in enumerate(f, start=2):
-                self.tactic_map[line.strip()] = idx
-        with open(tokensfile, 'r') as f:
-            for idx, line in enumerate(f, start=2):
-                self.token_map[line.strip()] = idx
+        for idx, tactic_stem in enumerate(common_tactic_stems, start=2):
+            self.tactic_map[tactic_stem] = idx
+        for idx, token in enumerate(common_tokens, start=2):
+            self.token_map[token] = idx
         self._num_tactics = len(self.tactic_map)
         self._num_tokens = len(self.token_map)
 
@@ -142,7 +142,7 @@ class SearchGraph:
                               label="{}\n({:.2f})".format(
                                   prediction.prediction,
                                   prediction.certainty),
-                              tooltip=tooltip,
+                              tooltip=tooltip.replace("\\", "\\\\"),
                               **kwargs)
         self.__next_node_id += 1
         newNode = LabeledNode(prediction.prediction, prediction.certainty,
@@ -223,6 +223,7 @@ class SearchGraph:
 class SubSearchResult (NamedTuple):
     solution: Optional[List[TacticInteraction]]
     solved_subgoals: int
+    steps_explored: int
 
 
 def contextInPath(full_context: ProofContext, path: List[LabeledNode]):
@@ -257,11 +258,18 @@ def tryPrediction(args: argparse.Namespace,
     start_time = time.time()
     time_per_command = (coq.hammer_timeout + args.max_tactic_time
                         if coq.use_hammer else args.max_tactic_time)
+    if args.log_explored_states is not None:
+        with args.log_explored_states.open('a') as f, FileLock(f):
+            f.write(json.dumps(
+              {"Module/Section": coq.sm_prefix,
+               "Proof": coq_serapy.lemma_name_from_statement(
+                 coq.prev_tactics[0]),
+               "Tactics": coq.prev_tactics[1:] + [prediction]}) + "\n")
     try:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
-    except (coq_serapy.TimeoutError, coq_serapy.ParseError,
-            coq_serapy.CoqExn, coq_serapy.OverflowError,
+    except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
+            coq_serapy.CoqExn, coq_serapy.CoqOverflowError,
             coq_serapy.ParseError,
             RecursionError,
             coq_serapy.UnrecognizedError) as e:
@@ -350,7 +358,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
 
     def search(pbar: tqdm, current_path: List[LabeledNode],
                subgoal_distance_stack: List[int],
-               extra_depth: int) -> SubSearchResult:
+               extra_depth: int, steps_explored: int) -> SubSearchResult:
         nonlocal hasUnexploredNode
         nonlocal relevant_lemmas
         global unnamed_goal_number
@@ -360,13 +368,15 @@ def dfs_proof_search_with_graph(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-                    args.max_attempts)
+                    args.max_attempts,
+            blacklist=args.blacklisted_tactics)
         assert len(predictions) == args.max_attempts
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
                                       prediction.certainty)
                            for prediction in predictions]
         num_successful_predictions = 0
+        substeps_explored = 1
         for _prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
                 break
@@ -422,7 +432,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 #############
                 if completed_proof(coq):
                     solution = g.mkQED(predictionNode)
-                    return SubSearchResult(solution, subgoals_closed)
+                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
                 elif contextInPath(context_after,
                                    current_path[1:] + [predictionNode]):
                     if not args.count_softfail_predictions:
@@ -435,13 +445,16 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     cleanupSearch(num_stmts,
                                   "resulting context has too big a goal")
                 elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit:
+                        and len(current_path) < args.hard_depth_limit \
+                        and (args.max_steps is None or
+                             substeps_explored < args.max_steps):
                     if subgoals_closed > 0:
                         g.setNodeColor(predictionNode, "blue")
                     sub_search_result = search(pbar,
                                                current_path + [predictionNode],
                                                new_distance_stack,
-                                               new_extra_depth)
+                                               new_extra_depth, steps_explored + substeps_explored)
+                    substeps_explored += sub_search_result.steps_explored
                     cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
                        sub_search_result.solved_subgoals > subgoals_opened:
@@ -450,16 +463,16 @@ def dfs_proof_search_with_graph(lemma_name: str,
                             sub_search_result.solved_subgoals - \
                             subgoals_opened
                         return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed)
+                                               new_subgoals_closed, substeps_explored)
                     if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed)
+                        return SubSearchResult(None, subgoals_closed, substeps_explored)
                 else:
                     hasUnexploredNode = True
                     cleanupSearch(num_stmts, "we hit the depth limit")
                     if subgoals_closed > 0:
                         # depth = (args.search_depth + new_extra_depth + 1) \
                         #     - len(current_path)
-                        return SubSearchResult(None, subgoals_closed)
+                        return SubSearchResult(None, subgoals_closed, substeps_explored)
             except coq_serapy.CoqAnomaly:
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
@@ -477,7 +490,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                            f"{lemma_name}.svg")
 
                 raise
-        return SubSearchResult(None, 0)
+        return SubSearchResult(None, 0, substeps_explored)
     total_nodes = numNodesInTree(args.search_width,
                                  args.search_depth + 2) - 1
     desc_name = lemma_name
@@ -494,10 +507,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        if args.search_prefix is None:
-            command_list, _ = search(pbar, [g.start_node], subgoals_stack_start, 0)
-        else:
-            next_node = g.start_node
+        next_node = g.start_node
+        if args.search_prefix is not None:
             for command in coq_serapy.read_commands(args.search_prefix):
                 full_context_before = FullContext(relevant_lemmas,
                                                   coq.prev_tactics,
@@ -507,17 +518,17 @@ def dfs_proof_search_with_graph(lemma_name: str,
                                      next_node)
                 next_node.time_taken = 0.0
                 coq.run_stmt(command)
-            command_list, _ = search(pbar, [next_node], subgoals_stack_start, 0)
+        command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
         pbar.clear()
     g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
     if command_list:
-        return SearchResult(SearchStatus.SUCCESS, command_list)
+        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None)
-    return SearchResult(SearchStatus.FAILURE, None)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
 
 
 def completed_proof(coq: coq_serapy.SerapiInstance) -> bool:
@@ -576,7 +587,7 @@ class BFSNode:
         def add_subgraph(root: "BFSNode") -> int:
             nonlocal graph
             nonlocal next_node_id
-            label=f"{root.prediction.prediction}\n{root.score:.2e}"
+            label=f"{root.prediction.prediction}\nS:{root.score:.2e};C:{root.prediction.certainty:.2e}"
             if root.color:
                 fillcolor = root.color
                 style="filled"
@@ -592,7 +603,7 @@ class BFSNode:
 
 
             graph.add_node(next_node_id, label=label, fillcolor=fillcolor, style=style,
-                           tooltip=tooltip)
+                           tooltip=tooltip.replace("\\", "\\\\"))
 
             root_node_id = next_node_id
             next_node_id += 1
@@ -622,10 +633,12 @@ class BFSNode:
                    self.path())
 
     def path(self) -> List['BFSNode']:
-        if self.previous is None:
-            return [self]
-        else:
-            return self.previous.path() + [self]
+        curNode = self
+        curPath = [self]
+        while curNode.previous is not None:
+            curNode = curNode.previous
+            curPath.append(curNode)
+        return list(reversed(curPath))
 
     def traverse_to(self, coq: coq_serapy.SerapiInstance, initial_history_len: int) -> None:
         # Get both the current and target histories
@@ -641,11 +654,13 @@ class BFSNode:
             common_prefix_len += 1
         # Return to the place where the current history and the history of
         # the target node diverged.
-        while len(coq.tactic_history.getFullHistory()) > initial_history_len + common_prefix_len:
-            coq.cancel_last()
+        for i in range(len(coq.tactic_history.getFullHistory()) -
+                       (initial_history_len + common_prefix_len)):
+            coq.cancel_last_noupdate()
         # Run the next nodes history from that point.
         for cmd in full_node_history[common_prefix_len:]:
-            coq.run_stmt(cmd)
+            coq.run_stmt_noupdate(cmd)
+        coq.update_state()
         return
 
 
@@ -677,12 +692,13 @@ def bfs_beam_proof_search(lemma_name: str,
                           module_prefix: str,
                           relevant_lemmas: List[str],
                           coq: coq_serapy.SerapiInstance,
+                          output_dir: Path,
                           args: argparse.Namespace,
                           bar_idx: int,
                           predictor: TacticPredictor) \
                           -> SearchResult:
     hasUnexploredNode = False
-    graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
+    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
 
     features_extractor = FeaturesExtractor(args.tactics_file, args.tokens_file)
     if args.scoring_function == "lstd":
@@ -732,7 +748,8 @@ def bfs_beam_proof_search(lemma_name: str,
                 predictions = predictor.predictKTactics(
                     truncate_tactic_context(full_context_before.as_tcontext(),
                                             args.max_term_length),
-                            args.max_attempts)
+                            args.max_attempts,
+                    blacklist=args.blacklisted_tactics)
                 for prediction in predictions:
                     if num_successful_predictions >= args.search_width:
                         break
@@ -767,7 +784,7 @@ def bfs_beam_proof_search(lemma_name: str,
                         for _ in range(num_stmts):
                             coq.cancel_last()
                         continue
-                    if len(coq.proof_context.all_goals) > args.max_subgoals:
+                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
                         if args.count_softfail_predictions:
                             num_successful_predictions += 1
                         prediction_node.setNodeColor("orange")
@@ -777,19 +794,19 @@ def bfs_beam_proof_search(lemma_name: str,
                     if completed_proof(coq):
                         prediction_node.mkQED()
                         start_node.draw_graph(graph_file)
-                        return SearchResult(SearchStatus.SUCCESS,
-                                            prediction_node.interactions()[1:])
+                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
+                                            prediction_node.interactions()[1:], 0)
 
                     if args.scoring_function == "certainty":
                         prediction_node.score = next_node.score * prediction.certainty
                     elif args.scoring_function == "pickled":
                         assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                         score = 0.
-                        for idx, goal in enumerate(coq.get_all_sexp_goals()):
+                        for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
                             try:
-                                score += -float(john_model.predict(Lemma("", goal)))
+                                score += -float(john_model.predict_obl(obl))
                             except UnhandledExpr:
-                                print(f"Couldn't handle goal {coq.proof_context.all_goals[idx]}")
+                                print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                                 raise
                         prediction_node.score = score
                     elif args.scoring_function == "const":
@@ -850,9 +867,9 @@ def bfs_beam_proof_search(lemma_name: str,
 
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
     else:
-        return SearchResult(SearchStatus.FAILURE, None)
+        return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, 0)
 
 @dataclass(order=True)
 class AStarTask:
@@ -864,15 +881,16 @@ def best_first_proof_search(lemma_name: str,
                        module_prefix: Optional[str],
                        relevant_lemmas: List[str],
                        coq: coq_serapy.SerapiInstance,
+                       output_dir: Path,
                        args: argparse.Namespace,
                        bar_idx: int,
                        predictor: TacticPredictor) \
                        -> SearchResult:
-    assert args.scoring_function in ["pickled", "const"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
-    if args.scoring_function == "pickled":
+    assert args.scoring_function in ["pickled", "const", "pickled-normcert"] or args.search_type != "astar", "only pickled and const scorers are currently compatible with A* search"
+    if args.scoring_function in ["pickled", "pickled-normcert"]:
         with args.pickled_estimator.open('rb') as f:
             john_model = pickle.load(f)
-    graph_file = f"{args.output_dir}/{module_prefix}{lemma_name}.svg"
+    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
     initial_history_len = len(coq.tactic_history.getFullHistory())
     start_node = BFSNode(Prediction(lemma_name, 1.0), 1.0, 0.0, [],
                          FullContext([], [],
@@ -890,7 +908,8 @@ def best_first_proof_search(lemma_name: str,
     desc_name = lemma_name
     if len(desc_name) > 25:
         desc_name = desc_name[:22] + "..."
-    for _step in trange(args.astar_steps, unit="pred", file=sys.stdout,
+    assert args.max_steps != None, "When using astar search, you need a step limit. Please specify one with --max-steps"
+    for step in trange(args.max_steps, unit="pred", file=sys.stdout,
                        desc=desc_name, disable=(not args.progress),
                        leave=False, position=bar_idx + 1,
                        dynamic_ncols=True, bar_format=mybarfmt):
@@ -906,7 +925,8 @@ def best_first_proof_search(lemma_name: str,
         predictions = predictor.predictKTactics(
             truncate_tactic_context(full_context_before.as_tcontext(),
                                     args.max_term_length),
-            args.max_attempts)
+            args.max_attempts,
+            blacklist=args.blacklisted_tactics)
 
         for prediction in predictions:
             if num_successful_predictions >= args.search_width:
@@ -932,8 +952,6 @@ def best_first_proof_search(lemma_name: str,
                     num_successful_predictions += 1
                 prediction_node.setNodeColor("red")
                 continue
-            else:
-                num_successful_predictions += 1
             # Check if we've gone in circles
             if contextInHistory(context_after, prediction_node):
                 if args.count_softfail_predictions:
@@ -943,8 +961,9 @@ def best_first_proof_search(lemma_name: str,
                 for _ in range(num_stmts):
                     coq.cancel_last()
                 continue
+            num_successful_predictions += 1
             # Check if the resulting context is too big
-            if len(coq.proof_context.all_goals) > args.max_subgoals or \
+            if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals or \
               contextIsBig(context_after):
                 if args.count_softfail_predictions:
                     num_successful_predictions += 1
@@ -956,8 +975,8 @@ def best_first_proof_search(lemma_name: str,
             if completed_proof(coq):
                 prediction_node.mkQED()
                 start_node.draw_graph(graph_file)
-                return SearchResult(SearchStatus.SUCCESS,
-                                    prediction_node.interactions()[1:])
+                return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
+                                    prediction_node.interactions()[1:], step+1)
             if args.scoring_function == "const":
                 h_score = 1.
             elif args.scoring_function == "certainty":
@@ -965,14 +984,24 @@ def best_first_proof_search(lemma_name: str,
             elif args.scoring_function == "norm-certainty":
                 h_score = -math.sqrt(abs(next_node.f_score * prediction.certainty))
             else:
-                assert args.scoring_function == "pickled"
+                assert args.scoring_function in ["pickled", "pickled-normcert"]
+                assert sys.version_info >= (3, 10), "Pickled estimators only supported in python 3.10 or newer"
                 h_score = 0.
-                for idx, goal in enumerate(coq.get_all_sexp_goals()):
+                for obl in coq.proof_context.fg_goals + coq.proof_context.bg_goals:
                     try:
-                        h_score += john_model.predict(Lemma("", goal))
+                        h_score += float(john_model.predict_obl(obl))
                     except UnhandledExpr:
-                        print(f"Goal failed to be handled: {coq.proof_context.all_goals[idx]}")
+                        print(f"Couldn't handle goal {unwrap(coq.proof_context).all_goals[idx]}")
                         raise
+                if args.scoring_function == "pickled-normcert":
+                    normcert_score = prediction.certainty
+                    path_length = 1
+                    for node in next_node.node.path():
+                        normcert_score *= node.prediction.certainty
+                        path_length += 1
+                    normcert_score = max(normcert_score ** (1 / path_length), 0.001)
+                    assert normcert_score <= 1 and normcert_score > 0, normcert_score
+                    h_score /= normcert_score
             if args.search_type == "astar":
                 # Calculate the A* f_score
                 g_score = len(prediction_node.path())
@@ -1004,6 +1033,32 @@ def best_first_proof_search(lemma_name: str,
     hasUnexploredNode = len(nodes_todo) > 0
     start_node.draw_graph(graph_file)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, None)
-    else:
-        return SearchResult(SearchStatus.FAILURE, None)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, step)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, step)
+
+def dfs_estimated(lemma_name: str,
+                  module_prefix: str,
+                  relevant_lemmas: List[str],
+                  coq: coq_serapy.SerapiInstance,
+                  output_dir: Path,
+                  args: argparse.Namespace,
+                  bar_idx: int,
+                  predictor: TacticPredictor) \
+                  -> SearchResult:
+    with args.pickled_estimator.open('rb') as f:
+        with nostderr():
+            john_model = pickle.load(f)
+
+    est_sol_length = 0.
+    for obl in coq.proof_context.fg_goals:
+        est_sol_length += max(1, john_model.predict_obl(obl))
+    temp_args = copyArgs(args)
+    caution_factor = 1.4
+    if est_sol_length * caution_factor < args.search_depth:
+        eprint(f"Estimated solution length is {est_sol_length}, "
+               f"giving proof only {int(est_sol_length * caution_factor)} depth budget")
+        temp_args.search_depth = math.ceil(est_sol_length * caution_factor)
+    return dfs_proof_search_with_graph(
+        lemma_name, module_prefix,
+        relevant_lemmas, coq, output_dir,
+        temp_args, bar_idx, predictor)

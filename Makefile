@@ -32,7 +32,7 @@ CC_TRAIN_SCRAPES=$(patsubst %,%.scrape,$(COMPCERT_TRAIN_FILES))
 all: scrape report
 
 setup:
-	./src/setup.sh
+	./src/setup.sh && $(MAKE) publish-depv
 
 data/compcert-scrape.txt: $(CC_TRAIN_SCRAPES)
 	cat $(CC_TRAIN_SCRAPES) > $@
@@ -41,7 +41,7 @@ scrape:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/coq-projects-train-files.txt | $(HEAD_CMD) | \
-	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
 				        		 --prelude ../coq-projects
 data/scrape-test.txt: $(TESTSCRAPES)
 	cat $(TESTSCRAPES) > $@
@@ -52,6 +52,9 @@ report: $(TESTSCRAPES)
 	($(ENV_PREFIX) ; cat data/compcert-test-files.txt | $(HEAD_CMD) | \
 	xargs ./src/proverbot9001.py static-report -j $(NTHREADS) --weightsfile=data/polyarg-weights.dat --prelude ./CompCert $(FLAGS))
 
+.PHONY: dataloader
+dataloader:
+	(cd dataloader/dataloader-core && maturin develop -r)
 compcert-train: data/compcert-scrape.txt
 	(cd dataloader/dataloader-core && maturin develop -r)
 	./src/proverbot9001.py train polyarg data/compcert-scrape.txt data/polyarg-weights.dat --load-tokens=tokens.txt --context-filter="(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default" $(FLAGS) #--hidden-size $(HIDDEN_SIZE)
@@ -77,7 +80,7 @@ scrape-test:
 	cp data/scrape.txt data/scrape.bkp 2>/dev/null || true
 	cd src && \
 	cat ../data/coq-projects-train-files.txt | tail -n +320 | head -n 50 | \
-	xargs python3.7 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
+	xargs python3 scrape.py $(FLAGS) -v -c -j $(NTHREADS) --output ../data/scrape.txt \
 				        		 --prelude ../coq-projects
 
 INDEX_FILES=index.js index.css build-index.py

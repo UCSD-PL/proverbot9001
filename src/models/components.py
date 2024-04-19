@@ -70,7 +70,6 @@ class SimpleEmbedding(Embedding):
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.autograd import Variable
 from util import maybe_cuda, eprint, timeSince, FloatTensor
 from typing import TypeVar, Generic, Iterable, Tuple
 import argparse
@@ -128,17 +127,15 @@ class DNNClassifier(nn.Module):
         super(DNNClassifier, self).__init__()
         self.num_layers = num_layers
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        for i in range(num_layers - 1):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        self.layers = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size,hidden_size)) for _ in range(num_layers-1)])
         self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
         self.softmax = maybe_cuda(nn.LogSoftmax(dim=1))
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
-        layer_values = self.in_layer(maybe_cuda(Variable(input)))
-        for i in range(self.num_layers - 1):
+        layer_values = self.in_layer(maybe_cuda(input))
+        for layer in self.layers:
             layer_values = F.relu(layer_values)
-            layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+            layer_values = layer(layer_values)
         layer_values = F.relu(layer_values)
         return self.softmax(self.out_layer(layer_values)).view(input.size()[0], -1)
 
@@ -151,9 +148,8 @@ class DNNScorer(nn.Module):
         if self.num_layers > 1:
             self.in_layer = maybe_cuda(nn.Linear(input_vocab_size,
                                                  hidden_size))
-        for i in range(num_layers - 2):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+
+        self.layers = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size,hidden_size)) for _ in range(num_layers-2)])
         if self.num_layers > 1:
             self.out_layer = maybe_cuda(nn.Linear(hidden_size, 1))
         else:
@@ -161,12 +157,12 @@ class DNNScorer(nn.Module):
 
     def forward(self, input: torch.FloatTensor) -> torch.FloatTensor:
         if self.num_layers > 1:
-            layer_values = self.in_layer(maybe_cuda(Variable(input)))
+            layer_values = self.in_layer(maybe_cuda(input))
         else:
             layer_values = input
-        for i in range(self.num_layers - 2):
+        for layer in self.layers:
             layer_values = F.relu(layer_values)
-            layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+            layer_values = layer(layer_values)
         layer_values = F.relu(layer_values)
         return self.out_layer(layer_values)
 
@@ -205,30 +201,26 @@ class WordFeaturesEncoder(nn.Module):
         self.num_layers = num_layers
         self.hidden_size = hidden_size
         self.num_word_features = len(input_vocab_sizes)
-        for i, vocab_size in enumerate(input_vocab_sizes):
-            self.add_module("_word_embedding{}".format(i),
-                            maybe_cuda(nn.Embedding(vocab_size, hidden_size)))
+        self.word_embeddings = nn.ModuleList([maybe_cuda(nn.Embedding(vocab_size,hidden_size)) for vocab_size in input_vocab_sizes])
         self._in_layer = maybe_cuda(nn.Linear(hidden_size * len(input_vocab_sizes),
                                               hidden_size))
-        for i in range(num_layers - 1):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        self.layers = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size,hidden_size)) for _ in range(num_layers-1)])
         self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
 
     def forward(self, input_vec : torch.LongTensor) -> torch.FloatTensor:
         batch_size = input_vec.size()[0]
         word_embedded_features = []
-        for i in range(self.num_word_features):
-            word_feature_var = maybe_cuda(Variable(input_vec[:,i]))
-            embedded = getattr(self, "_word_embedding{}".format(i))(word_feature_var)\
+        for i,word_embedding in enumerate(self.word_embeddings):
+            word_feature_var = maybe_cuda(input_vec[:,i])
+            embedded = word_embedding(word_feature_var)\
                 .view(batch_size, self.hidden_size)
             word_embedded_features.append(embedded)
         word_embedded_features_vec = \
             torch.cat(word_embedded_features, dim=1)
         vals = self._in_layer(word_embedded_features_vec)
-        for i in range(self.num_layers - 1):
+        for layer in self.layers:
             vals = F.relu(vals)
-            vals = getattr(self, "_layer{}".format(i))(vals)
+            vals = layer(vals)
         vals = F.relu(vals)
         result = self._out_layer(vals).view(batch_size, -1)
         return result
@@ -243,9 +235,10 @@ class EncoderRNN(nn.Module):
         self._gru = maybe_cuda(nn.GRU(hidden_size, hidden_size))
         self._out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
     def forward(self, input_seq : torch.LongTensor) -> torch.FloatTensor:
-        input_var = maybe_cuda(Variable(input_seq))
+        input_var = maybe_cuda(input_seq)
         batch_size = input_seq.size()[0]
-        hidden = maybe_cuda(Variable(torch.zeros(1, batch_size, self.hidden_size)))
+        hidden = maybe_cuda(torch.zeros(1, batch_size, self.hidden_size))
+        token_out = torch.zeros([batch_size,self.hidden_size])
         for i in range(input_seq.size()[1]):
             token_batch = self._word_embedding(input_var[:,i])\
                 .view(1, batch_size, self.hidden_size)
@@ -256,21 +249,21 @@ class EncoderRNN(nn.Module):
 
 
 class EncoderDNN(nn.Module):
+    
     def __init__(self, input_vocab_size : int, hidden_size : int, output_vocab_size : int,
                  num_layers : int) -> None:
         super(EncoderDNN, self).__init__()
         self.num_layers = num_layers
         self.in_layer = maybe_cuda(nn.Linear(input_vocab_size, hidden_size))
-        for i in range(num_layers - 1):
-            self.add_module("_layer{}".format(i),
-                            maybe_cuda(nn.Linear(hidden_size, hidden_size)))
+        # TODO: every instance of getattr/setattr should probably be replaced with this style.
+        self.layers  = nn.ModuleList([maybe_cuda(nn.Linear(hidden_size, hidden_size)) for i in range(num_layers-1)])
         self.out_layer = maybe_cuda(nn.Linear(hidden_size, output_vocab_size))
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
         layer_values = self.in_layer(input)
-        for i in range(self.num_layers - 1):
+        for layer in self.layers:
             layer_values = F.relu(layer_values)
-            layer_values = getattr(self, "_layer{}".format(i))(layer_values)
+            layer_values = layer(layer_values)
         return self.out_layer(F.relu(layer_values))
 
 class DecoderGRU(nn.Module):
@@ -396,7 +389,7 @@ class DNNClassifierModel(StraightlineClassifierModel[NeuralPredictorState]):
                 input_batch, output_batch = data_batch
                 # with autograd.detect_anomaly():
                 predictionDistribution = self._model(input_batch)
-                output_var = maybe_cuda(Variable(output_batch))
+                output_var = maybe_cuda(output_batch)
                 loss = self._criterion(predictionDistribution, output_var)
                 loss.backward()
                 self._optimizer.step()

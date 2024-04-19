@@ -2,6 +2,8 @@
 
 date
 
+git rev-parse HEAD
+
 echo Hello from lambda.
 
 # install rust
@@ -23,6 +25,8 @@ python3 -m venv --system-site-packages .
 source bin/activate
 
 # run setup
+git clone https://github.com/HazardousPeach/coq2vec.git ..
+pip install -e ../coq2vec
 make setup
 
 # okay, we've got an install.
@@ -36,7 +40,7 @@ wait # generate tokens and tactics concurrently before proceeding to training
 
 make compcert-train
 
-python src/search_file.py --prelude ./CompCert/ lib/Lattice.v --weightsfile=data/polyarg-weights.dat 
+python src/search_file.py -j 1 --prelude ./CompCert/ lib/Parmov.v --weightsfile=data/polyarg-weights.dat --no-generate-report
 
 echo proofs succeeded:
-cat search-report/proofs.csv  | grep SUCCESS | wc -l
+cat search-report/Parmov-proofs.txt  | grep SUCCESS | wc -l
