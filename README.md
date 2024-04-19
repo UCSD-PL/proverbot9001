@@ -1,6 +1,7 @@
 [![PWC](https://img.shields.io/endpoint.svg?url=https://paperswithcode.com/badge/generating-correctness-proofs-with-neural/automated-theorem-proving-on-compcert)](https://paperswithcode.com/sota/automated-theorem-proving-on-compcert?p=generating-correctness-proofs-with-neural)
 
 # Proverbot9001
+
 ![Proverbot logo](proverbotlogo-01.png)
 A bot for proving.
 
@@ -24,6 +25,7 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
    `export CPATH=/opt/homebrew/include && export LIBRARY_PATH=/opt/homebrew/lib`.
 
 ### Linux
+
 1. Check your python version with `python --version` in the
    terminal. If your version is older than Python 3.7, or the python
    command isn't found, install python through your package manager.
@@ -43,6 +45,7 @@ You can find the paper and talk video at [our website](https://proverbot9001.ucs
    ```
 
 ### Windows
+
 Windows support is more experimental, but you can try installing
 prereqs through:
 
@@ -61,6 +64,9 @@ or use Windows Subsystem for Linux
 The first thing you'll need to do is clone the repository (download the code).
 
 ### Cloning the repository (downloading the project)
+
+> **_NOTE:_** There are two ways you can run the project after this, you can either set it up on your machine or use docker and build the container and run the project inside that.
+
 I recommend that you do this over ssh. To clone github projects using
 git@ urls (over ssh), you'll need to follow the instructions on [this
 github
@@ -74,6 +80,7 @@ git clone git@github.com:UCSD-PL/proverbot9001.git
 
 Alternatively, you can clone over https without setting up your github
 keys, with this command:
+
 ```
 git clone https://github.com/UCSD-PL/proverbot9001.git
 ```
@@ -84,6 +91,27 @@ code inside. Move into this new directory:
 ```
 cd proverbot9001
 ```
+
+### Docker setup
+
+- Install Docker desktop on your machine as it makes things easy for you to manage and run containers.
+- Make sure Docker desktop is running. Run the following command from the root of the project (build can take ~1 hour depending on your machine spec and network speed):
+
+```
+docker build -t proverbot:<tag> .
+```
+
+- Run the built container through Docker desktop directly or using the following command:
+
+```
+docker run -i -t proverbot:<tag> /bin/bash
+```
+
+This will run the container and start a bash terminal.
+
+- After this you can start running search commands and interacting with the project.
+
+> **_NOTE:_** Rest of the instructions are for setting up the project on your machine.
 
 ### Create a python virtual environment
 
@@ -122,6 +150,7 @@ this step will take a while, and might involve having to type `y` a
 few times.
 
 If this step fails, and part of the error message near the bottom says:
+
 ```
 pygraphviz/graphviz_wrap.c:2711:10: fatal error: graphviz/cgraph.h: No such file or directory
  2711 | #include "graphviz/cgraph.h"
@@ -129,6 +158,7 @@ pygraphviz/graphviz_wrap.c:2711:10: fatal error: graphviz/cgraph.h: No such file
 compilation terminated.
 error: command 'x86_64-linux-gnu-gcc' failed with exit status 1
 ```
+
 then python needs help finding your graphviz installation. Check out this github issue: https://github.com/pygraphviz/pygraphviz/issues/155, and possibly this one: https://github.com/pypa/setuptools/issues/2740
 .
 
@@ -171,7 +201,7 @@ theorems were proven by Proverbot9001 and what the proofs are.
 You can also view the results that were used in the 2020 MAPL paper
 (linked above)
 [here](https://proverbot9001.ucsd.edu/reports/2019-11-20T18d38d02-0700+cd762eb9e7e6e44153bd766654727a36a3dcad0b/report.html).
-However, these results are *not up-to-date*. If you use these results
+However, these results are _not up-to-date_. If you use these results
 for a comparison or otherwise write about them, please add a footnote
-or other comment noting that these results are *significantly* worse
+or other comment noting that these results are _significantly_ worse
 than the latest Proverbot9001 results.
