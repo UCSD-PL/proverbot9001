@@ -65,8 +65,6 @@ The first thing you'll need to do is clone the repository (download the code).
 
 ### Cloning the repository (downloading the project)
 
-> **_NOTE:_** There are two ways you can run the project after this, you can either set it up on your machine or use docker and build the container and run the project inside that.
-
 I recommend that you do this over ssh. To clone github projects using
 git@ urls (over ssh), you'll need to follow the instructions on [this
 github
@@ -91,6 +89,8 @@ code inside. Move into this new directory:
 ```
 cd proverbot9001
 ```
+
+> **_NOTE:_** There are two ways you can run the project after this, you can either set it up on your machine or use docker and build the container and run the project inside that.
 
 ### Docker setup
 
