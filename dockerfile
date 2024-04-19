@@ -1,6 +1,6 @@
-FROM rust:1.77-bookworm
+FROM --platform=linux/amd64 rust:1.77-bookworm
 
-ENV APP_HOME=/home/app/web
+ENV APP_HOME=/home/proverbot
 WORKDIR $APP_HOME
 ADD . / $APP_HOME/
 SHELL ["/bin/bash", "-c"]
@@ -12,10 +12,8 @@ RUN apt-get install python3-launchpadlib -y
 RUN add-apt-repository ppa:avsm/ppa -y
 RUN apt update -y
 RUN apt install git opam graphviz libgraphviz-dev -y
-RUN cargo --help
-RUN rustc --version
 RUN python3 -m venv proverbot-env
-RUN source proverbot-env/bin/activate
+RUN echo "source proverbot-env/bin/activate" >> /root/.bashrc 
 RUN make setup
 RUN make download-weights
 ENTRYPOINT ["tail", "-f", "/dev/null"]

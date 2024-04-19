@@ -11,6 +11,7 @@ if [[ -f /etc/NIXOS ]]; then
         continue
     fi
 else
+    source ~/.bashrc
     git submodule init coq_serapy
     git submodule init dataloader/gestalt-ratio
     git submodule init CompCert
@@ -30,8 +31,8 @@ else
     make -C CompCert -j `nproc`
     ./src/patch_compcert.sh
     # Python dependencies
-    pip3 install --no-input --user -r requirements.txt
-    pip3 install --no-input --user -e coq_serapy
+    pip3 install --no-input -r requirements.txt
+    pip3 install --no-input -e coq_serapy
     # For py03/dataloader
     rustup toolchain install nightly
     (cd dataloader/dataloader-core && maturin develop -r)
