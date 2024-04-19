@@ -14,9 +14,6 @@ from pathlib import Path
 import pygraphviz as pgv
 from tqdm import tqdm, trange
 
-if sys.version_info >= (3, 10):
-    import lemma_models
-    from obl_only_to_pickle import OblOnlyLearnedEstimator
 from rl_to_pickle import LearnedEstimator
 
 import coq_serapy
