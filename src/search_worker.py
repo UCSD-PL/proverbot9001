@@ -6,6 +6,7 @@ import re
 import os
 import traceback
 import json
+import time
 from typing import NamedTuple, Optional, Dict, List, cast, Tuple, Iterable, Iterator, Any, TypeVar
 from pathlib import Path
 
@@ -419,13 +420,15 @@ class SearchWorker(Worker):
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
         try:
-            search_status, _, tactic_solution, steps_taken = \
+            start_time = time.time()
+            search_status, _, tactic_solution, steps_taken, _ = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
                              self.widx, self.predictor)
+            time_taken = time.time() - start_time
             while len(self.coq.tactic_history.getFullHistory()) > 1:
                 self.coq.cancel_last()
             self.skip_proof(False)
@@ -459,7 +462,7 @@ class SearchWorker(Worker):
             eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                    "due to multiple failures",
                    guard=self.args.verbose >= 1)
-            return SearchResult(search_status, context_lemmas, solution, 0)
+            return SearchResult(search_status, context_lemmas, solution, 0, None)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -477,7 +480,8 @@ class SearchWorker(Worker):
         #    self.remaining_commands.pop(0)
         ## Pop the actual Qed/Defined/Save
         #ending_command = self.remaining_commands.pop(0)
-        return SearchResult(search_status, context_lemmas, solution, steps_taken)
+        return SearchResult(search_status, context_lemmas, solution,
+                            steps_taken, time_taken)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
