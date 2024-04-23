@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-CUR_DIR=$HOME/work/proverbot9001/src/
+CUR_DIR=$HOME/work/search-diversity-proverbot/proverbot9001/src/
 BACKOFF_AMOUNT=0.001
 SFLAGS="-u $USER -h"
 while getopts ":J:" opt; do

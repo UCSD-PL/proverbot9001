@@ -438,11 +438,11 @@ class FeaturesPolyargPredictor(
         else:
             total_scores = goal_arg_values
 
-        final_probs, predicted_stem_idxs, predicted_arg_idxs = \
+        final_probs, predicted_stem_idxs, predicted_arg_idxs, no_softmax_final_probs = \
             self.predict_args(total_scores, stem_certainties, stem_idxs)
 
         result = list(zip(list(final_probs), list(predicted_stem_idxs),
-                          list(predicted_arg_idxs)))
+                          list(predicted_arg_idxs), list(no_softmax_final_probs)))
         return result
 
     def getAllPredictionIdxs_batch(self, contexts: List[TacticContext],
@@ -497,7 +497,7 @@ class FeaturesPolyargPredictor(
             else:
                 total_scores = goal_arg_values.unsqueeze(0)
 
-            probs, stems, args = self.predict_args(
+            probs, stems, args, nosoftmax_probs = self.predict_args(
                 total_scores, stem_certainties, stem_idxs)
             idxs_batch.append(list(zip(list(probs), list(stems), list(args))))
 
@@ -505,7 +505,7 @@ class FeaturesPolyargPredictor(
 
     def decodeNonDuplicatePredictions(
             self, context: TacticContext,
-            all_idxs: List[Tuple[float, int, int]],
+            all_idxs: List[Tuple[float, int, int, float]],
             k: int) -> List[Prediction]:
         assert self.training_args
         num_stem_poss = get_num_tokens(self.metadata)
@@ -518,6 +518,7 @@ class FeaturesPolyargPredictor(
 
         prediction_strs: List[str] = []
         prediction_probs: List[float] = []
+        no_softmax_probs: List[float] = []
         next_i = 0
         num_valid_probs = (1 + len(all_hyps) +
                            len(get_fpa_words(context.goal))) * stem_width
@@ -532,10 +533,11 @@ class FeaturesPolyargPredictor(
             if next_pred_str not in prediction_strs:
                 prediction_strs.append(next_pred_str)
                 prediction_probs.append(math.exp(all_idxs[next_i][0]))
+                no_softmax_probs.append(math.exp(all_idxs[next_i][3]))
             next_i += 1
 
-        predictions = [Prediction(s, prob) for s, prob in
-                       zip(prediction_strs, prediction_probs)]
+        predictions = [Prediction(s, prob, no_softmax_prob) for s, prob, no_softmax_prob in
+                       zip(prediction_strs, prediction_probs, no_softmax_probs)]
 
         return predictions
 
@@ -627,7 +629,7 @@ class FeaturesPolyargPredictor(
         else:
             total_scores = goal_arg_values
 
-        final_probs, predicted_stem_idxs, predicted_arg_idxs = \
+        final_probs, predicted_stem_idxs, predicted_arg_idxs, no_softmax_final_probs = \
             self.predict_args(total_scores, merged_stem_certainties,
                               merged_stem_idxs)
 
@@ -722,7 +724,9 @@ class FeaturesPolyargPredictor(
              .expand(-1, -1, num_probs_per_stem))
             .contiguous()
             .view(batch_size, stem_width * num_probs_per_stem))
+        all_prob_batches_no_softmax = (total_scores + stem_certainties.view(batch_size, stem_width, 1).expand(-1, -1, num_probs_per_stem)).contiguous().view(batch_size, stem_width * num_probs_per_stem)
         prediction_probs, arg_idxs = all_prob_batches.sort(descending=True)
+        non_softmax_probs = all_prob_batches_no_softmax[0][arg_idxs]
         assert prediction_probs.size() == torch.Size(
             [batch_size, stem_width * num_probs_per_stem])
         assert arg_idxs.size() == torch.Size(
@@ -734,7 +738,7 @@ class FeaturesPolyargPredictor(
                                            0, predicted_stem_keys.squeeze(
                                                dim=0))
         predicted_arg_idxs = arg_idxs % num_probs_per_stem
-        return prediction_probs[0], predicted_stem_idxs, predicted_arg_idxs[0]
+        return prediction_probs[0], predicted_stem_idxs, predicted_arg_idxs[0], non_softmax_probs[0]
 
     def predictKTacticsWithLoss(self, arg_values: Namespace, in_data: TacticContext, k: int, correct: str) -> \
             Tuple[List[Prediction], float]:

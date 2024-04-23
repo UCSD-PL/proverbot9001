@@ -62,6 +62,9 @@ start_time = datetime.now()
 
 from memory_profiler import profile
 
+from train_my_rnn_model import zhannRNN
+import coq2vec
+
 
 
 def main(arg_list: List[str]) -> None:
@@ -107,6 +110,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         default=None)
     parser.add_argument('--weightsfile', default=None, type=Path)
     parser.add_argument('--combo-weightsfiles', nargs="*", default=None, type=Path)
+    parser.add_argument('--rnn-models', nargs="*", default=None, type=Path)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
     parser.add_argument('--gpu', default=0, type=int)
@@ -154,7 +158,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote', 'rnn-dfs'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)

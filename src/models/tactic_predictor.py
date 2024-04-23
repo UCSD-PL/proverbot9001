@@ -16,6 +16,7 @@ from data import (Dataset, RawDataset, ScrapedTactic, get_text_data,
 class Prediction(NamedTuple):
     prediction : str
     certainty : float
+    no_softmax_certainty: float
 
 class TacticPredictor(metaclass=ABCMeta):
     training_args : Optional[argparse.Namespace]
@@ -237,6 +238,7 @@ from torch_util import maybe_cuda
 optimizers = {
     "SGD": optim.SGD,
     "Adam": optim.Adam,
+    "RMSprop": optim.RMSprop
 }
 
 ModelType = TypeVar('ModelType', bound=nn.Module)

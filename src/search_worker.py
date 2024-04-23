@@ -13,13 +13,15 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search, combo_b_two_search, combo_subgoal_search, combo_b_vote_search
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search, combo_b_two_search, combo_subgoal_search, combo_b_vote_search, dfs_proof_search_with_vote, dfs_subgoal_sharing, rnn_dfs_proof_search
 from predict_tactic import (loadPredictorByFile,
                             loadPredictorByName)
 from linearize_semicolons import get_linearized
 
 from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching
 import random
+from train_my_rnn_model import zhannRNN
+import coq2vec
 
 unnamed_goal_number: int = 0
 
@@ -332,11 +334,13 @@ class SearchWorker(Worker):
     axioms_already_added: bool
     def __init__(self, args: argparse.Namespace, worker_idx: int,
                  predictor: TacticPredictor,
-                 switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None) -> None:
+                 switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None, model_list: Optional[List[zhannRNN]] = None, vectorizer: Optional[coq2vec.CoqTermRNNVectorizer] = None) -> None:
         super().__init__(args, switch_dict)
         self.widx = worker_idx
         self.predictor = predictor
         self.predictor_list = predictor_list
+        self.model_list = model_list
+        self.vectorizer = vectorizer
         self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
@@ -373,10 +377,10 @@ class SearchWorker(Worker):
             self.coq.run_stmt(job_lemma)
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
-        predictor_list = []
-        if self.args.combo_weightsfiles is not None:
-            for predfile in self.args.combo_weightsfiles:
-                predictor_list.append(get_predictor_by_path(predfile))
+        #predictor_list = []
+        #if self.args.combo_weightsfiles is not None:
+        #    for predfile in self.args.combo_weightsfiles:
+        #        predictor_list.append(get_predictor_by_path(predfile))
 
         try:
             search_status, _, tactic_solution, steps_taken = \
@@ -385,7 +389,7 @@ class SearchWorker(Worker):
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, self.predictor, predictor_list)
+                             self.widx, self.predictor, self.predictor_list, self.model_list, self.vectorizer)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
@@ -472,7 +476,7 @@ class SearchWorker(Worker):
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, self.predictor, self.predictor_list)
+                             self.widx, self.predictor, self.predictor_list, self.model_list, self.vectorizer)
         except KilledException:
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
@@ -561,7 +565,9 @@ def attempt_search(args: argparse.Namespace,
                    output_dir: Path,
                    bar_idx: int,
                    predictor: TacticPredictor, 
-                   predictor_list=None) \
+                   predictor_list=None,
+                   model_list=None, 
+                   vectorizer=None) \
         -> SearchResult:
 
     # TODO: should probably specify prefix is tuple of strings
@@ -584,7 +590,22 @@ def attempt_search(args: argparse.Namespace,
             result = dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
+                                                 args, bar_idx, predictor)
+        elif args.search_type == 'dfs-subgoal':
+            result = dfs_subgoal_sharing(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
                                                  args, bar_idx, predictor_list)
+        elif args.search_type == 'dfs-vote':
+            result = dfs_proof_search_with_vote(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor_list)
+        elif args.search_type == 'rnn-dfs':
+            result = rnn_dfs_proof_search(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor_list, model_list, vectorizer)
         elif args.search_type == 'dfs-est':
             result = dfs_estimated(lemma_name, module_prefix,
                                    context_lemmas,

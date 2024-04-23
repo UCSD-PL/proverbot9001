@@ -66,24 +66,49 @@ class CoqContextVectorizer:
                  max_num_hypotheses: int) -> None:
         self.term_encoder = term_encoder
         self.max_num_hypotheses = max_num_hypotheses
+    def obligations_to_seqs(self, obs: List[Obligation]) \
+      -> torch.LongTensor:
+        return torch.cat([self.obligation_to_seqs(ob).unsqueeze(0)
+                          for ob in obs], dim=0)
+    def obligation_to_seqs(self, ob: Obligation) -> torch.LongTensor:
+        selected_hyps = list(ob.hypotheses)[:self.max_num_hypotheses]
+        selected_hyps += [":"] * (self.max_num_hypotheses - len(selected_hyps))
+        tokenized = [self.term_encoder.term_to_seq(term) for term in
+                     [get_hyp_type(hyp) for hyp in selected_hyps] + [ob.goal]]
+        return torch.LongTensor(tokenized)
+
+    def seq_lists_to_vectors(self, seqs: torch.LongTensor) -> \
+      torch.FloatTensor:
+        assert len(seqs.size()) == 3
+        batch_size = seqs.size()[0]
+        assert seqs.size()[1] == self.max_num_hypotheses + 1
+        assert seqs.size()[2] == self.term_encoder.max_term_length
+        return self.term_encoder.seqs_to_vectors(
+          seqs.view(batch_size * (self.max_num_hypotheses + 1),
+                    self.term_encoder.max_term_length))\
+          .view(batch_size, self.max_num_hypotheses + 1,
+                self.term_encoder.hidden_size)
+
     def obligation_to_vector(self, ob: Obligation) -> torch.FloatTensor:
-        selected_hyps = ob.hypotheses[:self.max_num_hypotheses]
+        selected_hyps = list(ob.hypotheses)[:self.max_num_hypotheses]
         selected_hyps += [":"] * (self.max_num_hypotheses - len(selected_hyps))
         vectors = self.term_encoder.terms_to_vectors(
             [get_hyp_type(hyp) for hyp in selected_hyps] + [ob.goal])
         return vectors
     def obligations_to_vectors(self, obs: List[Obligation]) -> torch.FloatTensor:
         selected_hyp_lists = [
-            ob.hypotheses[:self.max_num_hypotheses] +
+            list(ob.hypotheses)[:self.max_num_hypotheses] +
             [":"] * max(0, self.max_num_hypotheses - len(ob.hypotheses))
             for ob in obs]
         all_term_lists = [[get_hyp_type(hyp)
                            for hyp in selected_hyps] + [ob.goal]
                           for selected_hyps, ob in zip(selected_hyp_lists, obs)]
         all_terms = [term for term_list in all_term_lists for term in term_list]
-        return self.term_encoder.terms_to_vectors(all_terms)\
-                                .view(len(obs), 1 + self.max_num_hypotheses,
-                                      self.term_encoder.hidden_size)
+        with torch.no_grad():
+            encoded = self.term_encoder.terms_to_vectors(all_terms)\
+                                    .view(len(obs), 1 + self.max_num_hypotheses,
+                                          self.term_encoder.hidden_size)
+        return encoded
 
 
 class CoqTermRNNVectorizer:
@@ -304,26 +329,26 @@ class CoqTermRNNVectorizer:
         return " ".join(self.seq_to_symbol_list(seq))
     def term_to_vector(self, term_text: str) -> torch.FloatTensor:
         seq = self.term_to_seq(term_text)
-        return self.seq_to_vector(seq)
+        return self.seq_to_vector(torch.LongTensor(seq))
     def terms_to_vectors(self, term_texts: List[str]) -> torch.FloatTensor:
-        seqs = [self.term_to_seq(term_text) for term_text in term_texts]
+        seqs = torch.LongTensor([self.term_to_seq(term_text) for term_text in term_texts])
         return self.seqs_to_vectors(seqs)
 
-    def seqs_to_vectors(self, term_seqs: List[List[int]]) -> torch.FloatTensor:
+    def seqs_to_vectors(self, term_seqs: torch.LongTensor) -> torch.FloatTensor:
         assert self.symbol_mapping, "No loaded weights!"
         assert self.model, "No loaded weights!"
         input_lengths = [len([t for t in term_seq if t != PAD_token])
                          for term_seq in term_seqs]
-        terms_tensor = pack_padded_sequence(torch.LongTensor(term_seqs).to(self.device),
+        terms_tensor = pack_padded_sequence(term_seqs.to(self.device),
                                             torch.LongTensor(input_lengths),
                                             batch_first=True, enforce_sorted=False)
-        with torch.no_grad():
-            hidden = self.model.initHidden(len(term_seqs), self.device)
-            cell = self.model.initCell(len(term_seqs), self.device)
-            _, hidden, cell = self.model(terms_tensor, hidden, cell)
+        # with torch.no_grad():
+        hidden = self.model.initHidden(len(term_seqs), self.device)
+        cell = self.model.initCell(len(term_seqs), self.device)
+        _, hidden, cell = self.model(terms_tensor, hidden, cell)
         return hidden.cpu().squeeze(0)
-    def seq_to_vector(self, term_seq: List[int]) -> torch.FloatTensor:
-        return self.seqs_to_vectors([term_seq])[0]
+    def seq_to_vector(self, term_seq: torch.LongTensor) -> torch.FloatTensor:
+        return self.seqs_to_vectors(term_seq.view(1, -1))[0]
     def vector_to_term(self, term_vec: torch.FloatTensor) -> str:
         return self.output_seq_to_term(self.vector_to_seq(term_vec))
     def vector_to_seq(self, term_vec: torch.FloatTensor) -> List[int]:

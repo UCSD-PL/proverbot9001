@@ -57,6 +57,7 @@ def main(arg_list: List[str]) -> None:
     arg_parser.add_argument("--workers-output-dir", default=Path("output"),
                             type=Path)
     arg_parser.add_argument("--worker-timeout", default="6:00:00")
+    arg_parser.add_argument("--build-training-data", action='store_true')
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
 
@@ -96,7 +97,10 @@ def main(arg_list: List[str]) -> None:
         remove_already_done_jobs(args)
         solved_jobs = []
     os.makedirs(str(args.output_dir / args.workers_output_dir), exist_ok=True)
-    get_all_jobs_cluster(args)
+    if not args.build_training_data:
+        get_all_jobs_cluster(args)
+    else:
+        get_all_jobs_cluster(args, partition="train")
     with open(args.output_dir / "all_jobs.txt") as f:
         jobs = [ReportJob(*json.loads(line)) for line in f]
         assert len(jobs) > 0

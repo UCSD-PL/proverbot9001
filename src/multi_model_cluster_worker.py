@@ -26,21 +26,16 @@ import sys
 import multiprocessing
 from os import environ
 from typing import List
+from hs import HashSet
 
 from pathlib import Path
 import torch
 
-from search_file import (add_args_to_parser, get_predictor, get_random_predictor,
+from search_file import (add_args_to_parser, get_predictor,
                          SearchWorker, project_dicts_from_args)
 import util
 import torch_util
 from util import eprint, FileLock
-import random
-
-from search_worker import get_predictor_by_path
-from train_my_rnn_model import zhannRNN
-import coq2vec
-
 
 def main(arg_list: List[str]) -> None:
     assert 'SLURM_ARRAY_TASK_ID' in environ
@@ -75,6 +70,8 @@ def main(arg_list: List[str]) -> None:
         arg_parser.print_help()
         sys.exit(1)
 
+    proof_scripts = HashSet()
+
 
 
     workers = [multiprocessing.Process(target=run_worker,
@@ -90,6 +87,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [json.loads(line) for line in f]
 
+    predictor = get_predictor(args)
 
     project_dicts = project_dicts_from_args(args)
     if any(["switch" in item for item in project_dicts]):
@@ -101,26 +99,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with worker_taken_file.open("w"):
         pass
 
-    predictor = get_predictor(args) #TODO: no need for initial predictor with random strategy
-
-    predictor_list = None
-    if args.combo_weightsfiles:
-        predictor_list = []
-        for predfile in args.combo_weightsfiles:
-            predictor_list.append(get_predictor_by_path(predfile))
-
-    model_list = None
-    vectorizer = None
-    if args.rnn_models: 
-        model_list = []
-        for model_text in args.rnn_models:
-            test_model = zhannRNN(1565, 4)
-            test_model.load_state_dict(torch.load(model_text))
-            model_list.append(test_model)
-        vectorizer = coq2vec.CoqTermRNNVectorizer()
-        vectorizer.load_weights("coq2vec/term2vec-weights-59.dat")
-
-    with SearchWorker(args, threadid, predictor, switch_dict, predictor_list, model_list, vectorizer) as worker:
+    with SearchWorker(args, threadid, predictor, switch_dict) as worker:
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [json.loads(line) for line in f]
@@ -137,7 +116,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                 else:
                     eprint(f"Finished thread {threadid}")
                     break
-            solution = worker.run_job_with_random(current_job)
+            solution = worker.run_job(current_job)
             job_project, job_file, _, _ = current_job
             project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
             with (args.output_dir / job_project /
@@ -147,59 +126,6 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                   ).open('a') as f, FileLock(f):
                 eprint(f"Finished job {current_job}")
                 print(json.dumps((current_job, solution.to_dict())), file=f)
-    '''
-    else:
-        init_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
-        with SearchWorker(args, threadid, init_predictor, switch_dict) as worker:
-            while True:
-                with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
-                    taken_jobs = [json.loads(line) for line in f]
-                    current_job = None
-                    for job in all_jobs:
-                        if job not in taken_jobs:
-                            current_job = job
-                            break
-                    if current_job:
-                        print(json.dumps(current_job), file=f, flush=True)
-                        with worker_taken_file.open("a") as f:
-                            print(json.dumps(current_job), file=f, flush=True)
-                        eprint(f"Starting job {current_job}")
-                    else:
-                        eprint(f"Finished thread {threadid}")
-                        break
-                solution = worker.run_job(current_job, None)
-                # Empty proof scripts set 
-                proof_scripts = {solution.to_dict()['commands'][0]} 
-                #hashed_proof_scripts.add(solution.to_dict()['commands'][0])
-                steps_taken = 1 # until max steps
-                while steps_taken < args.max_steps and solution.to_dict()['status'] != SearchStatus.SUCCESS:
-                    # pick script to continue
-                    script_to_continue = proof_scripts.set()[random.randint(0,len(proof_scripts))]
-                    # remove it from the set
-                    proof_scripts.remove(script_to_continue)
-                    # get a random predictor
-                    curr_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
-                    worker.set_predictor(curr_predictor)
-                    # get solution
-                    solution = worker.run_job(next_job, script_to_continue, restart=not args.hardfail) 
-                    # add new proof script to set 
-                    new_script = solution.to_dict()['commands'][0]
-                    if new_script is not None:
-                        proof_scripts.add(solution.to_dict()['commands'][0])
-                    eprint("current proof script that I just added to:")
-                    eprint(solution.to_dict()['commands'][0])
-                    # add step to steps taken 
-                    steps_taken += 1
-                job_project, job_file, _, _ = current_job
-                project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
-                with (args.output_dir / job_project /
-                      (util.safe_abbrev(Path(job_file), [Path(filename) for filename in
-                                                         project_dict["test_files"]])
-                       + "-proofs.txt")
-                      ).open('a') as f, FileLock(f):
-                    eprint(f"Finished job {current_job}")
-                    print(json.dumps((current_job, solution.to_dict())), file=f)
-    '''
 
 if __name__ == "__main__":
     main(sys.argv[1:])

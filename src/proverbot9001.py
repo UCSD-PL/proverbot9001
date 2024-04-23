@@ -35,7 +35,6 @@ import coq_serapy
 import features
 import json
 from util import eprint, print_time
-from coq_serapy.contexts import strip_scraped_output
 from models.components import SimpleEmbedding
 import predict_tactic 
 import evaluate_state
@@ -43,6 +42,14 @@ import interactive_predictor
 from pathlib import Path
 from pathlib_revised import Path2
 import dataloader
+from models.tactic_predictor import Prediction, TacticPredictor
+from search_worker import ReportJob, SearchWorker, get_files_jobs, get_predictor, get_random_predictor, project_dicts_from_args, get_predictor_by_path
+import pandas as pd
+from predict_tactic import loadPredictorByFile
+from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context, strip_scraped_output
+
+from models.tactic_predictor import TrainablePredictor
+
 
 from typing import List
 
@@ -251,6 +258,85 @@ def get_tokens(args: List[str]):
         for keyword in keywords:
             f.write(keyword + "\n")
 
+def predictor_data(args: List[str], **kwargs):
+    parser = argparse.ArgumentParser(description="Get correctness training data for a predictor")
+    parser.add_argument("--type", choices=["mixed"], default="mixed")
+    parser.add_argument("-v", "--verbose", action='count', default=0)
+    parser.add_argument("-n", "--num-keywords", type=int, default=120)
+    parser.add_argument("-s", "--num-samples", type=int, default=2000)
+    parser.add_argument("-j", "--num-threads", type=int, default=None)
+    parser.add_argument("--context-filter", default="default")
+    parser.add_argument("--max-attempts", default=10)
+    parser.add_argument("--no-prev-tactic", action='store_true')
+    parser.add_argument("--no-goal-head", action='store_true')
+    parser.add_argument("--no-hyp-head", action='store_true')
+    parser.add_argument("--no-hyp-scores", action='store_true')
+    parser.add_argument("--blacklisted-tactics", default=[])
+    parser.add_argument("--max-term-length", default=30, type=int)
+    parser.add_argument("--weightsfile", type=str)
+    parser.add_argument("--weightsfiles",  nargs='+', type=str)
+    parser.add_argument("--scrapefile", type=Path)
+    parser.add_argument("--dest")
+    arg_values = parser.parse_args(args)
+
+    my_predictor = get_predictor(arg_values)
+
+    with print_time("Reading scraped data", guard=arg_values.verbose):
+        raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrapefile),
+                                                        arg_values.context_filter,
+                                                        arg_values.max_term_length,
+                                                        None)
+    predictor_list = []
+    for weightsfile in arg_values.weightsfiles:
+        temp_predictor = loadPredictorByFile(weightsfile)
+        predictor_list.append(temp_predictor)
+
+    print(predictor_list)
+
+    i = 0
+    with open("howmany.txt","r") as f: 
+        for line in raw_data:
+            correct_tactic = line.tactic.strip()
+            correct_tactic = ' '.join(correct_tactic.split())
+            relevant_lemmas =  line.relevant_lemmas
+            prev_tactics = line.prev_tactics
+            hypotheses = line.context.fg_goals[0].hypotheses
+            goal = line.context.fg_goals[0].goal
+            #goal = ' '.join(line.context.fg_goals[0].goal.split())
+            the_context = TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
+            fingoal = ' '.join(goal.split())
+            data = {'goal': fingoal}
+
+            predictor_num = 0
+            for predictor in predictor_list:
+                tactics = predictor.predictKTactics(arg_values, truncate_tactic_context(the_context, arg_values.max_term_length), arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
+                predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
+
+                rank = 0
+                flag = False
+                for a_tactic in predicted_tactic_list:
+                    if correct_tactic == a_tactic:
+                        final_rank = ((10 - rank)/10)
+                        flag = True
+                        break
+                    rank = rank + 1
+                if not flag:
+                    final_rank = 0.0
+                data[predictor_num] = final_rank
+                predictor_num = predictor_num + 1
+       
+            data = pd.Series(data)
+            if not i == 0:
+                predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
+            else:
+                predictor_list_dataframe = pd.DataFrame.from_dict(data).T
+            i = i + 1
+            f.write(i)
+            #if i > 10000:
+            #    break
+        fulldest = arg_values.dest
+        predictor_list_dataframe.to_csv(fulldest)
+        f.close()
 
 modules = {
     "train": train,
@@ -262,6 +348,7 @@ modules = {
     "tokens": get_tokens,
     "tactics": get_tactics,
     "predict": interactive_predictor.predict,
+    "predictor-data": predictor_data,
 }
 
 if __name__ == "__main__":
