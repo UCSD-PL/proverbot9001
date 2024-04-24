@@ -24,7 +24,7 @@ else
 fi
 
 REPORT_TRIGGER_FILES=$(find . -name "workers_scheduled.txt" -or -name "learner_scheduled.txt")
-if [ ! -z $REPORT_TRIGGER_FILES ]; then
+if [ ! -z "$REPORT_TRIGGER_FILES" ]; then
   REPORT_TRIGGERED_DIRS=$(echo $REPORT_TRIGGER_FILES | dirname)
 else
   REPORT_TRIGGERED_DIRS=""
