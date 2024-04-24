@@ -147,7 +147,7 @@ def check_resume(args: argparse.Namespace) -> None:
         shutil.rmtree(str(args.state_dir))
 
 def make_initial_filestructure(args: argparse.Namespace) -> None:
-    args.state_dir.mkdir(exist_ok=True)
+    args.state_dir.mkdir(parents=True,exist_ok=True)
     (args.state_dir / args.workers_output_dir).mkdir(exist_ok=True)
     (args.state_dir / "weights").mkdir(exist_ok=True)
     (args.state_dir / "taken").mkdir(exist_ok=True)
