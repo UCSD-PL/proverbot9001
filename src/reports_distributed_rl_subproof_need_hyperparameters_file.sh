@@ -3,7 +3,8 @@
 
 module load opam/2.1.2 graphviz/2.49.0+py3.8.12 openmpi/4.1.3+cuda11.6.2
 
-filename=$(basename "$1")
+filename_with_extension=$(basename "$1")
+filename="${filename_with_extension%.*}"
 job_name="with_subproof_hypfile_$filename"
 
 proj_split_title=$(jq -r '.proj_splits_title' $1)
@@ -57,7 +58,7 @@ python src/distributed_rl.py --mem=16G --num-actors=16 --supervised-weights=data
                --resume=$resume -b 1024 --allow-partial-batches --sync-target-every=$sync_target \
                --state-dir=output/rl_$job_name/state_dirs/drl --partition gpu-preempt -v --hidden-size $hidden_size \
             --num-layers $nlayers --learning-rate-step=$lr_step  --learning-rate-decay=$lr_decay --verifyv-every=128 \
-            # --start-from output/rl_$job_name/pretrained_weights.pkl 
+            # --start-from output/rl_$job_name/pretrained_weights.pkl
 
 # python src/distributed_rl_eval.py --mem=16G --num-actors=8 --supervised-weights=data/polyarg-weights-develop.dat \
 #         --coq2vec-weights=$coq2vecweightspath $proj_split_title --prelude=./$prelude  \
