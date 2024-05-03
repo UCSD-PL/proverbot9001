@@ -294,49 +294,48 @@ def predictor_data(args: List[str], **kwargs):
     print(predictor_list)
 
     i = 0
-    with open("howmany.txt","r") as f: 
-        for line in raw_data:
-            correct_tactic = line.tactic.strip()
-            correct_tactic = ' '.join(correct_tactic.split())
-            relevant_lemmas =  line.relevant_lemmas
-            prev_tactics = line.prev_tactics
-            hypotheses = line.context.fg_goals[0].hypotheses
-            goal = line.context.fg_goals[0].goal
-            #goal = ' '.join(line.context.fg_goals[0].goal.split())
-            the_context = TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
-            fingoal = ' '.join(goal.split())
-            data = {'goal': fingoal}
+    for line in raw_data:
+        correct_tactic = line.tactic.strip()
+        correct_tactic = ' '.join(correct_tactic.split())
+        relevant_lemmas =  line.relevant_lemmas
+        prev_tactics = line.prev_tactics
+        hypotheses = line.context.fg_goals[0].hypotheses
+        goal = line.context.fg_goals[0].goal
+        #goal = ' '.join(line.context.fg_goals[0].goal.split())
+        the_context = TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
+        fingoal = ' '.join(goal.split())
+        data = {'goal': fingoal}
 
-            predictor_num = 0
-            for predictor in predictor_list:
-                tactics = predictor.predictKTactics(arg_values, truncate_tactic_context(the_context, arg_values.max_term_length), arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
-                predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
+        predictor_num = 0
+        for predictor in predictor_list:
+            tactics = predictor.predictKTactics(arg_values, truncate_tactic_context(the_context, arg_values.max_term_length), arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
+            alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
+            predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
+            data[str(predictor_num) + '_tactics'] = alltactic
 
-                rank = 0
-                flag = False
-                for a_tactic in predicted_tactic_list:
-                    if correct_tactic == a_tactic:
-                        final_rank = ((10 - rank)/10)
-                        flag = True
-                        break
-                    rank = rank + 1
-                if not flag:
-                    final_rank = 0.0
-                data[predictor_num] = final_rank
-                predictor_num = predictor_num + 1
-       
-            data = pd.Series(data)
-            if not i == 0:
-                predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
-            else:
-                predictor_list_dataframe = pd.DataFrame.from_dict(data).T
-            i = i + 1
-            f.write(i)
-            #if i > 10000:
-            #    break
-        fulldest = arg_values.dest
-        predictor_list_dataframe.to_csv(fulldest)
-        f.close()
+            rank = 0
+            flag = False
+            for a_tactic in predicted_tactic_list:
+                if correct_tactic == a_tactic:
+                    final_rank = ((10 - rank)/10)
+                    flag = True
+                    break
+                rank = rank + 1
+            if not flag:
+                final_rank = 0.0
+            data[str(predictor_num) + '_rank'] = final_rank
+            predictor_num = predictor_num + 1
+   
+        data = pd.Series(data)
+        if not i == 0:
+            predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
+        else:
+            predictor_list_dataframe = pd.DataFrame.from_dict(data).T
+        i = i + 1
+        if i > 30000:
+            break
+    fulldest = arg_values.dest
+    predictor_list_dataframe.to_csv(fulldest)
 
 modules = {
     "train": train,
