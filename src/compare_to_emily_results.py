@@ -21,7 +21,7 @@ def main() -> None:
 
 def es_to_tuple(es_datum: dict[str, str]) -> tuple[str, str, str]:
   return (es_datum["filename"].split("/")[2],
-          fix_filename(os.path.splitext(os.path.join(*es_datum["filename"].split("/")[3:]))[0] + ".v"),
+          os.path.splitext(os.path.join(*es_datum["filename"].split("/")[3:]))[0] + ".v",
           es_datum["proofname"])
 
 def get_es_successes(args: argparse.Namespace) -> list[tuple[str, str, str]]:
@@ -58,9 +58,6 @@ def get_ps_successes(args: argparse.Namespace) -> list[tuple[str, str, str]]:
                   for datum in ps_data if datum[1]["status"] == "SUCCESS"]
   return ps_all, ps_successes
 
-def fix_filename(filename: str) -> str:
-  return filename.replace("Minimun", "Minimum")
-
 def compare(args: argparse.Namespace) -> None:
   es_all, es_successes = get_es_successes(args)
   print(f"Emily-style data: {len(es_all)} entries, {len(es_successes)} successes")
@@ -71,7 +68,7 @@ def compare(args: argparse.Namespace) -> None:
   if args.all_theorems:
     with open(args.all_theorems, 'r') as f:
       all_theorems = [(obj[0].split("/")[2],
-                      fix_filename(os.path.splitext(os.path.join(*obj[0].split("/")[3:]))[0] + ".v"),
+                      os.path.splitext(os.path.join(*obj[0].split("/")[3:]))[0] + ".v",
                       obj[1]) for obj in json.loads(f.read())]
     ps_overlap_all = [entry for entry in ps_all if entry in all_theorems]
     ps_overlap_successes = [entry for entry in ps_successes if entry in all_theorems]
