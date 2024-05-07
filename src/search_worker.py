@@ -653,7 +653,7 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
                                unnamed_goal_num: int) -> Tuple[str, str, int, int]:
     slemma = coq_serapy.kill_comments(orig_lemma_statement).strip()
     next_obl_match = re.match(r"Next\s+Obligation\s*\.", slemma)
-    goal_match = re.match(r"\s*Goal\s+(.*)\.$", slemma)
+    goal_match = re.match(r"\s*Goal\s+(.*)\.$", slemma, flags=re.DOTALL)
     if next_obl_match:
         assert last_program_statement
         unique_stmt = last_program_statement + f" Obligation {obligation_num}."
@@ -668,8 +668,8 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
                  break
         assert first_ending_command is not None,\
             "Couldn't find an ending command after `Goal`."
-        name_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
-                                      first_ending_command.strip())
+        named_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
+                                     coq_serapy.kill_comments(first_ending_command).strip())
         if named_ending_match:
             lemma_name = name_ending_match.group(1)
             unique_stmt = \
