@@ -52,6 +52,7 @@ from models.tactic_predictor import TrainablePredictor
 
 
 from typing import List
+import time
 
 
 def exit_early(signal, frame):
@@ -274,6 +275,7 @@ def predictor_data(args: List[str], **kwargs):
     parser.add_argument("--blacklisted-tactics", default=[])
     parser.add_argument("--max-term-length", default=30, type=int)
     parser.add_argument("--weightsfile", type=str)
+    parser.add_argument("--predictor-num", type=int)
     parser.add_argument("--weightsfiles",  nargs='+', type=str)
     parser.add_argument("--scrapefile", type=Path)
     parser.add_argument("--dest")
@@ -294,7 +296,15 @@ def predictor_data(args: List[str], **kwargs):
     print(predictor_list)
 
     i = 0
+    fulldest = arg_values.dest
+    predictor_num = arg_values.predictor_num
+    predictor = predictor_list[predictor_num]
     for line in raw_data:
+        if i < 39426:
+            i = i + 1
+            print(str(i),flush=True)
+            continue
+        time_one = time.time()
         correct_tactic = line.tactic.strip()
         correct_tactic = ' '.join(correct_tactic.split())
         relevant_lemmas =  line.relevant_lemmas
@@ -305,37 +315,37 @@ def predictor_data(args: List[str], **kwargs):
         the_context = TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
         fingoal = ' '.join(goal.split())
         data = {'goal': fingoal}
+        time_zero = time.time()
+        tactics = predictor.predictKTactics(arg_values, truncate_tactic_context(the_context, arg_values.max_term_length), arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
+        time_one = time.time()
+        print("full time")
+        print(time_one - time_zero, flush=True)
+        alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
+        predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
+        data[str(predictor_num) + '_tactics'] = alltactic
 
-        predictor_num = 0
-        for predictor in predictor_list:
-            tactics = predictor.predictKTactics(arg_values, truncate_tactic_context(the_context, arg_values.max_term_length), arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
-            alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
-            predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
-            data[str(predictor_num) + '_tactics'] = alltactic
-
-            rank = 0
-            flag = False
-            for a_tactic in predicted_tactic_list:
-                if correct_tactic == a_tactic:
-                    final_rank = ((10 - rank)/10)
-                    flag = True
-                    break
-                rank = rank + 1
-            if not flag:
-                final_rank = 0.0
-            data[str(predictor_num) + '_rank'] = final_rank
-            predictor_num = predictor_num + 1
+        rank = 0
+        flag = False
+        for a_tactic in predicted_tactic_list:
+            if correct_tactic == a_tactic:
+                final_rank = ((10 - rank)/10)
+                flag = True
+                break
+            rank = rank + 1
+        if not flag:
+            final_rank = 0.0
+        data[str(predictor_num) + '_rank'] = final_rank
+        predictor_num = predictor_num + 1
    
         data = pd.Series(data)
-        if not i == 0:
-            predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
-        else:
-            predictor_list_dataframe = pd.DataFrame.from_dict(data).T
+        #if not i == 0:
+        #    predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
+        #else:
+        predictor_list_dataframe = pd.DataFrame.from_dict(data).T
         i = i + 1
-        if i > 30000:
+        if i > 300000:
             break
-    fulldest = arg_values.dest
-    predictor_list_dataframe.to_csv(fulldest)
+        predictor_list_dataframe.to_json(fulldest, mode='a', orient='records', lines=True)
 
 modules = {
     "train": train,
