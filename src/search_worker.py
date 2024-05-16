@@ -516,6 +516,8 @@ def attempt_search(args: argparse.Namespace,
                    predictor: TacticPredictor) \
         -> SearchResult:
     global obl_num
+    if "Proof" not in coq.prev_tactics[-1]:
+        coq.run_stmt("Proof.")
     if module_name:
         module_prefix = escape_lemma_name(module_name)
     else:
