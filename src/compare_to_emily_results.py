@@ -6,7 +6,7 @@ import re
 import os
 from collections import Counter
 from tqdm import tqdm
-from glob import glob
+from glob import glob, iglob
 
 from coq_serapy import lemma_name_from_statement
 
@@ -44,7 +44,7 @@ def nname_from_statement(statement: str) -> str:
 def get_ps_successes(args: argparse.Namespace) -> list[tuple[str, str, str]]:
   run_dir = os.getcwd()
   os.chdir(args.result_folder)
-  files = glob("**/*-proofs.txt", recursive=True)
+  files = list(tqdm(iglob("**/*-proofs.txt", recursive=True)))
   os.chdir(run_dir)
 
   ps_data = []
