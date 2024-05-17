@@ -19,10 +19,32 @@ def main() -> None:
 
   compare(args)
 
+def es_normalize_proofname(proofname: str) -> str:
+  # Emily First says this is correct
+  if proofname == "degree_aux_tcc":
+    return "degree_aux"
+  # Work around an obligation-mis-numbering bug in astactic-based tools. I got
+  # these correspondences by going through the files manually.
+  if proofname == "receive_prep_req_loop_obligation_5":
+    return "receive_prep_req_loop_obligation_4"
+  if proofname == "receive_commabrt_loop_obligation_5":
+    return "receive_commabrt_loop_obligation_4"
+  if proofname == "compute_list_f_obligation_3":
+    return "compute_list_f_obligation_1"
+  if proofname == "compute_list_f_obligation_4":
+    return "compute_list_f_obligation_2"
+  if proofname == "receive_prep_loop_obligation_5":
+    return "receive_prep_loop_obligation_4"
+  if proofname == "receive_req_loop_obligation_4":
+    return "receive_req_loop_obligation_2"
+  if proofname == "receive_resp_loop_obligation_5":
+    return "receive_resp_loop_obligation_4"
+  return proofname
+
 def es_to_tuple(es_datum: dict[str, str]) -> tuple[str, str, str]:
   return (es_datum["filename"].split("/")[2],
-          fix_filename(os.path.splitext(os.path.join(*es_datum["filename"].split("/")[3:]))[0] + ".v"),
-          es_datum["proofname"])
+          os.path.splitext(os.path.join(*es_datum["filename"].split("/")[3:]))[0] + ".v",
+          es_normalize_proofname(es_datum["proofname"]))
 
 def get_es_successes(args: argparse.Namespace) -> list[tuple[str, str, str]]:
   with open(args.emily_style_json, 'r') as f:
@@ -72,7 +94,7 @@ def compare(args: argparse.Namespace) -> None:
     with open(args.all_theorems, 'r') as f:
       all_theorems = [(obj[0].split("/")[2],
                       os.path.splitext(os.path.join(*obj[0].split("/")[3:]))[0] + ".v",
-                      obj[1]) for obj in json.loads(f.read())]
+                      es_normalize_proofname(obj[1])) for obj in json.loads(f.read())]
     ps_overlap_all = [entry for entry in ps_all if entry in all_theorems]
     ps_overlap_successes = [entry for entry in ps_successes if entry in all_theorems]
     print(f"Proverbot-style overlap data: {len(ps_overlap_all)} entries, {len(ps_overlap_successes)} successes")
