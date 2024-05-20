@@ -80,14 +80,14 @@ class Worker:
             backend = self.args.backend
 
         if backend == 'lsp':
-            backend = coq_serapy.CoqLSPyInstance(
+            coq_backend = coq_serapy.CoqLSPyInstance(
                 "coq-lsp", root_dir=str(self.args.prelude),
                 verbosity=self.args.verbose)
         if backend == 'serapi':
-            backend = coq_serapy.CoqSeraPyInstance(
+            coq_backend = coq_serapy.CoqSeraPyInstance(
                 ["sertop"], timeout=60)
-            backend.verbosity = self.args.verbose
-        self.coq = coq_serapy.CoqAgent(backend, str(self.args.prelude),
+            coq_backend.verbosity = self.args.verbose
+        self.coq = coq_serapy.CoqAgent(coq_backend, str(self.args.prelude),
                                        verbosity=self.args.verbose)
 
     def __enter__(self: T) -> T:
