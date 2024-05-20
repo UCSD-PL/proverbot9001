@@ -21,7 +21,7 @@ def main() -> None:
 
 def es_to_tuple(es_datum: dict[str, str]) -> tuple[str, str, str]:
   return (es_datum["filename"].split("/")[2],
-          os.path.splitext(os.path.join(*es_datum["filename"].split("/")[3:]))[0] + ".v",
+          fix_filename(os.path.splitext(os.path.join(*es_datum["filename"].split("/")[3:]))[0] + ".v"),
           es_datum["proofname"])
 
 def get_es_successes(args: argparse.Namespace) -> list[tuple[str, str, str]]:
@@ -57,6 +57,9 @@ def get_ps_successes(args: argparse.Namespace) -> list[tuple[str, str, str]]:
   ps_successes = [(datum[0][0], datum[0][1], nname_from_statement(datum[0][3]))
                   for datum in ps_data if datum[1]["status"] == "SUCCESS"]
   return ps_all, ps_successes
+
+def fix_filename(filename: str) -> str:
+  return filename.replace("Minimun", "Minimum")
 
 def compare(args: argparse.Namespace) -> None:
   es_all, es_successes = get_es_successes(args)

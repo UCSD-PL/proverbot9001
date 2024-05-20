@@ -673,7 +673,7 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
         named_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
                                      coq_serapy.kill_comments(first_ending_command).strip())
         if named_ending_match:
-            lemma_name = name_ending_match.group(1)
+            lemma_name = named_ending_match.group(1)
             unique_stmt = \
                 f"Theorem {lemma_name}: {goal_match.group(1)}."
             return unique_stmt, lemma_name, obligation_num, unnamed_goal_num
