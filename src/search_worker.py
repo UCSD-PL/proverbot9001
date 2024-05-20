@@ -668,7 +668,7 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
             "Couldn't find an ending command after `Goal`."
         name_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
                                       first_ending_command.strip())
-        if named_ending_match:
+        if name_ending_match:
             lemma_name = name_ending_match.group(1)
             unique_stmt = \
                 f"Theorem {lemma_name}: {goal_match.group(1)}."
