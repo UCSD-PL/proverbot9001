@@ -166,7 +166,7 @@ class SearchGraph:
             previous_node.children.append(newNode)
         return newNode
 
-    def mkQED(self, predictionNode: LabeledNode):
+    def mkQED(self, predictionNode: LabeledNode) -> List[TacticInteraction]:
         self.mkNode(Prediction("QED", 1.0), FullContext(
             [], [], ProofContext([], [], [], [])),
                     ProofContext([], [], [], []),
@@ -181,7 +181,6 @@ class SearchGraph:
             cur_node = cur_node.previous
         return [TacticInteraction(n.prediction, n.context_before.obligations)
                 for n in reversed(cur_path)]
-        pass
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
