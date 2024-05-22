@@ -644,7 +644,8 @@ def job_summary(job: ReportJob) -> str:
         lname = coq_serapy.lemma_name_from_statement(job.lemma_statement)
         return f"{job.module_prefix}{lname}"
 
-# This mostly replicates functionality in coq_serapy.coq_util.lemmas_in_file, consider merging.
+# This mostly replicates functionality in
+# coq_serapy.coq_util.lemmas_in_file, consider merging.
 def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[str],
                                last_program_statement: Optional[str],
                                obligation_num: int,
