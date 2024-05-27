@@ -33,6 +33,8 @@ from torch import optim
 import torch.distributed as dist
 import torch.optim.lr_scheduler as scheduler
 
+EPSILON = 1e-7
+
 print("Finished torch imports", file=sys.stderr)
 # pylint: disable=wrong-import-position
 sys.path.append(str(Path(os.getcwd()) / "src"))
@@ -199,7 +201,7 @@ def serve_parameters(args: argparse.Namespace, backend='mpi') -> None:
             loss_buffer.append(loss)
           iters_trained += 1
         if len(loss_buffer) == args.loss_smoothing:
-          smoothed_loss = sum(loss_buffer) / args.loss_smoothing
+          smoothed_loss = sum(loss_buffer) / (args.loss_smoothing + EPSILON)
           lr = optimizer.param_groups[0]['lr']
           eprint(f"Loss: {smoothed_loss} (learning rate {lr/20:.3e})")
         if vsample_changed and args.reset_on_updated_sample:
@@ -418,7 +420,7 @@ def train(args: argparse.Namespace, v_model: VModel,
     loss = F.mse_loss(actual_values, target_values)
   else:
     assert args.loss == "log"
-    loss = F.mse_loss(torch.log(actual_values), torch.log(target_values))
+    loss = F.mse_loss(torch.log(F.relu(actual_values) + EPSILON), torch.log(F.relu(target_values) + EPSILON))
   if args.verbose >= 1:
     eprint("Training obligations to values:")
     for idx, (context, prev_tactic, output, actual_value) \
@@ -811,7 +813,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   predicted_v_values = vnetwork(
     torch.cat([obl.local_context.view(1, -1) for obl, _ in items], dim=0),
     torch.LongTensor([obl.previous_tactic for obl, _ in items]).to(device)).view(-1)
-  predicted_steps = torch.log(predicted_v_values) / math.log(gamma)
+  predicted_steps = torch.log(F.relu(predicted_v_values) + EPSILON) / (math.log(gamma) + EPSILON)
   num_predicted_zeros = torch.count_nonzero(predicted_steps == float("inf"))
   target_steps: FloatTensor = torch.tensor([steps for _, steps in items]).to(device) #type: ignore
   step_errors = torch.abs(predicted_steps - target_steps)
@@ -819,7 +821,7 @@ def print_vvalue_errors(gamma: float, vnetwork: nn.Module,
   total_error = torch.sum(torch.where(predicted_steps == float("inf"),
                                       torch.zeros_like(step_errors),
                                       step_errors)).item()
-  avg_error = total_error / (len(items) - num_predicted_zeros)
+  avg_error = total_error / (len(items) - num_predicted_zeros + EPSILON)
   eprint(f"Average step error across {len(items) - num_predicted_zeros} "
          f"initial states with finite predictions: {avg_error:.6f}")
   eprint(f"{num_predicted_zeros} predicted as infinite steps (impossible)")
