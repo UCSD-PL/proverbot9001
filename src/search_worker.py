@@ -59,7 +59,7 @@ class Worker:
         self.unnamed_goal_num = 0
         self.switch_dict = switch_dict
 
-    def enter_instance(self) -> None:
+    def enter_instance(self, project_dir: Path) -> None:
         if self.args.backend == 'auto':
             coq_serapy.setup_opam_env()
             version_string = subprocess.run(["sertop", "--version"],
@@ -81,21 +81,20 @@ class Worker:
 
         if backend == 'lsp':
             coq_backend = coq_serapy.CoqLSPyInstance(
-                "coq-lsp", root_dir=str(self.args.prelude),
+                "coq-lsp", root_dir=str(project_dir),
                 verbosity=self.args.verbose)
         if backend == 'serapi':
             coq_backend = coq_serapy.CoqSeraPyInstance(
-                ["sertop"], timeout=60)
+                ["sertop"], root_dir=str(project_dir), timeout=60)
             coq_backend.verbosity = self.args.verbose
-        self.coq = coq_serapy.CoqAgent(coq_backend, str(self.args.prelude),
+        self.coq = coq_serapy.CoqAgent(coq_backend,
                                        verbosity=self.args.verbose)
 
     def __enter__(self: T) -> T:
-        self.enter_instance()
         return self
     def __exit__(self, type, value, traceback) -> None:
-        assert self.coq
-        self.coq.kill()
+        if self.coq is not None:
+            self.coq.kill()
         self.coq = None
 
     def set_switch_from_proj(self) -> None:
@@ -114,7 +113,7 @@ class Worker:
     def restart_coq(self) -> None:
         assert self.coq
         self.coq.kill()
-        self.enter_instance()
+        self.enter_instance(self.args.prelude / self.cur_project)
 
     def reset_file_state(self) -> None:
         self.last_program_statement = None
@@ -144,12 +143,11 @@ class Worker:
             except coq_serapy.CoqAnomaly as e:
                 eprint(f"Got anomaly {e}")
                 if e.msg == "Timing Out":
-                    self.enter_instance()
+                    self.enter_instance(self.args.prelude / self.cur_project)
                 else:
                     raise
             except coq_serapy.CoqTimeoutError as e:
                 self.restart_coq()
-                self.coq.backend.enterDirectory(str(self.cur_project))
 
     def run_backwards_into_job(self, job: ReportJob, restart_anomaly: bool = True) -> None:
         assert self.coq
@@ -238,8 +236,7 @@ class Worker:
             if self.args.set_switch:
                 self.set_switch_from_proj()
             self.reset_file_state()
-            self.restart_coq()
-            self.coq.backend.enterDirectory(str(self.cur_project))
+            self.enter_instance(self.args.prelude / self.cur_project)
             self.enter_file(job_file)
         # Strip comments for comparison with lemmas encountered
         checkjob = ReportJob(job_project, job_file, job_module, coq_serapy.kill_comments(job_lemma).strip())
@@ -396,9 +393,10 @@ class SearchWorker(Worker):
         self.axioms_already_added = False
 
     def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
-        assert self.coq
-        self.run_into_job(job, restart, self.args.careful)
         job_project, job_file, job_module, job_lemma = job
+        if self.coq is None:
+          self.enter_instance(self.args.prelude / job_project)
+        self.run_into_job(job, restart, self.args.careful)
         initial_context: ProofContext = unwrap(self.coq.proof_context)
         # In certain rare cases (uses of "Goal") this can be different from the job_lemma
         original_lemma_statement = self.coq.prev_tactics[-1]
