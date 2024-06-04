@@ -178,3 +178,6 @@
 [submodule "coq-projects/metalib"]
 	path = coq-projects/metalib
 	url = https://github.com/plclub/metalib.git
+[submodule "pytanque"]
+	path = pytanque
+	url = git@github.com:HazardousPeach/pytanque.git
