@@ -100,6 +100,8 @@ def compare(args: argparse.Namespace) -> None:
     print(f"Proverbot-style overlap data: {len(ps_overlap_all)} entries, {len(ps_overlap_successes)} successes")
     ps_non_overlap_all = [entry for entry in ps_all if entry not in all_theorems]
     all_theorems_non_overlap = [entry for entry in all_theorems if entry not in ps_all]
+    all_theorems_overlap = [entry for entry in all_theorems if entry in ps_all]
+    print(f"There are {len(all_theorems)} theorems in all_theorems.json ({len(all_theorems_overlap)} overlap, {len(all_theorems_non_overlap)} non-overlap)")
     es_only = [entry for entry in es_successes if entry not in ps_successes and entry in ps_all]
     ps_only = [entry for entry in ps_overlap_successes if entry not in es_successes]
     print(f"Using all_theorems.json: Of overlap, {len(both_successes)} where both succeed, "
@@ -117,8 +119,8 @@ def compare(args: argparse.Namespace) -> None:
     # print(proj_counts)
     file_counts = Counter([entry[1] for entry in ps_non_overlap_all if entry[0] == "coquelicot"])
     # print(file_counts)
-    file_proofs = [entry[2] for entry in ps_non_overlap_all if entry[0] == "coquelicot" and entry[1] == "theories/Derive.v"]
-    print(file_proofs[:10])
+    file_proofs = [entry for entry in all_theorems_non_overlap]#  if entry[0] == "disel"]# and entry[1] == "Examples/TwoPhaseCommit/TwoPhaseParticipant.v"]
+    print(file_proofs)
   else:
     ps_overlap_all = [entry for entry in ps_all if entry in es_all]
     ps_overlap_successes = [entry for entry in ps_successes if entry in es_all]
