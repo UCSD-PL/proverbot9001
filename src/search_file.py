@@ -175,6 +175,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--no-set-switch", dest="set_switch", action='store_false')
     parser.add_argument("--blacklist-tactic", action="append", dest="blacklisted_tactics")
     parser.add_argument("--include-train-set", action='store_true')
+    parser.add_argument("--no-graph", action="store_false", dest="generate_graph")
 
 def parse_arguments(args_list: List[str]) -> Tuple[argparse.Namespace,
                                                    List[str],

@@ -487,14 +487,16 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 g.setNodeColor(predictionNode, "grey25")
                 if lemma_name == "":
                     unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
+                    if args.generate_graph:
+                        g.draw(f"{output_dir}/{module_prefix}"
+                               f"{unnamed_goal_number}.svg")
                 else:
                     if args.features_json:
                         g.write_feat_json(f"{output_dir}/{module_prefix}"
                                           f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
+                    if args.generate_graph:
+                        g.draw(f"{output_dir}/{module_prefix}"
+                               f"{lemma_name}.svg")
 
                 raise
         return SubSearchResult(None, 0, substeps_explored)
@@ -528,7 +530,8 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 coq.run_stmt(command)
         command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
         pbar.clear()
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    if args.generate_graph:
+        g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
@@ -823,7 +826,8 @@ def bfs_beam_proof_search(lemma_name: str,
                         continue
                     if completed_proof(coq):
                         prediction_node.mkQED()
-                        start_node.draw_graph(graph_file)
+                        if args.generate_graph:
+                            start_node.draw_graph(graph_file)
                         return SearchResult(SearchStatus.SUCCESS,
                                             relevant_lemmas,
                                             prediction_node.interactions()[1:],
@@ -898,7 +902,8 @@ def bfs_beam_proof_search(lemma_name: str,
                 else:
                     hasUnexploredNode = True
 
-    start_node.draw_graph(graph_file)
+    if args.generate_graph:
+        start_node.draw_graph(graph_file)
     if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
     else:
@@ -1010,7 +1015,8 @@ def best_first_proof_search(lemma_name: str,
             # Check if the proof is done
             if completed_proof(coq):
                 prediction_node.mkQED()
-                start_node.draw_graph(graph_file)
+                if args.generate_graph:
+                    start_node.draw_graph(graph_file)
                 return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
                                     prediction_node.interactions()[1:], step+1, None)
             if args.scoring_function == "const":
@@ -1076,7 +1082,8 @@ def best_first_proof_search(lemma_name: str,
                 break
 
     hasUnexploredNode = len(nodes_todo) > 0
-    start_node.draw_graph(graph_file)
+    if args.generate_graph:
+        start_node.draw_graph(graph_file)
     if hasUnexploredNode:
         return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, step, None)
     return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, step, None)
