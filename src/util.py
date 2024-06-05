@@ -81,11 +81,11 @@ def multipartition(xs : List[T], f : Callable[[T], int]) -> List[List[T]]:
     return result
 
 def escape_filename(filename : str) -> str:
-    return re.sub("/", "Zs", re.sub("\.", "Zd", re.sub("Z", "ZZ", filename)))
+    return re.sub(r"/", "Zs", re.sub(r"\.", "Zd", re.sub("Z", "ZZ", filename)))
 def escape_lemma_name(lemma_name : str) -> str:
     subs = [("Z", "ZZ"),
             ("/", "Zs"),
-            ("\.", "Zd")]
+            (r"\.", "Zd")]
     for k, v in subs:
         lemma_name = re.sub(k, v, lemma_name)
     return lemma_name

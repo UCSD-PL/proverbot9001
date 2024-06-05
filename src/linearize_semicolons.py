@@ -172,10 +172,10 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                 if isinstance(pending_commands, list):
                     next_cmd, *rest_cmd = pending_commands
                     dotdotmatch = re.match(
-                        "(.*)<\.\.>", next_cmd, flags=re.DOTALL)
+                        r"(.*)<\.\.>", next_cmd, flags=re.DOTALL)
                     for cmd in rest_cmd:
                         dotdotmatch = re.match(
-                            "(.*)<\.\.>", cmd, flags=re.DOTALL)
+                            r"(.*)<\.\.>", cmd, flags=re.DOTALL)
                         if dotdotmatch:
                             continue
                         assert serapi_instance.isValidCommand(cmd), \
@@ -210,14 +210,14 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
             f"command is \"{command}\", command_batch is {command_batch}"
         comment_before_command = ""
         command_proper = command
-        while re.fullmatch("\s*\(\*.*", command_proper, flags=re.DOTALL):
+        while re.fullmatch(r"\s*\(\*.*", command_proper, flags=re.DOTALL):
             next_comment, command_proper = \
-                split_to_next_matching("\(\*", "\*\)", command_proper)
+                split_to_next_matching(r"\(\*", r"\*\)", command_proper)
             command_proper = command_proper[1:]
             comment_before_command += next_comment
         if comment_before_command:
             yield comment_before_command
-        if re.match("\s*[*+-]+\s*|\s*[{}]\s*", command):
+        if re.match(r"\s*[*+-]+\s*|\s*[{}]\s*", command):
             continue
 
         command = serapi_instance.kill_comments(command_proper)
@@ -253,27 +253,27 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                     old_selected_cmd = pending_cmd_lst[goal_num - 2]
                 except IndexError:
                     raise LinearizerCouldNotLinearize
-                match = re.match("(.*)\.$", old_selected_cmd, re.DOTALL)
+                match = re.match(r"(.*)\.$", old_selected_cmd, re.DOTALL)
                 assert match, f"\"{old_selected_cmd}\" doesn't match!"
                 cmd_before_period = unwrap(match).group(1)
                 new_selected_cmd = f"{cmd_before_period} ; {rest}."
                 pending_cmd_lst[goal_num - 2] = new_selected_cmd
             continue
 
-        if split_by_char_outside_matching("\(", "\)", "\|\||&&", command):
+        if split_by_char_outside_matching(r"\(", r"\)", r"\|\||&&", command):
             coq.run_stmt(command)
             yield command
             continue
 
-        if re.match("\(", command.strip()):
+        if re.match(r"\(", command.strip()):
             inside_parens, after_parens = split_to_next_matching(
-                '\(', '\)', command)
+                r'\(', r'\)', command)
             command = inside_parens.strip()[1:-1] + after_parens
 
         # Extend this to include "by \(" as an opener if you don't
         # desugar all the "by"s
-        semi_match = split_by_char_outside_matching("try \(|\(|\{\|", "\)|\|\}",
-                                                    "\s*;\s*", command)
+        semi_match = split_by_char_outside_matching(r"try \(|\(|\{\|", r"\)|\|\}",
+                                                    r"\s*;\s*", command)
         if semi_match:
             base_command, rest = semi_match
             rest = rest.lstrip()[1:]
@@ -281,17 +281,17 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
             indentation = "  " * (len(pending_commands_stack) + 1)
             yield indentation + base_command.strip() + "."
 
-            if re.match("\(", rest) and not \
-               split_by_char_outside_matching("\(", "\)", "\|\|", rest):
+            if re.match(r"\(", rest) and not \
+               split_by_char_outside_matching(r"\(", r"\)", r"\|\|", rest):
                 inside_parens, after_parens = split_to_next_matching(
-                    '\(', '\)', rest)
+                    r'\(', r'\)', rest)
                 rest = inside_parens[1:-1] + after_parens
-            bracket_match = re.match("\[", rest.strip())
+            bracket_match = re.match(r"\[", rest.strip())
             if bracket_match:
                 bracket_command, rest_after_bracket = \
-                    split_to_next_matching('\[', '\]', rest)
+                    split_to_next_matching(r'\[', r'\]', rest)
                 rest_after_bracket = rest_after_bracket.lstrip()[1:]
-                clauses = multisplit_matching("\[", "\]", "(?<!\|)\|(?!\|)",
+                clauses = multisplit_matching(r"\[", r"\]", r"(?<!\|)\|(?!\|)",
                                               bracket_command.strip()[1:-1])
                 commands_list = [cmd.strip() if cmd.strip().strip(".") != ""
                                  else "idtac" + cmd.strip() for cmd in
@@ -364,33 +364,33 @@ def handle_with(command_batch: Iterable[str],
                 with_tactic: str) -> Iterable[str]:
     if not with_tactic:
         for command in command_batch:
-            yield re.sub("(.*)\s*\.\.\.", r"\1.", command)
+            yield re.sub(r"(.*)\s*\.\.\.", r"\1.", command)
     else:
         yield "Proof."
         for command in islice(command_batch, 1, None):
             newcommand = re.sub(
-                "(.*)\s*\.\.\.", rf"\1 ; {with_tactic}.", command)
+                r"(.*)\s*\.\.\.", rf"\1 ; {with_tactic}.", command)
             yield newcommand
 
 
 def split_commas(command: str) -> str:
-    rewrite_match = re.match("(.*)(?:\s|^)(rewrite\s+)([^;,]*?,\s*.*)", command,
+    rewrite_match = re.match(r"(.*)(?:\s|^)(rewrite\s+)([^;,]*?,\s*.*)", command,
                              flags=re.DOTALL)
-    unfold_match = re.match("(.*)(unfold\s+)([^;,]*?),\s*(.*)", command,
+    unfold_match = re.match(r"(.*)(unfold\s+)([^;,]*?),\s*(.*)", command,
                             flags=re.DOTALL)
     if rewrite_match:
 
         prefix, rewrite_command, id_and_rest = rewrite_match.group(1, 2, 3)
-        split = split_by_char_outside_matching("\(", "\)", ",", id_and_rest)
+        split = split_by_char_outside_matching(r"\(", r"\)", ",", id_and_rest)
         if not split:
             return command
         first_id, rest = split
         rest = rest[1:]
-        split = split_by_char_outside_matching("\(", "\)", ";|\.", rest)
+        split = split_by_char_outside_matching(r"\(", r"\)", r";|\.", rest)
         assert split
         rewrite_rest, command_rest = split
-        by_match = re.match("(.*)(\sby\s.*)", rewrite_rest)
-        in_match = re.match("(.*)(\sin\s.*)", rewrite_rest)
+        by_match = re.match(r"(.*)(\sby\s.*)", rewrite_rest)
+        in_match = re.match(r"(.*)(\sin\s.*)", rewrite_rest)
         postfix = ""
         if by_match:
             if " by " not in first_id:
@@ -404,12 +404,12 @@ def split_commas(command: str) -> str:
         return result
     elif unfold_match:
         prefix, unfold_command, first_id, rest = unfold_match.group(1, 2, 3, 4)
-        if re.search("\sin\s", unfold_command + first_id):
+        if re.search(r"\sin\s", unfold_command + first_id):
             return command
-        split = split_by_char_outside_matching("\(", "\)", ";|\.", rest)
+        split = split_by_char_outside_matching(r"\(", r"\)", r";|\.", rest)
         assert split
         unfold_rest, command_rest = split
-        in_match = re.match("(.*)(\sin\s.*)", unfold_rest)
+        in_match = re.match(r"(.*)(\sin\s.*)", unfold_rest)
         postfix = ""
         if in_match:
             if "in" not in first_id:
@@ -429,7 +429,7 @@ def desugar_rewrite_by(cmd: str) -> str:
     if rewrite_by_match:
         prefix = cmd[:rewrite_by_match.start()]
         after_match = cmd[rewrite_by_match.end():]
-        split = split_by_char_outside_matching("[\[(]", "[\])]",
+        split = split_by_char_outside_matching(r"[\[(]", r"[\])]",
                                                r"\.\W|\.$|[|]|\)|;", after_match)
         assert split
         body, postfix = split
@@ -444,7 +444,7 @@ def desugar_assert_by(cmd: str) -> str:
     if assert_by_match:
         prefix = cmd[:assert_by_match.start()]
         after_match = cmd[assert_by_match.end():]
-        split = split_by_char_outside_matching("[\[(]", "[\])]",
+        split = split_by_char_outside_matching(r"[\[(]", r"[\])]",
                                                r"\.\W|\.$|[|]",
                                                after_match)
         assert split
@@ -459,7 +459,7 @@ def desugar_now(command: str) -> str:
     while(now_match):
         prefix = command[:now_match.start()]
         after_match = command[now_match.end():]
-        split = split_by_char_outside_matching("[\[(]", "[\])]",
+        split = split_by_char_outside_matching(r"[\[(]", r"[\])]",
                                                r"\.\W|\.$|]|\||\)",
                                                after_match)
         assert split
@@ -477,9 +477,9 @@ def prelinear_desugar_tacs(commands: Iterable[str]) -> Iterable[str]:
     for command in commands:
         comment_before_command = ""
         command_proper = command
-        while re.fullmatch("\s*\(\*.*", command_proper, flags=re.DOTALL):
+        while re.fullmatch(r"\s*\(\*.*", command_proper, flags=re.DOTALL):
             next_comment, command_proper = \
-                split_to_next_matching("\(\*", "\*\)", command_proper)
+                split_to_next_matching(r"\(\*", r"\*\)", command_proper)
             comment_before_command += next_comment
         for f in desugar_passes:
             newcommand = f(command_proper)

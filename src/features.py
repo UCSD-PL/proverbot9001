@@ -85,13 +85,13 @@ class ConstFeatureW(WordFeature):
         return 1
 class NumEvarsInGoal(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
-        return [float(len(re.findall("\s\?\w", context.goal)))]
+        return [float(len(re.findall(r"\s\?\w", context.goal)))]
     def feature_size(self) -> int:
         return 1
 
 class NumEqualitiesInHyps(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
-        return [float(sum([re.match("\w+ : eq ", hypothesis) != None
+        return [float(sum([re.match(r"\w+ : eq ", hypothesis) != None
                            for hypothesis in context.hypotheses]))]
     def feature_size(self) -> int:
         return 1
@@ -345,14 +345,14 @@ class NumUnboundIdentifiersInGoal(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
         identifiers = get_symbols(context.goal)
         locallyBoundInHyps = serapi_instance.get_vars_in_hyps(context.hypotheses)
-        binders = ["forall\s+(.*)(?::.*)?,",
-                   "fun\s+(.*)(?::.*)?,",
-                   "let\s+\S+\s+:="]
+        binders = [r"forall\s+(.*)(?::.*)?,",
+                   r"fun\s+(.*)(?::.*)?,",
+                   r"let\s+\S+\s+:="]
         punctuation = ["(", ")", ":", ",", "_", ":=", "=>", "{|", "|}"]
         locallyBoundInTerm = [var
                               for binder_pattern in binders
                               for varString in re.findall(binder_pattern, context.goal)
-                              for var in re.findall("\((\S+)\s+:", varString)
+                              for var in re.findall(r"\((\S+)\s+:", varString)
                               if var not in punctuation]
         globallyBoundIdentifiers = \
             [ident for ident in identifiers
@@ -378,10 +378,10 @@ class NumHypotheses(VecFeature):
 
 class HasFalseToken(VecFeature):
     def __call__(self, context : TacticContext) -> List[float]:
-        goalHasFalse = re.match("\bFalse\b", context.goal)
+        goalHasFalse = re.match(r"\bFalse\b", context.goal)
         hypsHaveFalse = False
         for hyp in context.hypotheses:
-            if re.match("\bFalse\b", hyp):
+            if re.match(r"\bFalse\b", hyp):
                 hypsHaveFalse = True
                 break
         return [float(bool(goalHasFalse)), float(bool(hypsHaveFalse))]
