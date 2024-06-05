@@ -59,8 +59,8 @@ def no_compound_or_bullets(in_data : TacticContext, tactic : str,
                            next_in_data : TacticContext,
                            arg_values : argparse.Namespace) -> bool:
     tactic = serapi_instance.kill_comments(tactic)
-    return (not re.match("\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
-            not re.match(".*;.*", tactic, flags=re.DOTALL))
+    return (not re.match(r"\s*[\{\}\+\-\*].*", tactic, flags=re.DOTALL) and
+            not re.match(r".*;.*", tactic, flags=re.DOTALL))
 def not_proof_keyword(in_data : TacticContext, tactic : str,
                       next_in_data : TacticContext,
                       arg_values : argparse.Namespace) -> bool:
@@ -68,11 +68,11 @@ def not_proof_keyword(in_data : TacticContext, tactic : str,
 def not_background_subgoal(in_data : TacticContext, tactic : str,
                            next_in_data : TacticContext,
                            arg_values : argparse.Namespace) -> bool:
-    return not re.match("\d*:.*", tactic)
+    return not re.match(r"\d*:.*", tactic)
 def not_vernac(in_data : TacticContext, tactic : str,
                next_in_data : TacticContext,
                arg_values : argparse.Namespace) -> bool:
-    return not (re.match("\s*(Opaque|Proof|Qed|Defined|Unshelve)", tactic))
+    return not (re.match(r"\s*(Opaque|Proof|Qed|Defined|Unshelve)", tactic))
 
 def goal_changed(in_data : TacticContext, tactic : str,
                  next_in_data : TacticContext,
@@ -87,7 +87,7 @@ def hyps_changed(in_data : TacticContext, tactic : str,
 def no_args(in_data : TacticContext, tactic : str,
             next_in_data : TacticContext,
             arg_values : argparse.Namespace) -> bool:
-    return re.fullmatch("\s*\S*\.\s*", tactic) != None
+    return re.fullmatch(r"\s*\S*\.\s*", tactic) != None
 
 def args_vars_in_list(tactic : str,
                       context_list : List[str]) -> bool:
@@ -135,7 +135,7 @@ def tactic_eliteral(tactic_to_match : str,
         tactic_to_match = "try discriminate"
     if tactic_to_match == "nowapply":
         tactic_to_match = "now apply"
-    return re.match("\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
+    return re.match(r"\s*e?{}(\s.+)?\.".format(tactic_to_match), tactic) != None
 
 
 def min_args(num_str: str,
@@ -162,7 +162,7 @@ def numeric_args(in_data : TacticContext, tactic : str,
     stem, rest = serapi_instance.split_tactic(tactic)
     args = get_subexprs(rest.strip("."))
     for arg in args:
-        if not re.fullmatch("\d+", arg):
+        if not re.fullmatch(r"\d+", arg):
             return False
     return True
 
@@ -263,7 +263,7 @@ def get_context_filter(specstr: str) -> ContextFilter:
     pieces = split_toplevel(specstr)
     if "+" not in specstr and "%" not in specstr:
         for prefix, func, arg_str in special_prefixes:
-            match = re.match("^{}(.*)".format(prefix), specstr)
+            match = re.match(r"^{}(.*)".format(prefix), specstr)
             if match:
                 return functools.partial(func, match.group(1))
         assert specstr in context_filters, "Invalid atom {}! Valid atoms are {}"\

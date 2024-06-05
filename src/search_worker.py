@@ -334,7 +334,7 @@ class Worker:
         ending_command = None
         important_vernac_cmds = []
         for cmd in self.remaining_commands:
-            if re.match("\s*(?:Local\s+|Global\s+)?(?:Opaque|Transparent)(\s+[\w']+)+\.\s*", cmd):
+            if re.match(r"\s*(?:Local\s+|Global\s+)?(?:Opaque|Transparent)(\s+[\w']+)+\.\s*", cmd):
                 important_vernac_cmds.append(cmd)
             if coq_serapy.ending_proof(cmd):
                 ending_command = cmd
@@ -481,7 +481,7 @@ class SearchWorker(Worker):
         return SearchResult(search_status, context_lemmas, solution,
                             steps_taken, time_taken)
 
-def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
+def get_lemma_declaration_from_name(coq: coq_serapy.CoqAgent,
                                     lemma_name: str) -> str:
     return coq.check_term(lemma_name).replace("\n", "")
 
@@ -637,7 +637,7 @@ def files_of_dict(args: argparse.Namespace,
         return project_dict["test_files"]
 
 def job_summary(job: ReportJob) -> str:
-    obl_match = re.match("(.*\.)\s+Obligation (\d+)\.",
+    obl_match = re.match(r"(.*\.)\s+Obligation (\d+)\.",
                          job.lemma_statement,
                          re.DOTALL)
     if obl_match:
