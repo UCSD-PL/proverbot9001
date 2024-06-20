@@ -404,21 +404,21 @@ class FeaturesPolyargPredictor(
 
         #word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
         word_features_mask = torch.cat((prev_tactic_mask, goal_head_mask, hyp_head_mask), dim=1)
-            
+
         masked_word_features = torch.where(
             word_features_mask,
             torch.full_like(word_features_tensor, 0),
             word_features_tensor)
 
         vec_features_mask = hyp_score_mask
-            
+
         masked_vec_features = torch.where(
             vec_features_mask,
             torch.full_like(vec_features_tensor, 0),
             vec_features_tensor)
 
         #word_features_mask = torch.cat((torch.ones(1, 1, dtype=torch.bool), torch.zeros(1, 2, dtype=torch.bool)), dim=1)
-        
+
         _, stem_certainties, stem_idxs = self.predict_stems(
             self._model, stem_width,
             masked_word_features, masked_vec_features,
@@ -653,8 +653,7 @@ class FeaturesPolyargPredictor(
         assert not torch.any(torch.isnan(vec_features))
         stem_distribution = model.stem_classifier(
             word_features, vec_features)
-        #stem_distribution[:,blacklist_stem_indices] = -float("Inf")
-        stem_distribution.index_fill(1, maybe_cuda(torch.LongTensor(blacklist_stem_indices)), -float("Inf"))
+        stem_distribution.index_fill_(1, maybe_cuda(torch.LongTensor(blacklist_stem_indices)), -float("Inf"))
         assert not torch.any(torch.isnan(stem_distribution))
         stem_probs, stem_idxs = stem_distribution.topk(k)
         assert stem_probs.size() == torch.Size([batch_size, k])
@@ -995,14 +994,14 @@ class FeaturesPolyargPredictor(
 
         #word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
         word_features_mask = torch.cat((prev_tactic_mask, goal_head_mask, hyp_head_mask), dim=1)
-            
+
         masked_word_features = torch.where(
             word_features_mask,
             torch.full_like(word_features_batch, 0),
             word_features_batch)
 
         vec_features_mask = hyp_score_mask
-            
+
         masked_vec_features = torch.where(
             vec_features_mask,
             torch.full_like(vec_features_batch, 0),
