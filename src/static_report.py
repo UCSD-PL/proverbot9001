@@ -128,14 +128,19 @@ def main(arg_list : List[str]) -> None:
 
     context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
 
-    with multiprocessing.Pool(args.threads) as pool:
-        file_results = \
-            list((stats for stats in
-                  pool.imap_unordered(functools.partial(report_file, args,
-                                                        predictor.training_args,
-                                                        context_filter),
-                                      args.filenames)
-                  if stats))
+    assert predictor.training_args
+
+    file_results = [report_file(args, predictor.training_args, context_filter,
+                                filename) for filename in args.filenames]
+
+    # with multiprocessing.Pool(args.threads) as pool:
+    #     file_results = \
+    #         list((stats for stats in
+    #               pool.imap_unordered(functools.partial(report_file, args,
+    #                                                     predictor.training_args,
+    #                                                     context_filter),
+    #                                   args.filenames)
+    #               if stats))
 
     write_summary(args, predictor.getOptions() +
                   [("report type", "static"), ("predictor", args.predictor)],
