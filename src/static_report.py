@@ -17,6 +17,7 @@ from typing import (Any, Union, Optional, Tuple, List, Sequence,
                     Counter, Callable, NamedTuple, Iterable,
                     cast, TypeVar)
 from pathlib_revised import Path2
+from pathlib import Path
 
 from data import file_chunks, filter_data
 from context_filter import get_context_filter
@@ -29,9 +30,11 @@ from yattag import Doc
 from coq_serapy.contexts import (read_tuple, ScrapedTactic,
                                  ScrapedCommand,
                                  TacticContext,
+                                 ProofContext,
                                  strip_scraped_output)
 from syntax import syntax_highlight, strip_comments, ColoredString
 from util import multipartition, chunks, stringified_percent, escape_filename
+import dataloader
 
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
@@ -86,14 +89,14 @@ def main(arg_list : List[str]) -> None:
     parser = argparse.ArgumentParser(description=
                                      "Produce an html report from the scrape file.")
     parser.add_argument("-j", "--threads", default=16, type=int)
-    parser.add_argument("--prelude", default=".", type=Path2)
+    parser.add_argument("--prelude", default=".", type=Path)
     parser.add_argument("--verbose", "-v", help="verbose output",
                         action='store_const', const=True, default=False)
     parser.add_argument("--progress", "-P", help="show progress of files",
                         action='store_const', const=True, default=False)
     parser.add_argument("--debug", default=False, const=True, action='store_const')
     parser.add_argument("--output", "-o", help="output data folder name",
-                        default="static-report", type=Path2)
+                        default="static-report", type=Path)
     parser.add_argument("--message", "-m", default=None)
     parser.add_argument('--context-filter', dest="context_filter", type=str,
                         default=None)
@@ -104,7 +107,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument("--num-predictions", dest="num_predictions", type=int, default=3)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
-    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path2)
+    parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path)
     args = parser.parse_args(arg_list)
 
     cur_commit = subprocess.check_output(["git show --oneline | head -n 1"],
@@ -121,11 +124,11 @@ def main(arg_list : List[str]) -> None:
         return
 
     if not args.output.exists():
-        args.output.makedirs()
+        os.makedirs(str(args.output))
 
     context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
 
-    with multiprocessing.pool.ThreadPool(args.threads) as pool:
+    with multiprocessing.Pool(args.threads) as pool:
         file_results = \
             list((stats for stats in
                   pool.imap_unordered(functools.partial(report_file, args,
@@ -153,17 +156,20 @@ def report_file(args : argparse.Namespace,
             return [], 0
         chunk_size = args.chunk_size
         total_loss = 0.
-        inputs = [strip_scraped_output(tactic_interaction)
+        inputs = [strip_scraped_output(ScrapedTactic.from_structeq(tactic_interaction))
                   for tactic_interaction in tactic_interactions]
         corrects = [tactic_interaction.tactic
                     for tactic_interaction in tactic_interactions]
         predictions: List[List[Prediction]] = []
+        print("Prepared context")
         for inputs_chunk, corrects_chunk in zip(chunks(inputs, chunk_size),
                                                 chunks(corrects, chunk_size)):
+            print("Processing chunk")
             predictions_chunk, loss = predictor.predictKTacticsWithLoss_batch(
                 inputs_chunk, args.num_predictions, corrects_chunk)
             predictions += predictions_chunk
             total_loss += loss
+            print("Done processing chunk")
         del inputs
         del corrects
         return list(zip(tactic_interactions, predictions)), \
@@ -185,14 +191,16 @@ def report_file(args : argparse.Namespace,
         extended_list: List[Optional[ScrapedCommand]] = \
             cast(List[Optional[ScrapedCommand]], list_data[1:]) + [None]
         for point, nextpoint in zip(list_data, extended_list):
-            if isinstance(point, ScrapedTactic) \
+            if isinstance(point, dataloader.ScrapedTactic) \
                and not re.match(r"\s*[{}]\s*", point.tactic) and \
-               point.context.focused_goal.strip() != "":
-                if isinstance(nextpoint, ScrapedTactic):
-                    context_after = strip_scraped_output(nextpoint)
+               len(point.context.fg_goals) > 0:
+                if isinstance(nextpoint, dataloader.ScrapedTactic):
+                    context_after = strip_scraped_output(
+                        ScrapedTactic.from_structeq(nextpoint))
                 else:
                     context_after = TacticContext([], [], [], "")
-                should_filter = not context_filter(strip_scraped_output(point),
+                should_filter = not context_filter(strip_scraped_output(
+                    ScrapedTactic.from_structeq(point)),
                                                    point.tactic,
                                                    context_after,
                                                    training_args)
@@ -201,7 +209,7 @@ def report_file(args : argparse.Namespace,
                 yield (point, True)
     try:
         scrape_path = args.prelude / filename.with_suffix(".v.scrape")
-        interactions = list(read_text_data_singlethreaded(scrape_path))
+        interactions = dataloader.scraped_from_file(str(scrape_path))
         print("Loaded {} interactions for file {}"
               .format(len(interactions), filename))
     except FileNotFoundError:
@@ -215,7 +223,7 @@ def report_file(args : argparse.Namespace,
     for idx, (interaction, should_filter) in indexed_filter_aware_interactions:
         assert isinstance(idx, int)
         if not should_filter:
-            assert isinstance(interaction, ScrapedTactic), interaction
+            assert isinstance(interaction, dataloader.ScrapedTactic), interaction
     indexed_filter_aware_prediction_contexts, indexed_filter_aware_pass_through = \
         multipartition(indexed_filter_aware_interactions,
                        lambda indexed_filter_aware_interaction:
@@ -228,11 +236,13 @@ def report_file(args : argparse.Namespace,
                             in indexed_filter_aware_pass_through]
     for idx, prediction_context in indexed_prediction_contexts:
         assert isinstance(idx, int)
-        assert isinstance(prediction_context, ScrapedTactic)
+        assert isinstance(prediction_context, dataloader.ScrapedTactic)
+    print("Got past assertion. Predicting...")
     prediction_interactions, loss = \
         make_predictions(args.num_predictions,
                          [prediction_context for idx, prediction_context
                           in indexed_prediction_contexts])
+    print("Done predicting")
     indexed_prediction_interactions = \
         [(idx, prediction_interaction)
          for (idx, prediction_context), prediction_interaction
@@ -240,12 +250,16 @@ def report_file(args : argparse.Namespace,
     interactions_with_predictions = \
         list(merge_indexed(indexed_prediction_interactions, indexed_pass_through))
 
+    print("Looping over interactions")
     for inter in interactions_with_predictions:
-        if isinstance(inter, tuple) and not isinstance(inter, ScrapedTactic):
+        print("Processing interaction")
+        if isinstance(inter, tuple) and not isinstance(inter, dataloader.ScrapedTactic):
             assert len(inter) == 2, inter
             scraped, predictions_and_certainties \
                 = inter  # cast(Tuple[ScrapedTactic, List[Prediction]], inter)
-            (relevant_lemmas, prev_tactics, context, correct_tactic) = scraped
+            (relevant_lemmas, prev_tactics, context, correct_tactic) = \
+                ScrapedTactic.from_structeq(scraped)
+            context = ProofContext.from_structeq(context)
             prediction_results = [PredictionResult(
                 prediction, grade_prediction(scraped, prediction),
                 certainty)
@@ -257,10 +271,10 @@ def report_file(args : argparse.Namespace,
                                                 prediction_results))
             stats.add_tactic(prediction_results,
                              correct_tactic)
-        elif isinstance(inter, ScrapedTactic):
+        elif isinstance(inter, dataloader.ScrapedTactic):
             command_results.append(TacticResult(inter.tactic,
-                                                inter.context.focused_hyps,
-                                                inter.context.focused_goal,
+                                                inter.context.fg_goals[0].hypotheses,
+                                                inter.context.fg_goals[0].goal,
                                                 []))
         else:
             command_results.append((inter,))
@@ -269,9 +283,12 @@ def report_file(args : argparse.Namespace,
 
     print("Finished grading file {}".format(filename))
 
+    print("Writing output")
     write_html(args.output, filename, command_results, stats)
+    print("Wrote html")
     write_csv(args.output, filename, args, command_results, stats)
-    print("Finished output for file {}".format(filename))
+    print("Finished output for file {}".format(filename), flush=True)
+
     return stats
 
 
@@ -408,24 +425,39 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
             text(title)
 
 def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult]]:
+    print("Splitting into regions")
+    results = list(results)
+    print("Forced")
     def generate() -> Iterable[List[CommandResult]]:
         in_proof = False
         cur_region : List[CommandResult]= []
+        print("Iterating over commands")
         for result in results:
+            print("Processing result")
             if isinstance(result, TacticResult):
+                print("Case 1")
                 if not in_proof:
                     if len(cur_region) > 1:
                         yield cur_region[:-1]
                     cur_region = [cur_region[-1]]
                     in_proof = True
             else:
+                print("Case 2")
+                print(result[0])
                 assert isinstance(result[0], str), result[0]
+                print("checked assert")
                 if in_proof:
+                    print("Yielding")
                     yield cur_region
+                    print("Back from yielding")
                     cur_region = []
                     in_proof = False
             cur_region.append(result)
-    return list(generate())
+            print("Done processing result")
+        print("Done processing results")
+    result = list(generate())
+    print("Generated regions")
+    return result
 
 def count_region_unfiltered(commands : List[CommandResult]):
     num_unfiltered = 0
@@ -455,6 +487,7 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
             else:
                 text(substring)
 
+    print("Generating html")
     with tag('html'):
         details_header(tag, doc, text, filename)
         with tag('div', id='overlay', onclick='event.stopPropagation();'):
@@ -465,9 +498,12 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
             with tag('div', id='stats'):
                 pass
             pass
+        print("Done with header")
         with tag('body', onclick='deselectTactic()',
                  onload='init()'), tag('pre'):
+            print("Iterating over regions")
             for region_idx, region in enumerate(split_into_regions(command_results)):
+                print("Processing region {region_idx}")
                 if len(region) > 1 and len(region[1]) == 1:
                     for cmd_idx, command_result in enumerate(region):
                         assert isinstance(command_result[0], str)
@@ -540,6 +576,7 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
                                     for grade in grades[1:]:
                                         with tag('span', klass=grade):
                                             doc.asis(" &#11044;")
+    print("Generated doc writing out")
     with (output_dir / escape_filename(str(filename))).with_suffix(".html")\
                                                       .open(mode='w') as fout:
         fout.write(doc.getvalue())
