@@ -166,15 +166,12 @@ def report_file(args : argparse.Namespace,
         corrects = [tactic_interaction.tactic
                     for tactic_interaction in tactic_interactions]
         predictions: List[List[Prediction]] = []
-        print("Prepared context")
         for inputs_chunk, corrects_chunk in zip(chunks(inputs, chunk_size),
                                                 chunks(corrects, chunk_size)):
-            print("Processing chunk")
             predictions_chunk, loss = predictor.predictKTacticsWithLoss_batch(
                 inputs_chunk, args.num_predictions, corrects_chunk)
             predictions += predictions_chunk
             total_loss += loss
-            print("Done processing chunk")
         del inputs
         del corrects
         return list(zip(tactic_interactions, predictions)), \
@@ -255,9 +252,7 @@ def report_file(args : argparse.Namespace,
     interactions_with_predictions = \
         list(merge_indexed(indexed_prediction_interactions, indexed_pass_through))
 
-    print("Looping over interactions")
     for inter in interactions_with_predictions:
-        print("Processing interaction")
         if isinstance(inter, tuple) and not isinstance(inter, dataloader.ScrapedTactic):
             assert len(inter) == 2, inter
             scraped, predictions_and_certainties \
@@ -288,9 +283,7 @@ def report_file(args : argparse.Namespace,
 
     print("Finished grading file {}".format(filename))
 
-    print("Writing output")
     write_html(args.output, filename, command_results, stats)
-    print("Wrote html")
     write_csv(args.output, filename, args, command_results, stats)
     print("Finished output for file {}".format(filename), flush=True)
 
@@ -430,38 +423,25 @@ def header(tag : Tag, doc : Doc, text : Text, css : List[str],
             text(title)
 
 def split_into_regions(results : List[CommandResult]) -> List[List[CommandResult]]:
-    print("Splitting into regions")
     results = list(results)
-    print("Forced")
     def generate() -> Iterable[List[CommandResult]]:
         in_proof = False
         cur_region : List[CommandResult]= []
-        print("Iterating over commands")
         for result in results:
-            print("Processing result")
             if isinstance(result, TacticResult):
-                print("Case 1")
                 if not in_proof:
                     if len(cur_region) > 1:
                         yield cur_region[:-1]
                     cur_region = [cur_region[-1]]
                     in_proof = True
             else:
-                print("Case 2")
-                print(result[0])
                 assert isinstance(result[0], str), result[0]
-                print("checked assert")
                 if in_proof:
-                    print("Yielding")
                     yield cur_region
-                    print("Back from yielding")
                     cur_region = []
                     in_proof = False
             cur_region.append(result)
-            print("Done processing result")
-        print("Done processing results")
     result = list(generate())
-    print("Generated regions")
     return result
 
 def count_region_unfiltered(commands : List[CommandResult]):
@@ -492,7 +472,6 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
             else:
                 text(substring)
 
-    print("Generating html")
     with tag('html'):
         details_header(tag, doc, text, filename)
         with tag('div', id='overlay', onclick='event.stopPropagation();'):
@@ -503,12 +482,9 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
             with tag('div', id='stats'):
                 pass
             pass
-        print("Done with header")
         with tag('body', onclick='deselectTactic()',
                  onload='init()'), tag('pre'):
-            print("Iterating over regions")
             for region_idx, region in enumerate(split_into_regions(command_results)):
-                print("Processing region {region_idx}")
                 if len(region) > 1 and len(region[1]) == 1:
                     for cmd_idx, command_result in enumerate(region):
                         assert isinstance(command_result[0], str)
@@ -581,7 +557,6 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
                                     for grade in grades[1:]:
                                         with tag('span', klass=grade):
                                             doc.asis(" &#11044;")
-    print("Generated doc writing out")
     with (output_dir / escape_filename(str(filename))).with_suffix(".html")\
                                                       .open(mode='w') as fout:
         fout.write(doc.getvalue())
