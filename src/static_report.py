@@ -69,7 +69,7 @@ def read_text_data_singlethreaded(data_path : Path2,
         raise
 
 def to_list_string(l : List[Any]) -> str:
-    return "% ".join([str(item) for item in l])
+    return strip_unicode("% ".join([str(item) for item in l]))
 
 class PredictionResult(NamedTuple):
     prediction : str
@@ -457,6 +457,8 @@ def count_region_unfiltered(commands : List[CommandResult]):
                 num_unfiltered += 1
     return num_unfiltered
 
+def strip_unicode(s: str) -> str:
+    return s.encode("ascii", "ignore").decode()
 def write_html(output_dir : Path2, filename : Path2, command_results : List[CommandResult],
                stats : 'ResultStats') -> None:
     def details_header(tag : Any, doc : Doc, text : Text, filename : Path2) -> None:
@@ -471,9 +473,9 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
         for substring in substrings:
             if isinstance(substring, ColoredString):
                 with tag('span', style=f'color:{substring.color}'):
-                    text(substring.contents)
+                    text(strip_unicode(substring.contents))
             else:
-                text(substring)
+                text(strip_unicode(substring))
 
     with tag('html'):
         details_header(tag, doc, text, filename)
@@ -516,8 +518,8 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
                             else:
                                 predictions, grades, certainties = [], [], []
                             with tag('span',
-                                     ('data-hyps',"\n".join(hyps)),
-                                     ('data-goal',goal),
+                                     ('data-hyps',"\n".join([strip_unicode(hyp) for hyp in hyps])),
+                                     ('data-goal',strip_unicode(goal)),
                                      ('data-num-total', str(stats.num_tactics)),
                                      ('data-predictions',
                                       to_list_string(cast(List[str], predictions))),
@@ -540,7 +542,7 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
                                       stats.actual_tactic_frequency
                                       .get(get_stem(command), 0)),
                                      ('data-actual-tactic',
-                                      strip_comments(command)),
+                                      strip_unicode(strip_comments(command))),
                                      ('data-grades',
                                       to_list_string(cast(List[str], grades))),
                                      ('data-search-idx', 0),
@@ -556,7 +558,7 @@ def write_html(output_dir : Path2, filename : Path2, command_results : List[Comm
                                         write_highlighted(command.strip("\n"))
                                 else:
                                     with tag('code', klass=grades[0]):
-                                        text(command.strip("\n"))
+                                        text(strip_unicode(command.strip("\n")))
                                     for grade in grades[1:]:
                                         with tag('span', klass=grade):
                                             doc.asis(" &#11044;")
@@ -576,12 +578,12 @@ def write_csv(output_dir : Path2, filename : Path2, args : argparse.Namespace,
         rowwriter = csv.writer(csvfile, lineterminator=os.linesep)
         for row in command_results:
             if len(row) == 1:
-                rowwriter.writerow([re.sub(r"\n", r"\\n", cast(str, row[0]))])
+                rowwriter.writerow([re.sub(r"\n", r"\\n", cast(str, strip_unicode(row[0])))])
             else:
                 # Type hack
                 command, hyps, goal, prediction_results = cast(TacticResult, row)
 
-                rowwriter.writerow([re.sub(r"\n", r"\\n", item) for item in
+                rowwriter.writerow([re.sub(r"\n", r"\\n", strip_unicode(item)) for item in
                                     [command] +
                                     hyps +
                                     [goal] +
