@@ -678,7 +678,7 @@ class FeaturesPolyargPredictor(
         assert not torch.any(torch.isnan(vec_features))
         stem_distribution = model.stem_classifier(
             word_features, vec_features)
-        stem_distribution.index_fill(1, torch.LongTensor(blacklist_stem_indices).to(self.device), -float("Inf"))
+        stem_distribution.index_fill_(1, torch.LongTensor(blacklist_stem_indices).to(self.device), -float("Inf"))
         assert not torch.any(torch.isnan(stem_distribution))
         stem_probs, stem_idxs = stem_distribution.topk(k)
         assert stem_probs.size() == torch.Size([batch_size, k])
