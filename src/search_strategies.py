@@ -985,13 +985,16 @@ def best_first_proof_search(lemma_name: str,
             postfix += ["}"] * subgoals_closed
             postfix += ["{"] * subgoals_opened
 
+            if error and not args.show_failing_predictions:
+                continue
             prediction_node = BFSNode(
                 prediction, 0, time_taken, postfix,
                 full_context_before, context_after, next_node.node)
             if error:
                 if args.count_failing_predictions:
                     num_successful_predictions += 1
-                prediction_node.setNodeColor("red")
+                if args.show_failing_predictions:
+                    prediction_node.setNodeColor("red")
                 continue
             # Check if we've gone in circles
             if contextInHistory(context_after, prediction_node):
