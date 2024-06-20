@@ -49,7 +49,7 @@ from predict_tactic import loadPredictorByFile
 from coq_serapy.contexts import TacticContext, FullContext, ProofContext, truncate_tactic_context, strip_scraped_output
 
 from models.tactic_predictor import TrainablePredictor
-
+import copy
 
 from typing import List
 import time
@@ -238,26 +238,32 @@ def get_tokens(args: List[str]):
     parser.add_argument("dest")
     arg_values = parser.parse_args(args)
 
+    print("readingscrape", flush=True)
+
     with print_time("Reading scraped data", guard=arg_values.verbose):
         raw_data = dataloader.scraped_tactics_from_file(str(arg_values.scrapefile),
                                                         arg_values.context_filter,
                                                         arg_values.max_term_length,
                                                         None)
+    print("readscrape", flush=True)
     embedding = SimpleEmbedding()
     subset = random.sample(raw_data, arg_values.num_samples)
     relevance_pairs = [(scraped.context.fg_goals[0].goal,
                         embedding.encode_token(
                             coq_serapy.get_stem(scraped.tactic)))
                        for scraped in subset]
+    print("gettingwords", flush=True)
     with print_time("Calculating keywords", guard=arg_values.verbose):
         keywords = get_relevant_k_keywords2(relevance_pairs,
                                             arg_values.num_keywords,
                                             arg_values.num_threads)
 
+    print("gotwords", flush=True)
     with (open(arg_values.dest, mode='w') if arg_values.dest != "-"
           else contextlib.nullcontext(sys.stdout)) as f:
         for keyword in keywords:
             f.write(keyword + "\n")
+    print("wrote", flush=True)
 
 def predictor_data(args: List[str], **kwargs):
     parser = argparse.ArgumentParser(description="Get correctness training data for a predictor")
@@ -275,7 +281,8 @@ def predictor_data(args: List[str], **kwargs):
     parser.add_argument("--blacklisted-tactics", default=[])
     parser.add_argument("--max-term-length", default=30, type=int)
     parser.add_argument("--weightsfile", type=str)
-    parser.add_argument("--predictor-num", type=int)
+    parser.add_argument("--part", type=int)
+    parser.add_argument("--subst", action='store_true')
     parser.add_argument("--weightsfiles",  nargs='+', type=str)
     parser.add_argument("--scrapefile", type=Path)
     parser.add_argument("--dest")
@@ -290,21 +297,35 @@ def predictor_data(args: List[str], **kwargs):
                                                         None)
     predictor_list = []
     for weightsfile in arg_values.weightsfiles:
-        temp_predictor = loadPredictorByFile(weightsfile)
-        predictor_list.append(temp_predictor)
-
-    print(predictor_list)
+       temp_predictor = loadPredictorByFile(weightsfile)
+       predictor_list.append(temp_predictor)
+    #predictor_num = arg_values.predictor_num
+    #predictor_file = arg_values.weightsfiles[predictor_num]
+    #predictor = loadPredictorByFile(predictor_file)
+    #print(predictor_list)
+    print("lines in raw data")
+    print(len(raw_data), flush=True)
+    min_i = 12770 * arg_values.part
+    max_i = 12770 * (arg_values.part + 1)
+    if arg_values.subst:
+        print("substituting!", flush=True)
 
     i = 0
     fulldest = arg_values.dest
-    predictor_num = arg_values.predictor_num
-    predictor = predictor_list[predictor_num]
+    #predictor = predictor_list[predictor_num]
+    num_lines = 0
+    num_got = 0
+    num_got_here = 0
     for line in raw_data:
-        if i < 39426:
+        if num_got_here > 0:
+            num_got = num_got + 1
+        num_lines += 1
+        if i < min_i:
             i = i + 1
-            print(str(i),flush=True)
             continue
-        time_one = time.time()
+        if i > max_i:
+            i = i + 1
+            continue
         correct_tactic = line.tactic.strip()
         correct_tactic = ' '.join(correct_tactic.split())
         relevant_lemmas =  line.relevant_lemmas
@@ -315,27 +336,42 @@ def predictor_data(args: List[str], **kwargs):
         the_context = TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
         fingoal = ' '.join(goal.split())
         data = {'goal': fingoal}
-        time_zero = time.time()
-        tactics = predictor.predictKTactics(arg_values, truncate_tactic_context(the_context, arg_values.max_term_length), arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
-        time_one = time.time()
-        print("full time")
-        print(time_one - time_zero, flush=True)
-        alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
-        predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
-        data[str(predictor_num) + '_tactics'] = alltactic
+        truncated_context = truncate_tactic_context(the_context, arg_values.max_term_length)
+        if (len(truncated_context.relevant_lemmas) > 20):
+            truncated_context.relevant_lemmas = truncated_context.relevant_lemmas[-20:]
+        #time_zero = time.time()
+        num_got_here = 0
+        correct_tactic_two = '' + correct_tactic.strip()
+        substitutions = {"auto": "eauto.", "intros until": "intros.", "intro": "intros.", "constructor": "econstructor."}
+        for keyval in substitutions.keys():
+            correct_tactic_two = correct_tactic_two.replace(keyval, substitutions[keyval])
+        if str.cmp(correct_tactic_two, correct_tactic):
+            print(correct_tactic_two, flush=True)
+            print(correct_tactic, flush=True)
+        for predictor_num in range(2):
+            predictor = predictor_list[predictor_num]
+            tactics = predictor.predictKTactics(arg_values, truncated_context, arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
+            #time_one = time.time()
+            #print("full time")
+            #print(time_one - time_zero, flush=True)
+            alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
+            predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
+            data[str(predictor_num) + '_tactics'] = alltactic
 
-        rank = 0
-        flag = False
-        for a_tactic in predicted_tactic_list:
-            if correct_tactic == a_tactic:
-                final_rank = ((10 - rank)/10)
-                flag = True
-                break
-            rank = rank + 1
-        if not flag:
-            final_rank = 0.0
-        data[str(predictor_num) + '_rank'] = final_rank
-        predictor_num = predictor_num + 1
+            rank = 0
+            flag = False
+            for a_tactic in predicted_tactic_list:
+                a_tactic = a_tactic.strip()
+                if (correct_tactic.strip() == a_tactic) or (correct_tactic_two.strip() == a_tactic):
+                    final_rank = ((10 - rank)/10)
+                    flag = True
+                    num_got_here += 1
+                    break
+                rank = rank + 1
+            if not flag:
+                final_rank = 0.0
+            data[str(predictor_num) + '_rank'] = final_rank
+        #predictor_num = predictor_num + 1
    
         data = pd.Series(data)
         #if not i == 0:
@@ -343,8 +379,13 @@ def predictor_data(args: List[str], **kwargs):
         #else:
         predictor_list_dataframe = pd.DataFrame.from_dict(data).T
         i = i + 1
-        if i > 300000:
-            break
+        if (i % 100) == 0:
+            print("What's our percentage")
+            print(num_got/i, flush=True)
+            predictor_list = []
+            for weightsfile in arg_values.weightsfiles:
+               temp_predictor = loadPredictorByFile(weightsfile)
+               predictor_list.append(temp_predictor)
         predictor_list_dataframe.to_json(fulldest, mode='a', orient='records', lines=True)
 
 modules = {
