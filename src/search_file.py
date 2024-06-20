@@ -289,9 +289,9 @@ def search_file_worker(args: argparse.Namespace,
                     next_job = jobs.get_nowait()
                 except queue.Empty:
                     return
-                solution = worker.run_job(next_job, None, restart=not args.hardfail) 
-                # Empty proof scripts set 
-                proof_scripts = {solution.to_dict()['commands'][0]} 
+                solution = worker.run_job(next_job, None, restart=not args.hardfail)
+                # Empty proof scripts set
+                proof_scripts = {solution.to_dict()['commands'][0]}
                 #hashed_proof_scripts.add(solution.to_dict()['commands'][0])
                 steps_taken = 1 # until max steps
                 while steps_taken < args.max_steps and solution.to_dict()['status'] != SearchStatus.SUCCESS:
@@ -303,14 +303,14 @@ def search_file_worker(args: argparse.Namespace,
                     curr_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
                     worker.set_predictor(curr_predictor)
                     # get solution
-                    solution = worker.run_job(next_job, script_to_continue, restart=not args.hardfail) 
-                    # add new proof script to set 
+                    solution = worker.run_job(next_job, script_to_continue, restart=not args.hardfail)
+                    # add new proof script to set
                     new_script = solution.to_dict()['commands'][0]
                     if new_script is not None:
                         proof_scripts.add(solution.to_dict()['commands'][0])
                     eprint("current proof script that I just added to:")
                     eprint(solution.to_dict()['commands'][0])
-                    # add step to steps taken 
+                    # add step to steps taken
                     steps_taken += 1
                 # add hopefully successful solution to done
                 done.put((next_job, solution))
@@ -397,7 +397,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
                                              [Path(filename) for filename in
-                                              project_dict["test_files"]])
+                                              files_of_dict(args, project_dict)])
                             + "-proofs.txt"))
             try:
                 os.remove(proofs_file)
