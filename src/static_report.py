@@ -272,10 +272,13 @@ def report_file(args : argparse.Namespace,
             stats.add_tactic(prediction_results,
                              correct_tactic)
         elif isinstance(inter, dataloader.ScrapedTactic):
-            command_results.append(TacticResult(inter.tactic,
-                                                inter.context.fg_goals[0].hypotheses,
-                                                inter.context.fg_goals[0].goal,
-                                                []))
+            if len(inter.context.fg_goals) > 0:
+                hyps = inter.context.fg_goals[0].hypotheses
+                goal = inter.context.fg_goals[0].goal
+            else:
+                hyps = []
+                goal = ""
+            command_results.append(TacticResult(inter.tactic, hyps, goal, []))
         else:
             command_results.append((inter,))
 
