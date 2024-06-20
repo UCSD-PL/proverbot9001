@@ -332,7 +332,7 @@ def remove_already_done_jobs(args: argparse.Namespace) -> None:
             proofs_file = (args.output_dir / project_dict["project_name"] /
                            (util.safe_abbrev(Path(filename),
                                              [Path(filename) for filename in
-                                              filenames])
+                                              files_of_dict(args, project_dict)])
                             + "-proofs.txt"))
             try:
                 os.remove(proofs_file)
