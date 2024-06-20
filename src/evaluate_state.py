@@ -20,42 +20,44 @@
 ##########################################################################
 
 import torch
-from models import id_evaluator
-from models import features_dnn_evaluator
-from models import goal_enc_evaluator
+import importlib
 from models.state_evaluator import StateEvaluator, TrainableEvaluator
 from pathlib_revised import Path2
 
 from typing import Dict, Type
 
-loadable_evaluators : Dict[str, Type[TrainableEvaluator]] = {
-    'features-dnn' : features_dnn_evaluator.FeaturesDNNEvaluator,
-    'eval-goal-enc' : goal_enc_evaluator.GoalEncEvaluator,
+loadable_evaluators = {
+    'features-dnn' : ("features_dnn_evaluator", "FeaturesDNNEvaluator"),
+    'eval-goal-enc' : ("goal_enc_evaluator", "GoalEncEvaluator"),
 }
 
 static_evaluators = {
-    'id' : id_evaluator.IdEvaluator
+    'id' : ("id_evaluator", "IdEvaluator")
 }
 
 trainable_modules = {
-    'eval-features-dnn' : features_dnn_evaluator.main,
-    'eval-goal-enc' : goal_enc_evaluator.main
+    'eval-features-dnn' : ("features_dnn_evaluator", "main"),
+    'eval-goal-enc' : ("goal_enc_evaluator", "main")
 }
 
 
 def loadEvaluatorByName(evaluator_type : str) -> StateEvaluator:
+    module_name, class_name = static_evaluators[evaluator_type]
+    evaluator_class = vars(importlib.import_module("models." + module_name))[class_name]
     # Silencing the type checker on this line because the "real" type
     # of the evaluators dictionary is "string to classes constructors
     # that derive from EvaluatorPredictor, but are not state
     # evaluator". But I don't know how to specify that.
-    return static_evaluators[evaluator_type]() # type: ignore
+    return evaluator_class() # type: ignore
 
 def loadEvaluatorByFile(filename : Path2) -> StateEvaluator:
     evaluator_type, saved_state = torch.load(str(filename), map_location='cpu')
+    module_name, class_name = loadable_evaluators[evaluator_type]
+    evaluator_class = vars(importlib.import_module("models." + module_name))[class_name]
+    evaluator = evaluator_class()
+    evaluator.load_saved_state(*saved_state)
     # Silencing the type checker on this line because the "real" type
     # of the predictors dictionary is "string to classes constructors
     # that derive from TacticPredictor, but are not tactic
     # predictor". But I don't know how to specify that.
-    evaluator = loadable_evaluators[evaluator_type]() # type: ignore
-    evaluator.load_saved_state(*saved_state)
-    return evaluator
+    return evaluator # type: ignore
