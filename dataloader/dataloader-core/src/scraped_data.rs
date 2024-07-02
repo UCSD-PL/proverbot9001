@@ -19,15 +19,14 @@
 //
 /* *********************************************************************** */
 
-use crate::tokenizer::{get_symbols, get_words};
-use core::cmp::{Eq, Ord, Ordering, PartialEq, PartialOrd};
+use crate::tokenizer::get_words;
 use pyo3::prelude::*;
 use pyo3::ToPyObject;
 use serde::{Deserialize, Serialize};
 use serde_json;
 use std::collections::HashMap;
 use std::fs::File;
-use std::io::{BufRead, BufReader, Result, Write};
+use std::io::{BufRead, BufReader, Result};
 use std::iter;
 
 use crate::paren_util::*;
@@ -216,31 +215,31 @@ impl ToPyObject for ScrapedData {
     }
 }
 
-pub struct AdjacentPairs<I, T>
-where
-    I: Iterator<Item = T>,
-    T: Clone,
-{
-    pk: iter::Peekable<I>,
-}
-impl<I, T> AdjacentPairs<I, T>
-where
-    I: Iterator<Item = T>,
-    T: Clone,
-{
-    fn new(it: I) -> Self {
-        AdjacentPairs { pk: it.peekable() }
-    }
-}
-impl<I: Iterator<Item = T>, T: Clone> Iterator for AdjacentPairs<I, T> {
-    type Item = (I::Item, Option<I::Item>);
-    fn next(&mut self) -> Option<(I::Item, Option<I::Item>)> {
-        match self.pk.next() {
-            Some(v) => Some((v, self.pk.peek().cloned())),
-            None => None,
-        }
-    }
-}
+// pub struct AdjacentPairs<I, T>
+// where
+//     I: Iterator<Item = T>,
+//     T: Clone,
+// {
+//     pk: iter::Peekable<I>,
+// }
+// impl<I, T> AdjacentPairs<I, T>
+// where
+//     I: Iterator<Item = T>,
+//     T: Clone,
+// {
+//     fn new(it: I) -> Self {
+//         AdjacentPairs { pk: it.peekable() }
+//     }
+// }
+// impl<I: Iterator<Item = T>, T: Clone> Iterator for AdjacentPairs<I, T> {
+//     type Item = (I::Item, Option<I::Item>);
+//     fn next(&mut self) -> Option<(I::Item, Option<I::Item>)> {
+//         match self.pk.next() {
+//             Some(v) => Some((v, self.pk.peek().cloned())),
+//             None => None,
+//         }
+//     }
+// }
 
 pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> {
     BufReader::new(file).lines().map(|line: Result<String>| {
@@ -258,28 +257,28 @@ pub fn scraped_from_file(file: File) -> impl iter::Iterator<Item = ScrapedData> 
     })
 }
 
-pub fn scraped_to_file(mut file: File, scraped: impl iter::Iterator<Item = ScrapedData>) {
-    for point in scraped {
-        match point {
-            ScrapedData::Vernac(VernacCommand { command: cmd }) => {
-                writeln!(&mut file, "\"{}\"", cmd).unwrap()
-            }
-            ScrapedData::Tactic(tac) => {
-                serde_json::to_writer(
-                    &mut file,
-                    &serde_json::json!({
-                    "prev_tactics": tac.prev_tactics,
-                    "prev_hyps": tac.context.focused_hyps(),
-                    "prev_goal": tac.context.focused_goal(),
-                    "relevant_lemmas": tac.relevant_lemmas,
-                    "tactic": tac.tactic}),
-                )
-                .unwrap();
-                writeln!(&mut file, "").unwrap();
-            }
-        }
-    }
-}
+// pub fn scraped_to_file(mut file: File, scraped: impl iter::Iterator<Item = ScrapedData>) {
+//     for point in scraped {
+//         match point {
+//             ScrapedData::Vernac(VernacCommand { command: cmd }) => {
+//                 writeln!(&mut file, "\"{}\"", cmd).unwrap()
+//             }
+//             ScrapedData::Tactic(tac) => {
+//                 serde_json::to_writer(
+//                     &mut file,
+//                     &serde_json::json!({
+//                     "prev_tactics": tac.prev_tactics,
+//                     "prev_hyps": tac.context.focused_hyps(),
+//                     "prev_goal": tac.context.focused_goal(),
+//                     "relevant_lemmas": tac.relevant_lemmas,
+//                     "tactic": tac.tactic}),
+//                 )
+//                 .unwrap();
+//                 writeln!(&mut file, "").unwrap();
+//             }
+//         }
+//     }
+// }
 
 pub fn kill_comments(source: &str) -> String {
     let mut result = String::new();

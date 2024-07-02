@@ -7,8 +7,7 @@ use rayon::prelude::*;
 use regex::Regex;
 use serde::{Deserialize, Serialize};
 use std::fs::File;
-use std::io::{Write, stdout};
-use indicatif::{ProgressBar, ProgressIterator, ParallelProgressIterator, ProgressStyle, ProgressFinish};
+use indicatif::{ProgressBar, ParallelProgressIterator, ProgressStyle, ProgressFinish};
 
 use crate::context_filter::{parse_filter, apply_filter};
 use crate::features::PickleableTokenMap as PickleableFeaturesTokenMap;
@@ -212,7 +211,7 @@ pub fn features_polyarg_tensors_rs(
         .zip(selected_prems)
         .map(|(scraped, selected)| {
             score_hyps(
-                &selected.iter().map(|hyp| hyp.clone().clone()).collect(),
+                &selected.iter().map(|hyp| (*hyp).clone()).collect(),
                 &scraped.context.focused_goal(),
             )
             .iter()
