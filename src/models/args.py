@@ -31,7 +31,6 @@ from torch import optim
 optimizers = {
     "SGD": optim.SGD,
     "Adam": optim.Adam,
-    "RMSprop": optim.RMSprop 
 }
 def add_std_args(parser : argparse.ArgumentParser,
                  default_values : Dict[str, Any] = {}) -> None:

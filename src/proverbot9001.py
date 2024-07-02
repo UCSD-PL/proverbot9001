@@ -317,9 +317,6 @@ def predictor_data(args: List[str], **kwargs):
     num_got = 0
     num_got_here = 0
     for line in raw_data:
-        if num_got_here > 0:
-            num_got = num_got + 1
-        num_lines += 1
         if i < min_i:
             i = i + 1
             continue
@@ -344,10 +341,10 @@ def predictor_data(args: List[str], **kwargs):
         correct_tactic_two = '' + correct_tactic.strip()
         substitutions = {"auto": "eauto.", "intros until": "intros.", "intro": "intros.", "constructor": "econstructor."}
         for keyval in substitutions.keys():
-            correct_tactic_two = correct_tactic_two.replace(keyval, substitutions[keyval])
-        if str.cmp(correct_tactic_two, correct_tactic):
-            print(correct_tactic_two, flush=True)
-            print(correct_tactic, flush=True)
+            correct_tactic_two = correct_tactic_two.replace(keyval, substitutions[keyval]).strip()
+        #if correct_tactic_two != correct_tactic:
+        #    print(correct_tactic_two, flush=True)
+        #    print(correct_tactic, flush=True)
         for predictor_num in range(2):
             predictor = predictor_list[predictor_num]
             tactics = predictor.predictKTactics(arg_values, truncated_context, arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
@@ -362,16 +359,41 @@ def predictor_data(args: List[str], **kwargs):
             flag = False
             for a_tactic in predicted_tactic_list:
                 a_tactic = a_tactic.strip()
-                if (correct_tactic.strip() == a_tactic) or (correct_tactic_two.strip() == a_tactic):
-                    final_rank = ((10 - rank)/10)
-                    flag = True
-                    num_got_here += 1
-                    break
+                a_tactic_two = '' + a_tactic.strip()
+                substitutions = {"auto": "eauto.", "intros until": "intros.", "intro": "intros.", "constructor": "econstructor."}
+                for keyval in substitutions.keys():
+                    a_tactic_two = a_tactic_two.replace(keyval, substitutions[keyval]).strip()
+                if arg_values.subst: 
+                    if (correct_tactic == a_tactic):
+                        final_rank = ((10 - rank)/10)
+                        flag = True
+                        num_got_here += 1
+                        break
+                    if (correct_tactic_two == a_tactic):
+                        print("AAAHH",flush=True)
+                        final_rank = ((10 - rank)/10)
+                        flag = True
+                        num_got_here += 1
+                        break
+                    if (correct_tactic_two == a_tactic_two):
+                        print("AAAHH",flush=True)
+                        final_rank = ((10 - rank)/10)
+                        flag = True
+                        num_got_here += 1
+                        break
+                else: 
+                    if (correct_tactic == a_tactic):
+                        final_rank = ((10 - rank)/10)
+                        flag = True
+                        num_got_here += 1
+                        break
                 rank = rank + 1
             if not flag:
                 final_rank = 0.0
             data[str(predictor_num) + '_rank'] = final_rank
         #predictor_num = predictor_num + 1
+        if num_got_here > 0:
+            num_got = num_got + 1
    
         data = pd.Series(data)
         #if not i == 0:
@@ -380,6 +402,7 @@ def predictor_data(args: List[str], **kwargs):
         predictor_list_dataframe = pd.DataFrame.from_dict(data).T
         i = i + 1
         if (i % 100) == 0:
+            print(i, flush=True)
             print("What's our percentage")
             print(num_got/i, flush=True)
             predictor_list = []

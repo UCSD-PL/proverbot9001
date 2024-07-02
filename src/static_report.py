@@ -12,6 +12,7 @@ import itertools
 import functools
 import io
 import math
+import multiprocessing.pool
 
 from typing import (Any, Union, Optional, Tuple, List, Sequence,
                     Counter, Callable, NamedTuple, Iterable,
@@ -35,6 +36,7 @@ from coq_serapy.contexts import (read_tuple, ScrapedTactic,
 from syntax import syntax_highlight, strip_comments, ColoredString
 from util import multipartition, chunks, stringified_percent, escape_filename
 import dataloader
+import shutil
 
 Tag = Callable[..., Doc.Tag]
 Text = Callable[..., None]
@@ -104,7 +106,7 @@ def main(arg_list : List[str]) -> None:
     parser.add_argument('--weightsfile', default=None)
     parser.add_argument('--predictor', choices=list(static_predictors.keys()),
                         default=None)
-    parser.add_argument("--num-predictions", dest="num_predictions", type=int, default=3)
+    parser.add_argument("--num-predictions", dest="num_predictions", type=int, default=10)
     parser.add_argument('--skip-nochange-tac', default=False, const=True, action='store_const',
                         dest='skip_nochange_tac')
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)", type=Path)
@@ -127,6 +129,7 @@ def main(arg_list : List[str]) -> None:
         os.makedirs(str(args.output))
 
     context_filter = args.context_filter or dict(predictor.getOptions())["context_filter"]
+    #context_filter = "(goal-args+((tactic:induction+tactic:destruct)%numeric-args)+hyp-args+rel-lemma-args)%maxargs:1%default"
 
     assert predictor.training_args
 
@@ -217,11 +220,14 @@ def report_file(args : argparse.Namespace,
     except FileNotFoundError:
         print("Couldn't find file {}, skipping...".format(scrape_path))
         return None
+    print("context filter string")
+    print(context_filter_str,flush=True)
     context_filter = get_context_filter(context_filter_str)
 
     command_results: List[CommandResult] = []
     stats = ResultStats(str(filename))
     indexed_filter_aware_interactions = list(enumerate(get_should_filter(interactions)))
+    should_filter=False
     for idx, (interaction, should_filter) in indexed_filter_aware_interactions:
         assert isinstance(idx, int)
         if not should_filter:
@@ -263,7 +269,7 @@ def report_file(args : argparse.Namespace,
             prediction_results = [PredictionResult(
                 prediction, grade_prediction(scraped, prediction),
                 certainty)
-                                  for prediction, certainty in
+                                  for prediction, certainty, certaintynosoftmax in
                                   predictions_and_certainties]
             command_results.append(TacticResult(correct_tactic,
                                                 context.focused_hyps,
@@ -406,9 +412,9 @@ def write_summary(args : argparse.Namespace, options : Sequence[Tuple[str, str]]
                                                    combined_stats.num_tactics))
                     line('td', "{:10.2f}".format(avg_loss))
 
-    base = Path2(os.path.dirname(os.path.abspath(__file__)))
+    base = Path(os.path.dirname(os.path.abspath(__file__)))
     for filename in extra_files:
-        (base.parent / "reports" / filename).copyfile(args.output / filename)
+        shutil.copyfile(base.parent / "reports" / filename, args.output / filename)
 
     with open("{}/report.html".format(args.output), "w") as fout:
         fout.write(doc.getvalue())

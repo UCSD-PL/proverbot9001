@@ -6,9 +6,10 @@ import multiprocessing
 
 from pathlib import Path
 
-from search_worker import get_files_jobs
-from util import FileLock
+from search_worker import get_file_jobs
+from util import FileLock, eprint
 
+from collections import OrderedDict
 from typing import List, cast, Tuple
 
 def main(arg_list: List[str]) -> None:
@@ -51,9 +52,9 @@ def run_worker(args: argparse.Namespace) -> None:
                 print(json.dumps(next_proj_file), file=f, flush=True)
             else:
                 break
-        jobs = get_files_jobs(args, [next_proj_file])
+        jobs = list(OrderedDict.fromkeys(get_file_jobs(args, next_proj_file[0], next_proj_file[1])))
         with (args.output_dir / args.jobs_file).open('a') as f, FileLock(f):
-            for job in list(dict.fromkeys(jobs)):
+            for job in jobs:
                 print(json.dumps(job), file=f, flush=True)
         with (args.output_dir / args.proj_files_scanned_file).open('a') as f, FileLock(f):
             print(json.dumps(next_proj_file), file=f, flush=True)

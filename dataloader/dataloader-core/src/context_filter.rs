@@ -79,12 +79,15 @@ pub fn apply_filter(
             .iter()
             .any(|subfilter| apply_filter(max_term_length, subfilter, scraped)),
         ContextFilterAST::None => false,
-        ContextFilterAST::All => true,
+        ContextFilterAST::All => false,
         ContextFilterAST::GoalArgs => {
             let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
                 .into_iter()
                 .take(max_term_length)
                 .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let (tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
@@ -107,6 +110,13 @@ pub fn apply_filter(
             })
         }
         ContextFilterAST::HypArgs => {
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(max_term_length)
+                .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let hyp_names: Vec<String> =
                 indexed_premises(scraped.context.focused_hyps().iter().map(|s| s.as_ref()))
                     .into_iter()
@@ -135,6 +145,13 @@ pub fn apply_filter(
             result
         }
         ContextFilterAST::RelevantLemmaArgs => {
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(max_term_length)
+                .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let lemma_names: Vec<_> =
                 indexed_premises(scraped.relevant_lemmas.iter().map(|s| s.as_ref()))
                     .into_iter()
@@ -159,6 +176,13 @@ pub fn apply_filter(
             result
         }
         ContextFilterAST::NumericArgs => {
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(max_term_length)
+                .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
@@ -170,6 +194,13 @@ pub fn apply_filter(
         }
         ContextFilterAST::NoSemis => !scraped.tactic.contains(";"),
         ContextFilterAST::Tactic(s) => {
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(max_term_length)
+                .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let (tactic_stem, _tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
@@ -177,6 +208,13 @@ pub fn apply_filter(
             tactic_stem == *s
         }
         ContextFilterAST::MaxArgs(num) => {
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(max_term_length)
+                .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let (_tactic_stem, tactic_argstr) = match split_tactic(&scraped.tactic) {
                 None => return false,
                 Some(x) => x,
@@ -189,6 +227,13 @@ pub fn apply_filter(
                 <= *num
         }
         ContextFilterAST::Default => {
+            let goal_symbols: Vec<&str> = get_words(&scraped.context.focused_goal())
+                .into_iter()
+                .take(max_term_length)
+                .collect();
+            if  (goal_symbols.len() > 0) && (goal_symbols[0] == "not") {
+                return false;
+            }
             let tactic = kill_comments(&scraped.tactic);
             lazy_static! {
                 static ref BACKGROUND_TAC: Regex = Regex::new(r"^\d+:.*").unwrap();

@@ -153,7 +153,6 @@ def main(args_list : List[str]) -> None:
 optimizers = {
     "SGD": optim.SGD,
     "Adam": optim.Adam,
-    "RMSprop": optim.RMSprop
 }
 
 def train(dataset, learning_rate : float, num_epochs : int,

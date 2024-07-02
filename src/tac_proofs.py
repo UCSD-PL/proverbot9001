@@ -32,6 +32,7 @@ from tqdm import tqdm
 from util import stringified_percent
 
 import coq_serapy
+from search_worker import unique_lemma_stmt_and_name
 
 
 def main() -> None:
@@ -86,7 +87,7 @@ def count_proofs(args: argparse.Namespace, filename: str) \
             in_proof = True
             proof_matches = True
         elif in_proof and coq_serapy.possibly_starting_proof(command):
-            lemma_name = coq_serapy.lemma_name_from_statement(command)
+            lemma_name = unique_lemma_stmt_and_name(command)
             in_proof = False
             if not lemma_name:
                 continue

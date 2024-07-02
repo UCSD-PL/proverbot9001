@@ -133,7 +133,6 @@ class DNNClassPredictor(TacticPredictor):
 optimizers = {
     "SGD": optim.SGD,
     "Adam": optim.Adam,
-    "RMSprop": optim.RMSprop
 }
 
 Checkpoint = Tuple[Dict[Any, Any], float]

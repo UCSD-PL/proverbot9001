@@ -50,18 +50,23 @@ def add_proof_using_with_running_instance(coq: coq_serapy.CoqAgent, commands: It
             assert isinstance(coq.backend, coq_serapy.CoqSeraPyInstance)
             if cmd.strip() == "Qed." and coq.backend.feedback_string.strip() != "":
                 suggestion_match = re.match(
-                    r"\n?The proof of ([^ \n]+)(?: |\n)"
+                    r".*\n?The proof of ([^ \n]+)(?: |\n)"
                     r"should start with one of the following commands:"
-                    r"(?: |\n)(Proof using[^.]+\.)",
-                    coq.backend.feedback_string)
-                suggested_command = unwrap(suggestion_match).group(2) + "\n"
-                if cur_proof_commands[0].strip() == "Proof.":
-                    cur_proof_commands[0] = suggested_command
-                else:
-                    # If there's a Proof command with extra annotations,
-                    # just leave the original.
-                    if not re.match(r"Proof\s+[^.]+\.", cur_proof_commands[0].strip()):
-                        cur_proof_commands.insert(0, suggested_command)
+                    r"(?: |\n)Proof using\s*([^.]+)\.",
+                    coq.backend.feedback_string, re.DOTALL)
+                if suggestion_match is not None:
+                    suggested_deps = unwrap(suggestion_match).group(2)
+                    if suggested_deps.strip() == "":
+                        suggested_deps = "Type"
+                    proof_cmd_match = re.match(r"Proof(\s*[^.]*)\.",
+                                               cur_proof_commands[0].strip())
+                    if proof_cmd_match:
+                        proof_cmd_suffix = proof_cmd_match.group(1)
+                        if len(suggested_deps.strip().split()) > 1 and proof_cmd_suffix.strip() != "":
+                            suggested_deps = "(" + suggested_deps + ")"
+                        cur_proof_commands[0] = "Proof using " + suggested_deps + proof_cmd_suffix + ".\n"
+                    else:
+                        cur_proof_commands.insert(0, "Proof using " + suggested_deps + ".\n")
 
             yield from cur_proof_commands
             cur_proof_commands = []

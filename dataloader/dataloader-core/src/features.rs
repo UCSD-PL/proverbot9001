@@ -211,6 +211,9 @@ impl TokenMap {
             (self.hyp_token_to_index.len() + 1) as i64,
         ]
     }
+    pub fn prev_tactic_vocab_size(&self) -> i64 {
+        return (self.tactic_to_index.len() + 1) as i64
+    }
 
     pub fn to_dicts(&self) -> PickleableTokenMap {
         (

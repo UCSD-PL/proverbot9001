@@ -51,6 +51,7 @@ from models.tactic_predictor import TacticPredictor
 
 import multi_project_report
 
+
 index_css = ["report.css"]
 index_js = ["report.js"]
 extra_files = index_css + index_js + ["logo.png"]

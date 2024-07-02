@@ -46,6 +46,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--ignore-lin-hash", action='store_true')
     parser.add_argument("--just-print-jobs", action='store_true', help="Just print the jobs you *would* do, then exit")
     parser.add_argument("--data-partition", choices=["test", "train"], default="train")
+    parser.add_argument("--no-filter", dest="filter", action='store_false')
     proofsGroup = parser.add_mutually_exclusive_group()
     proofsGroup.add_argument("--proof", default=None)
     proofsGroup.add_argument("--proofs-file", default=None)
@@ -53,8 +54,11 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("-p", "--num-predictions", default=16, type=int)
     parser.add_argument("json_project_file", type=Path)
 
+ProofSpec = Tuple[str, str, str, str]
+
 @dataclass(eq=True, unsafe_hash=True)
 class RLTask:
+    project: str
     src_file: Path
     module_prefix: str
     proof_statement: str
@@ -62,9 +66,11 @@ class RLTask:
     largest_prediction_idx: int
     _tactic_prefix: Sequence[str]
     _orig_solution: Sequence[str]
-    def __init__(self, src_file: Path, module_prefix: str, proof_statement: str,
+    def __init__(self, project: str,
+                 src_file: Path, module_prefix: str, proof_statement: str,
                  target_length: int, largest_prediction_idx: int,
                  tactic_prefix: List[str], orig_solution: List[str]) -> None:
+        self.project = project
         self.src_file = src_file
         self.module_prefix = module_prefix
         self.proof_statement = proof_statement
@@ -73,7 +79,8 @@ class RLTask:
         self.target_length = target_length
         self.largest_prediction_idx = largest_prediction_idx
     def as_dict(self) -> Dict[str, Any]:
-        return {"src_file": self.src_file,
+        return {"project": self.project,
+                "src_file": self.src_file,
                 "module_prefix": self.module_prefix,
                 "proof_statement": self.proof_statement,
                 "tactic_prefix": self.tactic_prefix,
@@ -81,12 +88,12 @@ class RLTask:
                 "target_length": self.target_length,
                 "largest_prediction_idx": self.largest_prediction_idx}
     def to_job(self) -> ReportJob:
-        return ReportJob(".", self.src_file, self.module_prefix, self.proof_statement)
+        return ReportJob(self.project, self.src_file, self.module_prefix, self.proof_statement)
     @classmethod
     def from_job(cls, job: ReportJob) -> 'RLTask':
-        return RLTask(job.filename, job.module_prefix, job.lemma_statment, [], [], -1, -1)
-    def to_proof_spec(self) -> Tuple[str, str, str]:
-        return self.src_file, self.module_prefix, self.proof_statement
+        return RLTask(job.project_dir, job.filename, job.module_prefix, job.lemma_statement, -1, -1, [], [])
+    def to_proof_spec(self) -> ProofSpec:
+        return self.project, self.src_file, self.module_prefix, self.proof_statement
     @property
     def tactic_prefix(self) -> List[str]:
         return list(self._tactic_prefix)
@@ -101,17 +108,30 @@ def get_job_interactions(args: argparse.Namespace, job: ReportJob) -> List[Scrap
     sm_stack = coq_serapy.initial_sm_stack(job.filename)
     in_proof = False
     job_interactions = []
+    obl_num = 0
+    last_program_statement = ""
     for interaction in file_interactions:
         if isinstance(interaction, str):
             eprint(f"Processing {interaction}", guard=args.verbosity > 1)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, interaction)
             sm_prefix = coq_serapy.sm_prefix_from_stack(sm_stack)
+            if re.match(r"\s*Next\s+Obligation\s*\.\s*",
+                        coq_serapy.kill_comments(interaction).strip()):
+                assert last_program_statement != ""
+                unique_interaction = f"{last_program_statement} Obligation {obl_num}."
+                obl_num += 1
+            else:
+                unique_interaction = interaction
             if coq_serapy.kill_comments(job.lemma_statement).strip() == \
-               coq_serapy.kill_comments(interaction).strip() and \
+               coq_serapy.kill_comments(unique_interaction).strip() and \
                sm_prefix == job.module_prefix:
                 in_proof = True
+            if re.match(r"\s*(?:(?:Local|Global)\s+)?Program\s+.*",
+                        coq_serapy.kill_comments(interaction).strip(), re.DOTALL):
+                last_program_statement = interaction
+                obl_num = 0
         elif in_proof:
-            eprint(f"Processing {interaction.tactic}", guard=args.verbosity > 1)
+            eprint(f"Processing tactic {interaction.tactic}", guard=args.verbosity > 1)
             if re.match(r"[\{\}\+\-\*]+", coq_serapy.kill_comments(interaction.tactic).strip()) :
                 continue
             job_interactions.append(ScrapedTactic.from_structeq(interaction))
@@ -131,7 +151,7 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
 
     if jobs_done_output.exists() and args.resume:
         with jobs_done_output.open('r') as f:
-            jobs_already_done = [ReportJob(*json.loads(line)) for line in f]
+            jobs_already_done = [ReportJob(**json.loads(line)) for line in f]
     else:
         with jobs_done_output.open('w') as f:
             pass
@@ -142,11 +162,10 @@ def gen_rl_tasks(args: argparse.Namespace) -> None:
     for job in tqdm(all_jobs,desc="Creating tasks"):
         if job in jobs_already_done and args.resume:
             continue
-        if "Program" in coq_serapy.kill_comments(job.lemma_statement) :
-            continue
         if args.verbosity > 0:
             eprint(f"Running job {job}")
         tasks = get_job_tasks(args, predictor, job)
+        assert len(tasks) > 0, "Job has no tasks!" + str(job)
         with partial_output.open('a') as f:
             for task in tasks:
                 print(json.dumps(task.as_dict()), file=f)
@@ -160,6 +179,13 @@ def get_job_tasks(args: argparse.Namespace, predictor: TacticPredictor,
                   job: ReportJob) -> List[RLTask]:
     commands = get_job_interactions(args, job)
     normalized = normalize_proof_interactions(commands, args.verbosity)
+    if len(normalized) == 0 : #Can happen when there is all: tac. in which case there's no hope
+        if args.filter:
+            return []
+        else:
+            return [RLTask(job.project_dir, job.filename, job.module_prefix,
+                           job.lemma_statement, len(commands), float("Inf"),
+                           [], [cmd.tactic for cmd in commands])]
     tasks = gen_rl_obl_tasks_job(args, predictor, normalized, job)
     return tasks
 
@@ -198,7 +224,7 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
     output_interactions: List[ScrapedTactic] = []
     num_subgoals_stack: List[int] = [1]
     previous_num_subgoals: int = 1
-    for interaction in interactions:
+    for interaction_idx,interaction in enumerate(interactions):
         if verbosity > 1:
             coq_serapy.summarizeContext(interaction.context)
             eprint(interaction.tactic)
@@ -212,17 +238,20 @@ def normalize_proof_interactions(interactions: List[ScrapedTactic],
                               interaction.context,
                               "{"))
         if subgoals_created_by_last_tac < 0:
+            if re.match("\s*all\s*:|\s*(\d\s*,?\s*)+\s*:|\s*Focus(\s+\d+)?\s*\.|\s*\d\-\d:", coq_serapy.kill_comments(interactions[interaction_idx - 1].tactic) ) :
+                return []
             assert subgoals_created_by_last_tac == -1, \
                 "Shouldn't be able to close more than one subgoal at a time. " \
                 f"Num subgoals before: {previous_num_subgoals}, "\
                 f"num subgoals after: {len(interaction.context.all_goals)}"
             num_subgoals_stack[-1] -= 1
-            output_interactions.append(
-                ScrapedTactic(
-                    interaction.relevant_lemmas,
-                    interaction.prev_tactics,
-                    interaction.context,
-                "}"))
+            if len(num_subgoals_stack) > 1:
+                output_interactions.append(
+                    ScrapedTactic(
+                        interaction.relevant_lemmas,
+                        interaction.prev_tactics,
+                        interaction.context,
+                    "}"))
             while len(num_subgoals_stack) > 1 and num_subgoals_stack[-1] == 0:
                 num_subgoals_stack.pop()
                 num_subgoals_stack[-1] -= 1
@@ -312,15 +341,25 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
 
     annotated_cmds = annotate_cmds_in_pred(args, predictor, normalized_scrape)
     annotated_obls = obls_from_solution(annotated_cmds)
-
     tasks = []
 
+    # Check for proofs that just use a term.
+    if len(annotated_obls) == 1 and len(annotated_obls[0].tactic_contents) == 0:
+        if args.filter:
+            return []
+        else:
+            return [RLTask(job.project_dir, job.filename, job.module_prefix,
+                    job.lemma_statement, 1, float("Inf"), [],
+                    [normalized_scrape[0].tactic])]
     for aobl in annotated_obls:
         largest_prediction_rank = 0
         for cmd_idx, (cmd, prediction_rank) in \
                 reversed(list(enumerate(aobl.tactic_contents))):
             if prediction_rank is None:
-                break
+                if args.filter:
+                    break
+                else:
+                    prediction_rank = float("Inf")
             largest_prediction_rank = max(largest_prediction_rank, prediction_rank)
             if cmd in ["{", "}"]:
                 continue
@@ -332,9 +371,10 @@ def gen_rl_obl_tasks_job(args: argparse.Namespace, predictor: TacticPredictor,
             if len([tac for tac in task_solution if tac == "{"]) != \
                len([tac for tac in task_solution if tac == "}"]):
                 continue
-            tasks.append(RLTask(job.filename, job.module_prefix, job.lemma_statement,
-                                task_prefix, task_solution, sol_tac_length,
-                                largest_prediction_rank))
+            tasks.append(RLTask(job.project_dir, job.filename, job.module_prefix,
+                                job.lemma_statement, sol_tac_length,
+                                largest_prediction_rank, task_prefix,
+                                task_solution))
     return tasks
 
 if __name__ == "__main__":

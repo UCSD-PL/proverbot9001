@@ -38,7 +38,7 @@ def multi_project_index(report_dir: str) -> None:
     write_html(report_dir, total_theorems, total_success, project_stats)
     base = Path(os.path.abspath(__file__)).parent.parent / "reports"
     for filename in extra_files:
-        shutil.copyfile(base / filename, report_dir / filename)
+        shutil.copyfile(base / filename, Path(report_dir) / filename)
 
 def get_stats(project_dir: str) -> Tuple[int, int]:
     with open(os.path.join(project_dir, "index.html")) as f:
@@ -65,7 +65,7 @@ def write_html(output_dir: str, total_theorems: int, total_success:int,
                      ('id', 'logo')):
                 pass
             with tag('h2'):
-                text("Proofs completed: {}% ({}/{})"
+                text("Proofs Completed: {}% ({}/{})"
                      .format(stringified_percent(total_success, total_theorems),
                              total_success, total_theorems))
             with tag('table'):

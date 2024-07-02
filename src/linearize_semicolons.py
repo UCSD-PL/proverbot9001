@@ -1,4 +1,4 @@
-#!/usr/bin/env python3.7
+#!/usr/bin/env python3
 ##########################################################################
 #
 #    This file is part of Proverbot9001.
@@ -531,7 +531,7 @@ def preprocess_file_commands(args: argparse.Namespace, file_idx: int,
                     prelude) as coq:
                 coq.verbose = args.verbose
                 coq.quiet = True
-                with tqdm(file=sys.stdout,
+                with tqdm(file=sys.stderr,
                           disable=not args.progress,
                           position=(file_idx * 2),
                           desc="Linearizing", leave=False,
@@ -617,19 +617,23 @@ def try_load_lin(args: argparse.Namespace, file_idx: int, filename: str) \
         ignore_lin_hash = args.ignore_lin_hash
     except AttributeError:
         ignore_lin_hash = False
-
-    with lin_path.open(mode='r') as f:
+    text_encoding = vars(args).get('text_encoding', 'utf-8')
+    with lin_path.open(mode='r', encoding=text_encoding) as f:
         first_line = f.readline().strip()
-        if ignore_lin_hash or hash_file(filename) == first_line:
-            return serapi_instance.read_commands(f.read())
-        else:
-            return None
+        hash_str = first_line[3:-3]
+        if ignore_lin_hash or hash_file(filename) == hash_str:
+            contents = f.read()
+            num_lines = len(contents.split("\n"))
+            eprint(f"Parsing file with {num_lines} lines")
+            commands = serapi_instance.read_commands(contents)
+            return commands
+        return None
 
 
 def save_lin(commands: List[str], filename: str, text_encoding: str) -> None:
     output_file = filename + '.lin'
     with open(output_file, 'w', encoding=text_encoding) as f:
-        print(hash_file(filename), file=f)
+        print(f"(* {hash_file(filename)} *)", file=f)
         for command in commands:
             print(command, file=f)
 
@@ -648,6 +652,7 @@ def main():
     parser.add_argument("--linearizer-timeout",
                         type=int, default=(60 * 60 * 2))
     parser.add_argument("--text-encoding", default='utf-8', type=str)
+    parser.add_argument("--resume", action="store_true")
     parser.add_argument('filenames', nargs="+", help="proof file name (*.v)")
     arg_values = parser.parse_args()
 
@@ -655,10 +660,14 @@ def main():
 
     for filename in arg_values.filenames:
         if arg_values.verbose:
-            eprint("Linearizing {}".format(filename))
+            eprint(f"Linearizing {filename}")
         local_filename = arg_values.prelude + "/" + filename
+        if arg_values.resume:
+            cmds = try_load_lin(arg_values, 0, local_filename)
+            if cmds is not None:
+                return
         original_commands = serapi_instance.load_commands_preserve(
-            arg_values, 0, arg_values.prelude + "/" + filename)
+            arg_values, 0, local_filename)
         try:
             fresh_commands = preprocess_file_commands(
                 arg_values, 0, original_commands,

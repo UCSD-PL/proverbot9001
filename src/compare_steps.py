@@ -4,6 +4,7 @@ import argparse
 import os.path
 import json
 import csv
+import os
 from glob import glob
 from pathlib import Path
 
@@ -15,9 +16,13 @@ def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("reporta")
     parser.add_argument("reportb")
+    parser.add_argument("--print-same-steps", action='store_true')
+    parser.add_argument("--print-same-length", action='store_true')
     parser.add_argument("--print-a-shorter", action='store_true')
+    parser.add_argument("--print-a-faster", action='store_true')
     parser.add_argument("--print-a-only", action="store_true")
     parser.add_argument("--print-b-shorter", action='store_true')
+    parser.add_argument("--print-b-faster", action='store_true')
     parser.add_argument("--print-b-only", action="store_true")
     parser.add_argument("--full-csv", default=None)
     parser.add_argument("--a-name", default="Report A")
@@ -29,14 +34,15 @@ def main() -> None:
 def compare_steps(args: argparse.Namespace):
 
     a_succ_steps = 0
-    a_shorter = 0
+    a_fewer_steps= 0
     b_succ_steps = 0
-    b_shorter = 0
+    b_fewer_steps= 0
+    same_proof_length = 0
     a_succ_proof_steps = 0
     a_proof_shorter = 0
     b_succ_proof_steps = 0
     b_proof_shorter = 0
-    same_length = 0
+    same_num_steps = 0
     a_succ_not_b = 0
     b_succ_not_a = 0
     both_succ = 0
@@ -49,17 +55,21 @@ def compare_steps(args: argparse.Namespace):
                                    f"{args.a_name.lower()}_solution_length",
                                    f"{args.b_name.lower()}_steps_searched",
                                    f"{args.b_name.lower()}_solution_length"])
+    run_dir = os.getcwd()
+    os.chdir(args.reporta)
+    files = glob("**/*-proofs.txt", recursive=True)
+    os.chdir(run_dir)
+    print(f"{len(files)} files found found")
 
-    for filename_a in glob(os.path.join(args.reporta, "*-proofs.txt")):
-        with open(filename_a, 'r') as f:
+    for filename in files:
+        with open(os.path.join(args.reporta, filename), 'r') as f:
             proof_data_a = [json.loads(line) for line in f]
-        filename_b = os.path.join(args.reportb, os.path.basename(filename_a))
         try:
-            with open(filename_b) as f:
+            with open(os.path.join(args.reportb, filename), 'r') as f:
                 proof_data_b = [json.loads(line) for line in f]
         except FileNotFoundError:
-            print(f"Couldn't find file in directory {args.reportb} "
-                  f"cooresponding to {filename_a}")
+            print(f"Couldn't find file {filename} in directory {args.reportb} "
+                  f"(it exists in {args.reporta})")
             raise
 
         b_dict = {(line[0][2], line[0][3]): line
@@ -70,11 +80,39 @@ def compare_steps(args: argparse.Namespace):
                 job_b, sol_b = b_dict[(job[2], job[3])]
                 assert job_eq(job_b, job), (job, job_b)
             except KeyError:
-                print(f"Warning: couldn't find job {(job[2], job[3])} from file {filename_a} "
-                      f"in filename {filename_b}")
+                print(f"Warning: couldn't find job {(job[2], job[3])} "
+                      f"from file {args.reporta}/{filename}"
+                      f"in filename {args.reportb}/{filename}")
                 continue
 
+            job = [jobie.replace("\n", "").replace(",", "") for jobie in job]
+            job_b = [jobie.replace("\n", "").replace(",", "") for jobie in job_b]
+
             lemma_name = coq_serapy.lemma_name_from_statement(job[3])
+            if not (sol_a['status'] == "SUCCESS") and (sol_b['status'] == "SUCCESS"):
+                with open("Proverbot_goals.csv", 'a') as profile:
+                    goals = []
+                    for command in sol_a["commands"]:
+                        for fg_goal in command["context_before"]["fg_goals"]:
+                            goals.append(fg_goal["goal"].replace("\n", "").replace(",", ""))
+                    profile.write(','.join(job + goals))
+                    profile.write(",\n")
+                with open("Proverbot_tactics.csv", 'a') as profile:
+                    tactics = [command["tactic"].replace("\n", "").replace(",", "") for command in sol_a["commands"]]
+                    profile.write(','.join(job +  tactics))
+                    profile.write(",\n")
+
+                with open("QEDC_goals.csv", 'a') as profile:
+                    goals = []
+                    for command in sol_b["commands"]:
+                        for fg_goal in command["context_before"]["fg_goals"]:
+                            goals.append(fg_goal["goal"].replace("\n", "").replace(",", ""))
+                    profile.write(','.join(job_b + goals))
+                    profile.write(",\n")
+                with open("QEDC_tactics.csv", 'a') as profile:
+                    tactics = [command["tactic"].replace("\n", "").replace(",", "") for command in sol_b["commands"]]
+                    profile.write(','.join(job_b + tactics))
+                    profile.write(",\n")
             if args.full_csv:
                 if sol_a['status'] == "SUCCESS" or sol_b['status'] == "SUCCESS":
                     with open(args.full_csv, 'a', newline='') as csvfile:
@@ -88,26 +126,37 @@ def compare_steps(args: argparse.Namespace):
                             len(sol_b['commands']) - 2 if sol_b["status"] == "SUCCESS" else None,
                             ])
             if sol_a["status"] == "SUCCESS" and sol_b["status"] == "SUCCESS":
-                if (args.print_a_shorter and sol_a['steps_taken'] < sol_b['steps_taken']) or \
-                   (args.print_b_shorter and sol_b['steps_taken'] < sol_a['steps_taken']):
+                if (args.print_a_faster and sol_a['steps_taken'] < sol_b['steps_taken']) or \
+                   (args.print_b_faster and sol_b['steps_taken'] < sol_a['steps_taken']) or \
+                   (args.print_same_length and sol_a['steps_taken'] == sol_b['steps_taken']):
                     print(f"For job {job[1]}:{job[2]}:{lemma_name}, "
                           f"{args.a_name} took {sol_a['steps_taken']} steps, "
                           f"{args.b_name} took {sol_b['steps_taken']+1} steps.")
+                if (args.print_a_shorter and len(sol_a['commands']) < len(sol_b['commands'])) or \
+                   (args.print_b_shorter and len(sol_b['commands']) < len(sol_a['commands'])) or \
+                   (args.print_same_length and len(sol_a['commands']) == len(sol_b['commands'])):
+                    sol_a_len = len(sol_a['commands']) - 2
+                    sol_b_len = len(sol_b['commands']) - 2
+                    print(f"For job {job[1]}:{job[2]}:{lemma_name}, "
+                          f"{args.a_name} had a solution of length {sol_a_len}, "
+                          f"{args.b_name} had a solution of length {sol_b_len}.")
                 a_succ_proof_steps += len(sol_a['commands']) - 2
                 b_succ_proof_steps += len(sol_b['commands']) - 2
                 a_succ_steps += sol_a['steps_taken']
                 b_succ_steps += sol_b['steps_taken']
                 both_succ += 1
                 if sol_a['steps_taken'] < sol_b['steps_taken']:
-                    a_shorter += 1
-                if sol_b['steps_taken'] < sol_a['steps_taken']:
-                    b_shorter += 1
+                    a_fewer_steps += 1
+                elif sol_b['steps_taken'] < sol_a['steps_taken']:
+                    b_fewer_steps += 1
                 else:
-                    same_length += 1
+                    same_num_steps += 1
                 if len(sol_a['commands']) < len(sol_b['commands']):
                     a_proof_shorter += 1
                 elif len(sol_b['commands']) < len(sol_a['commands']):
                     b_proof_shorter += 1
+                else:
+                    same_proof_length += 1
             elif sol_b["status"] == "SUCCESS":
                 b_succ_not_a += 1
                 if args.print_b_only:
@@ -124,11 +173,12 @@ def compare_steps(args: argparse.Namespace):
     print(f"Total steps: {a_succ_steps} ({args.a_name}) vs {b_succ_steps} ({args.b_name})")
     print(f"Total solution lengths: {a_succ_proof_steps} ({args.a_name}) vs "
           f"{b_succ_proof_steps} ({args.b_name})")
-    print(f"{a_shorter} proofs where {args.a_name} was took fewer steps, "
-          f"{b_shorter} proofs where {args.b_name} was took fewer steps, "
-          f"{same_length} proofs where they were the same")
+    print(f"{a_fewer_steps} proofs where {args.a_name} was took fewer steps, "
+          f"{b_fewer_steps} proofs where {args.b_name} was took fewer steps, "
+          f"{same_num_steps} proofs where they were the same")
     print(f"{a_proof_shorter} proofs where {args.a_name}'s solution was shorter, "
-          f"{b_proof_shorter} proofs where {args.b_name}'s solution was shorter, ")
+          f"{b_proof_shorter} proofs where {args.b_name}'s solution was shorter, "
+          f"{same_proof_length} proofs where they were the same")
     print(f"{a_succ_not_b} proofs where {args.a_name} succeeded but {args.b_name} did not.")
     print(f"{b_succ_not_a} proofs where {args.b_name} succeeded but {args.a_name} did not.")
     print(f"{both_succ} proofs where both succeeded")

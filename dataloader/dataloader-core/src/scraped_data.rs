@@ -399,7 +399,7 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
 
     // Numeric args
     if let Some((stem, argstr)) = split_tactic(&newtac) {
-        if stem == "induction" || stem == "destruct" {
+        if (stem == "induction" || stem == "destruct") {
             // Figure out the numeric argument
             let argstr = if argstr.chars().last() == Some('.') {
                 argstr.chars().take(argstr.len() - 1).collect()
@@ -473,9 +473,13 @@ pub fn preprocess_datum(datum: ScrapedTactic) -> Vec<ScrapedTactic> {
                         })
                         .with_tactic(format!("intro {}.", fresh_hyp_name)),
                 );
+                //println!("{:?}", &curgoal);
                 let unnamed_intro_result = get_unnamed_intro_result(&curgoal, fresh_hyp_name);
                 let (new_hyp, new_goal) =
-                    unnamed_intro_result.expect("Couldn't intro unnamed hypothesis");
+                    match unnamed_intro_result {
+                        Some(result) => result,
+                        None => return vec![datum.with_tactic(newtac)],
+                    };
                 hyps_list.push(new_hyp);
                 curgoal = new_goal;
                 induction_target_var = Some(fresh_hyp_name);
@@ -589,11 +593,11 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
     let mut paren_depth = 0;
     let mut got_binder = false;
     let goal_symbols = get_words(goal);
-    if goal_symbols[0] != "forall" {
-        return None;
-    }
     let mut new_hyp_symbols = vec![];
     let mut new_goal_symbols: Vec<&str> = vec![];
+    if goal_symbols[0] != "forall" {
+        return None;
+    } 
     for w in goal_symbols[1..].iter() {
         if got_binder {
             // This handles the case where there's only one
@@ -616,7 +620,12 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
                 // If we're dealing with multiple variables in a single type binding,
                 // like `forall ( a a' : expr) ...`, then we need to leave one and
                 // take the other.
+                //let s = match std::str::from_utf8(&new_hyp_symbols) {
+                //    Ok(v) => v,
+                //    Err(e) => panic!("Invalid UTF-8 sequence: {}", e),
+                //};
                 if new_hyp_symbols[1] != ":" {
+                    //println!("new_hyp_symbols is {:?}", new_hyp_symbols);
                     new_goal_symbols.push("(");
                     new_goal_symbols.extend(new_hyp_symbols.iter().skip(1));
                     new_goal_symbols.push(")");
@@ -631,11 +640,12 @@ fn get_intro_result(goal: &str) -> Option<(String, String)> {
             new_hyp_symbols.push(*w)
         }
     }
-    assert_eq!(
-        new_hyp_symbols[1], ":",
-        "Can't figure out how to parse goal {}",
-        goal
-    );
+    //assert_eq!(
+    //    new_hyp_symbols[1], ":",
+    //   "Can't figure out how to parse goal {}",
+    //    goal
+    //);
+    //}
     Some((new_hyp_symbols.join(" "), new_goal_symbols.join(" ")))
 }
 

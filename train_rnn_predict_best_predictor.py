@@ -6,6 +6,7 @@ import sys
 import json
 from torch.utils.data import DataLoader
 from torch.utils.data import Dataset
+from torch.utils.data import TensorDataset
 
 vectorizer = coq2vec.CoqTermRNNVectorizer()
 vectorizer.load_weights("coq2vec/term2vec-weights-59.dat")
@@ -15,10 +16,9 @@ all_categories = [0,1,2,3]
 
 n_categories = 4
 
-n_iters = 2
+n_iters = 5
 print_every = 1
-plot_every = 10
-learning_rate = 0.005
+learning_rate = 0.0005
 #plot_every = 1
 
 class zhannRNN(nn.Module):
@@ -80,19 +80,20 @@ def categoryFromOutput(output):
     return all_categories[category_i], category_i
 
 
-all_tensors = torch.load('encoded_goal_tactics.pt')
-all_correct = torch.load('encoded_correct.pt')
+all_tensors = torch.load('encoded_goal_tactics.pt', map_location="cuda")
+all_correct = torch.load('encoded_correct.pt', map_location="cuda")
 
 n_letters = len(all_tensors[0])
-print("n letters", flush=True)
-print(n_letters)
+print("tensors_loaded", flush=True)
 
 #criterion = nn.NLLLoss()
 #criterion = nn.BCEWithLogitsLoss()
 criterion = nn.MSELoss()
 
-rnn = zhannRNN(n_letters, n_categories)
-optimizer = torch.optim.Adam(rnn.parameters(), lr=learning_rate)
+rnn = zhannRNN(n_letters, n_categories).to(device="cuda")
+#optimizer = torch.optim.Adam(rnn.parameters(), lr=learning_rate)
+optimizer = torch.optim.SGD(rnn.parameters(), lr=learning_rate, momentum=0.9)
+scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
 
 def train(category_tensor, line_tensor):
     category_tensor = category_tensor
@@ -114,6 +115,11 @@ lines_stacks = []
 correct_stacks = []
 
 
+#print("making batches", flush=True)
+#all_all_tensors = [(all_tensors[i], all_correct[i]) for i in range(0, round(0.90*len(all_tensors)))]
+#dataloader = DataLoader(TensorDataset(*all_all_tensors),
+#                             batch_size=1024, num_workers=0,
+#                             pin_memory=True, drop_last=True)
 for k in range(round(0.90*len(all_tensors)/1024)):
     lines_stacks.append(torch.stack(all_tensors[(k*1024):((k+1)*1024)], dim=0))
     correct_stacks.append(torch.stack(all_correct[(k*1024):((k+1)*1024)], dim=0))
@@ -121,24 +127,25 @@ for k in range(round(0.90*len(all_tensors)/1024)):
 print("about to train",flush=True)
 for iter in range(1, n_iters + 1):
     current_loss = 0
-    #for k in range(round(0.75*len(all_tensors))):
+    #for k in range(round(0.90*len(all_tensors))):
+    print("about to enumerate", flush=True)
+    #for k, data_batch in enumerate(dataloader, start=1):
     for k in range(len(lines_stacks)):
+        #category_tensor, line_tensor = data_batch
         category_tensor = correct_stacks[k]
         line_tensor = lines_stacks[k]
+        print("train single datum", flush=True)
         output, loss = train(category_tensor, line_tensor)
-        current_loss += loss
-        if (k % 10 == 0):
+        scheduler.step(loss)
+        #if (k % 1 == 0):
+        with torch.no_grad():
+            current_loss += loss
             print("k")
             print(k,flush=True)
+            print("batch loss")
+            print(current_loss/((k+1)),flush=True)
         k = k + 1
 
-    # Print ``iter`` number, loss, name and guess
-    if iter % print_every == 0:
-        print("loss")
-        print(current_loss/(round(0.90*len(all_tensors))),flush=True)
-        #print("tensors")
-        #print(category_tensor)
-        #print(output)
 print("saving", flush=True)
 torch.save(rnn.state_dict(), sys.argv[1])
 print("saved", flush=True)
