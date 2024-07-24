@@ -12,6 +12,7 @@
         ],
         "test_files": [],
         "switch": "coq-8.10"
+        "extra_flags": "--sertop-flags=\"-Q .,\\\"\\\"\""
     },
     {
         "project_name": "higman-s",
@@ -1252,7 +1253,6 @@
             "theories/Numbers/Cyclic/Int31/Cyclic31.v",
             "theories/Numbers/Cyclic/Int31/Ring31.v",
             "theories/Numbers/Cyclic/Int31/Int31.v",
-            "theories/Numbers/Cyclic/Int63/Int63.v",
             "theories/Numbers/Cyclic/Int63/Ring63.v",
             "theories/Numbers/Cyclic/Int63/Cyclic63.v",
             "theories/Numbers/Cyclic/ZModulo/ZModulo.v",
@@ -1338,11 +1338,9 @@
             "theories/Compat/Coq89.v",
             "theories/Classes/CRelationClasses.v",
             "theories/Classes/EquivDec.v",
-            "theories/Classes/CMorphisms.v",
             "theories/Classes/SetoidClass.v",
             "theories/Classes/SetoidDec.v",
             "theories/Classes/CEquivalence.v",
-            "theories/Classes/Morphisms.v",
             "theories/Classes/DecidableClass.v",
             "theories/Classes/Equivalence.v",
             "theories/Classes/RelationPairs.v",
@@ -1510,7 +1508,8 @@
         ],
         "test_files": [],
         "switch": "coq-8.10",
-        "build_command": "./configure -local && make"
+        "build_command": "./configure -local && make",
+        "extra_flags": "--allow-sprop --extra-import=\"Setoid\""
     },
     {
         "project_name": "railroad-crossing",
@@ -2039,7 +2038,8 @@
             "src/Show.v"
         ],
         "test_files": [],
-        "switch": "coq-8.10"
+        "switch": "coq-8.10",
+        "extra_flags": "--sertop-flags=\"-Q .,\\\"\\\"\""
     },
     {
         "project_name": "CompCert",
@@ -4780,7 +4780,8 @@
             "lib/FMapVeryWeak.v",
             "lib/Ssrexport.v"
         ],
-        "switch": "coq-8.12"
+        "switch": "coq-8.12",
+        "build_command": "./configure && make"
     },
     {
         "project_name": "zorns-lemma",

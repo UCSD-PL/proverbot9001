@@ -42,15 +42,16 @@ from dataloader import scraped_from_file, ScrapedTactic, Obligation, ProofContex
 import coq_serapy
 import coq_serapy.contexts
 
-from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name
+from util import stringified_percent, escape_filename, safe_abbrev, escape_lemma_name, eprint
 import util
 from search_results import (ReportStats, SearchStatus, SearchResult, DocumentBlock,
                             VernacBlock, ProofBlock, TacticInteraction)
-from search_worker import get_file_jobs, get_predictor, project_dicts_from_args
+from search_worker import (get_file_jobs, get_predictor,
+                           project_dicts_from_args, files_of_dict,
+                           unique_lemma_stmt_and_name)
 from models.tactic_predictor import TacticPredictor
 
 import multi_project_report
-
 
 index_css = ["report.css"]
 index_js = ["report.js"]
@@ -71,8 +72,9 @@ def generate_report(args: argparse.Namespace, predictor: TacticPredictor,
 
     if not args.output_dir.exists():
         os.makedirs(str(args.output_dir))
-    for project_dict in tqdm([project_dict for project_dict in project_dicts
-                              if len(project_dict["test_files"]) > 0],
+    for project_dict in tqdm([
+          project_dict for project_dict in project_dicts
+          if len(files_of_dict(args, project_dict)) > 0],
                              desc="Report Projects"):
         generate_project_report(args, predictor, project_dict, time_taken)
     if len(project_dicts) > 1:
@@ -89,12 +91,13 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
         if not destpath.exists():
             srcpath = base.parent / 'reports' / filename
             copyfile(srcpath, destpath)
-    for filename in tqdm(project_dict["test_files"], desc="Report Files", leave=False):
+    for filename in tqdm(files_of_dict(args, project_dict),
+                         desc="Report Files", leave=False):
         file_solutions = []
         output_file_prefix = args.output_dir / project_dict["project_name"] / \
               (safe_abbrev(Path(filename),
                                 [Path(path) for path in
-                                 project_dict["test_files"]]))
+                                 files_of_dict(args, project_dict)]))
         source_file = args.prelude / project_dict["project_name"] / filename
         try:
             with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
@@ -102,7 +105,15 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
                     job, sol = json.loads(line)
                     file_solutions.append((job, SearchResult.from_dict(sol)))
         except FileNotFoundError:
-            lemmas = get_file_jobs(args, project_dict["project_name"], filename)
+            if args.jobs_file:
+                with open(args.jobs_file, 'r') as f:
+                    all_jobs = [json.loads(l) for l in f]
+                lemmas = [job for job in all_jobs if
+                          job[0] == project_dict["project_name"] and
+                          job[1] == filename]
+            else:
+                lemmas = get_file_jobs(
+                  args, project_dict["project_name"], filename)
             assert len(lemmas) == 0, lemmas
             stats.append(ReportStats(filename, 0, 0, 0))
             continue
@@ -153,6 +164,7 @@ def blocks_from_scrape_and_sols(
         vernac_cmds_batch: List[str] = []
 
         in_proof = False
+        unnamed_goal_num = 0
         obl_num = 0
         last_program_statement = ""
 
@@ -171,16 +183,18 @@ def blocks_from_scrape_and_sols(
                                       t.tactic.strip() != "}"]
             result = lookup(sm_prefix, unique_lemma_stmt)
             if result is None:
-                return ProofBlock(cur_lemma_stmt, sm_prefix,
+                return ProofBlock(cur_lemma_stmt, unique_lemma_stmt,
+                                  sm_prefix,
                                   SearchStatus.SKIPPED, [],
                                   batch_without_brackets)
             else:
-                return ProofBlock(cur_lemma_stmt, sm_prefix,
+                return ProofBlock(cur_lemma_stmt, unique_lemma_stmt,
+                                  sm_prefix,
                                   result.status, result.commands,
                                   batch_without_brackets)
             tactics_interactions_batch = []
 
-        for interaction in interactions:
+        for cmd_idx, interaction in enumerate(interactions):
             if in_proof and isinstance(interaction, str):
                 in_proof = False
                 yield yield_proof()
@@ -190,14 +204,19 @@ def blocks_from_scrape_and_sols(
             elif isinstance(interaction, ScrapedTactic):
                 assert not in_proof
                 cur_lemma_stmt = vernac_cmds_batch[-1]
-                if re.match(r"\s*Next\s+Obligation\s*\.\s*",
-                            coq_serapy.kill_comments(
-                                cur_lemma_stmt).strip()):
-                    unique_lemma_stmt = \
-                      f"{last_program_statement} Obligation {obl_num}."
-                    obl_num += 1
-                else:
-                    unique_lemma_stmt = cur_lemma_stmt
+                relevant_rest_interactions = []
+                for rest_interaction in interactions[cmd_idx:]:
+                    if isinstance(rest_interaction, ScrapedTactic):
+                        relevant_rest_interactions.append(rest_interaction.tactic)
+                    else:
+                        relevant_rest_interactions.append(rest_interaction)
+                        break
+                unique_lemma_stmt, _, obl_num, unnamed_goal_num = \
+                  unique_lemma_stmt_and_name(
+                    cur_lemma_stmt,
+                    relevant_rest_interactions,
+                    last_program_statement if last_program_statement != "" else None,
+                    obl_num, unnamed_goal_num)
                 yield VernacBlock(vernac_cmds_batch[:-1])
                 vernac_cmds_batch = []
                 tactics_interactions_batch = []
@@ -290,7 +309,7 @@ def write_html(args: argparse.Namespace,
                 else:
                     assert isinstance(block, ProofBlock)
                     status_klass = classFromSearchStatus(block.status)
-                    write_lemma_button(block.lemma_statement, block.module,
+                    write_lemma_button(block.unique_lemma_statement, block.module,
                                        status_klass, tag, text)
                     with tag('div', klass='region'):
                         with tag('div', klass='predicted'):
@@ -623,6 +642,7 @@ def main() -> None:
     arg_parser.add_argument("report_dir", type=Path)
     arg_parser.add_argument("-p", "--project", type=str, default=None)
     arg_parser.add_argument("-i", "--project-index-only", action="store_true")
+    arg_parser.add_argument("--jobs-file", default=None)
     top_args = arg_parser.parse_args()
     assert not (top_args.project and top_args.project_index_only)
 
@@ -637,6 +657,7 @@ def main() -> None:
             else:
                 setattr(args, k, eval(v))
 
+    args.jobs_file = top_args.jobs_file
     predictor = get_predictor(args)
     project_dicts = project_dicts_from_args(args)
     with open(top_args.report_dir / "time_so_far.txt", 'r') as f:
