@@ -85,34 +85,7 @@ def compare_steps(args: argparse.Namespace):
                       f"in filename {args.reportb}/{filename}")
                 continue
 
-            job = [jobie.replace("\n", "").replace(",", "") for jobie in job]
-            job_b = [jobie.replace("\n", "").replace(",", "") for jobie in job_b]
-
             lemma_name = coq_serapy.lemma_name_from_statement(job[3])
-            if not (sol_a['status'] == "SUCCESS") and (sol_b['status'] == "SUCCESS"):
-                with open("Proverbot_goals.csv", 'a') as profile:
-                    goals = []
-                    for command in sol_a["commands"]:
-                        for fg_goal in command["context_before"]["fg_goals"]:
-                            goals.append(fg_goal["goal"].replace("\n", "").replace(",", ""))
-                    profile.write(','.join(job + goals))
-                    profile.write(",\n")
-                with open("Proverbot_tactics.csv", 'a') as profile:
-                    tactics = [command["tactic"].replace("\n", "").replace(",", "") for command in sol_a["commands"]]
-                    profile.write(','.join(job +  tactics))
-                    profile.write(",\n")
-
-                with open("QEDC_goals.csv", 'a') as profile:
-                    goals = []
-                    for command in sol_b["commands"]:
-                        for fg_goal in command["context_before"]["fg_goals"]:
-                            goals.append(fg_goal["goal"].replace("\n", "").replace(",", ""))
-                    profile.write(','.join(job_b + goals))
-                    profile.write(",\n")
-                with open("QEDC_tactics.csv", 'a') as profile:
-                    tactics = [command["tactic"].replace("\n", "").replace(",", "") for command in sol_b["commands"]]
-                    profile.write(','.join(job_b + tactics))
-                    profile.write(",\n")
             if args.full_csv:
                 if sol_a['status'] == "SUCCESS" or sol_b['status'] == "SUCCESS":
                     with open(args.full_csv, 'a', newline='') as csvfile:

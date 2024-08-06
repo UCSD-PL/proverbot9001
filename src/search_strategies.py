@@ -104,7 +104,6 @@ class FeaturesExtractor:
     def action_features_bounds(self) -> Tuple[List[int], List[float]]:
         return [self._num_tactics, self._num_tokens * 2 + 2], [1.0]
 
-
 @dataclass(init=True)
 class LabeledNode:
     prediction: str
@@ -115,7 +114,6 @@ class LabeledNode:
     subgoals_opened: int
     previous: Optional["LabeledNode"]
     children: List["LabeledNode"]
-
 
 class SearchGraph:
     __graph: pgv.AGraph
@@ -130,7 +128,8 @@ class SearchGraph:
         self.start_node = self.mkNode(Prediction(lemma_name, 1.0, 1.0),
                                       FullContext(
                                           [], [], ProofContext([], [], [], [])),
-                                      0,
+                                      ProofContext.empty(),
+                                      1,
                                       None)
         self.start_node.time_taken = 0.0
         if features_json:
@@ -138,15 +137,24 @@ class SearchGraph:
                                                        str(tokens_file))
         pass
 
-    def mkNode(self, prediction: Prediction, context_before: FullContext, subgoals_opened: int,
+    def mkNode(self, prediction: Prediction,
+               context_before: FullContext,
+               proof_context_after: ProofContext,
+               subgoals_opened: int,
                previous_node: Optional[LabeledNode],
                **kwargs) -> LabeledNode:
 
         tooltip = ""
-        for hyp in context_before.obligations.focused_hyps:
-            tooltip += hyp[:64] + "&#10;"
-        tooltip += "-" * 64 + "&#10;"
-        tooltip += context_before.obligations.focused_goal[:64]
+        if len(proof_context_after.all_goals) == 0:
+            tooltip = "(no subgoals)"
+        else:
+            for oblidx, obligation in enumerate(proof_context_after.all_goals):
+                if oblidx != 0:
+                    tooltip += "*" * 64 + "&#10;"
+                for hyp in obligation.hypotheses:
+                    tooltip += hyp[:64] + "&#10;"
+                tooltip += "-" * 64 + "&#10;"
+                tooltip += obligation.goal[:64]
 
         self.__graph.add_node(self.__next_node_id,
                               label="{}\n({:.2f})".format(
@@ -166,7 +174,8 @@ class SearchGraph:
 
     def mkQED(self, predictionNode: LabeledNode):
         self.mkNode(Prediction("QED", 1.0, 1.0), FullContext(
-            [], [], ProofContext([], [], [], [])), 
+            [], [], ProofContext([], [], [], [])),
+                    ProofContext([], [], [], []),
                     0,
                     predictionNode,
                     fillcolor="green", style="filled")
@@ -183,7 +192,7 @@ class SearchGraph:
 
     def setNodeColor(self, node: LabeledNode, color: str) -> None:
         node_handle = self.__graph.get_node(node.node_id)
-        if node_handle.attr["fillcolor"] != None and node_handle.attr["fillcolor"] != "":
+        if node_handle.attr["fillcolor"] is not None and node_handle.attr["fillcolor"] != "":
             node_handle.attr["fillcolor"] += (":" + color)
         else:
             node_handle.attr["fillcolor"] = color
@@ -229,7 +238,6 @@ class SearchGraph:
                       f)
             f.write("\n")
             write_node(self.start_node, f)
-
 
 class SubSearchResult (NamedTuple):
     solution: Optional[List[TacticInteraction]]
@@ -280,7 +288,6 @@ def tryPrediction(args: argparse.Namespace,
             coq_serapy.ParseError,
             RecursionError,
             coq_serapy.UnrecognizedError, AssertionError) as e:
-        print("prediction " + prediction,flush=True)
         return (unwrap(coq.proof_context), 0, 0, 0, e,
                 time.time() - start_time, False)
 
@@ -1234,8 +1241,8 @@ def rnn_dfs_proof_search(lemma_name: str,
             return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list_one, total_steps_one, 0)
         graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
         prep_subgoals_seen.update(temp_subgoals_seen)
-        eprint("subgoals seen")
-        eprint(prep_subgoals_seen)
+        print("subgoals seen")
+        print(prep_subgoals_seen, flush=True)
         #if args.search_prefix is not None:
         #    cleanup_stmts = 0
         #    for command in coq_serapy.read_commands(args.search_prefix):
@@ -1260,10 +1267,10 @@ def dfs_subgoal_sharing(lemma_name: str,
                                 predictor_list: [TacticPredictor]) \
                                 -> SearchResult:
 
+    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,args.features_json)
     # two lines below for fast finish
-    #g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,args.features_json)
     #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
+    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
@@ -1846,7 +1853,7 @@ def dfs_subgoal_sharing(lemma_name: str,
                 if args.features_json:
                     graph.write_feat_json(f"{output_dir}/{module_prefix}"
                                       f"{lemma_name}.json")
-                return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list_one, total_steps_one)
+                return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list_one, total_steps_one, 0)
             graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
             prep_subgoals_seen.update(temp_subgoals_seen)
             eprint("subgoals seen")
@@ -1862,8 +1869,8 @@ def dfs_subgoal_sharing(lemma_name: str,
         graph.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps_one)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps_one)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps_one, 0)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps_one, 0)
 
 def old_dfs_proof_search_with_graph(lemma_name: str,
                                 module_prefix: str,
@@ -1878,8 +1885,8 @@ def old_dfs_proof_search_with_graph(lemma_name: str,
                     args.features_json)
 
     # two lines below for fast finish
-    #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
+    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
         if msg:
@@ -3935,7 +3942,6 @@ def dfs_proof_search_with_graph(lemma_name: str,
             try:
                 #print("context before")
                 #print(coq.proof_context,flush=True)
-                print("prediction is " + prediction.prediction, flush=True)
                 #print("goal is ")
                 #print(coq.proof_context.fg_goals[0],flush=True)
                 context_after, num_stmts, \
@@ -3943,10 +3949,6 @@ def dfs_proof_search_with_graph(lemma_name: str,
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
                                   time_on_path(current_path[-1]))
-                print("context after")
-                print(context_after,flush=True)
-                print("coq context after")
-                print(coq.proof_context,flush=True)
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
@@ -3954,6 +3956,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                         predictionNode = g.mkNode(prediction,
                                                   full_context_before,
                                                   context_after,
+                                                  subgoals_opened,
                                                   current_path[-1])
                         predictionNode.time_taken = time_taken
                         if isinstance(error, RecursionError):
@@ -3968,12 +3971,14 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
                                           context_after,
+                                          subgoals_opened,
                                           current_path[-1])
                 predictionNode.time_taken = time_taken
                 if unshelved:
                     predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
                                               full_context_before,
                                               context_after,
+                                              subgoals_opened,
                                               predictionNode)
                     predictionNode.time_taken = 0
 
@@ -4044,6 +4049,7 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
                                           ProofContext.empty(),
+                                          0,
                                           current_path[-1])
                 g.setNodeColor(predictionNode, "grey25")
                 if lemma_name == "":
@@ -4084,20 +4090,549 @@ def dfs_proof_search_with_graph(lemma_name: str,
                 next_node = g.mkNode(Prediction(command, 1.0, 1.0),
                                      full_context_before,
                                      ProofContext.empty(),
+                                     0,
                                      next_node)
                 next_node.time_taken = 0.0
                 coq.run_stmt(command)
         command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
         pbar.clear()
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
     if args.features_json:
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
     if command_list:
-        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps, 0)
+        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps, 0, None)
     if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps, 0)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps, 0)
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps, 0, None)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps, 0, None)
+
+def bidfunc(args, fullcontext, coq, predictor_list):
+    predictions_lists = []
+    random.shuffle(predictor_list)
+    i = 0
+    for predictor in predictor_list:
+        if args.hyp_and_goal:
+            if i % 4 == 0:
+                i = 0
+            if i == 1:
+                args.no_hyp_scores = True
+            else: 
+                args.no_hyp_scores = False
+            if i == 2:
+                args.no_prev_tactic = True
+            else: 
+                args.no_prev_tactic = False
+            i = i + 1
+        predictions = predictor.predictKTactics(args,
+            truncate_tactic_context(fullcontext.as_tcontext(), args.max_term_length),
+            args.max_attempts,
+            blacklist=args.blacklisted_tactics)
+        predictions_lists.append(predictions)
+
+    predictions = []
+    for attempt in range(args.max_attempts):
+        top_tactics = tuple([plist[0].prediction for plist in predictions_lists])
+            
+        max_certainty = 0.00
+        bid_tactic = None
+        for tactic in top_tactics:
+            for plist in predictions_lists: 
+                if tactic == plist[0].prediction:
+                    if plist[0].no_softmax_certainty >= max_certainty:
+                        max_certainty = plist[0].no_softmax_certainty
+                        bid_tactic = tactic
+        
+        assert bid_tactic is not None
+
+        predictions.append(Prediction(bid_tactic, 1.0, 1.0))
+        for i in range(len(predictions_lists)):
+            l = 0
+            while l < len(predictions_lists[i]):
+                if bid_tactic == predictions_lists[i][l].prediction:
+                    if l == 0: 
+                        predictions_lists[i] = predictions_lists[i][1:]
+                    elif l == (len(predictions_lists[i]) - 1):
+                        predictions_lists[i] = predictions_lists[i][0:-1]
+                    else:
+                        predictions_lists[i] = predictions_lists[i][0:l] + predictions_lists[i][(l+1):]
+                    l = l + 1
+                l = l + 1
+    return predictions
+
+def votefunc(args, fullcontext, coq, predictor_list):
+    predictions_lists = []
+    tactics_lists = []
+    i = 0
+    random.shuffle(predictor_list)
+    for predictor in predictor_list:
+        if args.hyp_and_goal:
+            if i % 4 == 0:
+                i = 0
+            if i == 2:
+                args.no_hyp_scores = True
+            else: 
+                args.no_hyp_scores = False
+            if i == 3:
+                args.no_prev_tactic = True
+            else: 
+                args.no_prev_tactic = False
+            if i == 4:
+                args.no_goal_head = True
+            else: 
+                args.no_goal_head = False
+            i = i + 1
+        predictions = predictor.predictKTactics(args,
+            truncate_tactic_context(fullcontext.as_tcontext(), args.max_term_length),
+            args.max_attempts,
+            blacklist=args.blacklisted_tactics)
+        predictions_lists.append(predictions)
+
+
+    predictions = []
+    for attempt in range(args.max_attempts):
+        top_tactics = tuple([plist[0].prediction for plist in predictions_lists])
+        mostcommon = Counter(top_tactics).most_common()
+        assert len(mostcommon) > 0
+        if len(mostcommon) == 1 :
+            # no tie 
+            voted_tactic = mostcommon[0][0]
+        elif mostcommon[1][1] < mostcommon[0][1]: 
+            # no tie 
+            voted_tactic = mostcommon[0][0]
+        else: 
+            # tie 
+            subset_mostcommon = [mostcommon[0][0]]
+            for i in range(len(mostcommon) - 1):
+                if mostcommon[i][1] == mostcommon[i+1][1]:
+                    subset_mostcommon.append(mostcommon[i+1][0])
+            # check for certainty
+            max_certainty = 0.00
+            voted_tactic = None
+            for tactic in subset_mostcommon:
+                for plist in predictions_lists: 
+                    if tactic == plist[0].prediction:
+                        if plist[0].no_softmax_certainty >= max_certainty:
+                            max_certainty = plist[0].no_softmax_certainty
+                            voted_tactic = tactic
+            assert voted_tactic is not None
+        
+        predictions.append(Prediction(voted_tactic, 1.0, 1.0))
+        for i in range(len(predictions_lists)):
+            l = 0
+            while l < len(predictions_lists[i]):
+                if voted_tactic == predictions_lists[i][l].prediction:
+                    if l == 0: 
+                        predictions_lists[i] = predictions_lists[i][1:]
+                    elif l == (len(predictions_lists[i]) - 1):
+                        predictions_lists[i] = predictions_lists[i][0:-1]
+                    else:
+                        predictions_lists[i] = predictions_lists[i][0:l] + predictions_lists[i][(l+1):]
+                    l = l + 1
+                l = l + 1
+    return predictions
+
+def rnnfunc(args, fullcontext, coq, predictor_list, model_list, vectorizer):
+    predictions_lists = []
+    tactics_lists = []
+    i = 0
+    for predictor in predictor_list:
+        if args.hyp_and_goal:
+            if i % 4 == 0:
+                i = 0
+            if i == 2:
+                args.no_hyp_scores = True
+            else: 
+                args.no_hyp_scores = False
+            if i == 3:
+                args.no_prev_tactic = True
+            else: 
+                args.no_prev_tactic = False
+            if i == 4:
+                args.no_goal_head = True
+            else: 
+                args.no_goal_head = False
+            i = i + 1
+        predictions = predictor.predictKTactics(args,
+                                truncate_tactic_context(fullcontext.as_tcontext(),
+                                args.max_term_length),
+                                args.max_attempts,
+                                blacklist=args.blacklisted_tactics)
+
+        concatenated_tactics = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions])
+        predictions_lists.append(predictions)
+        tactics_lists.append(concatenated_tactics)
+
+    rnn_current_goal = coq.proof_context.fg_goals[0].goal
+
+    encoded_tensors = [vectorizer.term_to_vector(' '.join(rnn_current_goal.split()))]
+    for tactic_set in tactics_lists:
+        encoded_tensors.append(vectorizer.term_to_vector(tactic_set))
+
+    encoded_tensor_all = torch.cat((encoded_tensors), 0).unsqueeze(0)
+
+    rnnmod = model_list[0]
+    modout = rnnmod(encoded_tensor_all)
+    listmod = modout.tolist()
+    bestmod = listmod.index(max(listmod))
+
+    print("choosing " + str(bestmod),flush=True)
+
+    predictions = predictions_lists[bestmod]
+
+    assert len(predictions) == args.max_attempts
+    return predictions
+
+def augmented_dfs_proof_search_with_graph(lemma_name: str,
+                                module_prefix: str,
+                                relevant_lemmas: List[str],
+                                coq: coq_serapy.CoqAgent,
+                                output_dir: Path,
+                                args: argparse.Namespace,
+                                bar_idx: int,
+                                predictor: TacticPredictor,
+                                predictor_list: [TacticPredictor],
+                                stack_model: [zhannRNN],
+                                vectorizer: coq2vec.CoqTermRNNVectorizer,
+                                subgoal_sharing: bool,
+                                subgoals_seen: dict,
+                                vote: bool,
+                                bid: bool,
+                                rnn: bool,
+                                cheap_exp: bool) \
+                                -> SearchResult:
+
+    assert not (vote and bid), "you must choose either vote or bid"
+    assert not (vote and rnn), "you must choose either vote or stack"
+    assert not (bid and rnn), "you must choose either bid or stack"
+
+    if not subgoal_sharing:
+        subgoals_seen = {}
+
+    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
+        if msg:
+            eprint(f"Cancelling {num_stmts} statements "
+                   f"because {msg}.", guard=args.verbose >= 2)
+        for _ in range(num_stmts):
+            coq.cancel_last()
+    hasUnexploredNode = False
+
+    def search(pbar: tqdm, current_path: List[LabeledNode],
+               subgoal_distance_stack: List[int],
+               extra_depth: int, steps_explored: int, single_predictor, g, search_args) -> SubSearchResult:
+        nonlocal hasUnexploredNode
+        nonlocal relevant_lemmas
+        global unnamed_goal_number
+
+        full_context_before = FullContext(relevant_lemmas,
+                                          coq.prev_tactics,
+                                          unwrap(coq.proof_context))
+        if vote:
+            predictions = votefunc(search_args, full_context_before, coq, predictor_list)
+        elif bid:
+            predictions = bidfunc(search_args, full_context_before, coq, predictor_list)
+        elif rnn:
+            assert stack_model is not None, "you must provide a stack model"
+            assert vectorizer is not None, "you must provide a vectorizer" 
+            predictions = rnnfunc(search_args, full_context_before, coq, predictor_list, stack_model, vectorizer)
+        else:
+            predictions = single_predictor.predictKTactics(search_args, truncate_tactic_context(full_context_before.as_tcontext(), search_args.max_term_length), search_args.max_attempts, blacklist=search_args.blacklisted_tactics)
+            assert len(predictions) == search_args.max_attempts
+        if coq.use_hammer:
+            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
+                                      prediction.certainty)
+                           for prediction in predictions]
+
+        num_successful_predictions = 0
+        substeps_explored = 1
+        for _prediction_idx, prediction in enumerate(predictions):
+            if num_successful_predictions >= search_args.search_width:
+                break
+            try:
+                print("trying prediction " + prediction.prediction,flush=True)
+                context_after, num_stmts, \
+                    subgoals_closed, subgoals_opened, \
+                    error, time_taken, unshelved = \
+                    tryPrediction(search_args, coq, prediction.prediction,
+                                  time_on_path(current_path[-1]))
+                if error:
+                    if search_args.count_failing_predictions:
+                        num_successful_predictions += 1
+                    if search_args.show_failing_predictions:
+                        predictionNode = g.mkNode(prediction,
+                                                  full_context_before,
+                                                  context_after,
+                                                  subgoals_opened,
+                                                  current_path[-1])
+                        predictionNode.time_taken = time_taken
+                        if isinstance(error, RecursionError):
+                            g.setNodeColor(predictionNode, "grey75")
+                        else:
+                            g.setNodeColor(predictionNode, "red")
+                    continue
+                num_successful_predictions += 1
+                pbar.update(1)
+                assert cast(TqdmSpy, pbar).n > 0
+
+                predictionNode = g.mkNode(prediction,
+                                          full_context_before,
+                                          context_after,
+                                          subgoals_opened,
+                                          current_path[-1])
+                predictionNode.time_taken = time_taken
+                if unshelved:
+                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
+                                              full_context_before,
+                                              context_after,
+                                              subgoals_opened,
+                                              predictionNode)
+                    predictionNode.time_taken = 0
+
+                # ### 1.
+                if subgoal_distance_stack:
+                    new_distance_stack = (subgoal_distance_stack[:-1] +
+                                          [subgoal_distance_stack[-1]+1])
+                else:
+                    new_distance_stack = []
+
+                # ### 2.
+                new_extra_depth = extra_depth
+                for _ in range(subgoals_closed):
+                    closed_goal_distance = new_distance_stack.pop()
+                    new_extra_depth += closed_goal_distance
+
+                # ### 3.
+                new_distance_stack += [0] * subgoals_opened
+
+                if subgoal_sharing: 
+                    if subgoals_opened > 0:
+                        current_goal = predictionNode.context_before.as_tcontext().goal
+                        hashed_goal = hash(current_goal)
+                        solved_already = subgoals_seen.get(hashed_goal)
+                        if solved_already is not None:
+                            g.setNodeColor(predictionNode, "purple")
+                            for step in solved_already:
+                                try:
+                                    full_context_before = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
+                                    context_after, tmp_num_stmts, \
+                                        tmp_subgoals_closed, tmp_subgoals_opened, \
+                                        error, time_taken, tmp_unshelved = \
+                                        tryPrediction(search_args, coq, step,
+                                                      time_on_path(current_path[-1]))
+                                    num_stmts += tmp_num_stmts
+                                    if error:
+                                        continue
+                                    #if unshelved:
+                                    #   postfix.append("Unshelve.")
+                                    #postfix += ["}"] * tmp_subgoals_closed
+                                    #postfix += ["{"] * tmp_subgoals_opened
+                                    # ### 1.
+                                    if new_distance_stack:
+                                        tmp_new_distance_stack = (new_distance_stack[:-1] +
+                                                              [new_distance_stack[-1]+1])
+                                    else:
+                                        tmp_new_distance_stack = []
+
+                                    # ### 2.
+                                    for _ in range(tmp_subgoals_closed):
+                                        tmp_closed_goal_distance = tmp_new_distance_stack.pop()
+                                        #new_extra_depth += closed_goal_distance
+
+                                    # ### 3.
+                                    tmp_new_distance_stack += [0] * tmp_subgoals_opened
+
+                                    current_path  = current_path + [predictionNode]
+                                    predictionNode_tmp = g.mkNode(Prediction(step, 1.0, 1.0),
+                                                              full_context_before,
+                                                              context_after,
+                                                              tmp_subgoals_opened,
+                                                              predictionNode)
+                                    predictionNode = predictionNode_tmp
+                                    predictionNode.time_taken = time_taken
+                                    new_distance_stack = tmp_new_distance_stack
+                                except coq_serapy.CoqAnomaly:
+                                    if lemma_name == "":
+                                        eprint("encountered unnamed goal!")
+                                    else:
+                                        eprint("coqanomaly without unnamed goal!")
+                                    raise
+                    if subgoals_closed > 0:
+                        g.setNodeColor(predictionNode, "blue")
+                        if subgoal_sharing:
+                            tmp_subgoals_closed = subgoals_closed
+                            subgoal_solution = [predictionNode.prediction]
+                            subgoal_node = predictionNode
+                            closed_goal = subgoal_node.context_before.as_tcontext().goal
+                            hashed_goal = hash(closed_goal)
+                            if hashed_goal not in subgoals_seen.keys():
+                                while tmp_subgoals_closed > 0: #TODO: add protections
+                                    closed_goal = subgoal_node.context_before.as_tcontext().goal
+                                    subgoal_node = subgoal_node.previous
+                                    while (not subgoal_node.subgoals_opened > 0):
+                                        subgoal_solution.append(subgoal_node.prediction)
+                                        #for postfixbit in subgoal_node.postfix:
+                                        #    subgoal_solution.append(postfixbit)
+                                        subgoal_node = subgoal_node.previous
+                                    hashed_goal = hash(closed_goal)
+                                    subgoal_solution.reverse()
+                                    subgoals_seen[hashed_goal] = subgoal_solution
+                                    tmp_subgoals_closed = tmp_subgoals_closed - 1
+                                    subgoal_solution.reverse()
+
+                #############
+                if completed_proof(coq):
+                    print("completed proof", flush=True)
+                    solution = g.mkQED(predictionNode)
+                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
+                elif contextInPath(context_after,
+                                   current_path[1:] + [predictionNode]):
+                    if not search_args.count_softfail_predictions:
+                        num_successful_predictions -= 1
+                    g.setNodeColor(predictionNode, "orange")
+                    cleanupSearch(num_stmts,
+                                  "resulting context is in current path")
+                elif contextIsBig(context_after):
+                    g.setNodeColor(predictionNode, "orange4")
+                    cleanupSearch(num_stmts,
+                                  "resulting context has too big a goal")
+                elif len(current_path) < search_args.search_depth + new_extra_depth \
+                        and len(current_path) < search_args.hard_depth_limit \
+                        and (search_args.max_steps is None or
+                             substeps_explored < search_args.max_steps):
+                    
+                    sub_search_result = search(pbar,
+                                               current_path + [predictionNode],
+                                               new_distance_stack,
+                                               new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args)
+                    substeps_explored += sub_search_result.steps_explored
+                    cleanupSearch(num_stmts, "we finished subsearch")
+                    if sub_search_result.solution or \
+                       sub_search_result.solved_subgoals > subgoals_opened:
+                        new_subgoals_closed = \
+                            subgoals_closed + \
+                            sub_search_result.solved_subgoals - \
+                            subgoals_opened
+                        return SubSearchResult(sub_search_result.solution,
+                                               new_subgoals_closed, substeps_explored)
+                    if subgoals_closed > 0:
+                        return SubSearchResult(None, subgoals_closed, substeps_explored)
+                else:
+                    hasUnexploredNode = True
+                    cleanupSearch(num_stmts, "we hit the depth limit")
+                    if subgoals_closed > 0:
+                        # depth = (search_args.search_depth + new_extra_depth + 1) \
+                        #     - len(current_path)
+                        return SubSearchResult(None, subgoals_closed, substeps_explored)
+            except coq_serapy.CoqAnomaly:
+                predictionNode = g.mkNode(prediction,
+                                          full_context_before,
+                                          ProofContext.empty(),
+                                          0,
+                                          current_path[-1])
+                g.setNodeColor(predictionNode, "grey25")
+                if lemma_name == "":
+                    unnamed_goal_number += 1
+                    g.draw(f"{output_dir}/{module_prefix}"
+                           f"{unnamed_goal_number}.svg")
+                else:
+                    if search_args.features_json:
+                        g.write_feat_json(f"{output_dir}/{module_prefix}"
+                                          f"{lemma_name}.json")
+                    g.draw(f"{output_dir}/{module_prefix}"
+                           f"{lemma_name}.svg")
+
+                raise
+        return SubSearchResult(None, 0, substeps_explored)
+    total_nodes = numNodesInTree(args.search_width,
+                                 args.search_depth + 2) - 1
+    desc_name = lemma_name
+    if len(desc_name) > 25:
+        desc_name = desc_name[:22] + "..."
+    if coq.count_fg_goals() > 1:
+        coq.run_stmt("{")
+        subgoals_stack_start = [0]
+    else:
+        subgoals_stack_start = []
+
+    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
+                 desc=desc_name, disable=(not args.progress),
+                 leave=False,
+                 position=bar_idx + 1,
+                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
+        print("begin subgoals seen")
+        print(subgoals_seen, flush=True)
+        if (not subgoal_sharing) or (bid or vote or rnn or cheap_exp) :
+            g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                            args.features_json)
+            next_node = g.start_node
+            if args.search_prefix is not None:
+                for command in coq_serapy.read_commands(args.search_prefix):
+                    full_context_before = FullContext(relevant_lemmas,
+                                                      coq.prev_tactics,
+                                                      unwrap(coq.proof_context))
+                    next_node = g.mkNode(Prediction(command, 1.0, 1.0),
+                                         full_context_before,
+                                         ProofContext.empty(),
+                                         0,
+                                         next_node)
+                    next_node.time_taken = 0.0
+                    coq.run_stmt(command)
+            command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0, predictor, g, args)
+        else:
+            # two lines below for fast finish
+            #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+            #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
+            i = 0
+            for curr_predictor in predictor_list + predictor_list:
+                if args.hyp_and_goal:
+                    if i % 4 == 0:
+                        i = 0
+                    if i == 2:
+                        args.no_hyp_scores = True
+                    else: 
+                        args.no_hyp_scores = False
+                    if i == 3:
+                        args.no_prev_tactic = True
+                    else: 
+                        args.no_prev_tactic = False
+                    if i == 4:
+                        args.no_goal_head = True
+                    else: 
+                        args.no_goal_head = False
+                    i = i + 1
+                g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
+                                args.features_json)
+                    
+                next_node = g.start_node
+                if args.search_prefix is not None:
+                    for command in coq_serapy.read_commands(args.search_prefix):
+                        full_context_before = FullContext(relevant_lemmas,
+                                                      coq.prev_tactics,
+                                                      unwrap(coq.proof_context))
+                        next_node = g.mkNode(Prediction(command, 1.0, 1.0),
+                                         full_context_before,
+                                         ProofContext.empty(),
+                                         0,
+                                         next_node)
+                    next_node.time_taken = 0.0
+                    coq.run_stmt(command)
+                stack_start = copy.deepcopy(subgoals_stack_start)
+                command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0, curr_predictor, g, args)
+                if command_list:
+                    break
+
+        pbar.clear()
+    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
+    if args.features_json:
+        g.write_feat_json(f"{output_dir}/{module_prefix}"
+                          f"{lemma_name}.json")
+
+    print("end subgoals seen")
+    print(subgoals_seen, flush=True)
+    if command_list:
+        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps, 0, subgoals_seen)
+    if hasUnexploredNode:
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps, 0, subgoals_seen)
+    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps, 0, subgoals_seen)
 
 def dfs_estimated(lemma_name: str,
                   module_prefix: str,
