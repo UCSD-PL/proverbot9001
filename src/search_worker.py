@@ -185,7 +185,7 @@ class Worker:
 
             next_cmd = commands_after_lemma_start.pop(0)
             sm_stack = coq_serapy.update_sm_stack(sm_stack, next_cmd)
-            if re.match(r"\s*(?:(?:Local|Global)\s+)?Program\s+.*",
+            if re.match(r"\s*(?:(?:Local|Global)\s+)?(?:#\[\w+\]\s+)?Program\s+.*",
                         coq_serapy.kill_comments(
                           commands_after_lemma_start[0]).strip(),
                         re.DOTALL):
@@ -289,7 +289,7 @@ class Worker:
                 eprint(f"In file {job_file}")
                 raise
             for command in run_commands:
-                if re.match("\s*Program\s+.*",
+                if re.match(r"\s*(?:(?:Local|Global)\s+)?(?:#\[\w+\]\s+)?Program\s+.*",
                             coq_serapy.kill_comments(
                                 command).strip()):
                     self.last_program_statement = command
