@@ -273,7 +273,7 @@ class Worker:
                            guard=self.args.verbose >= 1)
                     self.run_into_job(job, False, careful)
                     return
-                assert False
+                raise
             except coq_serapy.SerapiException:
                 raise
                 if not careful:
