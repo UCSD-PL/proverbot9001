@@ -14,10 +14,14 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search, combo_b_two_search, combo_subgoal_search, combo_b_vote_search, dfs_proof_search_with_vote, dfs_subgoal_sharing, rnn_dfs_proof_search, augmented_dfs_proof_search_with_graph
 from predict_tactic import (loadPredictorByFile,
-                            loadPredictorByName)
+                                    loadPredictorByName)
 from linearize_semicolons import get_linearized
+
+import random
+from train_my_rnn_model import zhannRNN
+import coq2vec
 
 from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching, print_time
 
@@ -376,12 +380,13 @@ class SearchWorker(Worker):
     widx: int
     predictor: TacticPredictor
     axioms_already_added: bool
-    def __init__(self, args: argparse.Namespace, worker_idx: int,
-                 predictor: TacticPredictor,
-                 switch_dict: Optional[Dict[str, str]] = None) -> None:
+    def __init__(self, args: argparse.Namespace, worker_idx: int, predictor: TacticPredictor, switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None, model_list: Optional[List[zhannRNN]] = None, vectorizer: Optional[coq2vec.CoqTermRNNVectorizer] = None) -> None:
         super().__init__(args, switch_dict)
         self.widx = worker_idx
         self.predictor = predictor
+        self.predictor_list = predictor_list
+        self.model_list = model_list
+        self.vectorizer = vectorizer
         self.axioms_already_added = False
 
     def enter_file(self, filename: str) -> None:
@@ -392,7 +397,7 @@ class SearchWorker(Worker):
         super().reset_file_state()
         self.axioms_already_added = False
 
-    def run_job(self, job: ReportJob, restart: bool = True) -> SearchResult:
+    def run_job_with_random(self, job: ReportJob, subgoals_seen, restart: bool = True) -> SearchResult:
         job_project, job_file, job_module, job_lemma = job
         if self.coq is None:
           self.enter_instance(self.args.prelude / job_project)
@@ -419,13 +424,15 @@ class SearchWorker(Worker):
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
         try:
             start_time = time.time()
-            search_status, _, tactic_solution, steps_taken, _ = \
+            search_status, _, tactic_solution, steps_taken, _, subgoals_seen = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, self.predictor)
+                             self.widx, self.predictor, self.predictor_list, self.model_list, self.vectorizer, subgoals_seen)
+            print("whatve I seen")
+            print(subgoals_seen,flush=True)
             time_taken = time.time() - start_time
             while len(self.coq.tactic_history.getFullHistory()) > 1:
                 self.coq.cancel_last()
@@ -446,7 +453,7 @@ class SearchWorker(Worker):
             self.reset_project_state()
             if restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
-                return self.run_job(job, restart=False)
+                return self.run_job_with_random(job, subgoals_seen, restart=False)
             if self.args.log_hard_anomalies:
                 with self.args.log_hard_anomalies.open('a') as f:
                     print(
@@ -460,7 +467,7 @@ class SearchWorker(Worker):
             eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                    "due to multiple failures",
                    guard=self.args.verbose >= 1)
-            return SearchResult(search_status, context_lemmas, solution, 0, None)
+            return SearchResult(search_status, context_lemmas, solution, 0, None, subgoals_seen)
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
@@ -479,7 +486,7 @@ class SearchWorker(Worker):
         ## Pop the actual Qed/Defined/Save
         #ending_command = self.remaining_commands.pop(0)
         return SearchResult(search_status, context_lemmas, solution,
-                            steps_taken, time_taken)
+                            steps_taken, time_taken, subgoals_seen)
 
 def get_lemma_declaration_from_name(coq: coq_serapy.SerapiInstance,
                                     lemma_name: str) -> str:
@@ -515,7 +522,11 @@ def attempt_search(args: argparse.Namespace,
                    coq: coq_serapy.SerapiInstance,
                    output_dir: Path,
                    bar_idx: int,
-                   predictor: TacticPredictor) \
+                   predictor: TacticPredictor, 
+                   predictor_list=None,
+                   model_list=None, 
+                   vectorizer=None, 
+                   subgoals_seen = dict) \
         -> SearchResult:
     if "Proof" not in coq.prev_tactics[-1]:
         coq.run_stmt("Proof.")
@@ -539,16 +550,84 @@ def attempt_search(args: argparse.Namespace,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor)
-        elif args.search_type == 'dfs-est':
-            result = dfs_estimated(lemma_name, module_prefix,
-                                   context_lemmas,
-                                   coq, output_dir,
-                                   args, bar_idx, predictor)
+        elif args.search_type == 'astar' or args.search_type == 'best-first':
+            result = best_first_proof_search(lemma_name, module_prefix,
+                                             context_lemmas, coq,
+                                             output_dir,
+                                             args, bar_idx, predictor)
+        elif args.search_type == 'dfs-subgoal':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, True, subgoals_seen, False, False, False, False, False, False)
+        elif args.search_type == 'dfs-vote':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, False, {}, True, False, False, False, False, False)
+        elif args.search_type == 'dfs-vote-subgoal':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, True, subgoals_seen, True, False, False, False, False, False)
+        elif args.search_type == 'dfs-bid':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, False, {}, False, True, False, False, False, False)
+        elif args.search_type == 'dfs-multimodal':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, False, {}, False, False, False, False, False, True)
+        elif args.search_type == 'dfs-bid-avg':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, False, {}, False, False, False, True, False, False)
+        elif args.search_type == 'dfs-cheap-exp':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 None, None, False, {}, False, False, False, False, True, False)
+        elif args.search_type == 'rnn-dfs':
+            result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
+                                                 context_lemmas,
+                                                 coq, output_dir,
+                                                 args, bar_idx, predictor, predictor_list, 
+                                                 model_list, vectorizer, True, subgoals_seen, False, False, True, False, False, False)
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            context_lemmas, coq,
                                            output_dir,
                                            args, bar_idx, predictor)
+        elif args.search_type == 'combo-b':
+            result = combo_b_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
+        elif args.search_type == 'combo-b-two':
+            result = combo_b_two_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
+        elif args.search_type == 'combo-b-vote':
+            result = combo_b_vote_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
+        elif args.search_type == 'combo-subgoal':
+            result = combo_subgoal_search(lemma_name, module_prefix,
+                                           context_lemmas, coq,
+                                           output_dir,
+                                           args, bar_idx, predictor_list)
         elif args.search_type == 'astar' or args.search_type == 'best-first':
             result = best_first_proof_search(lemma_name, module_prefix,
                                              context_lemmas, coq,
@@ -619,6 +698,21 @@ def get_predictor(args: argparse.Namespace, allow_static_predictor: bool = True,
         raise ValueError("Can't load a predictor from given args!")
     return predictor
 
+def get_random_predictor(args: argparse.Namespace, allow_static_predictor: bool = True) -> TacticPredictor:
+    predictor: TacticPredictor
+    if args.combo_weightsfiles:
+        predictor = loadPredictorByFile(args.combo_weightsfiles)
+    else:
+        raise ValueError("Can't load a predictor from given args!")
+    return predictor
+
+def get_predictor_by_path(predictor_path, allow_static_predictor: bool = True) -> TacticPredictor:
+    predictor: TacticPredictor
+    print("loading predictor")
+    print(predictor_path,flush=True)
+    predictor = loadPredictorByFile(predictor_path)
+    return predictor
+
 def project_dicts_from_args(args: argparse.Namespace) -> List[Dict[str, Any]]:
     if args.splits_file:
         with Path(args.splits_file).open('r') as f:
@@ -669,8 +763,10 @@ def unique_lemma_stmt_and_name(orig_lemma_statement: str, rest_commands: List[st
                  break
         assert first_ending_command is not None,\
             "Couldn't find an ending command after `Goal`."
+
         named_ending_match = re.match(r"(?:Save|Defined)\s+(\w+)\.",
                                      coq_serapy.kill_comments(first_ending_command).strip())
+
         if named_ending_match:
             lemma_name = named_ending_match.group(1)
             unique_stmt = \

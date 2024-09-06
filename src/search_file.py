@@ -145,6 +145,11 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--include-proof-relevant", action="store_true")
     # parser.add_argument('--no-check-consistent', action='store_false',
     #                     dest='check_consistent')
+    parser.add_argument('--no-goal-head', action='store_true')
+    parser.add_argument('--no-hyp-head', action='store_true')
+    parser.add_argument('--no-hyp-scores', action='store_true')
+    parser.add_argument('--no-prev-tactic', action='store_true')
+    parser.add_argument('--hyp-and-goal', action='store_true')
     parser.add_argument('--show-failing-predictions', action='store_true')
     parser.add_argument('--count-failing-predictions', action='store_true',
                         dest="count_failing_predictions")
@@ -155,7 +160,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-est', 'beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote', 'rnn-dfs','rnn-bfs'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-bid', 'dfs-bid-avg', 'dfs-cheap-exp', 'dfs-est', 'dfs-multimodal','beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote', 'rnn-dfs','rnn-bfs'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)

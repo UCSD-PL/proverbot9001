@@ -118,6 +118,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
         pass
 
     with SearchWorker(args, threadid, predictor, switch_dict, predictor_list, model_list, vectorizer) as worker:
+        subgoals_seen = {}
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
                 taken_jobs = [ReportJob(*json.loads(line)) for line in f]
@@ -134,7 +135,8 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                 else:
                     eprint(f"Finished thread {threadid}")
                     break
-            solution = worker.run_job_with_random(current_job)
+            solution = worker.run_job_with_random(current_job, subgoals_seen)
+            subgoals_seen = solution.subgoals_seen
             job_project, job_file, _, _ = current_job
             project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
             with (args.output_dir / job_project /
