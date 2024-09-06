@@ -4612,29 +4612,27 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                         subgoal_list.append(step)
                     #print("running another one", flush=True)
                     if cheap_exp and mainflag:
-                        for cheap_predictor in predictor_list:
-                            if cheap_predictor is not single_predictor:
-                                copy_distance_stack = copy.deepcopy(new_distance_stack)
-                                sub_search_result = search(pbar,
-                                                           current_path + [predictionNode],
-                                                           copy_distance_stack,
-                                                           new_extra_depth, steps_explored + substeps_explored, cheap_predictor, g, search_args, [], len(current_path)+4, mainflag=False, True)
-                                if sub_search_result.solution or \
-                                   sub_search_result.solved_subgoals > subgoals_opened:
-                                    substeps_explored += sub_search_result.steps_explored
-                                    cleanupSearch(num_stmts, "we finished subsearch")
-                                    new_subgoals_closed = \
-                                        subgoals_closed + \
-                                        sub_search_result.solved_subgoals - \
-                                        subgoals_opened
-                                    return SubSearchResult(sub_search_result.solution,
-                                                           new_subgoals_closed, substeps_explored)
+                        copy_distance_stack = copy.deepcopy(new_distance_stack)
+                        sub_search_result = search(pbar,
+                                                   current_path + [predictionNode],
+                                                   copy_distance_stack,
+                                                   new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, [], len(current_path)+4, mainflag=False, alltogether = True)
+                        if sub_search_result.solution or \
+                           sub_search_result.solved_subgoals > subgoals_opened:
+                            substeps_explored += sub_search_result.steps_explored
+                            cleanupSearch(num_stmts, "we finished subsearch")
+                            new_subgoals_closed = \
+                                subgoals_closed + \
+                                sub_search_result.solved_subgoals - \
+                                subgoals_opened
+                            return SubSearchResult(sub_search_result.solution,
+                                                   new_subgoals_closed, substeps_explored)
                     if len(subgoal_list) > 0:
                         copy_distance_stack = copy.deepcopy(new_distance_stack)
                         sub_search_result_one = search(pbar,
                                                    current_path + [predictionNode],
                                                    copy_distance_stack,
-                                                   new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, subgoal_list, search_depth_limit, mainflag=True, False)
+                                                   new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, subgoal_list, search_depth_limit, mainflag=True, alltogether=False)
                         if sub_search_result_one.solution or \
                            sub_search_result_one.solved_subgoals > subgoals_opened:
                             substeps_explored += sub_search_result_one.steps_explored
