@@ -4436,7 +4436,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
 
     def search(pbar: tqdm, current_path: List[LabeledNode],
                subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int, single_predictor, g, search_args, subgoal_list, search_depth_limit:int, mainflag:bool) -> SubSearchResult:
+               extra_depth: int, steps_explored: int, single_predictor, g, search_args, subgoal_list, search_depth_limit:int, mainflag:bool, alltogether:bool) -> SubSearchResult:
         nonlocal hasUnexploredNode
         nonlocal relevant_lemmas
         global unnamed_goal_number
@@ -4463,7 +4463,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
             assert stack_model is not None, "you must provide a stack model"
             assert vectorizer is not None, "you must provide a vectorizer" 
             predictions = rnnfunc(search_args, full_context_before, coq, predictor_list, stack_model, vectorizer)
-        elif multimodal:
+        elif alltogether:
             predictions = multimodalfunc(search_args, full_context_before, coq, predictor_list)
             #predictions_lists = []
             #for modalpredictor in predictor_list:
@@ -4618,7 +4618,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 sub_search_result = search(pbar,
                                                            current_path + [predictionNode],
                                                            copy_distance_stack,
-                                                           new_extra_depth, steps_explored + substeps_explored, cheap_predictor, g, search_args, [], len(current_path)+4, mainflag=False)
+                                                           new_extra_depth, steps_explored + substeps_explored, cheap_predictor, g, search_args, [], len(current_path)+4, mainflag=False, True)
                                 if sub_search_result.solution or \
                                    sub_search_result.solved_subgoals > subgoals_opened:
                                     substeps_explored += sub_search_result.steps_explored
@@ -4634,7 +4634,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                         sub_search_result_one = search(pbar,
                                                    current_path + [predictionNode],
                                                    copy_distance_stack,
-                                                   new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, subgoal_list, search_depth_limit, mainflag=True)
+                                                   new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, subgoal_list, search_depth_limit, mainflag=True, False)
                         if sub_search_result_one.solution or \
                            sub_search_result_one.solved_subgoals > subgoals_opened:
                             substeps_explored += sub_search_result_one.steps_explored
@@ -4649,7 +4649,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                     sub_search_result = search(pbar,
                                                current_path + [predictionNode],
                                                new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, [], search_depth_limit, mainflag)
+                                               new_extra_depth, steps_explored + substeps_explored, single_predictor, g, search_args, [], search_depth_limit, mainflag, alltogether)
                     substeps_explored += sub_search_result.steps_explored
                     cleanupSearch(num_stmts, "we finished subsearch")
                     if sub_search_result.solution or \
@@ -4725,12 +4725,15 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         #print("begin subgoals seen")
         #print(subgoals_seen, flush=True)
+        bool_alltogether = False
         if (not subgoal_sharing) or (bid or vote or rnn or multimodal) :
-            command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0, predictor, g, args, [], args.hard_depth_limit, mainflag=True)
+            if multimodal:
+                bool_alltogether = True
+            command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0, predictor, g, args, [], args.hard_depth_limit, mainflag=True, bool_alltogether)
             #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
         else:
             for curr_predictor in predictor_list + predictor_list:
-                command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0, curr_predictor, g, args, [], args.hard_depth_limit, mainflag=True)
+                command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0, curr_predictor, g, args, [], args.hard_depth_limit, mainflag=True, bool_alltogether)
                 #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
                 if command_list:
                     if args.features_json:
