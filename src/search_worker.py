@@ -14,7 +14,7 @@ import coq_serapy
 from coq_serapy.contexts import ProofContext
 from models.tactic_predictor import TacticPredictor
 from search_results import SearchResult, KilledException, SearchStatus, TacticInteraction
-from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search, combo_b_two_search, combo_subgoal_search, combo_b_vote_search, dfs_proof_search_with_vote, dfs_subgoal_sharing, rnn_dfs_proof_search, augmented_dfs_proof_search_with_graph
+from search_strategies import best_first_proof_search, bfs_beam_proof_search, dfs_proof_search_with_graph, dfs_estimated, combo_b_search, combo_b_two_search, combo_subgoal_search, combo_b_vote_search, dfs_proof_search_with_vote, dfs_subgoal_sharing, rnn_dfs_proof_search, augmented_dfs_proof_search_with_graph, SearchGraph
 from predict_tactic import (loadPredictorByFile,
                                     loadPredictorByName)
 from linearize_semicolons import get_linearized
@@ -22,6 +22,7 @@ from linearize_semicolons import get_linearized
 import random
 from train_my_rnn_model import zhannRNN
 import coq2vec
+import itertools
 
 from util import unwrap, eprint, escape_lemma_name, split_by_char_outside_matching, print_time
 
@@ -298,6 +299,8 @@ class Worker:
                                 command).strip()):
                     self.last_program_statement = command
                     self.obligation_num = 0
+            #print("all commands")
+            #print(run_commands,flush=True)
             lemma_statement = run_commands[-1]
             unique_lemma_statement, lemma_name, self.obligation_num, self.unnamed_goal_num = \
                 unique_lemma_stmt_and_name(lemma_statement, rest_commands,
@@ -315,6 +318,7 @@ class Worker:
               self.coq.sm_prefix == job_module:
                 return
             try:
+                #print("carefuly skipping proof", flush=True)
                 self.skip_proof(careful)
             except coq_serapy.CoqAnomaly:
                 if restart_anomaly:
@@ -361,16 +365,22 @@ class Worker:
                 coq_serapy.lemma_name_from_statement(lemma_statement)
             try:
                 starting_command = coq_serapy.kill_comments(self.remaining_commands[0]).strip()
+                #print("running the command")
+                #print(starting_command,flush=True)
                 if starting_command.startswith("Proof") or coq_serapy.ending_proof(starting_command):
                     self.coq.run_stmt(starting_command)
                 for cmd in important_vernac_cmds:
+                    #print("running important vernac cmd")
+                    #print(cmd,flush=True)
                     self.coq.run_stmt(cmd)
                 if not coq_serapy.ending_proof(starting_command):
+                    #print("trying to admit proof")
+                    #print(lemma_statement)
+                    #print(ending_command)
                     coq_serapy.admit_proof(self.coq, lemma_statement, ending_command)
             except coq_serapy.SerapiException:
                 eprint(f"{self.cur_file}: Failed to admit proof {lemma_name}")
                 raise
-
             while not coq_serapy.ending_proof(self.remaining_commands[0]):
                 self.remaining_commands.pop(0)
             # Pop the actual Qed/Defined/Save
@@ -388,6 +398,7 @@ class SearchWorker(Worker):
         self.model_list = model_list
         self.vectorizer = vectorizer
         self.axioms_already_added = False
+        self.total_restart = 0
 
     def enter_file(self, filename: str) -> None:
         super().enter_file(filename)
@@ -397,7 +408,7 @@ class SearchWorker(Worker):
         super().reset_file_state()
         self.axioms_already_added = False
 
-    def run_job_with_random(self, job: ReportJob, subgoals_seen, restart: bool = True) -> SearchResult:
+    def run_job_with_random(self, job: ReportJob, subgoals_seen, badhistory, badmodel, restarted: int, graph:SearchGraph, use_subs: bool, restart:bool = True) -> SearchResult:
         job_project, job_file, job_module, job_lemma = job
         if self.coq is None:
           self.enter_instance(self.args.prelude / job_project)
@@ -413,6 +424,8 @@ class SearchWorker(Worker):
                 for signature in f:
                     try:
                         self.coq.run_stmt(signature)
+                        #print("trying to admit because there are axioms to add")
+                        #print(self.coq.context.fg_goals(), flush=True)
                         self.coq.run_stmt("Admitted.")
                     except coq_serapy.CoqExn:
                         axiom_name = coq_serapy.lemma_name_from_statement(
@@ -422,38 +435,79 @@ class SearchWorker(Worker):
             self.coq.run_stmt(original_lemma_statement)
         empty_context = ProofContext([], [], [], [])
         context_lemmas = context_lemmas_from_args(self.args, self.coq)
+        # FAST FINISH
+        #return SearchResult(SearchStatus.INCOMPLETE, context_lemmas, [], 0, 0, {})
+        #predictor_lists = list(itertools.permutations(self.predictor_list))
+        single_predictor = self.predictor_list[(restarted%len(self.predictor_list))]
+        #print("using single predictor")
+        #print(restarted%len(self.predictor_list))
         try:
             start_time = time.time()
-            search_status, _, tactic_solution, steps_taken, _, subgoals_seen = \
+            (search_status, _, tactic_solution, steps_taken, _, subgoals_seen), new_graph = \
               attempt_search(self.args, job_lemma,
                              self.coq.sm_prefix,
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, self.predictor, self.predictor_list, self.model_list, self.vectorizer, subgoals_seen)
-            print("whatve I seen")
-            print(subgoals_seen,flush=True)
+                             self.widx, single_predictor, self.predictor_list, self.model_list, self.vectorizer, subgoals_seen, badhistory, badmodel, self.switch_dict[self.cur_project], graph, use_subs)
+            if not tactic_solution:
+                #print("search status")
+                #print(search_status)
+                if (restarted < (3*(len(self.predictor_list)))) and (self.args.search_type == 'dfs-subgoal'):
+                    #print("restarting")
+                    self.restart_coq()
+                    self.enter_file(job_file)
+                    self.reset_project_state()
+                    if (restarted < (len(self.predictor_list))):
+                        return self.run_job_with_random(job, subgoals_seen, badhistory, badmodel, (restarted + 1), new_graph, use_subs, restart=restart)
+                    else:
+                        return self.run_job_with_random(job, subgoals_seen, badhistory, badmodel, (restarted + 1), new_graph, use_subs=True, restart=restart)
+                elif (restarted < (len(self.predictor_list))) and (self.args.search_type == 'dfs-cheap-exp'):
+                    #print("restarting",flush=True)
+                    self.restart_coq()
+                    self.enter_file(job_file)
+                    self.reset_project_state()
+                    return self.run_job_with_random(job, subgoals_seen, badhistory, badmodel, (restarted + 1), new_graph, use_subs, restart=restart)
+            else: 
+                print("search status")
+                print(search_status,flush=True)
+                print("not restarting", flush=True)
+            self.total_restart = 0
             time_taken = time.time() - start_time
-            while len(self.coq.tactic_history.getFullHistory()) > 1:
-                self.coq.cancel_last()
+            #while len(self.coq.tactic_history.getFullHistory()) > 1:
+            #    self.coq.cancel_last()
+            #print("carefully skipping proof",flush=True)
             self.skip_proof(False)
-        except KilledException:
+            #self.restart_coq()
+            #self.enter_file(job_file)
+            #self.reset_project_state()
+        except KilledException: #TODO: put back?
             tactic_solution = None
             search_status = SearchStatus.INCOMPLETE
         except coq_serapy.CoqAnomaly:
-            if self.args.hardfail:
-                raise
-            if self.args.log_anomalies:
-                with self.args.log_anomalies.open('a') as f:
-                    print(f"ANOMALY at {job_file}:{job_lemma}",
-                          file=f)
-                    traceback.print_exc(file=f)
+            #if self.args.hardfail:
+            #    raise
+            #if self.args.log_anomalies:
+            #with self.args.log_anomalies.open('a') as f:
+            print(f"ANOMALY at {job_file}:{job_lemma}",flush=True)
             self.restart_coq()
             self.enter_file(job_file)
             self.reset_project_state()
-            if restart:
+            if ((self.args.search_type == 'dfs-subgoal') or (self.args.search_type == 'dfs-cheap-exp') or (self.args.search_type == 'dfs-multimodal')):
+                if (self.total_restart < (2*len(self.predictor_list))) and ((self.args.search_type == 'dfs-subgoal') or (self.args.search_type == 'dfs-cheap-exp')):
+                    self.total_restart = self.total_restart + 1
+                    print("restarting bigtime", flush=True)
+                    return self.run_job_with_random(job, subgoals_seen, badhistory, badmodel, (restarted), None, use_subs=use_subs, restart=restart)
+                elif (self.total_restart < 2*(1 + len(self.predictor_list))) and (self.args.search_type == 'dfs-multimodal'):
+                    self.total_restart = self.total_restart + 1
+                    print("restarting bigtime", flush=True)
+                    return self.run_job_with_random(job, subgoals_seen, badhistory, badmodel, (restarted), None, use_subs=use_subs, restart=restart)
+            elif restart:
                 eprint("Hit an anomaly, restarting job", guard=self.args.verbose >= 2)
-                return self.run_job_with_random(job, subgoals_seen, restart=False)
+                print("Hit an anomaly, restarting job", flush=True)
+                
+                return self.run_job_with_random(job, {}, badhistory, badmodel, 0, graph, use_subs=True, restart=False)
+            self.total_restart = 0
             if self.args.log_hard_anomalies:
                 with self.args.log_hard_anomalies.open('a') as f:
                     print(
@@ -467,15 +521,18 @@ class SearchWorker(Worker):
             eprint(f"Skipping job {job_file}:{coq_serapy.lemma_name_from_statement(job_lemma)} "
                    "due to multiple failures",
                    guard=self.args.verbose >= 1)
-            return SearchResult(search_status, context_lemmas, solution, 0, None, subgoals_seen)
+
+            return SearchResult(search_status, context_lemmas, solution, 0, 0, {})
         except Exception:
             eprint(f"FAILED in file {job_file}, lemma {job_lemma}")
             raise
         if not tactic_solution:
+            #print("didn't find a tactic solution? =/", flush=True)
             solution = [
                 TacticInteraction("Proof.", initial_context),
                 TacticInteraction("Admitted.", initial_context)]
         else:
+            #print("found a tactic solution yay",flush=True)
             solution = (
                 [TacticInteraction("Proof.", initial_context)]
                 + tactic_solution +
@@ -526,9 +583,19 @@ def attempt_search(args: argparse.Namespace,
                    predictor_list=None,
                    model_list=None, 
                    vectorizer=None, 
-                   subgoals_seen = dict) \
+                   subgoals_seen: dict = None,
+                   bad_history: list = [],
+                   bad_model: list = [],
+                   switch: str = "",
+                   search_graph: SearchGraph = None,
+                   use_subgoals: bool = False) \
         -> SearchResult:
     if "Proof" not in coq.prev_tactics[-1]:
+        #coq.run_stmt("From Hammer Require Import Hammer.")
+        if "8.10" in switch:
+            coq.run_stmt("Require Import Lia.")
+        else:
+            coq.run_stmt("Require Import Lia.")
         coq.run_stmt("Proof.")
     global obl_num
     if module_name:
@@ -560,49 +627,55 @@ def attempt_search(args: argparse.Namespace,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, True, subgoals_seen, False, False, False, False, False, False)
+                                                 None, None, True, subgoals_seen, bad_history, bad_model, switch, False, False, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-vote':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, False, {}, True, False, False, False, False, False)
+                                                 None, None, False, {}, bad_history, bad_model, switch, True, False, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-vote-subgoal':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, True, subgoals_seen, True, False, False, False, False, False)
+                                                 None, None, True, subgoals_seen, bad_history, bad_model, switch, True, False, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-bid':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, False, {}, False, True, False, False, False, False)
+                                                 None, None, False, {}, bad_history, bad_model, switch, False, True, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-multimodal':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, False, {}, False, False, False, False, False, True)
+                                                None, None, False, subgoals_seen, bad_history, bad_model, switch, False, False, False, False, False, True, search_graph, False) #TODO: use subgoals?
+        #elif args.search_type == 'bfs-multimodal':
+        #    result = augmented_bfs_proof_search_with_graph(lemma_name, module_prefix, 
+        #                                         context_lemmas,
+        #                                         coq, output_dir,
+        #                                         args, bar_idx, predictor, predictor_list, 
+        #                                         None, None, False, {}, False, False, False, False, False, True, search_graph)
         elif args.search_type == 'dfs-bid-avg':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, False, {}, False, False, False, True, False, False)
+                                                 None, None, False, {}, bad_history, bad_model, switch, False, False, False, True, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-cheap-exp':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 None, None, False, {}, False, False, False, False, True, False)
+                                                 None, None, False, {}, bad_history, bad_model, switch, False, False, False, False, True, False, search_graph, use_subgoals)
         elif args.search_type == 'rnn-dfs':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, predictor, predictor_list, 
-                                                 model_list, vectorizer, True, subgoals_seen, False, False, True, False, False, False)
+                                                 model_list, vectorizer, True, subgoals_seen, False, False, True, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            context_lemmas, coq,
