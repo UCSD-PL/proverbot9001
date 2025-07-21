@@ -37,7 +37,7 @@ from rl_to_pickle import LearnedEstimator
 import util
 from util import eprint, FileLock
 import torch_util
-from train_my_rnn_model import zhannRNN
+from train_my_rnn_model import finetunedRNN
 import coq2vec
 
 def main(arg_list: List[str]) -> None:
@@ -101,7 +101,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     if args.rnn_models: 
         model_list = []
         for model_text in args.rnn_models:
-            test_model = zhannRNN(7825, 4)
+            test_model = finetunedRNN(7825, 4)
             test_model.load_state_dict(torch.load(model_text, map_location=torch.device('cuda:0')))
             model_list.append(test_model)
         vectorizer = coq2vec.CoqTermRNNVectorizer()

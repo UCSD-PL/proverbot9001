@@ -20,7 +20,7 @@ from predict_tactic import (loadPredictorByFile,
 from linearize_semicolons import get_linearized
 
 import random
-from train_my_rnn_model import zhannRNN
+from train_my_rnn_model import finetunedRNN
 import coq2vec
 import itertools
 
@@ -391,7 +391,7 @@ class SearchWorker(Worker):
     widx: int
     predictor: TacticPredictor
     axioms_already_added: bool
-    def __init__(self, args: argparse.Namespace, worker_idx: int, predictor: TacticPredictor, switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None, model_list: Optional[List[zhannRNN]] = None, vectorizer: Optional[coq2vec.CoqTermRNNVectorizer] = None) -> None:
+    def __init__(self, args: argparse.Namespace, worker_idx: int, predictor: TacticPredictor, switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None, model_list: Optional[List[finetunedRNN]] = None, vectorizer: Optional[coq2vec.CoqTermRNNVectorizer] = None) -> None:
         super().__init__(args, switch_dict)
         self.widx = worker_idx
         self.predictor = predictor
