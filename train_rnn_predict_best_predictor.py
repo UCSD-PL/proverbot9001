@@ -21,9 +21,9 @@ print_every = 1
 learning_rate = 0.0005
 #plot_every = 1
 
-class zhannRNN(nn.Module):
+class finetunedRNN(nn.Module):
     def __init__(self, input_size, output_size):
-        super(zhannRNN, self).__init__()
+        super(finetunedRNN, self).__init__()
 
         n_hidden_one = 2048
         n_hidden_two = 512
@@ -90,7 +90,7 @@ print("tensors_loaded", flush=True)
 #criterion = nn.BCEWithLogitsLoss()
 criterion = nn.MSELoss()
 
-rnn = zhannRNN(n_letters, n_categories).to(device="cuda")
+rnn = finetunedRNN(n_letters, n_categories).to(device="cuda")
 #optimizer = torch.optim.Adam(rnn.parameters(), lr=learning_rate)
 optimizer = torch.optim.SGD(rnn.parameters(), lr=learning_rate, momentum=0.9)
 scheduler = torch.optim.lr_scheduler.ReduceLROnPlateau(optimizer, 'min')
