@@ -96,4 +96,5 @@ def loadPredictorByFile(filename : str, device: Optional[str] = None) -> Trainab
     predictor_class = vars(importlib.import_module("models." + module_name))[class_name]
     predictor = predictor_class(device)
     predictor.load_saved_state(*saved_state)
+    predictor.set_filename(filename)
     return predictor

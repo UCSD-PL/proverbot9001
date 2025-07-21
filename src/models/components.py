@@ -145,6 +145,8 @@ class DNNClassifier(nn.Module):
         self.softmax = nn.LogSoftmax(dim=1).to(self.device)
 
     def forward(self, input : torch.FloatTensor) -> torch.FloatTensor:
+        assert not torch.any(torch.isnan(input))
+        assert not torch.any(torch.isinf(input))
         layer_values = self.in_layer(input.to(self.device))
         for layer in self.layers:
             layer_values = F.relu(layer_values)
@@ -241,12 +243,16 @@ class WordFeaturesEncoder(nn.Module):
             embedded = word_embedding(word_feature_var)\
                 .view(batch_size, self.hidden_size)
             word_embedded_features.append(embedded)
+            assert not torch.any(torch.isinf(embedded))
+            assert not torch.any(torch.isnan(embedded))
         word_embedded_features_vec = \
             torch.cat(word_embedded_features, dim=1)
         vals = self._in_layer(word_embedded_features_vec)
         for layer in self.layers:
             vals = F.relu(vals)
             vals = layer(vals)
+            assert not torch.any(torch.isinf(vals))
+            assert not torch.any(torch.isnan(vals))
         vals = F.relu(vals)
         result = self._out_layer(vals).view(batch_size, -1)
         return result

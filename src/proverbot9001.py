@@ -274,15 +274,19 @@ def predictor_data(args: List[str], **kwargs):
     parser.add_argument("-j", "--num-threads", type=int, default=None)
     parser.add_argument("--context-filter", default="default")
     parser.add_argument("--max-attempts", default=10)
-    parser.add_argument("--no-prev-tactic", action='store_true')
-    parser.add_argument("--no-goal-head", action='store_true')
-    parser.add_argument("--no-hyp-head", action='store_true')
-    parser.add_argument("--no-hyp-scores", action='store_true')
+    #parser.add_argument("--no-prev-tactic", action='store_true')
+    #parser.add_argument("--no-goal-head", action='store_true')
+    #parser.add_argument("--no-hyp-head", action='store_true')
+    #parser.add_argument("--no-hyp-scores", action='store_true')
     parser.add_argument("--blacklisted-tactics", default=[])
     parser.add_argument("--max-term-length", default=30, type=int)
     parser.add_argument("--weightsfile", type=str)
     parser.add_argument("--part", type=int)
     parser.add_argument("--subst", action='store_true')
+    parser.add_argument("--no-prev-tactic", action='store_true')
+    parser.add_argument("--no-goal-head", action='store_true')
+    parser.add_argument("--no-hyp-head", action='store_true')
+    parser.add_argument("--no-hyp-scores", action='store_true')
     parser.add_argument("--weightsfiles",  nargs='+', type=str)
     parser.add_argument("--scrapefile", type=Path)
     parser.add_argument("--dest")
@@ -299,16 +303,13 @@ def predictor_data(args: List[str], **kwargs):
     for weightsfile in arg_values.weightsfiles:
        temp_predictor = loadPredictorByFile(weightsfile)
        predictor_list.append(temp_predictor)
-    #predictor_num = arg_values.predictor_num
-    #predictor_file = arg_values.weightsfiles[predictor_num]
-    #predictor = loadPredictorByFile(predictor_file)
-    #print(predictor_list)
+
     print("lines in raw data")
     print(len(raw_data), flush=True)
-    min_i = 12770 * arg_values.part
-    max_i = 12770 * (arg_values.part + 1)
-    if arg_values.subst:
-        print("substituting!", flush=True)
+    #min_i = 106287 * arg_values.part
+    #max_i = 106287 * (arg_values.part + 1)
+    #if arg_values.subst:
+    #    print("substituting!", flush=True)
 
     i = 0
     fulldest = arg_values.dest
@@ -316,13 +317,17 @@ def predictor_data(args: List[str], **kwargs):
     num_lines = 0
     num_got = 0
     num_got_here = 0
-    for line in raw_data:
-        if i < min_i:
-            i = i + 1
-            continue
-        if i > max_i:
-            i = i + 1
-            continue
+    random_ints = random.sample(range(0, 531435), 10000)
+    flagstart = True
+    for linenum in random_ints:
+        line = raw_data[linenum]
+        #if i < min_i:
+        #    i = i + 1
+        #    continue
+        #if i > max_i:
+        #    i = i + 1
+        #    continue
+        #print(line, flush=True)
         correct_tactic = line.tactic.strip()
         correct_tactic = ' '.join(correct_tactic.split())
         relevant_lemmas =  line.relevant_lemmas
@@ -332,7 +337,6 @@ def predictor_data(args: List[str], **kwargs):
         #goal = ' '.join(line.context.fg_goals[0].goal.split())
         the_context = TacticContext(relevant_lemmas, prev_tactics, hypotheses, goal)
         fingoal = ' '.join(goal.split())
-        data = {'goal': fingoal}
         truncated_context = truncate_tactic_context(the_context, arg_values.max_term_length)
         if (len(truncated_context.relevant_lemmas) > 20):
             truncated_context.relevant_lemmas = truncated_context.relevant_lemmas[-20:]
@@ -345,71 +349,74 @@ def predictor_data(args: List[str], **kwargs):
         #if correct_tactic_two != correct_tactic:
         #    print(correct_tactic_two, flush=True)
         #    print(correct_tactic, flush=True)
-        for predictor_num in range(2):
+        for predictor_num in range(5):
             predictor = predictor_list[predictor_num]
             tactics = predictor.predictKTactics(arg_values, truncated_context, arg_values.max_attempts,blacklist=arg_values.blacklisted_tactics)
             #time_one = time.time()
-            #print("full time")
             #print(time_one - time_zero, flush=True)
-            alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
+            #alltactic = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in tactics])
             predicted_tactic_list = [' '.join(the_tactic.prediction.split()) for the_tactic in tactics]
-            data[str(predictor_num) + '_tactics'] = alltactic
+            predicted_certainty_list = [str(the_tactic.no_softmax_certainty) for the_tactic in tactics]
+            #data[str(predictor_num) + '_tactics'] = alltactic
 
             rank = 0
             flag = False
-            for a_tactic in predicted_tactic_list:
+            for certainty, a_tactic in zip(predicted_certainty_list, predicted_tactic_list):
+                data = {'goal': fingoal, 'predictor': arg_values.weightsfiles[predictor_num], 'prev_tactic': prev_tactics[-1],  'certainty': certainty, 'tactic': a_tactic}
                 a_tactic = a_tactic.strip()
                 a_tactic_two = '' + a_tactic.strip()
                 substitutions = {"auto": "eauto.", "intros until": "intros.", "intro": "intros.", "constructor": "econstructor."}
+
                 for keyval in substitutions.keys():
                     a_tactic_two = a_tactic_two.replace(keyval, substitutions[keyval]).strip()
-                if arg_values.subst: 
-                    if (correct_tactic == a_tactic):
-                        final_rank = ((10 - rank)/10)
-                        flag = True
-                        num_got_here += 1
-                        break
-                    if (correct_tactic_two == a_tactic):
-                        print("AAAHH",flush=True)
-                        final_rank = ((10 - rank)/10)
-                        flag = True
-                        num_got_here += 1
-                        break
-                    if (correct_tactic_two == a_tactic_two):
-                        print("AAAHH",flush=True)
-                        final_rank = ((10 - rank)/10)
-                        flag = True
-                        num_got_here += 1
-                        break
-                else: 
-                    if (correct_tactic == a_tactic):
-                        final_rank = ((10 - rank)/10)
-                        flag = True
-                        num_got_here += 1
-                        break
-                rank = rank + 1
-            if not flag:
-                final_rank = 0.0
-            data[str(predictor_num) + '_rank'] = final_rank
-        #predictor_num = predictor_num + 1
-        if num_got_here > 0:
-            num_got = num_got + 1
+                #if arg_values.subst: 
+                if (correct_tactic == a_tactic) or (correct_tactic_two == a_tactic) or (correct_tactic_two == a_tactic_two):
+                    data["label"] = 1
+                else:
+                    data["label"] = 0
+                #if (correct_tactic == a_tactic):
+                #        final_rank = ((10 - rank)/10)
+                #        flag = True
+                #        num_got_here += 1
+                #        break
+                #    if (correct_tactic_two == a_tactic):
+                #        final_rank = ((10 - rank)/10)
+                #        flag = True
+                #        num_got_here += 1
+                #        break
+                #    if (correct_tactic_two == a_tactic_two):
+                #        final_rank = ((10 - rank)/10)
+                #        flag = True
+                #        num_got_here += 1
+                #        break
+                #else: 
+                #    if (correct_tactic == a_tactic):
+                #        final_rank = ((10 - rank)/10)
+                #        flag = True
+                #        num_got_here += 1
+                #        break
+                #    rank = rank + 1
+                #if not flag:
+                #    final_rank = 0.0
+                #data[str(predictor_num) + '_rank'] = final_rank
+                #predictor_num = predictor_num + 1
+                #if num_got_here > 0:
+                #    num_got = num_got + 1
    
-        data = pd.Series(data)
-        #if not i == 0:
-        #    predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
-        #else:
-        predictor_list_dataframe = pd.DataFrame.from_dict(data).T
+                data = pd.Series(data)
+                if not flagstart:
+                    predictor_list_dataframe = pd.concat([predictor_list_dataframe, data.to_frame().T], axis=0)
+                else:
+                    predictor_list_dataframe = pd.DataFrame.from_dict(data).T
+                    flagstart = False
         i = i + 1
-        if (i % 100) == 0:
+        if (i % 1000) == 0:
             print(i, flush=True)
-            print("What's our percentage")
-            print(num_got/i, flush=True)
-            predictor_list = []
-            for weightsfile in arg_values.weightsfiles:
-               temp_predictor = loadPredictorByFile(weightsfile)
-               predictor_list.append(temp_predictor)
-        predictor_list_dataframe.to_json(fulldest, mode='a', orient='records', lines=True)
+            print("lines in raw data")
+            print(len(raw_data), flush=True)
+            predictor_list_dataframe.to_json(fulldest, mode='w', orient='records', lines=True)
+        #print(data,flush=True)
+    predictor_list_dataframe.to_json(fulldest, mode='w', orient='records', lines=True)
 
 modules = {
     "train": train,

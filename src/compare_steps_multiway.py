@@ -39,6 +39,7 @@ def main() -> None:
                      for report in args.reports]
         proof_data_lists = []
         for filename in filenames:
+            print("filename " + filename)
             with open(filename, 'r') as f:
                 proof_data_lists.append([json.loads(line) for line in f])
 

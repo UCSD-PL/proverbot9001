@@ -136,6 +136,8 @@ def main(arg_list: List[str]) -> None:
             command = [f"{cur_dir}/sbatch-retry.sh",
                             "-o", full_output_filename,
                             "-t", str(args.worker_timeout),
+                            "--constraint=sm_70",
+                            "--gres=gpu:1",
                             "-J", "proverbot9001-report-worker",
                             f"{cur_dir}/search_report.sh",
                             str(args.output_dir),
@@ -154,6 +156,8 @@ def main(arg_list: List[str]) -> None:
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                         "-o", str(args.output_dir / args.workers_output_dir
                                   / "index-report.out"),
+                        "--constraint=sm_70",
+                        "--gres=gpu:1",
                         "-J", "proverbot9001-report-worker",
                         f"{cur_dir}/search_report.sh",
                         str(args.output_dir),
@@ -225,6 +229,8 @@ def get_all_jobs_cluster(args: argparse.Namespace,
     subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                     "-o", str(args.output_dir / args.workers_output_dir /
                               "file-scanner-%a.out"),
+                    "--constraint=sm_70",
+                    "--gres=gpu:1",
                     f"--array=0-{num_job_workers}"]
                     + ([f"--partition={partition}"] if partition is not None else []) +
                     [f"{cur_dir}/job_getting_worker.sh"] + worker_args)
@@ -276,6 +282,8 @@ def dispatch_workers(args: argparse.Namespace, rest_args: List[str]) -> None:
         subprocess.run([f"{cur_dir}/sbatch-retry.sh",
                         "-J", worker_name,
                         "-p", args.partition,
+                        "--constraint=sm_70",
+                        "--gres=gpu:1",
                         "-t", str(args.worker_timeout),
                         "--cpus-per-task", str(args.num_threads),
                         "-o", str(args.output_dir / args.workers_output_dir
@@ -408,7 +416,7 @@ def show_report_progress(args: argparse.Namespace,
                          project_dicts: List[Dict[str, Any]],
                          output_files: List[str]) -> None:
     test_projects_total = len([d for d in project_dicts
-                               if len(files_of_dict(args, d)) > 0]) - 1
+                               if len(files_of_dict(args, d)) > 0])
     num_projects_done = 0
     with tqdm(desc="Project reports generated", total=test_projects_total) as bar:
         bars = [tqdm(desc=(project_dict["project_name"]

@@ -1,0 +1,32 @@
+Obtaining file:///work/pi_brun_umass_edu/zhannakaufma/search-diversity-proverbot/proverbot9001/coq_serapy
+  Installing build dependencies: started
+  Installing build dependencies: finished with status 'done'
+  Checking if build backend supports build_editable: started
+  Checking if build backend supports build_editable: finished with status 'done'
+  Getting requirements to build editable: started
+  Getting requirements to build editable: finished with status 'done'
+  Installing backend dependencies: started
+  Installing backend dependencies: finished with status 'done'
+  Preparing editable metadata (pyproject.toml): started
+  Preparing editable metadata (pyproject.toml): finished with status 'done'
+Requirement already satisfied: pampy in /home/zhannakaufma_umass_edu/.local/lib/python3.9/site-packages (from coq-serapy==0.1.6) (0.3.0)
+Requirement already satisfied: tqdm in /home/zhannakaufma_umass_edu/.local/lib/python3.9/site-packages (from coq-serapy==0.1.6) (4.64.1)
+Requirement already satisfied: sexpdata in /home/zhannakaufma_umass_edu/.local/lib/python3.9/site-packages (from coq-serapy==0.1.6) (0.0.3)
+Requirement already satisfied: pylspclient in /work/pi_brun_umass_edu/zhannakaufma/anaconda3/envs/prover/lib/python3.9/site-packages (from coq-serapy==0.1.6) (0.0.2)
+Building wheels for collected packages: coq-serapy
+  Building editable for coq-serapy (pyproject.toml): started
+  Building editable for coq-serapy (pyproject.toml): finished with status 'done'
+  Created wheel for coq-serapy: filename=coq_serapy-0.1.6-0.editable-py3-none-any.whl size=1947 sha256=e4544216452ec494ff1a976de3e332b46ae2c46b5ae3384abeca2a76c4bceef6
+  Stored in directory: /tmp/pip-ephem-wheel-cache-wdv5mwhc/wheels/a0/71/27/2d6459eeca242a276ce66cf46c16493a02b34099dab0119329
+Successfully built coq-serapy
+Installing collected packages: coq-serapy
+  Attempting uninstall: coq-serapy
+    Found existing installation: coq-serapy 0.1.6
+    Uninstalling coq-serapy-0.1.6:
+      Successfully uninstalled coq-serapy-0.1.6
+Successfully installed coq-serapy-0.1.6
+/work/pi_brun_umass_edu/zhannakaufma/anaconda3/envs/prover/lib/python3.9/site-packages/torch/jit/annotations.py:387: UserWarning: TorchScript will treat type annotations of Tensor dtype-specific subtypes as if they are normal Tensors. dtype constraints are not enforced in compilation either.
+  warnings.warn(
+slurmstepd-cpu010: error: *** JOB 22492994 ON cpu010 CANCELLED AT 2024-04-29T09:50:28 DUE TO TIME LIMIT ***
+slurmstepd-cpu010: error: container_p_join: open failed for /var/tmp//cpu010/22492994/.ns: No such file or directory
+slurmstepd-cpu010: error: container_g_join(22492994): No such file or directory

@@ -91,7 +91,14 @@ class TrainablePredictor(TacticPredictor, Generic[DatasetType, MetadataType, Sta
                             action='store_false')
         parser.add_argument("--verbose", "-v", help="verbose output",
                             action='store_const', const=True, default=False)
+        #parser.add_argument("--no-prev-tactic", action='store_true')
+        #parser.add_argument("--no-goal-head", action='store_true')
+        #parser.add_argument("--no-hyp-head", action='store_true')
+        #parser.add_argument("--no-hyp-scores", action='store_true')
         pass
+
+    def set_filename(self, filename):
+        self.filename = filename
 
     @abstractmethod
     def _encode_data(self, data : RawDataset, arg_values : Namespace) \
@@ -222,6 +229,7 @@ class TokenizingPredictor(TrainablePredictor[DatasetType, TokenizerEmbeddingStat
 import torch
 import torch.utils.data as data
 from torch.utils.data.sampler import SubsetRandomSampler
+from torch.utils.data.sampler import SequentialSampler
 from torch.utils.tensorboard import SummaryWriter
 import torch.optim.lr_scheduler as scheduler
 from torch import optim
@@ -286,7 +294,7 @@ class NeuralPredictor(Generic[RestrictedDatasetType, ModelType],
         dataloader = data.DataLoader(data.TensorDataset(
             *(self._data_tensors(encoded_data, arg_values))),
                                      batch_size=arg_values.batch_size, num_workers=0,
-                                     shuffle=True, pin_memory=True, drop_last=True)
+                                     shuffle=False, pin_memory=True, drop_last=True) 
         # Drop the last batch in the count
         num_batches = int(len(encoded_data) / arg_values.batch_size)
         dataset_size = num_batches * arg_values.batch_size
@@ -480,25 +488,33 @@ def optimize_checkpoints(data_tensors : List[torch.Tensor],
         assert tensor.size()[0] == dataset_size
     indices = list(range(dataset_size))
     split = int((dataset_size * split_ratio) / arg_values.batch_size) * arg_values.batch_size
-    np.random.shuffle(indices)
+    #np.random.shuffle(indices) 
     train_indices, val_indices = indices[split:], indices[:split]
-    train_sampler = SubsetRandomSampler(train_indices)
-    valid_sampler = SubsetRandomSampler(val_indices)
+    #train_sampler = SubsetRandomSampler(train_indices) 
+    #valid_sampler = SubsetRandomSampler(val_indices)
     valid_batch_size = arg_values.batch_size // 2
-    dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
-                                 sampler=train_sampler,
+    dataloader = data.DataLoader(data.TensorDataset(*[tensor[split:] for tensor in data_tensors]),#data_tensors),
+                                 #sampler=train_sampler,
                                  batch_size=arg_values.batch_size, num_workers=0,
-                                 pin_memory=True, drop_last=True)
-    dataloader_valid = data.DataLoader(data.TensorDataset(*data_tensors),
-                                       sampler=valid_sampler,
+                                 pin_memory=True, drop_last=True, shuffle=False) 
+    dataloader_valid = data.DataLoader(data.TensorDataset(*[tensor[:split] for tensor in data_tensors]),#data_tensors),
+                                       #sampler=valid_sampler,
                                        batch_size=valid_batch_size, num_workers=0,
-                                       pin_memory=True, drop_last=True)
+                                       pin_memory=True, drop_last=True, shuffle = False) 
+    #dataloader = data.DataLoader(data.TensorDataset(*data_tensors),
+    #                             sampler=train_sampler,
+    #                             batch_size=arg_values.batch_size, num_workers=0,
+    #                             pin_memory=True, drop_last=True)
+    #dataloader_valid = data.DataLoader(data.TensorDataset(*data_tensors),
+    #                                   sampler=valid_sampler,
+    #                                   batch_size=valid_batch_size, num_workers=0,
+    #                                   pin_memory=True, drop_last=True)
     # Drop the last batch in the count
+
     num_batches = int((dataset_size - split) / arg_values.batch_size)
     num_batches_valid = int(split / valid_batch_size)
     dataset_size = num_batches * arg_values.batch_size
     assert dataset_size > 0
-    print("Initializing model...")
     model = maybe_cuda(model)
     optimizer = optimizers[arg_values.optimizer](model.parameters(),
                                                  lr=arg_values.learning_rate)
@@ -615,6 +631,9 @@ def tokenize_hyps(data : RawDataset, args : Namespace, tokenizer : Tokenizer) \
 def predictKTactics(prediction_distribution : torch.FloatTensor,
                     embedding : Embedding, k : int) \
     -> List[Prediction]:
+    if k > 10:
+        print("k")
+        print(k)
     if k > embedding.num_tokens():
         k = embedding.num_tokens()
     certainties_and_idxs = prediction_distribution.view(-1).topk(k)

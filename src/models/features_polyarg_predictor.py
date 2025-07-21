@@ -344,6 +344,11 @@ class FeaturesPolyArgModel(nn.Module):
         self.goal_args_model = torch.jit.script(goal_args_model.to(self.device))
         self.goal_encoder = torch.jit.script(goal_encoder.to(self.device))
         self.hyp_model = torch.jit.script(hyp_model.to(self.device))
+    def change_device(self, device):
+        self.stem_classifier.to(device)
+        self.goal_args_model.to(device)
+        self.goal_encoder.to(device)
+        self.hyp_model.to(device)
 
 
 class FeaturesPolyargPredictor(
@@ -382,6 +387,16 @@ class FeaturesPolyargPredictor(
     @property
     def hyp_encoder(self) -> HypArgEncoder:
         return unwrap(self._model).hyp_model.arg_encoder
+    
+    def change_device(self, device):
+        torch.cuda.set_device(device)
+        util.cuda_device = device
+        self.device = device
+        self._criterion.to(device)
+        self._softmax.to(device)
+        self._softmax2.to(device)
+        self._model.change_device(device)
+        print("device changed")
 
     def train(self, args: List[str]) -> None:
         argparser = argparse.ArgumentParser(self._description())
@@ -436,7 +451,7 @@ class FeaturesPolyargPredictor(
         return encode_prev_tactic(self.metadata, prev_tactic)
 
     def getAllPredictionIdxs(self, context: TacticContext,
-                             blacklist: List[str]) -> List[Tuple[float, int, int, int]]:
+                             blacklist: List[str], args) -> List[Tuple[float, int, int, int]]:
         assert self.training_args
         assert self._model
 
@@ -457,30 +472,26 @@ class FeaturesPolyargPredictor(
         # word_features is now a tensor
         # word_features: previous tactic, token at top of goal, token at tope of most relevant hype
         # in features.rs in dataloader
-        word_features_tensor = LongTensor(word_features)
-        vec_features_tensor = FloatTensor(vec_features)
+        word_features_tensor = torch.tensor(word_features, dtype=torch.long, device=self.device)
+        vec_features_tensor = torch.tensor(vec_features, dtype=torch.float, device=self.device)
         # word_features_tensor[:,0] = 0
         #arg_values={"no_prev_tactic": False, "no_goal_mask": False, "no_hyp_head": False, "No_hyp_scores": False}
-        #if arg_values.no_prev_tactic:
-        if False:
-            prev_tactic_mask = torch.ones(1, 1, dtype=torch.bool)
+        if args.no_prev_tactic:
+            prev_tactic_mask = torch.ones(1, 1, dtype=torch.bool, device=self.device)
         else:
-            prev_tactic_mask = torch.zeros(1, 1, dtype=torch.bool)
-        #if arg_values.no_goal_head:
-        if False:
-            goal_head_mask = torch.ones(1, 1, dtype=torch.bool)
+            prev_tactic_mask = torch.zeros(1, 1, dtype=torch.bool, device=self.device)
+        if args.no_goal_head:
+            goal_head_mask = torch.ones(1, 1, dtype=torch.bool, device=self.device)
         else:
-            goal_head_mask = torch.zeros(1, 1, dtype=torch.bool)
-        #if arg_values.no_hyp_head:
-        if False:
-            hyp_head_mask = torch.ones(1, 1, dtype=torch.bool)
+            goal_head_mask = torch.zeros(1, 1, dtype=torch.bool, device= self.device)
+        if args.no_hyp_head:
+            hyp_head_mask = torch.ones(1, 1, dtype=torch.bool, device=self.device)
         else:
-            hyp_head_mask = torch.zeros(1, 1, dtype=torch.bool)
-        #if arg_values.no_hyp_scores:
-        if False:
-            hyp_score_mask = torch.ones(1, 1, dtype=torch.bool)
+            hyp_head_mask = torch.zeros(1, 1, dtype=torch.bool, device=self.device)
+        if args.no_hyp_scores:
+            hyp_score_mask = torch.ones(1, 1, dtype=torch.bool, device=self.device)
         else:
-            hyp_score_mask = torch.zeros(1, 1, dtype=torch.bool)
+            hyp_score_mask = torch.zeros(1, 1, dtype=torch.bool, device=self.device)
 
         #word_features_mask = torch.cat((torch.ones(batch_size, 1, dtype=torch.bool), torch.zeros(batch_size, 2, dtype=torch.bool)), dim=1)
         word_features_mask = torch.cat((prev_tactic_mask, goal_head_mask, hyp_head_mask), dim=1)
@@ -490,7 +501,7 @@ class FeaturesPolyargPredictor(
             torch.full_like(word_features_tensor, 0),
             word_features_tensor)
 
-        vec_features_mask = hyp_score_mask
+        vec_features_mask = hyp_score_mask.to(self.device)
 
         masked_vec_features = torch.where(
             vec_features_mask,
@@ -635,7 +646,7 @@ class FeaturesPolyargPredictor(
                     "Item {stem} in blacklist isn't a tactic stem!"
 
         with torch.no_grad():
-            all_predictions = self.getAllPredictionIdxs(context, blacklist)
+            all_predictions = self.getAllPredictionIdxs(context, blacklist, args)
 
         predictions = self.decodeNonDuplicatePredictions(
             context, all_predictions, k)
@@ -920,6 +931,10 @@ class FeaturesPolyargPredictor(
                             action="store_false")
         parser.add_argument(
             "--no-goal-rnn", dest="goal_rnn", action="store_false")
+        parser.add_argument("--no-hyp-scores", action="store_true")
+        parser.add_argument("--no-hyp-head", action="store_true")
+        parser.add_argument("--no-goal-head", action="store_true")
+        parser.add_argument("--no-prev-tactic", action="store_true")
         parser.add_argument("--replace-rnns-with-dnns", action="store_true")
         parser.add_argument("--print-tensors", action="store_true")
         parser.add_argument("--load-text-tokens", default=None)

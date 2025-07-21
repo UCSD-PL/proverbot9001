@@ -30,7 +30,7 @@ from typing import List
 from pathlib import Path
 import torch
 
-from search_worker import (ReportJob, SearchWorker, get_predictor, get_random_predictor, project_dicts_from_args, get_predictor_by_path)
+from search_worker_gpu import (ReportJob, SearchWorker, get_predictor, get_random_predictor, project_dicts_from_args, get_predictor_by_path)
 
 from search_file import add_args_to_parser
 from rl_to_pickle import LearnedEstimator
@@ -68,8 +68,8 @@ def main(arg_list: List[str]) -> None:
         torch.cuda.set_device("cuda:0")
         torch_util.cuda_device = "cuda:0"
 
-    if not args.predictor and not args.weightsfile and not args.combo_weightsfiles:
-        print("You must specify a weightsfile or a predictor or a set of combo weightsfiles.")
+    if not args.predictor and not args.weightsfile:
+        print("You must specify a weightsfile or a predictor.")
         arg_parser.print_help()
         sys.exit(1)
 
@@ -102,7 +102,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
         model_list = []
         for model_text in args.rnn_models:
             test_model = zhannRNN(7825, 4)
-            test_model.load_state_dict(torch.load(model_text, map_location=torch.device('cuda:0')))
+            test_model.load_state_dict(torch.load(model_text, map_location=torch.device('cpu')))
             model_list.append(test_model)
         vectorizer = coq2vec.CoqTermRNNVectorizer()
         vectorizer.load_weights("coq2vec/term2vec-weights-59.dat")
@@ -137,7 +137,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                     break
             #if not args.search_type == 'dfs-subgoal':
             subgoals_seen = {}
-            solution = worker.run_job_with_random(current_job, subgoals_seen, [], [], [], 0, None, use_subs=False, restart=True)
+            solution = worker.run_job_with_random(current_job, subgoals_seen, [], [], 0, None, use_subs=False, restart=True)
             subgoals_seen = solution.subgoals_seen
             job_project, job_file, _, _ = current_job
             project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]

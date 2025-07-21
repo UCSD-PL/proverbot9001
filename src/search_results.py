@@ -39,6 +39,7 @@ class SearchResult(NamedTuple):
     commands: Optional[List[TacticInteraction]]
     steps_taken: int
     time_taken: Optional[float]
+    subgoals_seen: Optional[dict]
 
     @classmethod
     def from_dict(cls, data):
@@ -49,7 +50,7 @@ class SearchResult(NamedTuple):
             commands = list(map(TacticInteraction.from_dict,
                                 data['commands']))
         return cls(status, data['context_lemmas'], commands, data['steps_taken'],
-                   data['time_taken'])
+                   data['time_taken'], None)
 
     def to_dict(self):
         return {'status': self.status.name,
@@ -74,7 +75,6 @@ DocumentBlock = Union[VernacBlock, ProofBlock]
 
 class ArgsMismatchException(Exception):
     pass
-
 
 class SourceChangedException(Exception):
     pass

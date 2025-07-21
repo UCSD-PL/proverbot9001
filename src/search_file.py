@@ -76,8 +76,8 @@ def main(arg_list: List[str]) -> None:
         torch.cuda.set_device(f"cuda:{args.gpu}") # type: ignore
         util.cuda_device = f"cuda:{args.gpu}"
 
-    if not args.predictor and not args.weightsfile:
-        print("You must specify a weightsfile or a predictor.")
+    if not args.predictor and not args.weightsfile and not args.combo_weightsfiles:
+        print("You must specify a weightsfile or a predictor or a set of combo weightsfiles.")
         parser.print_help()
         sys.exit(1)
 
@@ -160,7 +160,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-bid', 'dfs-bid-avg', 'dfs-cheap-exp', 'dfs-est', 'dfs-multimodal','beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote', 'rnn-dfs','rnn-bfs'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-bid', 'dfs-bid-avg', 'dfs-cheap-exp', 'dfs-est', 'dfs-multimodal', 'bfs-multimodal', 'beam-bfs', 'astar', 'best-first', 'combo-b', 'combo-b-two', 'combo-subgoal', 'combo-b-vote', 'rnn-dfs','rnn-bfs'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)
@@ -330,8 +330,14 @@ def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
                                   "Removing that line (it will have to be re-done).")
                             fixing_issues = True
                             continue
-                        assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
+                        #assert Path(job_file) == Path(filename), f"Job found in file {filename} " \
+                            #f"doesn't match it's filename {filename}. {job_file}"
+
+                        assert Path(job_file).name == Path(filename).name, f"Job found in file {filename} " \
                             f"doesn't match it's filename {filename}. {job_file}"
+
+                        #if Path(job_file) != Path(filename):
+                        #    print(f"[Warning] Mismatch: job_file={job_file}, filename={filename}", flush=True)
                         loaded_job = ReportJob(job_project, job_file, job_module, job_lemma)
                         if loaded_job in [job for job, sol in file_jobs]:
                             eprint(f"In project {project_dict['project_name']} "

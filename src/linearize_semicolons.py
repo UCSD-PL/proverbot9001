@@ -169,7 +169,7 @@ def linearize_proof(coq: serapi_instance.SerapiInstance,
                 coq.run_stmt("{")
                 yield indentation + "{"
                 pending_commands = pending_commands_stack[-1]
-                if isinstance(pending_commands, list):
+                if isinstance(pending_commands, list) and len(pending_commands) > 0:
                     next_cmd, *rest_cmd = pending_commands
                     dotdotmatch = re.match(
                         "(.*)<\.\.>", next_cmd, flags=re.DOTALL)
