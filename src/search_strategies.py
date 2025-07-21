@@ -40,7 +40,7 @@ from util import nostderr, unwrap, eprint, mybarfmt, copyArgs, print_time
 
 from value_estimator import Estimator
 import dataloader
-from train_my_rnn_model import zhannRNN
+from train_my_rnn_model import finetunedRNN
 import coq2vec
 
 unnamed_goal_number: int = 0
@@ -402,7 +402,7 @@ def rnn_dfs_proof_search_before(lemma_name: str,
                          args: argparse.Namespace,
                          bar_idx: int,
                          predictor_list: [TacticPredictor],
-                         model_list: [zhannRNN],
+                         model_list: [finetunedRNN],
                          vectorizer: coq2vec.CoqTermRNNVectorizer) \
                          -> SearchResult:
 
@@ -781,7 +781,7 @@ def rnn_dfs_proof_search(lemma_name: str,
                          args: argparse.Namespace,
                          bar_idx: int,
                          predictor_list: [TacticPredictor],
-                         model_list: [zhannRNN],
+                         model_list: [finetunedRNN],
                          vectorizer: coq2vec.CoqTermRNNVectorizer) \
                          -> SearchResult:
 
@@ -3358,7 +3358,7 @@ def old_rnn_dfs_proof_search(lemma_name: str,
                          args: argparse.Namespace,
                          bar_idx: int,
                          predictor_list: [TacticPredictor],
-                         model_list: [zhannRNN],
+                         model_list: [finetunedRNN],
                          vectorizer: coq2vec.CoqTermRNNVectorizer) \
                          -> SearchResult:
 
@@ -4527,7 +4527,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 bar_idx: int,
                                 predictor: TacticPredictor,
                                 predictor_list: [TacticPredictor],
-                                stack_model: [zhannRNN],
+                                stack_model: [finetunedRNN],
                                 vectorizer: coq2vec.CoqTermRNNVectorizer,
                                 subgoal_sharing: bool,
                                 subgoals_seen: dict,

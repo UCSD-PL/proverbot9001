@@ -22,9 +22,9 @@ print_every = 1
 learning_rate = 0.05
 #plot_every = 1
 
-class zhannRNN(nn.Module):
+class finetunedRNN(nn.Module):
     def __init__(self, input_size, output_size):
-        super(zhannRNN, self).__init__()
+        super(finetunedRNN, self).__init__()
 
         n_hidden_one = 2048
         n_hidden_two = 512
