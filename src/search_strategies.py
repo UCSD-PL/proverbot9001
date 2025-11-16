@@ -21,6 +21,7 @@ from transformers import AutoModelForSequenceClassification
 from transformers import QuantoConfig
 import os
 import torch.nn.functional as F
+import hashlib
 
 os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -280,6 +281,11 @@ def time_on_path(node: LabeledNode) -> float:
     else:
         return time_on_path(unwrap(node.previous)) + unwrap(node.time_taken)
 
+def completed_proof(coq: coq_serapy.CoqAgent) -> bool:
+    if coq.proof_context:
+        return len(coq.proof_context.all_goals) == 0 and \
+            coq.tactic_history.curDepth() == 0
+    return False
 
 def tryPrediction(args: argparse.Namespace,
                   coq: coq_serapy.CoqAgent,
@@ -299,11 +305,6 @@ def tryPrediction(args: argparse.Namespace,
         assert not "Admitted" in prediction
         assert not "{" in prediction
         assert not "}" in prediction
-        #if (("intuition" in prediction) or ("auto" in prediction) or ("eauto" in prediction) or ("setoid" in prediction) or ("apply" in prediction)):
-        #    coq.run_stmt("Set Maximal Implicit Insertion Depth 100.")
-        #    coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
-        #    num_stmts = 2
-        #else:
         coq.run_stmt(prediction, timeout=min(time_left, time_per_command))
         error = None
     except (coq_serapy.CoqTimeoutError, coq_serapy.ParseError,
@@ -324,11 +325,6 @@ def tryPrediction(args: argparse.Namespace,
         unshelved = True
         coq.run_stmt("Unshelve.")
         num_stmts += 1
-    #if len(unwrap(coq.proof_context).fg_goals) == 0 \
-    #                    and not completed_proof(coq):
-    #    subgoals_closed = previous_fg_goals
-    #    coq.run_stmt("}")
-    #    num_stmts += 1
     while len(unwrap(coq.proof_context).fg_goals) == 0 \
             and not completed_proof(coq):
         coq.run_stmt("}")
@@ -342,18 +338,6 @@ def tryPrediction(args: argparse.Namespace,
     else:
         subgoals_opened = 0
 
-    #subgoals_opened = coq.count_fg_goals() - previous_fg_goals + subgoals_closed
-    #for i in range(subgoals_opened):
-    #    coq.run_stmt("{")
-    #    num_stmts += 1
-
-    #assert subgoals_opened >= 0, "subgoals opened is less than zero this is incorrect"
-    #print("current goal num")
-    #print(coq.count_fg_goals(), flush=True)
-    #print("previous goal num")
-    #print(previous_fg_goals, flush=True)
-    #print("subgoals closed")
-    #print(subgoals_closed, flush=True)
     context_after = coq.proof_context
     assert context_after
     return (context_after, num_stmts, subgoals_closed,
@@ -393,1745 +377,6 @@ class TqdmSpy(tqdm):
     def update(self, value):
         self.n = self.n + value
         super().update(value)
-
-def rnn_dfs_proof_search_before(lemma_name: str,
-                         module_prefix: str,
-                         relevant_lemmas: List[str],
-                         coq: coq_serapy.CoqAgent,
-                         output_dir: Path,
-                         args: argparse.Namespace,
-                         bar_idx: int,
-                         predictor_list: [TacticPredictor],
-                         model_list: [finetunedRNN],
-                         vectorizer: coq2vec.CoqTermRNNVectorizer) \
-                         -> SearchResult:
-
-
-    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
-        if msg:
-            eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.verbose >= 2)
-        for _ in range(num_stmts):
-            coq.cancel_last()
-    hasUnexploredNode = False
-
-    def search_vote(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int, curr_predictor_list: [TacticPredictor], init_subgoals_seen: {}) -> (SubSearchResult, dict, SearchGraph):
-
-
-        subgoals_seen = init_subgoals_seen
-
-        total_subgoals_opened = 1
-        times_subgoals_seen = 0
-        subgoals_opened = 0
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-        predictions1 = curr_predictor_list[0].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictions2 = curr_predictor_list[1].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictions3 = curr_predictor_list[2].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictions4 = curr_predictor_list[3].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictionslists = [predictions1, predictions2, predictions3, predictions4]
-        rnn_current_goal = unwrap(coq.proof_context).fg_goals[0].goal
-        encoded_tensor = vectorizer.term_to_vector(' '.join(rnn_current_goal.split()))
-        alltactic1 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions1])
-        alltactic2 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions2])
-        alltactic3 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions3])
-        alltactic4 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions4])
-        encoded_tensor_zero = vectorizer.term_to_vector(alltactic1)
-        encoded_tensor_one = vectorizer.term_to_vector(alltactic2)
-        encoded_tensor_two = vectorizer.term_to_vector(alltactic3)
-        encoded_tensor_three = vectorizer.term_to_vector(alltactic4)
-        encoded_tensor_all = torch.cat((encoded_tensor, encoded_tensor_zero, encoded_tensor_one, encoded_tensor_two, encoded_tensor_three), 0).unsqueeze(0)
-
-        rnnmod = model_list[0]
-        modout = rnnmod(encoded_tensor_all)
-        listmod = modout.tolist()
-        bestmod = listmod.index(max(listmod))
-
-        print("choosing " + str(bestmod),flush=True)
-
-        predictions = predictionslists[bestmod]
-
-        #predictor = predictor_list[bestmod]
-        #predictions = predictor.predictKTactics(args,
-        #                                        truncate_tactic_context(full_context_before.as_tcontext(),
-        #                                        args.max_term_length),
-        #                                        args.max_attempts,
-        #                                        blacklist=args.blacklisted_tactics)
-        assert len(predictions) == args.max_attempts
-
-        #predictions_lists = []
-        rowint = 0
-
-        #assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  subgoals_opened,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-                ####
-                if subgoals_opened > 0:
-                    total_subgoals_opened += 1
-                    current_goal = predictionNode.context_before.as_tcontext().goal
-                    hashed_goal = hash(current_goal)
-                    solved_already = subgoals_seen.get(hashed_goal)
-                    if solved_already is not None:
-                        g.setNodeColor(predictionNode, "purple")
-                        times_subgoals_seen += 1
-                        for step in solved_already:
-                            try:
-                                context_after, tmp_num_stmts, \
-                                    tmp_subgoals_closed, tmp_subgoals_opened, \
-                                    error, time_taken, unshelved = \
-                                    tryPrediction(args, coq, step,
-                                                  time_on_path(current_path[-1]))
-                                num_stmts += tmp_num_stmts
-                                if error:
-                                    continue
-                                postfix = []
-                                if unshelved:
-                                    postfix.append("Unshelve.")
-                                postfix += ["}"] * tmp_subgoals_closed
-                                postfix += ["{"] * tmp_subgoals_opened
-                                full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                                # ### 1.
-                                #if subgoal_distance_stack:
-                                #    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                #                          [subgoal_distance_stack[-1]+1])
-                                #else:
-                                #    new_distance_stack = []
-
-                                # ### 2.
-                                for _ in range(tmp_subgoals_closed):
-                                    closed_goal_distance = new_distance_stack.pop()
-                                    new_extra_depth += closed_goal_distance
-
-                                # ### 3.
-                                new_distance_stack += [0] * tmp_subgoals_opened
-
-                                current_path  = current_path + [predictionNode]
-                                predictionNode_tmp = g.mkNode(Prediction(step, 1.0, 1.0),
-                                                          full_context_after,
-                                                          subgoals_opened,
-                                                          predictionNode)
-                                predictionNode = predictionNode_tmp
-                                predictionNode.time_taken = time_taken
-                            except coq_serapy.CoqAnomaly:
-                                if lemma_name == "":
-                                    eprint("encountered unnamed goal!")
-                                else:
-                                    eprint("coqanomaly without unnamed goal!")
-                                raise
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return (SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored), subgoals_seen, g)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                        tmp_subgoals_closed = subgoals_closed
-                        subgoal_solution = [predictionNode.prediction]
-                        subgoal_node = predictionNode
-                        while tmp_subgoals_closed > 0: #TODO: add protections
-                            closed_goal = subgoal_node.context_before.as_tcontext().goal
-                            subgoal_node = subgoal_node.previous
-                            while not subgoal_node.subgoals_opened > 0:
-                                subgoal_solution.append(subgoal_node.prediction)
-                                #for postfixbit in subgoal_node.postfix:
-                                #    subgoal_solution.append(postfixbit)
-                                subgoal_node = subgoal_node.previous
-                            hashed_goal = hash(closed_goal)
-                            subgoal_solution.reverse()
-                            subgoals_seen[hashed_goal] = subgoal_solution
-                            tmp_subgoals_closed = tmp_subgoals_closed - 1
-                            subgoal_solution.reverse()
-                        subgoals_closed = 0
-                    
-                    (sub_search_result, tmp_subgoals_seen, _) = search_vote(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored, curr_predictor_list, subgoals_seen)
-                    subgoals_seen.update(tmp_subgoals_seen)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored), subgoals_seen, g)
-                    if subgoals_closed > 0:
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        if times_subgoals_seen > 0:
-            eprint("times subgoals seen")
-            eprint(times_subgoals_seen)
-            eprint("times subgoals opened")
-            eprint(total_subgoals_opened)
-        return (SubSearchResult(None, 0, substeps_explored), subgoals_seen, g)
-
-    total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 2) - 1
-
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
-                    args.features_json)
-    # two lines below for fast finish
-    #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-    desc_name = lemma_name
-    if len(desc_name) > 25:
-        desc_name = desc_name[:22] + "..."
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
-    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc=desc_name, disable=(not args.progress),
-                 leave=False,
-                 position=bar_idx + 1,
-                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        prep_subgoals_seen = {}
-        command_list_lists = []
-        total_steps_lists = []
-        graph_lists = []
-        next_node = g.start_node
-        #if args.search_prefix is not None:
-        #    for command in coq_serapy.read_commands(args.search_prefix):
-        #        full_context_before = FullContext(relevant_lemmas,
-        #                                      coq.prev_tactics,
-        #                                      unwrap(coq.proof_context))
-        #        next_node = g.mkNode(Prediction(command, 1.0, 1.0),
-        #                         full_context_before,
-        #                         subgoals_opened,
-        #                         next_node)
-        #    next_node.time_taken = 0.0
-        #    coq.run_stmt(command)
-        stack_start = subgoals_stack_start
-        (sub_search_result, temp_subgoals_seen, graph) = search_vote(pbar, [next_node], stack_start, 0, 0, predictor_list, prep_subgoals_seen)
-        command_list_one = sub_search_result.solution
-        total_steps_one = sub_search_result.steps_explored
-        if command_list_one:
-            graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-            if args.features_json:
-                graph.write_feat_json(f"{output_dir}/{module_prefix}"
-                                  f"{lemma_name}.json")
-            return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list_one, total_steps_one, 0)
-        graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-        prep_subgoals_seen.update(temp_subgoals_seen)
-        eprint("subgoals seen")
-        eprint(prep_subgoals_seen)
-        #if args.search_prefix is not None:
-        #    cleanup_stmts = 0
-        #    for command in coq_serapy.read_commands(args.search_prefix):
-        #        cleanup_stmts += 1
-        #    cleanupSearch(cleanup_stmts)
-    pbar.clear()
-    graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    if args.features_json:
-        graph.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
-    if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps_one, 0)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps_one, 0)
-
-def rnn_dfs_proof_search(lemma_name: str,
-                         module_prefix: str,
-                         relevant_lemmas: List[str],
-                         coq: coq_serapy.CoqAgent,
-                         output_dir: Path,
-                         args: argparse.Namespace,
-                         bar_idx: int,
-                         predictor_list: [TacticPredictor],
-                         model_list: [finetunedRNN],
-                         vectorizer: coq2vec.CoqTermRNNVectorizer) \
-                         -> SearchResult:
-
-
-    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
-        if msg:
-            eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.verbose >= 2)
-        for _ in range(num_stmts):
-            coq.cancel_last()
-    hasUnexploredNode = False
-
-    def only_dfs_search(pbar: tqdm, current_path: List[LabeledNode], search_depth, predictor,
-               subgoal_distance_stack: List[int],
-               steps_explored: int, len_so_far: int) -> SubSearchResult:
-        print("dfs search once?",flush=True)
-
-        len_so_far = len_so_far - 1
-
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-
-        args.blacklisted_tactics = None
-        predictions = predictor.predictKTactics(args, truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length), args.max_attempts)
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if len_so_far <= 0:
-                break
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                print("running " + str(num_stmts) + " statements", flush=True)
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    print("completed proof",flush=True)
-                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    print("cleaning num_stmts num 1," + str(num_stmts), flush=True)
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    print("cleaning num_stmts num 2," + str(num_stmts), flush=True)
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < search_depth \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                    sub_search_result = only_dfs_search(pbar,
-                                               current_path + [predictionNode], search_depth, predictor,
-                                               new_distance_stack, steps_explored + substeps_explored, len_so_far)
-                    substeps_explored += sub_search_result.steps_explored
-                    print("cleaning num_stmts num 3," + str(num_stmts), flush=True)
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored)
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-                else:
-                    hasUnexploredNode = True
-                    print("cleaning num_stmts num 4," + str(num_stmts), flush=True)
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          0,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        return SubSearchResult(None, 0, substeps_explored)
-
-    def search_vote(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               steps_explored: int, curr_predictor_list: [TacticPredictor], init_subgoals_seen: {}) -> (SubSearchResult, dict, SearchGraph):
-
-        subgoals_seen = init_subgoals_seen
-
-        total_subgoals_opened = 1
-        times_subgoals_seen = 0
-        subgoals_opened = 0
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-        predictions1 = curr_predictor_list[0].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictions2 = curr_predictor_list[1].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictions3 = curr_predictor_list[2].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictions4 = curr_predictor_list[3].predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        predictionslists = [predictions1, predictions2, predictions3, predictions4]
-        rnn_current_goal = unwrap(coq.proof_context).fg_goals[0].goal
-        encoded_tensor = vectorizer.term_to_vector(' '.join(rnn_current_goal.split()))
-        alltactic1 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions1])
-        alltactic2 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions2])
-        alltactic3 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions3])
-        alltactic4 = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions4])
-        encoded_tensor_zero = vectorizer.term_to_vector(alltactic1)
-        encoded_tensor_one = vectorizer.term_to_vector(alltactic2)
-        encoded_tensor_two = vectorizer.term_to_vector(alltactic3)
-        encoded_tensor_three = vectorizer.term_to_vector(alltactic4)
-        encoded_tensor_all = torch.cat((encoded_tensor, encoded_tensor_zero, encoded_tensor_one, encoded_tensor_two, encoded_tensor_three), 0).unsqueeze(0)
-
-        rnnmod = model_list[0]
-        modout = rnnmod(encoded_tensor_all)
-        listmod = modout.tolist()
-        bestmod = listmod.index(max(listmod))
-
-        print("choosing " + str(bestmod),flush=True)
-
-        predictions = predictionslists[bestmod]
-
-        #predictor = predictor_list[bestmod]
-        #predictions = predictor.predictKTactics(args,
-        #                                        truncate_tactic_context(full_context_before.as_tcontext(),
-        #                                        args.max_term_length),
-        #                                        args.max_attempts,
-        #                                        blacklist=args.blacklisted_tactics)
-        assert len(predictions) == args.max_attempts
-
-        #predictions_lists = []
-        rowint = 0
-
-        #assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  subgoals_opened,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-                ####
-                if subgoals_closed > 0:
-                    g.setNodeColor(predictionNode, "blue")
-                    tmp_subgoals_closed = subgoals_closed
-                    subgoal_solution = [predictionNode.prediction]
-                    subgoal_node = predictionNode
-                    #while tmp_subgoals_closed > 0: #TODO: add protections
-                    closed_goal = subgoal_node.context_before.as_tcontext().goal
-                    subgoal_node = subgoal_node.previous
-                    while not subgoal_node.subgoals_opened > 0:
-                        subgoal_solution.append(subgoal_node.prediction)
-                        #for postfixbit in subgoal_node.postfix:
-                        #    subgoal_solution.append(postfixbit)
-                        subgoal_node = subgoal_node.previous
-                    hashed_goal = hash(closed_goal)
-                    subgoal_solution.reverse()
-                    subgoals_seen[hashed_goal] = subgoal_solution
-                    #tmp_subgoals_closed = tmp_subgoals_closed - 1
-                elif subgoals_opened > 0:
-                    total_subgoals_opened += 1
-                    current_goal = predictionNode.context_before.as_tcontext().goal
-                    predictorsl = [0,1,2,3]
-                    #del predictorsl[bestmod]
-                    hashed_goal = hash(current_goal)
-                    solved_already = subgoals_seen.get(hashed_goal)
-                    if solved_already is not None:
-                        g.setNodeColor(predictionNode, "purple")
-                        times_subgoals_seen += 1
-                        for step in solved_already:
-                            try:
-                                full_context_before = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                                context_after, tmp_num_stmts, \
-                                    subgoals_closed, subgoals_opened, \
-                                    error, time_taken, unshelved = \
-                                    tryPrediction(args, coq, step,
-                                                  time_on_path(current_path[-1]))
-                                num_stmts += tmp_num_stmts
-                                if error:
-                                    continue
-                                postfix = []
-                                #if unshelved:
-                                #    postfix.append("Unshelve.")
-                                #postfix += ["}"] * subgoals_closed
-                                #postfix += ["{"] * subgoals_opened
-                                # ### 1.
-                                #if subgoal_distance_stack:
-                                #    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                #                          [subgoal_distance_stack[-1]+1])
-                                #else:
-                                #    new_distance_stack = []
-
-                                # ### 2.
-                                for _ in range(subgoals_closed):
-                                    closed_goal_distance = new_distance_stack.pop()
-
-                                # ### 3.
-                                new_distance_stack += [0] * subgoals_opened
-                                
-                                if subgoals_closed > 0: 
-                                    g.setNodeColor(predictionNode, "blue")
-                                predictionNode_tmp = g.mkNode(Prediction(step, 1.0, 1.0),
-                                                          full_context_before,
-                                                          subgoals_opened,
-                                                          predictionNode)
-                               
-                                predictionNode = predictionNode_tmp
-                                predictionNode.time_taken = time_taken
-                                current_path  = current_path + [predictionNode]
-                                substeps_explored += 1
-                            except coq_serapy.CoqAnomaly:
-                                if lemma_name == "":
-                                    eprint("encountered unnamed goal!")
-                                else:
-                                    eprint("coqanomaly without unnamed goal!")
-                                raise
-                    else:
-                        curr_predictors_l = [curr_predictor_list[x] for x in predictorsl]
-                        solved_sub = False
-                        small_search_depth = len(current_path) + 3
-                        for a_curr_predictor in curr_predictors_l:
-                            print("we are starting????",flush=True)
-                            sub_search_result = only_dfs_search(pbar,
-                                                       current_path + [predictionNode], small_search_depth, a_curr_predictor,
-                                                       new_distance_stack,
-                                                       steps_explored + substeps_explored, 4)
-                            #subgoals_seen.update(tmp_subgoals_seen)
-                            #substeps_explored += sub_search_result.steps_explored
-                            if sub_search_result.solution or \
-                               sub_search_result.solved_subgoals > subgoals_opened:
-                                print("we are returning????",flush=True)
-                                new_subgoals_closed = \
-                                    subgoals_closed + \
-                                    sub_search_result.solved_subgoals - \
-                                    subgoals_opened
-                                return (SubSearchResult(sub_search_result.solution,
-                                                       new_subgoals_closed, substeps_explored), subgoals_seen, g)
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return (SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored), subgoals_seen, g)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                if len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    
-                    (sub_search_result, tmp_subgoals_seen, _) = search_vote(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               steps_explored + substeps_explored, curr_predictor_list, subgoals_seen)
-                    subgoals_seen.update(tmp_subgoals_seen)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored), subgoals_seen, g)
-                    if subgoals_closed > 0:
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        if times_subgoals_seen > 0:
-            eprint("times subgoals seen")
-            eprint(times_subgoals_seen)
-            eprint("times subgoals opened")
-            eprint(total_subgoals_opened)
-        return (SubSearchResult(None, 0, substeps_explored), subgoals_seen, g)
-
-    total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 2) - 1
-
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
-                    args.features_json)
-    # two lines below for fast finish
-    #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0)
-    desc_name = lemma_name
-    if len(desc_name) > 25:
-        desc_name = desc_name[:22] + "..."
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
-    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc=desc_name, disable=(not args.progress),
-                 leave=False,
-                 position=bar_idx + 1,
-                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        prep_subgoals_seen = {}
-        command_list_lists = []
-        total_steps_lists = []
-        graph_lists = []
-        next_node = g.start_node
-        stack_start = subgoals_stack_start
-        (sub_search_result, temp_subgoals_seen, graph) = search_vote(pbar, [next_node], stack_start, 0, predictor_list, prep_subgoals_seen)
-        command_list_one = sub_search_result.solution
-        total_steps_one = sub_search_result.steps_explored
-        if command_list_one:
-            graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-            if args.features_json:
-                graph.write_feat_json(f"{output_dir}/{module_prefix}"
-                                  f"{lemma_name}.json")
-            return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list_one, total_steps_one, 0)
-        graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-        prep_subgoals_seen.update(temp_subgoals_seen)
-        print("subgoals seen")
-        print(prep_subgoals_seen, flush=True)
-        #if args.search_prefix is not None:
-        #    cleanup_stmts = 0
-        #    for command in coq_serapy.read_commands(args.search_prefix):
-        #        cleanup_stmts += 1
-        #    cleanupSearch(cleanup_stmts)
-    pbar.clear()
-    graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    if args.features_json:
-        graph.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
-    if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps_one, 0)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps_one, 0)
-
-def dfs_subgoal_sharing(lemma_name: str,
-                                module_prefix: str,
-                                relevant_lemmas: List[str],
-                                coq: coq_serapy.CoqAgent,
-                                output_dir: Path,
-                                args: argparse.Namespace,
-                                bar_idx: int,
-                                predictor_list: [TacticPredictor]) \
-                                -> SearchResult:
-
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,args.features_json)
-    # two lines below for fast finish
-    #g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0)
-
-    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
-        if msg:
-            eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.verbose >= 2)
-        for _ in range(num_stmts):
-            coq.cancel_last()
-    hasUnexploredNode = False
-
-    def search_vote(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int, curr_predictor_list: [TacticPredictor], init_subgoals_seen: {}) -> (SubSearchResult, dict, SearchGraph):
-
-
-        eprint("the predictor list")
-        eprint(curr_predictor_list)
-        subgoals_seen = init_subgoals_seen
-
-        total_subgoals_opened = 1
-        times_subgoals_seen = 0
-        subgoals_opened = 0
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-        shuffle(curr_predictor_list)
-        predictions_lists = []
-        for curr_predictor in range(len(curr_predictor_list)):
-            apredictor = curr_predictor_list[curr_predictor]
-            predictions_temp = apredictor.predictKTactics(args,
-                truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            predictions_lists.append(predictions_temp)
-        predictions = []
-        only_tactics = tuple()
-        full_tup = tuple()
-        for tup in zip(*predictions_lists):
-            full_tup = full_tup + tup
-            only_tactics = only_tactics + tuple([full_pred[0] for full_pred in tup])
-            mostcommon = Counter(only_tactics).most_common()[0]
-            if mostcommon[1] > 1:
-                best_tactic = mostcommon[0]
-            else:
-                highest_sureness = 0
-                best_tactic = None
-                for tactic_and_sureness in full_tup:
-                    if tactic_and_sureness[2] > highest_sureness:
-                        highest_sureness = tactic_and_sureness[2]
-                        best_tactic = tactic_and_sureness[0]
-            predictions.append(Prediction(best_tactic, 1.0, 1.0))
-            only_tactics = tuple([x for x in only_tactics if not x==best_tactic])
-            full_tup = tuple([x for x in full_tup if not x[0]==best_tactic])
-
-
-        #assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  subgoals_opened,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-                ####
-                if subgoals_opened > 0:
-                    total_subgoals_opened += 1
-                    current_goal = predictionNode.context_before.as_tcontext().goal
-                    hashed_goal = hash(current_goal)
-                    solved_already = subgoals_seen.get(hashed_goal)
-                    if solved_already is not None:
-                        g.setNodeColor(predictionNode, "purple")
-                        times_subgoals_seen += 1
-                        for step in solved_already:
-                            try:
-                                context_after, tmp_num_stmts, \
-                                    tmp_subgoals_closed, tmp_subgoals_opened, \
-                                    error, time_taken, unshelved = \
-                                    tryPrediction(args, coq, step,
-                                                  time_on_path(current_path[-1]))
-                                num_stmts += tmp_num_stmts
-                                if error:
-                                    continue
-                                #postfix = []
-                                #if unshelved:
-                                #    postfix.append("Unshelve.")
-                                #postfix += ["}"] * tmp_subgoals_closed
-                                #postfix += ["{"] * tmp_subgoals_opened
-                                full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                                # ### 1.
-                                #if subgoal_distance_stack:
-                                #    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                #                          [subgoal_distance_stack[-1]+1])
-                                #else:
-                                #    new_distance_stack = []
-
-                                # ### 2.
-                                for _ in range(tmp_subgoals_closed):
-                                    closed_goal_distance = new_distance_stack.pop()
-                                    new_extra_depth += closed_goal_distance
-
-                                # ### 3.
-                                new_distance_stack += [0] * tmp_subgoals_opened
-
-                                current_path  = current_path + [predictionNode]
-                                predictionNode_tmp = g.mkNode(Prediction(step, 1.0, 1.0),
-                                                          full_context_after,
-                                                          subgoals_opened,
-                                                          predictionNode)
-                                predictionNode = predictionNode_tmp
-                                predictionNode.time_taken = time_taken
-                            except coq_serapy.CoqAnomaly:
-                                if lemma_name == "":
-                                    eprint("encountered unnamed goal!")
-                                else:
-                                    eprint("coqanomaly without unnamed goal!")
-                                raise
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return (SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored), subgoals_seen, g)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                        tmp_subgoals_closed = subgoals_closed
-                        subgoal_solution = [predictionNode.prediction]
-                        subgoal_node = predictionNode
-                        while tmp_subgoals_closed > 0: #TODO: add protections
-                            closed_goal = subgoal_node.context_before.as_tcontext().goal
-                            subgoal_node = subgoal_node.previous
-                            while not subgoal_node.subgoals_opened > 0:
-                                subgoal_solution.append(subgoal_node.prediction)
-                                #for postfixbit in subgoal_node.postfix:
-                                #    subgoal_solution.append(postfixbit)
-                                subgoal_node = subgoal_node.previous
-                            hashed_goal = hash(closed_goal)
-                            subgoal_solution.reverse()
-                            subgoals_seen[hashed_goal] = subgoal_solution
-                            tmp_subgoals_closed = tmp_subgoals_closed - 1
-                            subgoal_solution.reverse()
-                    
-                    (sub_search_result, tmp_subgoals_seen, _) = search_vote(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored, curr_predictor_list, subgoals_seen)
-                    subgoals_seen.update(tmp_subgoals_seen)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored), subgoals_seen, g)
-                    if subgoals_closed > 0:
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        if times_subgoals_seen > 0:
-            eprint("times subgoals seen")
-            eprint(times_subgoals_seen)
-            eprint("times subgoals opened")
-            eprint(total_subgoals_opened)
-        return (SubSearchResult(None, 0, substeps_explored), subgoals_seen, g)
-
-    def search(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int, curr_predictor: TacticPredictor, init_subgoals_seen: {}) -> (SubSearchResult, dict, SearchGraph):
-
-
-
-        subgoals_seen = init_subgoals_seen
-
-        total_subgoals_opened = 1
-        times_subgoals_seen = 0
-        subgoals_opened = 0
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-        
-
-        #round_robin = 0
-        #shuffle(predictor_list)
-        #predictions_lists = []
-        #for curr_predictor in range(len(predictor_list)):
-        #    apredictor = predictor_list[curr_predictor]
-        #    temp_predictions = apredictor.predictKTactics(args,
-        #        truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length),
-        #        args.max_attempts,
-        #        blacklist=args.blacklisted_tactics)
-        #    predictions_lists.append(temp_predictions)
-        #all_predictions = [eachlist[i] for eachlist in predictions_lists for i in range(round(args.max_attempts/len(predictions_lists))+1)]
-        #predictions = all_predictions[:args.max_attempts]
-        predictions = curr_predictor.predictKTactics(args,
-           truncate_tactic_context(full_context_before.as_tcontext(),
-                                    args.max_term_length),
-            args.max_attempts,
-            blacklist=args.blacklisted_tactics)
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  subgoals_opened,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-                ####
-                if subgoals_opened > 0:
-                    total_subgoals_opened += 1
-                    current_goal = predictionNode.context_before.as_tcontext().goal
-                    hashed_goal = hash(current_goal)
-                    solved_already = subgoals_seen.get(hashed_goal)
-                    if solved_already is not None:
-                        g.setNodeColor(predictionNode, "purple")
-                        times_subgoals_seen += 1
-                        for step in solved_already:
-                            try:
-                                full_context_before = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                                context_after, tmp_num_stmts, \
-                                    subgoals_closed, subgoals_opened, \
-                                    error, time_taken, unshelved = \
-                                    tryPrediction(args, coq, step,
-                                                  time_on_path(current_path[-1]))
-                                num_stmts += tmp_num_stmts
-                                if error:
-                                    continue
-                                postfix = []
-                                if unshelved:
-                                    postfix.append("Unshelve.")
-                                postfix += ["}"] * subgoals_closed
-                                postfix += ["{"] * subgoals_opened
-                                # ### 1.
-                                #if subgoal_distance_stack:
-                                #    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                #                          [subgoal_distance_stack[-1]+1])
-                                #else:
-                                #    new_distance_stack = []
-
-                                # ### 2.
-                                for _ in range(subgoals_closed):
-                                    closed_goal_distance = new_distance_stack.pop()
-                                    new_extra_depth += closed_goal_distance
-
-                                # ### 3.
-                                new_distance_stack += [0] * subgoals_opened
-
-                                current_path  = current_path + [predictionNode]
-                                predictionNode_tmp = g.mkNode(Prediction(step, 1.0, 1.0),
-                                                          full_context_before,
-                                                          subgoals_opened,
-                                                          predictionNode)
-                                predictionNode = predictionNode_tmp
-                                predictionNode.time_taken = time_taken
-                            except coq_serapy.CoqAnomaly:
-                                if lemma_name == "":
-                                    eprint("encountered unnamed goal!")
-                                else:
-                                    eprint("coqanomaly without unnamed goal!")
-                                raise
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return (SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored), subgoals_seen, g)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                        tmp_subgoals_closed = subgoals_closed
-                        subgoal_solution = [predictionNode.prediction]
-                        subgoal_node = predictionNode
-                        while tmp_subgoals_closed > 0: #TODO: add protections
-                            closed_goal = subgoal_node.context_before.as_tcontext().goal
-                            subgoal_node = subgoal_node.previous
-                            while not subgoal_node.subgoals_opened > 0:
-                                subgoal_solution.append(subgoal_node.prediction)
-                                #for postfixbit in subgoal_node.postfix:
-                                #    subgoal_solution.append(postfixbit)
-                                subgoal_node = subgoal_node.previous
-                            hashed_goal = hash(closed_goal)
-                            subgoal_solution.reverse()
-                            subgoals_seen[hashed_goal] = subgoal_solution
-                            tmp_subgoals_closed = tmp_subgoals_closed - 1
-                            subgoal_solution.reverse()
-                    
-                    (sub_search_result, tmp_subgoals_seen, _) = search(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored, curr_predictor, subgoals_seen)
-                    subgoals_seen.update(tmp_subgoals_seen)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored), subgoals_seen, g)
-                    if subgoals_closed > 0:
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        if times_subgoals_seen > 0:
-                            eprint("times subgoals seen")
-                            eprint(times_subgoals_seen)
-                            eprint("times subgoals opened")
-                            eprint(total_subgoals_opened)
-                        return (SubSearchResult(None, subgoals_closed, substeps_explored), subgoals_seen, g)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        if times_subgoals_seen > 0:
-            eprint("times subgoals seen")
-            eprint(times_subgoals_seen)
-            eprint("times subgoals opened")
-            eprint(total_subgoals_opened)
-        return (SubSearchResult(None, 0, substeps_explored), subgoals_seen, g)
-
-    total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 2) - 1
-    desc_name = lemma_name
-    if len(desc_name) > 25:
-        desc_name = desc_name[:22] + "..."
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
-    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc=desc_name, disable=(not args.progress),
-                 leave=False,
-                 position=bar_idx + 1,
-                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        prep_subgoals_seen = {}
-        command_list_lists = []
-        total_steps_lists = []
-        graph_lists = []
-        tmp_pred_list = copy.deepcopy(predictor_list)
-        predictor_list.append(tmp_pred_list)
-        for curr_predictor in predictor_list:
-            eprint("new predictor")
-            g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
-                            args.features_json)
-            next_node = g.start_node
-            if args.search_prefix is not None:
-                for command in coq_serapy.read_commands(args.search_prefix):
-                    full_context_before = FullContext(relevant_lemmas,
-                                                  coq.prev_tactics,
-                                                  unwrap(coq.proof_context))
-                    next_node = g.mkNode(Prediction(command, 1.0, 1.0),
-                                     full_context_before,
-                                     subgoals_opened,
-                                     next_node)
-                next_node.time_taken = 0.0
-                coq.run_stmt(command)
-            stack_start = copy.deepcopy(subgoals_stack_start)
-            if isinstance(curr_predictor, list):
-                (sub_search_result, temp_subgoals_seen, graph) = search_vote(pbar, [next_node], stack_start, 0, 0, curr_predictor, prep_subgoals_seen)
-            else:
-                (sub_search_result, temp_subgoals_seen, graph) = search(pbar, [next_node], stack_start, 0, 0, curr_predictor, prep_subgoals_seen)
-            command_list_one = sub_search_result.solution
-            total_steps_one = sub_search_result.steps_explored
-            if command_list_one:
-                graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-                if args.features_json:
-                    graph.write_feat_json(f"{output_dir}/{module_prefix}"
-                                      f"{lemma_name}.json")
-                return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list_one, total_steps_one, 0)
-            graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-            prep_subgoals_seen.update(temp_subgoals_seen)
-            eprint("subgoals seen")
-            eprint(prep_subgoals_seen)
-            if args.search_prefix is not None:
-                cleanup_stmts = 0
-                for command in coq_serapy.read_commands(args.search_prefix):
-                    cleanup_stmts += 1
-                cleanupSearch(cleanup_stmts)
-        pbar.clear()
-    graph.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    if args.features_json:
-        graph.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
-    if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps_one, 0)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps_one, 0)
-
-def old_dfs_proof_search_with_graph(lemma_name: str,
-                                module_prefix: str,
-                                relevant_lemmas: List[str],
-                                coq: coq_serapy.CoqAgent,
-                                output_dir: Path,
-                                args: argparse.Namespace,
-                                bar_idx: int,
-                                predictor: TacticPredictor) \
-                                -> SearchResult:
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
-                    args.features_json)
-
-    # two lines below for fast finish
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
-        if msg:
-            eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.verbose >= 2)
-        for _ in range(num_stmts):
-            coq.cancel_last()
-
-    def search(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int) -> SubSearchResult:
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-
-        #round_robin = 0
-        #shuffle(predictor_list)
-        #predictions_lists = []
-        #for curr_predictor in range(len(predictor_list)):
-        #    apredictor = predictor_list[curr_predictor]
-        #    temp_predictions = apredictor.predictKTactics(args,
-        #        truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length),
-        #        args.max_attempts,
-        #        blacklist=args.blacklisted_tactics)
-        #    predictions_lists.append(temp_predictions)
-        #all_predictions = [eachlist[i] for eachlist in predictions_lists for i in range(round(args.max_attempts/len(predictions_lists))+1)]
-        #predictions = all_predictions[:args.max_attempts]
-        args.blacklisted_tactics = None
-        predictions = predictor.predictKTactics(args, truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length), args.max_attempts)
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                    sub_search_result = search(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored)
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          0,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        return SubSearchResult(None, 0, substeps_explored)
-    total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 2) - 1
-    desc_name = lemma_name
-    if len(desc_name) > 25:
-        desc_name = desc_name[:22] + "..."
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
-
-    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc=desc_name, disable=(not args.progress),
-                 leave=False,
-                 position=bar_idx + 1,
-                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        next_node = g.start_node
-        if args.search_prefix is not None:
-            for command in coq_serapy.read_commands(args.search_prefix):
-                full_context_before = FullContext(relevant_lemmas,
-                                                  coq.prev_tactics,
-                                                  unwrap(coq.proof_context))
-                next_node = g.mkNode(Prediction(command, 1.0, 1.0),
-                                     full_context_before,
-                                     subgoals_opened,
-                                     next_node)
-                next_node.time_taken = 0.0
-                coq.run_stmt(command)
-        hasUnexploredNode = False
-        command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
-        pbar.clear()
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    if args.features_json:
-        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
-    if command_list:
-        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps, 0), g
-    if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps, 0), g
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps, 0), g
-
-def completed_proof(coq: coq_serapy.CoqAgent) -> bool:
-    if coq.proof_context:
-        return len(coq.proof_context.all_goals) == 0 and \
-            coq.tactic_history.curDepth() == 0
-    return False
-
 
 @dataclass
 class BFSNode:
@@ -2288,319 +533,6 @@ def get_prunable_nodes(node: BFSNode) -> List[BFSNode]:
 
     return [leaf for leaf in get_leaf_descendents(significant_parent) if leaf != node]
 
-def combo_subgoal_search(lemma_name: str,
-                          module_prefix: str,
-                          relevant_lemmas: List[str],
-                          coq: coq_serapy.CoqAgent,
-                          output_dir: Path,
-                          args: argparse.Namespace,
-                          bar_idx: int,
-                          predictor_list: [TacticPredictor]) \
-                          -> SearchResult:
-
-    initial_history_len = len(coq.tactic_history.getFullHistory())
-    full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-    steps_taken = 0
-    # Empty proof scripts set 
-    proof_scripts = {tuple([])}
-    steps_taken = 1 
-    search_status = SearchStatus.INCOMPLETE
-    max_steps = args.max_steps
-    # context_history = []
-    script_to_continue = tuple([])
-
-    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
-
-    start_node = BFSNode(Prediction(lemma_name, 1.0, 1.0), 1.0, 0.0, [], full_context_before, None, subgoals_opened = 1)
-    search_node = start_node
-    nodes_to_continue = []
-    # only to end fast
-    #start_node.draw_graph(graph_file)
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-    subgoals_seen = {}
-
-    assert (args.max_steps is not None)
-
-    total_subgoals_opened = 1
-    times_subgoals_seen = 0
-
-    while steps_taken < max_steps:
-        print("predictor list")
-        print(predictor_list,flush=True)
-        #shuffle(predictor_list)
-        #round_robin = 0
-        for curr_predictor in range(len(predictor_list)):
-            if (args.search_width % len(predictor_list)) > curr_predictor:
-                num_to_predict = int(args.search_width/len(predictor_list)) + (args.search_width % len(predictor_list))
-            else:
-                num_to_predict = int(args.search_width/len(predictor_list))
-            if num_to_predict == 0:
-                break
-            num_predicted = 0
-            apredictor = predictor_list[curr_predictor]
-            #round_robin = round_robin + 1
-            predictions = apredictor.predictKTactics(args,
-                truncate_tactic_context(search_node.context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            #assert len(predictions) == args.max_attempts
-            if coq.use_hammer:
-                predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                          prediction.certainty, prediction.no_softmax_certainty)
-                               for prediction in predictions]
-            for _prediction_idx, prediction in enumerate(predictions):
-                if prediction.prediction in [childnode.prediction.prediction for childnode in search_node.children]:
-                    continue
-                try:
-                    context_after, num_stmts, \
-                        subgoals_closed, subgoals_opened, \
-                        error, time_taken, unshelved = \
-                            tryPrediction(args, coq, prediction.prediction, time.time())
-                    if error:
-                        continue
-                    if contextIsBig(context_after) or \
-                            contextInHistory(context_after, search_node):
-                        eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                        continue
-                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                        continue
-                    # Check if the proof is done
-                    postfix = []
-                    if unshelved:
-                        postfix.append("Unshelve.")
-                    postfix += ["}"] * subgoals_closed
-                    postfix += ["{"] * subgoals_opened
-                    full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                    current_node = BFSNode(prediction, 0, time_taken, postfix, full_context_after, search_node, subgoals_opened = subgoals_opened)
-                    subgoal_node = current_node
-                    subgoal_solution = [subgoal_node.prediction.prediction]
-                    if subgoals_opened > 0:
-                        total_subgoals_opened += 1
-                        current_goal = current_node.context_before.as_tcontext().goal
-                        hashed_goal = hash(current_goal)
-                        solved_already = subgoals_seen.get(hashed_goal)
-                        if solved_already is not None:
-                            times_subgoals_seen += 1
-                            for step in solved_already:
-                                try:
-                                    context_after, temp_num_stmts, temp_subgoals_closed, temp_subgoals_opened, \
-                                            error, time_taken, unshelved = tryPrediction(args, coq, step, time.time())
-                                    if error:
-                                        continue
-                                    postfix = []
-                                    if unshelved:
-                                        postfix.append("Unshelve.")
-                                    postfix += ["}"] * temp_subgoals_closed
-                                    postfix += ["{"] * temp_subgoals_opened
-                                    full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                                    current_node = BFSNode(Prediction(step,1,1), 0, time_taken, postfix, \
-                                            full_context_after, current_node, subgoals_opened = temp_subgoals_opened)
-                                    num_stmts = num_stmts + temp_num_stmts
-                                    if completed_proof(coq):
-                                        print("completed proof")
-                                        current_node.mkQED()
-                                        start_node.draw_graph(graph_file)
-                                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,current_node.interactions()[1:], 0, 0, {}) 
-                                except coq_serapy.CoqAnomaly:
-                                    if lemma_name == "":
-                                        eprint("encountered unnamed goal!")
-                                    else:
-                                        eprint("coqanomaly without unnamed goal!")
-                                    raise
-
-                    if subgoals_closed > 0:
-                        while subgoals_closed > 0: #TODO: add protections
-                            closed_goal = subgoal_node.context_before.as_tcontext().goal
-                            subgoal_node = subgoal_node.previous
-                            while not subgoal_node.subgoals_opened > 0:
-                                subgoal_solution.append(subgoal_node.prediction.prediction)
-                                #for postfixbit in subgoal_node.postfix:
-                                #    subgoal_solution.append(postfixbit)
-                                subgoal_node = subgoal_node.previous
-                            hashed_goal = hash(closed_goal)
-                            subgoal_solution.reverse()
-                            subgoals_seen[hashed_goal] = subgoal_solution
-                            subgoals_closed = subgoals_closed - 1
-                            subgoal_solution.reverse()
-
-                    nodes_to_continue.append(current_node)
-                    if completed_proof(coq):
-                        eprint("completed proof")
-                        current_node.mkQED()
-                        start_node.draw_graph(graph_file)
-                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
-                                            current_node.interactions()[1:], 0, 0, {})
-                    else: 
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                            assert coq.proof_context
-                        num_predicted += 1
-                        if num_predicted >= num_to_predict:
-                            break
-                        else:
-                            continue
-                except coq_serapy.CoqAnomaly:
-                    if lemma_name == "":
-                        eprint("encountered unnamed goal!")
-                    else:
-                        eprint("coqanomaly without unnamed goal!")
-
-                    raise
-        steps_taken = steps_taken + 1
-
-        with open("opened_subgoals.csv", "a") as afile:
-            afile.write(lemma_name + "," + module_prefix + "," + str(total_subgoals_opened) + "," + str(times_subgoals_seen) + "," + "/n")
-        
-        if len(nodes_to_continue) == 0:
-            steps_taken = max_steps
-            next_search_node = start_node
-            eprint("no nodes to conitnue!")
-        else:
-            myint = random.randint(0, len(nodes_to_continue) - 1)
-            next_search_node = nodes_to_continue[myint]
-            nodes_to_continue = [i for i in nodes_to_continue if not (i == myint)]
-        
-        next_search_node.traverse_to(coq, initial_history_len) 
-
-        search_node = next_search_node
-    # not sure what to do with the normally drawn graph
-    #start_node.draw_graph(graph_file)
-    #if hasUnexploredNode:
-    start_node.draw_graph(graph_file)
-    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0, {})
-
-def combo_b_search(lemma_name: str,
-                          module_prefix: str,
-                          relevant_lemmas: List[str],
-                          coq: coq_serapy.CoqAgent,
-                          output_dir: Path,
-                          args: argparse.Namespace,
-                          bar_idx: int,
-                          predictor_list: [TacticPredictor]) \
-                          -> SearchResult:
-
-    initial_history_len = len(coq.tactic_history.getFullHistory())
-    full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-    steps_taken = 0
-    # Empty proof scripts set 
-    proof_scripts = {tuple([])}
-    steps_taken = 1 
-    search_status = SearchStatus.INCOMPLETE
-    max_steps = args.max_steps
-    # context_history = []
-    script_to_continue = tuple([])
-
-    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
-
-    start_node = BFSNode(Prediction(lemma_name, 1.0, 1.0), 1.0, 0.0, [], full_context_before, None)
-    search_node = start_node
-    nodes_to_continue = []
-    # only to end fast
-    #start_node.draw_graph(graph_file)
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-    while steps_taken < max_steps:
-
-        #round_robin = 0
-        for curr_predictor in range(len(predictor_list)):
-            if (args.search_width % len(predictor_list)) > curr_predictor:
-                num_to_predict = int(args.search_width/len(predictor_list)) + (args.search_width % len(predictor_list))
-            else:
-                num_to_predict = int(args.search_width/len(predictor_list))
-            if num_to_predict == 0:
-                break
-            num_predicted = 0
-            apredictor = predictor_list[curr_predictor]
-            #round_robin = round_robin + 1
-            predictions = apredictor.predictKTactics(args,
-                truncate_tactic_context(search_node.context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            #assert len(predictions) == args.max_attempts
-            if coq.use_hammer:
-                predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                          prediction.certainty, prediction.no_softmax_certainty)
-                               for prediction in predictions]
-            for _prediction_idx, prediction in enumerate(predictions):
-                if prediction.prediction in [childnode.prediction.prediction for childnode in search_node.children]:
-                    continue
-                try:
-                    context_after, num_stmts, \
-                        subgoals_closed, subgoals_opened, \
-                        error, time_taken, unshelved = \
-                            tryPrediction(args, coq, prediction.prediction, time.time())
-                    if error:
-                        continue
-                    if contextIsBig(context_after) or \
-                            contextInHistory(context_after, search_node):
-                        eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                        continue
-                    if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                        continue
-                    # Check if the proof is done
-                    postfix = []
-                    if unshelved:
-                        postfix.append("Unshelve.")
-                    postfix += ["}"] * subgoals_closed
-                    postfix += ["{"] * subgoals_opened
-                    full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                    current_node = BFSNode(prediction, 0, time_taken, postfix, full_context_after, search_node)
-                    nodes_to_continue.append(current_node)
-                    if completed_proof(coq):
-                        eprint("completed proof")
-                        current_node.mkQED()
-                        start_node.draw_graph(graph_file)
-                        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
-                                            search_node.interactions()[1:], 0, 0,{})
-                    else: 
-                        for _ in range(num_stmts):
-                            coq.cancel_last()
-                            assert coq.proof_context
-                        num_predicted += 1
-                        if num_predicted >= num_to_predict:
-                            break
-                        else:
-                            continue
-                except coq_serapy.CoqAnomaly:
-                    if lemma_name == "":
-                        eprint("encountered unnamed goal!")
-                    else:
-                        eprint("coqanomaly without unnamed goal!")
-
-                    raise
-        steps_taken = steps_taken + 1
-        
-        if len(nodes_to_continue) == 0:
-            steps_taken = max_steps
-            next_search_node = start_node
-            eprint("no nodes to conitnue!")
-        else:
-            myint = random.randint(0, len(nodes_to_continue) - 1)
-            next_search_node = nodes_to_continue[myint]
-            nodes_to_continue = [i for i in nodes_to_continue if not (i == myint)]
-        
-        next_search_node.traverse_to(coq, initial_history_len) 
-
-        search_node = next_search_node
-    # not sure what to do with the normally drawn graph
-    #start_node.draw_graph(graph_file)
-    #if hasUnexploredNode:
-    start_node.draw_graph(graph_file)
-    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0, {})
-
 def build_training_data(lemma_name: str,
                           module_prefix: str,
                           relevant_lemmas: List[str],
@@ -2713,269 +645,6 @@ def build_training_data(lemma_name: str,
                         assert coq.proof_context
                     predictions_added += 1
                     continue
-                time_after_remove = time.time()
-                eprint("time for append") 
-                eprint(time_after_remove - time_after_check)
-            except coq_serapy.CoqAnomaly:
-                if lemma_name == "":
-                    eprint("encountered unnamed goal!")
-                else:
-                    eprint("coqanomaly without unnamed goal!")
-
-                raise
-        steps_taken = steps_taken + 1
-        
-        if len(nodes_to_continue) == 0:
-            steps_taken = max_steps
-            next_search_node = start_node
-            eprint("no nodes to conitnue!")
-        else:
-            myint = random.randint(0, len(nodes_to_continue) - 1)
-            next_search_node = nodes_to_continue[myint]
-            nodes_to_continue = [i for i in nodes_to_continue if not (i == myint)]
-        
-        next_search_node.traverse_to(coq, initial_history_len) 
-
-        search_node = next_search_node
-
-    start_node.draw_graph(graph_file)
-    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-def combo_b_two_search(lemma_name: str,
-                          module_prefix: str,
-                          relevant_lemmas: List[str],
-                          coq: coq_serapy.CoqAgent,
-                          output_dir: Path,
-                          args: argparse.Namespace,
-                          bar_idx: int,
-                          predictor_list: [TacticPredictor]) \
-                          -> SearchResult:
-
-    initial_history_len = len(coq.tactic_history.getFullHistory())
-    full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-    steps_taken = 0
-    # Empty proof scripts set 
-    proof_scripts = {tuple([])}
-    steps_taken = 1 
-    search_status = SearchStatus.INCOMPLETE
-    max_steps =150
-    # context_history = []
-    script_to_continue = tuple([])
-
-    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
-
-    start_node = BFSNode(Prediction(lemma_name, 1.0, 1.0), 1.0, 0.0, [], full_context_before, None)
-    search_node = start_node
-    nodes_to_continue = []
-    # only to end fast
-    start_node.draw_graph(graph_file)
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-    while steps_taken < max_steps:
-        
-
-        shuffle(predictor_list)
-        #round_robin = 0
-        predictions_lists = []
-        for curr_predictor in range(len(predictor_list)):
-            apredictor = predictor_list[curr_predictor]
-            predictions_temp = apredictor.predictKTactics(args,
-                truncate_tactic_context(search_node.context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            if coq.use_hammer:
-                predictions_temp = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                          prediction.certainty, prediction.no_softmax_certainty)
-                               for prediction in predictions_temp]
-            predictions_lists.append(predictions_temp)
-        predictions = []
-        for tup in zip(*predictions_lists):
-            predictions.append(Counter(tup).most_common(1)[0][0])
-        predictions_added = 0
-        for _prediction_idx, prediction in enumerate(predictions):
-            if predictions_added >=5:
-                break
-            if prediction.prediction in [childnode.prediction.prediction for childnode in search_node.children]:
-                continue
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                        tryPrediction(args, coq, prediction.prediction, time.time())
-                if error:
-                    continue
-                if contextIsBig(context_after) or \
-                        contextInHistory(context_after, search_node):
-                    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                    continue
-                if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                    continue
-                postfix = []
-                if unshelved:
-                    postfix.append("Unshelve.")
-                postfix += ["}"] * subgoals_closed
-                postfix += ["{"] * subgoals_opened
-                full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                current_node = BFSNode(prediction, 0, time_taken, postfix, full_context_after, search_node)
-                nodes_to_continue.append(current_node)
-                if completed_proof(coq):
-                    eprint("completed proof")
-                    current_node.mkQED()
-                    start_node.draw_graph(graph_file)
-                    return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
-                                        search_node.interactions()[1:], 0)
-                else: 
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                        assert coq.proof_context
-                    predictions_added += 1
-                    continue
-            except coq_serapy.CoqAnomaly:
-                if lemma_name == "":
-                    eprint("encountered unnamed goal!")
-                else:
-                    eprint("coqanomaly without unnamed goal!")
-
-                raise
-        steps_taken = steps_taken + 1
-        
-        if len(nodes_to_continue) == 0:
-            steps_taken = max_steps
-            next_search_node = start_node
-            eprint("no nodes to conitnue!")
-        else:
-            myint = random.randint(0, len(nodes_to_continue) - 1)
-            next_search_node = nodes_to_continue[myint]
-            nodes_to_continue = [i for i in nodes_to_continue if not (i == myint)]
-        
-        next_search_node.traverse_to(coq, initial_history_len) 
-
-        search_node = next_search_node
-
-    start_node.draw_graph(graph_file)
-    return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-def combo_b_vote_search(lemma_name: str,
-                          module_prefix: str,
-                          relevant_lemmas: List[str],
-                          coq: coq_serapy.CoqAgent,
-                          output_dir: Path,
-                          args: argparse.Namespace,
-                          bar_idx: int,
-                          predictor_list: [TacticPredictor]) \
-                          -> SearchResult:
-
-    initial_history_len = len(coq.tactic_history.getFullHistory())
-    full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-    steps_taken = 0
-    # Empty proof scripts set 
-    proof_scripts = {tuple([])}
-    steps_taken = 1 
-    search_status = SearchStatus.INCOMPLETE
-    max_steps = args.max_steps
-    # context_history = []
-    script_to_continue = tuple([])
-
-    graph_file = f"{output_dir}/{module_prefix}{lemma_name}.svg"
-
-    start_node = BFSNode(Prediction(lemma_name, 1.0, 1.0), 1.0, 0.0, [], full_context_before, None)
-    search_node = start_node
-    nodes_to_continue = []
-    # only to end fast
-    start_node.draw_graph(graph_file)
-    #return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0)
-
-    while steps_taken < max_steps:
-        
-        shuffle(predictor_list)
-        #round_robin = 0
-        predictions_lists = []
-        for curr_predictor in range(len(predictor_list)):
-            apredictor = predictor_list[curr_predictor]
-            predictions_temp = apredictor.predictKTactics(args,
-                truncate_tactic_context(search_node.context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            #if coq.use_hammer:
-            #    predictions_temp = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-            #                              prediction.certainty)
-            #                   for prediction in predictions_temp]
-            predictions_lists.append(predictions_temp)
-        predictions = []
-        only_tactics = tuple()
-        full_tup = tuple()
-        predictions_added = 0
-        for tup in zip(*predictions_lists):
-            full_tup = full_tup + tup
-            only_tactics = only_tactics + tuple([full_pred[0] for full_pred in tup])
-            mostcommon = Counter(only_tactics).most_common()[0]
-            if mostcommon[1] > 1:
-                best_tactic = mostcommon[0]
-            else:
-                highest_sureness = 0
-                best_tactic = None
-                for tactic_and_sureness in full_tup:
-                    if tactic_and_sureness[2] > highest_sureness:
-                        highest_sureness = tactic_and_sureness[2]
-                        best_tactic = tactic_and_sureness[0]
-            predictions.append(Prediction(best_tactic, 1.0, 1.0))
-            only_tactics = tuple([x for x in only_tactics if not x==best_tactic])
-            full_tup = tuple([x for x in full_tup if not x[0]==best_tactic])
-        predictions_added = 0
-        for _prediction_idx, prediction in enumerate(predictions):
-            if predictions_added >=5:
-                break
-            if prediction.prediction in [childnode.prediction.prediction for childnode in search_node.children]:
-                continue
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                        tryPrediction(args, coq, prediction.prediction, time.time())
-                time_after_try = time.time()
-                if error:
-                    continue
-                if contextIsBig(context_after) or \
-                        contextInHistory(context_after, search_node):
-                    eprint(f"Prediction in history or too big", guard=args.verbose >= 2)
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                    continue
-                if len(unwrap(coq.proof_context).all_goals) > args.max_subgoals:
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                    continue
-                postfix = []
-                if unshelved:
-                    postfix.append("Unshelve.")
-                postfix += ["}"] * subgoals_closed
-                postfix += ["{"] * subgoals_opened
-                full_context_after = FullContext(relevant_lemmas, coq.prev_tactics,unwrap(coq.proof_context))
-                current_node = BFSNode(prediction, 0, time_taken, postfix, full_context_after, search_node)
-                nodes_to_continue.append(current_node)
-                if completed_proof(coq):
-                    eprint("completed proof")
-                    current_node.mkQED()
-                    start_node.draw_graph(graph_file)
-                    return SearchResult(SearchStatus.SUCCESS, relevant_lemmas,
-                                        search_node.interactions()[1:], 0)
-                else: 
-                    for _ in range(num_stmts):
-                        coq.cancel_last()
-                        assert coq.proof_context
-                    predictions_added += 1
-                    continue
-                time_after_remove = time.time()
-                eprint("time for append") 
-                eprint(time_after_remove - time_after_check)
             except coq_serapy.CoqAnomaly:
                 if lemma_name == "":
                     eprint("encountered unnamed goal!")
@@ -3350,598 +1019,6 @@ def best_first_proof_search(lemma_name: str,
         return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, step)
     return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, step)
 
-def old_rnn_dfs_proof_search(lemma_name: str,
-                         module_prefix: str,
-                         relevant_lemmas: List[str],
-                         coq: coq_serapy.CoqAgent,
-                         output_dir: Path,
-                         args: argparse.Namespace,
-                         bar_idx: int,
-                         predictor_list: [TacticPredictor],
-                         model_list: [finetunedRNN],
-                         vectorizer: coq2vec.CoqTermRNNVectorizer) \
-                         -> SearchResult:
-
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
-                    args.features_json)
-
-    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
-        if msg:
-            eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.verbose >= 2)
-        for _ in range(num_stmts):
-            coq.cancel_last()
-    hasUnexploredNode = False
-
-    def no_rnn_search(pbar: tqdm, predictor, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int) -> SubSearchResult:
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-
-        args.blacklisted_tactics = None
-        predictions = predictor.predictKTactics(args, truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length), args.max_attempts)
-        assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                    sub_search_result = search(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored)
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          0,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        return SubSearchResult(None, 0, substeps_explored)
-
-    def search(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int) -> SubSearchResult:
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-
-        rnn_current_goal = unwrap(coq.proof_context).fg_goals[0].goal
-        encoded_tensor = vectorizer.term_to_vector(' '.join(rnn_current_goal.split()))
-        #certainties = []
-        #bestmod = 0
-        #bestnum = 0
-        #t = 0
-        #for rnnmod in model_list:
-        #    the_cert = rnnmod(encoded_tensor).item()
-        #    certainties.append(the_cert)
-        #    if the_cert > bestnum:
-        #        bestnum = the_cert
-        #        bestmod = t
-        #    t += 1
-        rnnmod = model_list[0]
-        modout = rnnmod(encoded_tensor)
-        listmod = modout.tolist()
-        bestmod = listmod.index(max(listmod))
-
-        predictor = predictor_list[bestmod]
-
-        # PUT HERE
-        predictions = predictor.predictKTactics(args,
-                                                truncate_tactic_context(full_context_before.as_tcontext(),
-                                                args.max_term_length),
-                                                args.max_attempts,
-                                                blacklist=args.blacklisted_tactics)
-        assert len(predictions) == args.max_attempts
-
-        #assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  subgoals_opened,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                    sub_search_result = search(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored)
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        return SubSearchResult(None, 0, substeps_explored)
-    total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 2) - 1
-    desc_name = lemma_name
-    if len(desc_name) > 25:
-        desc_name = desc_name[:22] + "..."
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
-
-    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc=desc_name, disable=(not args.progress),
-                 leave=False,
-                 position=bar_idx + 1,
-                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        next_node = g.start_node
-        if args.search_prefix is not None:
-            for command in coq_serapy.read_commands(args.search_prefix):
-                full_context_before = FullContext(relevant_lemmas,
-                                                  coq.prev_tactics,
-                                                  unwrap(coq.proof_context))
-                next_node = g.mkNode(Prediction(command, 1.0, 1.0),
-                                     full_context_before,
-                                     0,
-                                     next_node)
-                next_node.time_taken = 0.0
-                coq.run_stmt(command)
-        command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
-        pbar.clear()
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    if args.features_json:
-        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
-    if command_list:
-        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps)
-    if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
-
-
-def dfs_proof_search_with_vote(lemma_name: str,
-                                module_prefix: str,
-                                relevant_lemmas: List[str],
-                                coq: coq_serapy.CoqAgent,
-                                output_dir: Path,
-                                args: argparse.Namespace,
-                                bar_idx: int,
-                                predictor_list: [TacticPredictor]) \
-                                -> SearchResult:
-    g = SearchGraph(args.tactics_file, args.tokens_file, lemma_name,
-                    args.features_json)
-
-    def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
-        if msg:
-            eprint(f"Cancelling {num_stmts} statements "
-                   f"because {msg}.", guard=args.verbose >= 2)
-        for _ in range(num_stmts):
-            coq.cancel_last()
-    hasUnexploredNode = False
-
-    def search(pbar: tqdm, current_path: List[LabeledNode],
-               subgoal_distance_stack: List[int],
-               extra_depth: int, steps_explored: int) -> SubSearchResult:
-        nonlocal hasUnexploredNode
-        nonlocal relevant_lemmas
-        global unnamed_goal_number
-        full_context_before = FullContext(relevant_lemmas,
-                                          coq.prev_tactics,
-                                          unwrap(coq.proof_context))
-
-        shuffle(predictor_list)
-        predictions_lists = []
-        for curr_predictor in range(len(predictor_list)):
-            apredictor = predictor_list[curr_predictor]
-            predictions_temp = apredictor.predictKTactics(args,
-                truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length),
-                args.max_attempts,
-                blacklist=args.blacklisted_tactics)
-            predictions_lists.append(predictions_temp)
-        predictions = []
-        only_tactics = tuple()
-        full_tup = tuple()
-        for tup in zip(*predictions_lists):
-            full_tup = full_tup + tup
-            only_tactics = only_tactics + tuple([full_pred[0] for full_pred in tup])
-            mostcommon = Counter(only_tactics).most_common()[0]
-            if mostcommon[1] > 1:
-                best_tactic = mostcommon[0]
-            else:
-                highest_sureness = 0
-                best_tactic = None
-                for tactic_and_sureness in full_tup:
-                    if tactic_and_sureness[2] > highest_sureness:
-                        highest_sureness = tactic_and_sureness[2]
-                        best_tactic = tactic_and_sureness[0]
-            predictions.append(Prediction(best_tactic, 1.0, 1.0))
-            only_tactics = tuple([x for x in only_tactics if not x==best_tactic])
-            full_tup = tuple([x for x in full_tup if not x[0]==best_tactic])
-
-
-        #assert len(predictions) == args.max_attempts
-        if coq.use_hammer:
-            predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
-                                      prediction.certainty, prediction.no_softmax_certainty)
-                           for prediction in predictions]
-        num_successful_predictions = 0
-        substeps_explored = 1
-        for _prediction_idx, prediction in enumerate(predictions):
-            if num_successful_predictions >= args.search_width:
-                break
-            try:
-                context_after, num_stmts, \
-                    subgoals_closed, subgoals_opened, \
-                    error, time_taken, unshelved = \
-                    tryPrediction(args, coq, prediction.prediction,
-                                  time_on_path(current_path[-1]))
-                if error:
-                    if args.count_failing_predictions:
-                        num_successful_predictions += 1
-                    if args.show_failing_predictions:
-                        predictionNode = g.mkNode(prediction,
-                                                  full_context_before,
-                                                  subgoals_opened,
-                                                  current_path[-1])
-                        predictionNode.time_taken = time_taken
-                        if isinstance(error, RecursionError):
-                            g.setNodeColor(predictionNode, "grey75")
-                        else:
-                            g.setNodeColor(predictionNode, "red")
-                    continue
-                num_successful_predictions += 1
-                pbar.update(1)
-                assert cast(TqdmSpy, pbar).n > 0
-
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                predictionNode.time_taken = time_taken
-                if unshelved:
-                    predictionNode = g.mkNode(Prediction("Unshelve.", 1.0, 1.0),
-                                              full_context_before,
-                                              subgoals_opened,
-                                              predictionNode)
-                    predictionNode.time_taken = 0
-
-                # ### 1.
-                if subgoal_distance_stack:
-                    new_distance_stack = (subgoal_distance_stack[:-1] +
-                                          [subgoal_distance_stack[-1]+1])
-                else:
-                    new_distance_stack = []
-
-                # ### 2.
-                new_extra_depth = extra_depth
-                for _ in range(subgoals_closed):
-                    closed_goal_distance = new_distance_stack.pop()
-                    new_extra_depth += closed_goal_distance
-
-                # ### 3.
-                new_distance_stack += [0] * subgoals_opened
-
-                #############
-                if completed_proof(coq):
-                    solution = g.mkQED(predictionNode)
-                    return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
-                elif contextInPath(context_after,
-                                   current_path[1:] + [predictionNode]):
-                    if not args.count_softfail_predictions:
-                        num_successful_predictions -= 1
-                    g.setNodeColor(predictionNode, "orange")
-                    cleanupSearch(num_stmts,
-                                  "resulting context is in current path")
-                elif contextIsBig(context_after):
-                    g.setNodeColor(predictionNode, "orange4")
-                    cleanupSearch(num_stmts,
-                                  "resulting context has too big a goal")
-                elif len(current_path) < args.search_depth + new_extra_depth \
-                        and len(current_path) < args.hard_depth_limit \
-                        and (args.max_steps is None or
-                             substeps_explored < args.max_steps):
-                    if subgoals_closed > 0:
-                        g.setNodeColor(predictionNode, "blue")
-                    sub_search_result = search(pbar,
-                                               current_path + [predictionNode],
-                                               new_distance_stack,
-                                               new_extra_depth, steps_explored + substeps_explored)
-                    substeps_explored += sub_search_result.steps_explored
-                    cleanupSearch(num_stmts, "we finished subsearch")
-                    print("sub search solution?")
-                    print(sub_search_solution)
-                    print("was it empty?")
-                    if sub_search_result.solution or \
-                       sub_search_result.solved_subgoals > subgoals_opened:
-                        new_subgoals_closed = \
-                            subgoals_closed + \
-                            sub_search_result.solved_subgoals - \
-                            subgoals_opened
-                        return SubSearchResult(sub_search_result.solution,
-                                               new_subgoals_closed, substeps_explored)
-                    if subgoals_closed > 0:
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-                else:
-                    hasUnexploredNode = True
-                    cleanupSearch(num_stmts, "we hit the depth limit")
-                    if subgoals_closed > 0:
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
-                        return SubSearchResult(None, subgoals_closed, substeps_explored)
-            except coq_serapy.CoqAnomaly:
-                predictionNode = g.mkNode(prediction,
-                                          full_context_before,
-                                          subgoals_opened,
-                                          current_path[-1])
-                g.setNodeColor(predictionNode, "grey25")
-                if lemma_name == "":
-                    unnamed_goal_number += 1
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{unnamed_goal_number}.svg")
-                else:
-                    if args.features_json:
-                        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                                          f"{lemma_name}.json")
-                    g.draw(f"{output_dir}/{module_prefix}"
-                           f"{lemma_name}.svg")
-
-                raise
-        return SubSearchResult(None, 0, substeps_explored)
-    total_nodes = numNodesInTree(args.search_width,
-                                 args.search_depth + 2) - 1
-    desc_name = lemma_name
-    if len(desc_name) > 25:
-        desc_name = desc_name[:22] + "..."
-    if coq.count_fg_goals() > 1:
-        coq.run_stmt("{")
-        subgoals_stack_start = [0]
-    else:
-        subgoals_stack_start = []
-
-    with TqdmSpy(total=total_nodes, unit="pred", file=sys.stdout,
-                 desc=desc_name, disable=(not args.progress),
-                 leave=False,
-                 position=bar_idx + 1,
-                 dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        next_node = g.start_node
-        if args.search_prefix is not None:
-            for command in coq_serapy.read_commands(args.search_prefix):
-                full_context_before = FullContext(relevant_lemmas,
-                                                  coq.prev_tactics,
-                                                  unwrap(coq.proof_context))
-                next_node = g.mkNode(Prediction(command, 1.0, 1.0),
-                                     full_context_before,
-                                     0,
-                                     next_node)
-                next_node.time_taken = 0.0
-                coq.run_stmt(command)
-        command_list, _, total_steps = search(pbar, [next_node], subgoals_stack_start, 0, 0)
-        pbar.clear()
-    g.draw(f"{output_dir}/{module_prefix}{lemma_name}.svg")
-    if args.features_json:
-        g.write_feat_json(f"{output_dir}/{module_prefix}"
-                          f"{lemma_name}.json")
-    if command_list:
-        return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps)
-    if hasUnexploredNode:
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, total_steps)
-    return SearchResult(SearchStatus.FAILURE, relevant_lemmas, None, total_steps)
-
 def dfs_proof_search_with_graph(lemma_name: str,
                                 module_prefix: str,
                                 relevant_lemmas: List[str],
@@ -3973,12 +1050,10 @@ def dfs_proof_search_with_graph(lemma_name: str,
         full_context_before = FullContext(relevant_lemmas,
                                           coq.prev_tactics,
                                           unwrap(coq.proof_context))
-        before_pred = time.time()
         args.no_goal_head = predictor.training_args.no_goal_head
         args.no_hyp_scores = predictor.training_args.no_hyp_scores
         args.no_prev_tactic = predictor.training_args.no_prev_tactic
         predictions = predictor.predictKTactics(args, truncate_tactic_context(full_context_before.as_tcontext(), args.max_term_length), args.max_attempts, blacklist=args.blacklisted_tactics)
-        after_pred = time.time()
         assert len(predictions) >= args.search_width
         if coq.use_hammer:
             predictions = [Prediction(prediction.prediction[:-1] + "; try hammer.",
@@ -3986,25 +1061,15 @@ def dfs_proof_search_with_graph(lemma_name: str,
                            for prediction in predictions]
         num_successful_predictions = 0
         substeps_explored = 1
-        total_time = 0
         for _prediction_idx, prediction in enumerate(predictions):
             if num_successful_predictions >= args.search_width:
-                print("prediction time")
-                print(total_time)
                 break
             try:
-                #print("context before")
-                #print(coq.proof_context,flush=True)
-                #print("goal is ")
-                #print(coq.proof_context.fg_goals[0],flush=True)
-                before_try = time.time()
                 context_after, num_stmts, \
                     subgoals_closed, subgoals_opened, \
                     error, time_taken, unshelved = \
                     tryPrediction(args, coq, prediction.prediction,
                                   time_on_path(current_path[-1]))
-                after_try = time.time()
-                total_time = total_time + (after_try - before_try)
                 if error:
                     if args.count_failing_predictions:
                         num_successful_predictions += 1
@@ -4260,7 +1325,6 @@ def bidfunc(args, fullcontext, coq, predictor_list):
         
         assert bid_tactic is not None
 
-        print("bid tactic is")
         print(bid_tactic,flush=True)
 
         predictions.append(Prediction(bid_tactic, 1.0, 1.0))
@@ -4283,17 +1347,19 @@ def votefunc(args, fullcontext, coq, predictor_list):
     tactics_lists = []
     i = 0
     random.shuffle(predictor_list)
+    thecontext = truncate_tactic_context(fullcontext.as_tcontext(), args.max_term_length)
+    blacklist=args.blacklisted_tactics
     for predictor in predictor_list:
         args.no_goal_head = predictor.training_args.no_goal_head
-        #print("args")
-        #print(args.no_goal_head)
         predictions = predictor.predictKTactics(args,
-            truncate_tactic_context(fullcontext.as_tcontext(), args.max_term_length),
+            thecontext,
             args.max_attempts,
-            blacklist=args.blacklisted_tactics)
+            blacklist)
         predictions_lists.append(predictions)
 
+    after_preds = time.time()
 
+    before_vote = time.time()
     predictions = []
     for attempt in range(args.max_attempts):
         top_tactics = tuple([plist[0].prediction for plist in predictions_lists])
@@ -4335,6 +1401,9 @@ def votefunc(args, fullcontext, coq, predictor_list):
                         predictions_lists[i] = predictions_lists[i][0:l] + predictions_lists[i][(l+1):]
                     l = l + 1
                 l = l + 1
+
+    after_vote = time.time()
+
     return predictions
 
 def rnnfunc(args, fullcontext, coq, predictor_list, hf_model, hf_tokenizer):
@@ -4342,7 +1411,10 @@ def rnnfunc(args, fullcontext, coq, predictor_list, hf_model, hf_tokenizer):
     tactics_list = []
     predictor_string_lists = ["vst","coq","geo","ert","drc"]
     i = 0
-    goal = coq.proof_context.fg_goals[0].goal
+    if len(unwrap(coq.proof_context).fg_goals) > 0:
+        goal = unwrap(coq.proof_context).fg_goals[0].goal
+    else: 
+        goal = ""
     all_predictions = []
     inputstrs = []
     #device = torch.device("cuda:0")
@@ -4400,14 +1472,11 @@ def rnnfunc(args, fullcontext, coq, predictor_list, hf_model, hf_tokenizer):
     bin_probs = probs[:, 1].tolist()
     #print(bin_probs)
     zipped = zip(bin_probs, all_predictions)  
-    #zipped = [zippair for zippair in zip(bin_probs, all_predictions) if zippair[0] > 0.5]
 
     sorted_pairs = sorted(zipped, key=lambda x: x[0], reverse=True)
 
     sortedprobs, sortedtacts = zip(*sorted_pairs)
 
-    #if len(sortedtacts) < 10: 
-    #    return sortedtacts
     return sortedtacts[0:10] 
 
 def rnnfuncold(args, fullcontext, coq, predictor_list, model_list, vectorizer):
@@ -4426,6 +1495,7 @@ def rnnfuncold(args, fullcontext, coq, predictor_list, model_list, vectorizer):
         predictions_lists.append(predictions)
         tactics_lists.append(concatenated_tactics)
 
+    print(coq.proof_context.fg_goals, flush=True)
     rnn_current_goal = coq.proof_context.fg_goals[0].goal
 
     encoded_tensors = [vectorizer.term_to_vector(' '.join(rnn_current_goal.split()))]
@@ -4517,7 +1587,6 @@ def multimodalfunc(args, fullcontext, coq, predictor_list):
             #    prediction_set.add(val)
     return prediction_list
             
-
 def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 module_prefix: str,
                                 relevant_lemmas: List[str],
@@ -4525,6 +1594,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 output_dir: Path,
                                 args: argparse.Namespace,
                                 bar_idx: int,
+                                time_initial,
                                 predictor: TacticPredictor,
                                 predictor_list: [TacticPredictor],
                                 stack_model: [finetunedRNN],
@@ -4551,22 +1621,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
     assert not (bid and rnn), "you must choose either bid or stack"
 
     if rnn:
-        #quantization_config = BitsAndBytesConfig(
-        #    load_in_4bit=True,
-        #    llm_int8_enable_fp32_cpu_offload=True,
-        #    bnb_4bit_use_double_quant=True,
-        #    bnb_4bit_quant_type="nf4",
-        #    bnb_4bit_compute_dtype=torch.bfloat16,
-        #)
-
         hf_model = ModernBertForSequenceClassification.from_pretrained("finetuned_ModernBERT/load-this-one", num_labels=2)
-        #if torch.cuda.is_available():
-         #   device = torch.device("cuda:0") 
-
-         #   # Move your model to CUDA
-         #   hf_model.to(device)
-        #else:
-        #    print("no cuda available")
         hf_tokenizer = AutoTokenizer.from_pretrained("finetuned_ModernBERT/load-this-one")
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
@@ -4574,38 +1629,23 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
         if msg:
             eprint(f"Cancelling {num_stmts} statements "
                    f"because {msg}.", guard=args.verbose >= 2)
-        #coq.run_stmt("Undo " + str(num_stmts) + ".")
-        #print("pre tactic history")
-        #print(unwrap(coq.proof_context),flush=True)
-        #print(coq.tactic_history,flush=True)
         for _ in range(num_stmts):
             coq.cancel_last()
-            #coq.run_stmt("Undo.")
-        #print("post tactic history")
-        #print(unwrap(coq.proof_context),flush=True)
-        #print(coq.tactic_history,flush=True)
     hasUnexploredNode = False
-
 
     def search(pbar: tqdm, current_path: List[LabeledNode],
                subgoal_distance_stack: List[int],
                extra_depth: int, steps_explored: int, single_predictor, g, search_args, subgoal_list, badhistory, goodhistory, args_hard_depth_limit, mainflag:bool) -> SubSearchResult:
 
-        #print("search depth limit")
-        #print("extra depth")
-        #print(extra_depth)
-
         nonlocal hasUnexploredNode
         nonlocal relevant_lemmas
         nonlocal search_exception
         global unnamed_goal_number
-        
+
         if len(subgoal_list) > 0:
             search_args_search_width = 1
         else:
             search_args_search_width = search_args.search_width
-
-
 
         full_context_before = FullContext(relevant_lemmas,
                                           coq.prev_tactics,
@@ -4613,21 +1653,17 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
         if len(subgoal_list) > 0:
             predictions = [subgoal_list.pop()] 
             predictions_lists = [predictions]
-        elif vote:
+        elif vote and mainflag:
             predictions = votefunc(search_args, full_context_before, coq, predictor_list)
             predictions_lists = [predictions]
-        elif bid:
+        elif bid and mainflag:
             predictions = bidfunc(search_args, full_context_before, coq, predictor_list)
             predictions_lists = [predictions]
-        elif rnn:
-            #assert stack_model is not None, "you must provide a stack model"
-            #assert vectorizer is not None, "you must provide a vectorizer" 
-            #for predictor in predictor_list:
-            #    predictor.change_device("cuda:0")
+        elif rnn and mainflag:
             predictions = rnnfunc(search_args, full_context_before, coq, predictor_list, hf_model, hf_tokenizer)
             assert len(predictions) == search_args.max_attempts
             predictions_lists = [predictions]
-        elif multimodal:
+        elif multimodal and mainflag:
             predictions_lists = []
             predictions_lists_beginning = [[Prediction("timeout 1 easy.", 1.0, 1.0), Prediction("timeout 1 congruence.", 1.0, 1.0), Prediction("timeout 1 lia.", 1.0, 1.0), Prediction("timeout 1 eauto.", 1.0, 1.0), Prediction("timeout 1 firstorder.", 1.0, 1.0), Prediction("timeout 1 vm_compute", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0)]]#had intuition and tauto
             for modalpredictor in predictor_list:
@@ -4644,17 +1680,14 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                 new_list_nine = [Prediction(item.prediction.replace("lazy.", "vm-compute."), item.certainty, item.no_softmax_certainty) for item in new_list_eight] 
                 new_list_ten = [Prediction(item.prediction.replace("cbv.", "vm-compute."), item.certainty, item.no_softmax_certainty) for item in new_list_nine] 
                 new_list_eleven = [Prediction(item.prediction.replace("auto.", "eauto."), item.certainty, item.no_softmax_certainty) for item in new_list_ten] 
-                new_list_twelve = [Prediction(item.prediction.replace("tauto.", "firstorder."), item.certainty, item.no_softmax_certainty) for item in new_list_eleven] # change back?
+                new_list_twelve = [Prediction(item.prediction.replace("tauto.", "firstorder."), item.certainty, item.no_softmax_certainty) for item in new_list_eleven] 
                 new_list_thirteen = [Prediction(item.prediction.replace("eeauto.", "eauto."), item.certainty, item.no_softmax_certainty) for item in new_list_twelve] 
                 modal_predictions = [Prediction(item.prediction.replace("intuition.", "firstorder."), item.certainty, item.no_softmax_certainty) for item in new_list_thirteen] 
-                #new_list_fourteen = [Prediction(item.prediction.replace("\bsimpl.\b", "cbn."), item.certainty, item.no_softmax_certainty) for item in new_list_thirteen] 
-                #modal_predictions = [Prediction(item.prediction.replace("\bintuition.\b", "dintuition."), item.certainty, item.no_softmax_certainty) for item in new_list_thirteen] 
                 
                 assert len(modal_predictions) == search_args.max_attempts
                 predictions_lists.append(modal_predictions)
             predictions_lists = predictions_lists_beginning + predictions_lists
             predictions = [item for zipgroup in zip(*predictions_lists) for item in zipgroup]
-            #print(predictions,flush=True)
         else:
             search_args.no_goal_head = single_predictor.training_args.no_goal_head
             predictions = single_predictor.predictKTactics(search_args, truncate_tactic_context(full_context_before.as_tcontext(), search_args.max_term_length), search_args.max_attempts, blacklist=search_args.blacklisted_tactics)
@@ -4662,18 +1695,9 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
             predictions_lists = [predictions]
 
         substeps_explored = 1
-        #print("predictions")
-        #print(predictions)
         predictions_done = ["nulltac."]
-        #predictions_lists_current = 1
         num_successful_predictions_list = [0 for i in range(len(predictions_lists))]
-        #for predictions in predictions_lists:
-        #num_successful_predictions = 0
-        #print("my predictions are ")
-        #print(predictions)
         for _prediction_idx, prediction in enumerate(predictions):
-            found_solutions = []
-            ttime = time.time()
             num_successful_predictions = num_successful_predictions_list[_prediction_idx%len(predictions_lists)]
             if num_successful_predictions >= search_args_search_width:
                 continue
@@ -4686,13 +1710,9 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
             predictionpath_short = combined_predictions_short + " " + prediction.prediction
             if badhistory is not None: 
                 if predictionpath_short in badhistory:
-                    #print("not running the prediction, it's in badhistory")
-                    #print(badhistory)
                     continue
             if goodhistory is not None: 
                 if predictionpath in goodhistory:
-                    #print("not running the prediction, it's in goodhistory")
-                    #print(goodhistory)
                     continue
             try:
                 context_after, num_stmts, \
@@ -4701,6 +1721,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                     tryPrediction(search_args, coq, prediction.prediction,
                                   time_on_path(current_path[-1]))
                 if error:
+                    
                     if search_args.count_failing_predictions:
                         num_successful_predictions += 1
                     if search_args.show_failing_predictions:
@@ -4714,6 +1735,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                             g.setNodeColor(predictionNode, "grey75")
                         else:
                             g.setNodeColor(predictionNode, "red")
+                    
                     continue
                 num_successful_predictions += 1
                 pbar.update(1)
@@ -4741,10 +1763,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                 # ### 2.
                 new_extra_depth = extra_depth
                 for _ in range(subgoals_closed):
-                    #print("subgoals closed...")
-                    #print(subgoals_closed,flush=True)
-                    #print("popping from ..")
-                    #print(new_distance_stack, flush=True)
                     closed_goal_distance = new_distance_stack.pop()
                     new_extra_depth += closed_goal_distance
 
@@ -4754,112 +1772,92 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
 
                 #############
                 if completed_proof(coq):
-                    #print("completed proof", flush=True)
-                    if subgoal_sharing:
+                    solution = g.mkQED(predictionNode)
+                    if (subgoals_closed > 0) & (subgoal_sharing) and (len(subgoal_list) == 0):
                         subgoal_solution = [Prediction(predictionNode.prediction, 1.0,1.0)]
                         initial_goal = predictionNode.context_before.as_tcontext().goal
                         initial_hyps = predictionNode.context_before.as_tcontext().hypotheses
                         subgoal_node = predictionNode.previous
                         record_subgoals_opened = subgoal_node.subgoals_opened
-                        while record_subgoals_opened < subgoals_closed: #TODO: add protections
+                        while record_subgoals_opened < subgoals_closed:
                             subgoal_solution_part = [Prediction(subgoal_node.prediction, 1.0,1.0)]
                             subgoal_solution = subgoal_solution + subgoal_solution_part
                             initial_goal = subgoal_node.context_before.as_tcontext().goal
                             initial_hyps = subgoal_node.context_before.as_tcontext().hypotheses
                             subgoal_node = subgoal_node.previous
                             record_subgoals_opened += subgoal_node.subgoals_opened
-                        if subgoal_sharing and (len(subgoal_list) == 0):
-                            #for inhyp in initial_hyps:
-                            #    initial_goal = initial_goal + " " + inhyp
-                            hashed_goal = hash(initial_goal) #TODO: add back in initial hyps?
-                            solone = subgoal_solution[0].prediction
+                        #for inhyp in initial_hyps:
+                        #    initial_goal = initial_goal + " " + inhyp
+                        hashed_goal = hashlib.sha256(initial_goal.encode('utf-8')).hexdigest()
+                        solone = subgoal_solution[0].prediction
+                        if len(subgoal_solution) > 1:
                             for sol in subgoal_solution[1:]:
                                 solone = solone + " " + sol.prediction
-                            hashsol = hash(solone)
-                            if hashed_goal in subgoals_seen.keys():
-                                if hashsol not in subgoals_seen[hashed_goal].keys():
-                                    subgoals_seen[hashed_goal][hashsol] = subgoal_solution
-                            else:
-                                subgoals_seen[hashed_goal] = {hashsol: subgoal_solution}
-                            #print("goal")
-                            #print(initial_goal)
-                            #print("solution")
-                            #print(subgoal_solution)
-                    solution = g.mkQED(predictionNode)
+                        hashsol = hashlib.sha256(solone.encode('utf-8')).hexdigest()
+                        if hashed_goal in subgoals_seen.keys():
+                            if hashsol not in subgoals_seen[hashed_goal].keys():
+                                subgoals_seen[hashed_goal][hashsol] = copy.deepcopy(subgoal_solution)
+                        else:
+                            subgoals_seen[hashed_goal] = {hashsol: copy.deepcopy(subgoal_solution)}
                     return SubSearchResult(solution, subgoals_closed, steps_explored + substeps_explored)
                 elif contextInPath(context_after,
                                    current_path[1:] + [predictionNode]):
                     if not search_args.count_softfail_predictions:
                         num_successful_predictions -= 1
                     g.setNodeColor(predictionNode, "orange")
-                    #print(f"cleaning up {num_stmts} statements because context in path", flush=True)
                     cleanupSearch(num_stmts,
                                   "resulting context is in current path")
                 elif contextIsBig(context_after):
                     g.setNodeColor(predictionNode, "orange")
-                    #print(f"cleaning up {num_stmts} statements because context big", flush=True)
                     cleanupSearch(num_stmts,
                                   "resulting context has too big a goal")
-                #elif len(current_path) < search_args.search_depth + new_extra_depth \
-                #        len(current_path) < args.hard_depth_limit and \
-                #        (args.max_steps is None or \
-                #            substeps_explored < args.max_steps):
                 elif len(current_path) < args.search_depth + new_extra_depth \
                         and len(current_path) < args_hard_depth_limit:
-                        #and (args.max_steps is None or
-                        #     substeps_explored < args.max_steps):
                     if subgoals_closed > 0:
                         mainflag = True
-                        #print(f"closed {subgoals_closed} subgoals",flush=True)
                         g.setNodeColor(predictionNode, "blue")
-                    if (subgoals_closed > 0) & (subgoal_sharing):
+                    if (subgoals_closed > 0) & (subgoal_sharing) and (len(subgoal_list) == 0):
                         subgoal_solution = [Prediction(predictionNode.prediction, 1.0,1.0)]
                         initial_goal = predictionNode.context_before.as_tcontext().goal
                         initial_hyps = predictionNode.context_before.as_tcontext().hypotheses
                         subgoal_node = predictionNode.previous
                         record_subgoals_opened = subgoal_node.subgoals_opened
-                        while record_subgoals_opened < subgoals_closed: #TODO: add protections
+                        while record_subgoals_opened < subgoals_closed: 
                             subgoal_solution_part = [Prediction(subgoal_node.prediction, 1.0,1.0)]
                             subgoal_solution = subgoal_solution + subgoal_solution_part
                             initial_goal = subgoal_node.context_before.as_tcontext().goal
                             initial_hyps = subgoal_node.context_before.as_tcontext().hypotheses
                             subgoal_node = subgoal_node.previous
                             record_subgoals_opened += subgoal_node.subgoals_opened
-                        if subgoal_sharing and (len(subgoal_list) == 0):
-                            #for inhyp in initial_hyps:
-                            #    initial_goal = initial_goal + " " + inhyp #TODO: add back in?
-                            hashed_goal = hash(initial_goal) #TODO: add back in initial hyps?
-                            solone = subgoal_solution[0].prediction
+                        #for inhyp in initial_hyps:
+                        #    initial_goal = initial_goal + " " + inhyp
+                        hashed_goal = hashlib.sha256(initial_goal.encode('utf-8')).hexdigest()
+                        solone = subgoal_solution[0].prediction
+                        if len(subgoal_solution) > 1:
                             for sol in subgoal_solution[1:]:
                                 solone = solone + " " + sol.prediction
-                            hashsol = hash(solone)
-                            #subgoals_seen[hashed_goal] = subgoal_solution 
-                            if hashed_goal in subgoals_seen.keys():
-                                if hashsol not in subgoals_seen[hashed_goal].keys():
-                                    subgoals_seen[hashed_goal][hashsol] = subgoal_solution
-                            else:
-                                subgoals_seen[hashed_goal] = {hashsol: subgoal_solution}
+                        hashsol = hashlib.sha256(solone.encode('utf-8')).hexdigest()
+                        if hashed_goal in subgoals_seen.keys():
+                            if hashsol not in subgoals_seen[hashed_goal].keys():
+                                subgoals_seen[hashed_goal][hashsol] = copy.deepcopy(subgoal_solution)
+                        else:
+                            subgoals_seen[hashed_goal] = {hashsol: copy.deepcopy(subgoal_solution)}
+                    found_solutions = []
                     if subgoals_opened > 0:
-                        if subgoal_sharing and use_subgoals: 
+                        if use_subgoals: 
                             if len(subgoal_list) == 0:
                                 current_goal = context_after.focused_goal
                                 #for inhyp in context_after.focused_hyps:
-                                #    current_goal = current_goal + " " + inhyp #TODO: add back in?
-                                hashed_goal = hash(current_goal)
+                                #    current_goal = current_goal + " " + inhyp 
+                                hashed_goal = hashlib.sha256(current_goal.encode('utf-8')).hexdigest()
                                 solved_already = subgoals_seen.get(hashed_goal)
                                 if solved_already: 
                                     for hashsol in solved_already.keys():
-                                        found_solutions = found_solutions + [solved_already[hashsol]]
-                                #print("found solution")
-                                #print(found_solutions)
+                                        found_solutions.append(list(solved_already[hashsol]))
+                                    print("found solutions")
+                                    print(found_solutions,flush=True)
                     if cheap_exp and mainflag and subgoals_opened > 0:
-                        #print("trylist")
                         for cheap_exp_predictor in predictor_list:
-                            #print("coq")
-                            #print(unwrap(context_after).fg_goals,flush=True)
-                            #print(unwrap(context_after).bg_goals,flush=True)
-                            #print("trying")
-                            #print(new_distance_stack, flush=True)
                             copied_distance_stack = copy.deepcopy(new_distance_stack)
                             sub_search_result_cheap_exp = search(pbar,
                                                        current_path + [predictionNode],
@@ -4876,7 +1874,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 return SubSearchResult(sub_search_result_cheap_exp.solution,
                                                        new_subgoals_closed, substeps_explored)
                             if sub_search_result_cheap_exp.solved_subgoals > subgoals_opened:
-                                cleanupSearch(num_stmts, "sybisybserch")
+                                cleanupSearch(num_stmts, "cheap exp search done")
                                 substeps_explored += sub_search_result_cheap_exp.steps_explored
                                 new_subgoals_closed = \
                                     subgoals_closed + \
@@ -4884,7 +1882,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                     subgoals_opened
                                 return SubSearchResult(sub_search_result_cheap_exp.solution,
                                                        new_subgoals_closed, substeps_explored)
-                            #print("donedone",flush=True)
 
                     if len(found_solutions) > 0:
                         for subgoal_list in found_solutions:
@@ -4912,7 +1909,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                         if sub_search_result is None:
                             return None
                         
-                    #print("finished subsearch", flush=True)
                     substeps_explored += sub_search_result.steps_explored
                     if sub_search_result.solution:
                         new_subgoals_closed = \
@@ -4922,48 +1918,25 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed, substeps_explored)
                     cleanupSearch(num_stmts, "sybserch")
-                    #print(f"cleaning up {num_stmts} statements because we finished the subsearch", flush=True)
                     if sub_search_result.solved_subgoals > subgoals_opened:
-                        #print("more subgoals solved than opened",flush=True)
                         new_subgoals_closed = \
                             subgoals_closed + \
                             sub_search_result.solved_subgoals - \
                             subgoals_opened
                         return SubSearchResult(sub_search_result.solution,
                                                new_subgoals_closed, substeps_explored)
-                    #print("cleaning up", flush=True)
-                    #cleanupSearch(num_stmts, "we finished subsearch")
                     if subgoals_closed > 0:
-                        #print("returning the fact that subgoals were closed.", flush=True)
                         return SubSearchResult(None,
                                                subgoals_closed, substeps_explored)
 
                 else:
-                    #print("depth limit",flush=True)
                     hasUnexploredNode = True
                     cleanupSearch(num_stmts, "we hit the depth limit")
                     if subgoals_closed > 0: 
-                        # depth = (args.search_depth + new_extra_depth + 1) \
-                        #     - len(current_path)
                         return SubSearchResult(None, subgoals_closed, substeps_explored)
             except coq_serapy.CoqAnomaly as printerr:
-                #print("EXCEPTION",flush=True)
-                #print(prediction.prediction)
-                #print(printerr,flush=True)
-                #print("failed on")
-                #removals = []
-                #removepath = predictionpath_short
-                #countpath = 0
-                #for apath in badhistory:
-                #    if apath.startswith(removepath):
-                #        removals.append(apath)
-                #for path_to_remove in removals:
-                #    badhistory.remove(path_to_remove)
                 if predictionpath_short not in badhistory:
                     badhistory.extend([predictionpath_short])
-                    #print("badhistory extended")
-                    #print(badhistory,flush=True)
-                #badmodel.extend([_prediction_idx%len(predictions_lists)])
                 predictionNode = g.mkNode(prediction,
                                           full_context_before,
                                           ProofContext.empty(),
@@ -4991,8 +1964,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                 return None
 
             num_successful_predictions_list[_prediction_idx%len(predictions_lists)] = num_successful_predictions
-            #print(num_successful_predictions_list)
-        #print("explored all options and found none",flush=True)
         removals = []
         removepath = predictionpath
         countpath = 0
@@ -5009,7 +1980,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
         if removepath == predictionpath: 
             goodhistory.extend([removepath])
 
->>>>>>> 620a114c (current status)
         return SubSearchResult(None, 0, substeps_explored)
 
 
@@ -5038,6 +2008,9 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
         #print("begin subgoals seen")
         #print(subgoals_seen, flush=True)
+        # REMOVE THIS 
+        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0, subgoals_seen), None
+
         if coq.count_fg_goals() > 1:
             coq.run_stmt("{")
             subgoals_stack_start = [0]
@@ -5048,8 +2021,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
         next_node = g.start_node
 
         final_search_result = search(pbar, [next_node], subgoals_stack_start, 0, 0, predictor, g, args, [], badhistory, goodhistory, args.hard_depth_limit, mainflag=True)
-        #print("badhistory")
-        #print(badhistory)
         if search_exception is not None:
             raise search_exception
         command_list, _, total_steps = final_search_result
@@ -5060,9 +2031,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                           f"{lemma_name}.json")
 
 
-    #print("end subgoals seen")
-    #print(subgoals_seen, flush=True)
-    #subgoals_seen = {}
     #g.draw(f"{output_dir}/{module_prefix}"
     #    f"{lemma_name}.svg")
     if command_list:
