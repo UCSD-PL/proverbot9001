@@ -56,7 +56,7 @@ def main(arg_list: List[str]) -> None:
     arg_parser.add_argument("--num-workers", default=32, type=int)
     arg_parser.add_argument("--workers-output-dir", default=Path("output"),
                             type=Path)
-    arg_parser.add_argument("--worker-timeout", default="6:00:00")
+    arg_parser.add_argument("--worker-timeout", default="23:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
 
@@ -142,10 +142,6 @@ def main(arg_list: List[str]) -> None:
                             "-p", project_dict['project_name'],
                             "--jobs-file",
                             str(args.output_dir / "all_jobs.txt")]
-            print("the command")
-            print(command,flush=True)
-            print("the project")
-            print(project_dict['project_name'],flush=True)
             subprocess.run(command, stdout=subprocess.DEVNULL)
         with util.sighandler_context(signal.SIGINT,
                                      functools.partial(interrupt_report_early, args)):

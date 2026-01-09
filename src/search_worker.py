@@ -382,13 +382,11 @@ class SearchWorker(Worker):
     widx: int
     predictor: TacticPredictor
     axioms_already_added: bool
-    def __init__(self, args: argparse.Namespace, worker_idx: int, predictor: TacticPredictor, switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None, model_list: Optional[List[finetunedRNN]] = None, vectorizer: Optional[coq2vec.CoqTermRNNVectorizer] = None) -> None:
+    def __init__(self, args: argparse.Namespace, worker_idx: int, predictor: TacticPredictor, switch_dict: Optional[Dict[str, str]] = None, predictor_list: Optional[List[TacticPredictor]] = None) -> None:
         super().__init__(args, switch_dict)
         self.widx = worker_idx
         self.predictor = predictor
         self.predictor_list = predictor_list
-        self.model_list = model_list
-        self.vectorizer = vectorizer
         self.axioms_already_added = False
         self.total_restart = 0
 
@@ -445,7 +443,7 @@ class SearchWorker(Worker):
                              context_lemmas,
                              self.coq,
                              self.args.output_dir / self.cur_project,
-                             self.widx, time_initial, single_predictor, self.predictor_list, self.model_list, self.vectorizer, subgoals_seen, badhistory, goodhistory, badmodel, self.switch_dict[self.cur_project], graph, use_subs)
+                             self.widx, time_initial, single_predictor, self.predictor_list, subgoals_seen, badhistory, goodhistory, badmodel, self.switch_dict[self.cur_project], graph, use_subs)
             steps_so_far += steps_taken
             if not tactic_solution:
                 # restart using the next predictor in the group for subgoal sharing and cheap exploration
@@ -579,8 +577,6 @@ def attempt_search(args: argparse.Namespace,
                    time_initial, 
                    predictor: TacticPredictor, 
                    predictor_list=None,
-                   model_list=None, 
-                   vectorizer=None, 
                    subgoals_seen: dict = None,
                    badhistory: list = [],
                    goodhistory: list = [],
@@ -626,85 +622,85 @@ def attempt_search(args: argparse.Namespace,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, True, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, False, search_graph, use_subgoals)
+                                                 True, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-vote':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False, {}, badhistory, goodhistory, badmodel, True, False, False, False, False, False, search_graph, use_subgoals)
+                                                 False, {}, badhistory, goodhistory, badmodel, True, False, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-vote-subgoal-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False,subgoals_seen, badhistory, goodhistory, badmodel, True, False, False, False, False, False, search_graph, use_subgoals)
+                                                 False,subgoals_seen, badhistory, goodhistory, badmodel, True, False, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-vote-cheap-exp-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False,{}, badhistory, goodhistory, badmodel, True, False, False, False, True, False, search_graph, use_subgoals)
+                                                 False,{}, badhistory, goodhistory, badmodel, True, False, False, False, True, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-bid':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False, {}, badhistory, goodhistory, badmodel, False, True, False, False, False, False, search_graph, use_subgoals)
+                                                 False, {}, badhistory, goodhistory, badmodel, False, True, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-bid-subgoal-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False, subgoals_seen, badhistory, goodhistory, badmodel, False, True, False, False, False, False, search_graph, use_subgoals)
+                                                 False, subgoals_seen, badhistory, goodhistory, badmodel, False, True, False, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-bid-cheap-exp-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False, {}, badhistory, goodhistory, badmodel, False, True, False, False, True, False, search_graph, use_subgoals)
+                                                 False, {}, badhistory, goodhistory, badmodel, False, True, False, False, True, False, search_graph, use_subgoals)
         elif args.search_type == 'dfs-multimodal':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                None, None, False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, True, search_graph, use_subgoals) 
+                                                 False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, True, search_graph, use_subgoals) 
         elif args.search_type == 'dfs-multimodal-subgoal-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                None, None, False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, True, search_graph, use_subgoals) 
+                                                 False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, True, search_graph, use_subgoals) 
         elif args.search_type == 'dfs-multimodal-cheap-exp-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                None, None, False, {}, badhistory, goodhistory, badmodel, False, False, False, False, True, True, search_graph, use_subgoals) 
+                                                 False, {}, badhistory, goodhistory, badmodel, False, False, False, False, True, True, search_graph, use_subgoals) 
         elif args.search_type == 'dfs-cheap-exp':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 None, None, False, {}, badhistory, goodhistory, badmodel, False, False, False, False, True, False, search_graph, use_subgoals)
+                                                 False, {}, badhistory, goodhistory, badmodel, False, False, False, False, True, False, search_graph, use_subgoals)
         elif args.search_type == 'rnn-dfs':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 model_list, vectorizer, False, {}, badhistory, goodhistory, badmodel, False, False, True, False, False, False, search_graph, False)
+                                                 False, {}, badhistory, goodhistory, badmodel, False, False, True, False, False, False, search_graph, False)
         elif args.search_type == 'rnn-dfs-subgoal-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 model_list, vectorizer, False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, True, False, False, False, search_graph, use_subgoals)
+                                                 False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, True, False, False, False, search_graph, use_subgoals)
         elif args.search_type == 'rnn-dfs-cheap-exp-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
-                                                 model_list, vectorizer, False, {}, badhistory, goodhistory, badmodel, False, False, True, False, True, False, search_graph, False)
+                                                 False, {}, badhistory, goodhistory, badmodel, False, False, True, False, True, False, search_graph, False)
         elif args.search_type == 'beam-bfs':
             result = bfs_beam_proof_search(lemma_name, module_prefix,
                                            context_lemmas, coq,

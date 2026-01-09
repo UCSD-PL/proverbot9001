@@ -1463,14 +1463,13 @@ def rnnfunc(args, fullcontext, coq, predictor_list, hf_model, hf_tokenizer):
     tokenized_input = hf_tokenizer(inputstrs, truncation=True, padding=True, max_length=64, return_tensors="pt")#, device="cuda:0")#.to("cuda:0")
 
     with torch.no_grad():
-        logits = hf_model(**tokenized_input).logits #do I do anyhting with attention mask
+        logits = hf_model(**tokenized_input).logits 
 
     # Convert logits to probabilities.
     probs = F.softmax(logits, dim=-1)
 
     # Extract the probability for class 1 (the second element) from each sample.
     bin_probs = probs[:, 1].tolist()
-    #print(bin_probs)
     zipped = zip(bin_probs, all_predictions)  
 
     sorted_pairs = sorted(zipped, key=lambda x: x[0], reverse=True)
@@ -1478,43 +1477,6 @@ def rnnfunc(args, fullcontext, coq, predictor_list, hf_model, hf_tokenizer):
     sortedprobs, sortedtacts = zip(*sorted_pairs)
 
     return sortedtacts[0:10] 
-
-def rnnfuncold(args, fullcontext, coq, predictor_list, model_list, vectorizer):
-    predictions_lists = []
-    tactics_lists = []
-    i = 0
-    for predictor in predictor_list:
-        args.no_goal_head = predictor.training_args.no_goal_head
-        predictions = predictor.predictKTactics(args,
-                                truncate_tactic_context(fullcontext.as_tcontext(),
-                                args.max_term_length),
-                                args.max_attempts,
-                                blacklist=args.blacklisted_tactics)
-
-        concatenated_tactics = " ".join([' '.join(atactic.prediction.strip().split()) for atactic in predictions])
-        predictions_lists.append(predictions)
-        tactics_lists.append(concatenated_tactics)
-
-    print(coq.proof_context.fg_goals, flush=True)
-    rnn_current_goal = coq.proof_context.fg_goals[0].goal
-
-    encoded_tensors = [vectorizer.term_to_vector(' '.join(rnn_current_goal.split()))]
-    for tactic_set in tactics_lists:
-        encoded_tensors.append(vectorizer.term_to_vector(tactic_set))
-
-    encoded_tensor_all = torch.cat((encoded_tensors), 0).unsqueeze(0)
-
-    rnnmod = model_list[0]
-    modout = rnnmod(encoded_tensor_all)
-    listmod = modout.tolist()
-    bestmod = listmod.index(max(listmod))
-
-    print("choosing " + str(bestmod),flush=True)
-
-    predictions = predictions_lists[bestmod]
-
-    assert len(predictions) == args.max_attempts
-    return predictions
 
 def exchange_variables(new_state:list, old_state:list):
         # Keywords list
@@ -1534,8 +1496,6 @@ def exchange_variables(new_state:list, old_state:list):
                 if not (match in list1):  # Add to list1
                     list1.append(match)  # Add to list1
 
-        #print("List 1:", list1)
-
         list3 = []
         for state_string in old_state:
             matches = re.findall(pattern, state_string, re.VERBOSE)
@@ -1543,8 +1503,6 @@ def exchange_variables(new_state:list, old_state:list):
             for match in matches:
                 if not (match in list3):  # Add to list1
                     list3.append(match)  # Add to list1
-
-        #print("List 3:", list3, flush=True)
 
         return_dict = {}
         if not (len(list1) == len(list3)):
@@ -1571,8 +1529,6 @@ def multimodalfunc(args, fullcontext, coq, predictor_list):
     #random.shuffle(predictor_list)
     for predictor in predictor_list:
         args.no_goal_head = predictor.training_args.no_goal_head
-        #print("args")
-        #print(args.no_goal_head)
         predictions = predictor.predictKTactics(args,
             truncate_tactic_context(fullcontext.as_tcontext(), args.max_term_length),
             args.max_attempts,
@@ -1597,8 +1553,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 time_initial,
                                 predictor: TacticPredictor,
                                 predictor_list: [TacticPredictor],
-                                stack_model: [finetunedRNN],
-                                vectorizer: coq2vec.CoqTermRNNVectorizer,
                                 subgoal_sharing: bool,
                                 subgoals_seen: dict,
                                 badhistory: list,
@@ -1621,8 +1575,8 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
     assert not (bid and rnn), "you must choose either bid or stack"
 
     if rnn:
-        hf_model = ModernBertForSequenceClassification.from_pretrained("finetuned_ModernBERT/load-this-one", num_labels=2)
-        hf_tokenizer = AutoTokenizer.from_pretrained("finetuned_ModernBERT/load-this-one")
+        hf_model = ModernBertForSequenceClassification.from_pretrained("finetuned_ModernBERT/checkpoint-18000", num_labels=2)
+        hf_tokenizer = AutoTokenizer.from_pretrained("finetuned_ModernBERT/checkpoint-18000")
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
@@ -1665,7 +1619,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
             predictions_lists = [predictions]
         elif multimodal and mainflag:
             predictions_lists = []
-            predictions_lists_beginning = [[Prediction("timeout 1 easy.", 1.0, 1.0), Prediction("timeout 1 congruence.", 1.0, 1.0), Prediction("timeout 1 lia.", 1.0, 1.0), Prediction("timeout 1 eauto.", 1.0, 1.0), Prediction("timeout 1 firstorder.", 1.0, 1.0), Prediction("timeout 1 vm_compute", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0)]]#had intuition and tauto
+            predictions_lists_beginning = [[Prediction("timeout 1 easy.", 1.0, 1.0), Prediction("timeout 1 congruence.", 1.0, 1.0), Prediction("timeout 1 lia.", 1.0, 1.0), Prediction("timeout 1 eauto.", 1.0, 1.0), Prediction("timeout 1 firstorder.", 1.0, 1.0), Prediction("timeout 1 vm_compute", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0)]]
             for modalpredictor in predictor_list:
                 search_args.no_goal_head = modalpredictor.training_args.no_goal_head
                 modal_predictions = modalpredictor.predictKTactics(search_args, truncate_tactic_context(full_context_before.as_tcontext(), search_args.max_term_length), search_args.max_attempts, blacklist=search_args.blacklisted_tactics)
@@ -1786,8 +1740,8 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                             initial_hyps = subgoal_node.context_before.as_tcontext().hypotheses
                             subgoal_node = subgoal_node.previous
                             record_subgoals_opened += subgoal_node.subgoals_opened
-                        #for inhyp in initial_hyps:
-                        #    initial_goal = initial_goal + " " + inhyp
+                        for inhyp in initial_hyps:
+                            initial_goal = initial_goal + " " + inhyp
                         hashed_goal = hashlib.sha256(initial_goal.encode('utf-8')).hexdigest()
                         solone = subgoal_solution[0].prediction
                         if len(subgoal_solution) > 1:
@@ -1829,8 +1783,8 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                             initial_hyps = subgoal_node.context_before.as_tcontext().hypotheses
                             subgoal_node = subgoal_node.previous
                             record_subgoals_opened += subgoal_node.subgoals_opened
-                        #for inhyp in initial_hyps:
-                        #    initial_goal = initial_goal + " " + inhyp
+                        for inhyp in initial_hyps:
+                            initial_goal = initial_goal + " " + inhyp
                         hashed_goal = hashlib.sha256(initial_goal.encode('utf-8')).hexdigest()
                         solone = subgoal_solution[0].prediction
                         if len(subgoal_solution) > 1:
@@ -1847,15 +1801,13 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                         if use_subgoals: 
                             if len(subgoal_list) == 0:
                                 current_goal = context_after.focused_goal
-                                #for inhyp in context_after.focused_hyps:
-                                #    current_goal = current_goal + " " + inhyp 
+                                for inhyp in context_after.focused_hyps:
+                                    current_goal = current_goal + " " + inhyp 
                                 hashed_goal = hashlib.sha256(current_goal.encode('utf-8')).hexdigest()
                                 solved_already = subgoals_seen.get(hashed_goal)
                                 if solved_already: 
                                     for hashsol in solved_already.keys():
                                         found_solutions.append(list(solved_already[hashsol]))
-                                    print("found solutions")
-                                    print(found_solutions,flush=True)
                     if cheap_exp and mainflag and subgoals_opened > 0:
                         for cheap_exp_predictor in predictor_list:
                             copied_distance_stack = copy.deepcopy(new_distance_stack)
@@ -1943,19 +1895,12 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                           0,
                                           current_path[-1])
                 g.setNodeColor(predictionNode, "grey25")
-                #g.draw(f"{output_dir}/{module_prefix}"
-                #       f"{unnamed_goal_number}.svg")
                 if lemma_name == "":
                     unnamed_goal_number += 1
-                    #g.draw(f"{output_dir}/{module_prefix}"
-                    #       f"{unnamed_goal_number}.svg")
                 else:
                     if search_args.features_json:
                         g.write_feat_json(f"{output_dir}/{module_prefix}"
                                           f"{lemma_name}.json")
-                    #g.draw(f"{output_dir}/{module_prefix}"
-                    #       f"{lemma_name}.svg")
-
                 # raise
                 if search_exception is not None:
                     raise Exception("Should not except twice")
@@ -2006,10 +1951,9 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                  leave=False,
                  position=bar_idx + 1,
                  dynamic_ncols=True, bar_format=mybarfmt) as pbar:
-        #print("begin subgoals seen")
-        #print(subgoals_seen, flush=True)
+
         # REMOVE THIS 
-        return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0, subgoals_seen), None
+        # return SearchResult(SearchStatus.INCOMPLETE, relevant_lemmas, None, 0, 0, subgoals_seen), None
 
         if coq.count_fg_goals() > 1:
             coq.run_stmt("{")
@@ -2030,9 +1974,6 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
         g.write_feat_json(f"{output_dir}/{module_prefix}"
                           f"{lemma_name}.json")
 
-
-    #g.draw(f"{output_dir}/{module_prefix}"
-    #    f"{lemma_name}.svg")
     if command_list:
         return SearchResult(SearchStatus.SUCCESS, relevant_lemmas, command_list, total_steps, 0, subgoals_seen), None
     if hasUnexploredNode:

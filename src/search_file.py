@@ -245,65 +245,16 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with SearchWorker(args, worker_idx, predictor, switch_dict) as worker:
+    with SearchWorker(args, threadid, predictor, switch_dict, predictor_list) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
             except queue.Empty:
                 return
-            solution = worker.run_job(next_job, restart=not args.hardfail)
+            subgoals_seen = {}
+            solution = worker.run_job_with_random(current_job, subgoals_seen, [], [], [], 0, 0, time_initial, None, use_subs=False, restart=True)
+            subgoals_seen = solution.subgoals_seen
             done.put((next_job, solution))
-    '''
-    else:
-        # torch_util.use_cuda = False
-        if torch_util.use_cuda:
-            torch.cuda.set_device(device) # type: ignore
-        util.cuda_device = device
-
-        if args.splits_file:
-            with args.splits_file.open('r') as f:
-                project_dicts = json.loads(f.read())
-            if any(["switch" in item for item in project_dicts]):
-                switch_dict = {item["project_name"]: item["switch"]
-                               for item in project_dicts}
-            else:
-                switch_dict = None
-        else:
-            switch_dict = None
-
-        init_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
-        with SearchWorker(args, worker_idx, init_predictor, switch_dict) as worker:
-            while True:
-                try:
-                    next_job = jobs.get_nowait()
-                except queue.Empty:
-                    return
-                solution = worker.run_job(next_job, None, restart=not args.hardfail)
-                # Empty proof scripts set
-                proof_scripts = {solution.to_dict()['commands'][0]}
-                #hashed_proof_scripts.add(solution.to_dict()['commands'][0])
-                steps_taken = 1 # until max steps
-                while steps_taken < args.max_steps and solution.to_dict()['status'] != SearchStatus.SUCCESS:
-                    # pick script to continue
-                    script_to_continue = proof_scripts.set()[random.randint(0,len(proof_scripts))]
-                    # remove it from the set
-                    proof_scripts.remove(script_to_continue)
-                    # get a random predictor
-                    curr_predictor = get_random_predictor(args) # not sure whether to get the random predictor here in search_worker.py?
-                    worker.set_predictor(curr_predictor)
-                    # get solution
-                    solution = worker.run_job(next_job, script_to_continue, restart=not args.hardfail)
-                    # add new proof script to set
-                    new_script = solution.to_dict()['commands'][0]
-                    if new_script is not None:
-                        proof_scripts.add(solution.to_dict()['commands'][0])
-                    eprint("current proof script that I just added to:")
-                    eprint(solution.to_dict()['commands'][0])
-                    # add step to steps taken
-                    steps_taken += 1
-                # add hopefully successful solution to done
-                done.put((next_job, solution))
-    '''
 
 def get_already_done_jobs(args: argparse.Namespace) -> List[ReportJob]:
     already_done_jobs: List[ReportJob] = []

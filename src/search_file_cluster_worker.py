@@ -29,6 +29,7 @@ from typing import List
 
 from pathlib import Path
 import torch
+import time
 
 from search_worker import (ReportJob, SearchWorker, get_predictor, get_random_predictor, project_dicts_from_args, get_predictor_by_path)
 
@@ -51,7 +52,7 @@ def main(arg_list: List[str]) -> None:
     arg_parser.add_argument("--num-workers", default=32, type=int)
     arg_parser.add_argument("--workers-output-dir", default=Path("output"),
                             type=Path)
-    arg_parser.add_argument("--worker-timeout", default="6:00:00")
+    arg_parser.add_argument("--worker-timeout", default="23:00:00")
     arg_parser.add_argument("-p", "--partition", default="defq")
     arg_parser.add_argument("--mem", default="2G")
     args = arg_parser.parse_args(arg_list)
@@ -72,8 +73,6 @@ def main(arg_list: List[str]) -> None:
         print("You must specify a weightsfile or a predictor or a set of combo weightsfiles.")
         arg_parser.print_help()
         sys.exit(1)
-
-
 
     workers = [multiprocessing.Process(target=run_worker,
                                        args=(args, widx, workerid))
@@ -98,14 +97,6 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
 
     model_list = None
     vectorizer = None
-    if args.rnn_models: 
-        model_list = []
-        for model_text in args.rnn_models:
-            test_model = finetunedRNN(7825, 4)
-            test_model.load_state_dict(torch.load(model_text, map_location=torch.device('cuda:0')))
-            model_list.append(test_model)
-        vectorizer = coq2vec.CoqTermRNNVectorizer()
-        vectorizer.load_weights("coq2vec/term2vec-weights-59.dat")
 
     project_dicts = project_dicts_from_args(args)
     if any(["switch" in item for item in project_dicts]):
@@ -117,7 +108,7 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with worker_taken_file.open("w"):
         pass
 
-    with SearchWorker(args, threadid, predictor, switch_dict, predictor_list, model_list, vectorizer) as worker:
+    with SearchWorker(args, threadid, predictor, switch_dict, predictor_list) as worker:
         subgoals_seen = {}
         while True:
             with (args.output_dir / "taken.txt").open('r+') as f, FileLock(f):
@@ -135,9 +126,9 @@ def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
                 else:
                     eprint(f"Finished thread {threadid}")
                     break
-            #if not args.search_type == 'dfs-subgoal':
             subgoals_seen = {}
-            solution = worker.run_job_with_random(current_job, subgoals_seen, [], [], [], 0, None, use_subs=False, restart=True)
+            time_initial = time.time()
+            solution = worker.run_job_with_random(current_job, subgoals_seen, [], [], [], 0, 0, time_initial, None, use_subs=False, restart=True)
             subgoals_seen = solution.subgoals_seen
             job_project, job_file, _, _ = current_job
             project_dict = [d for d in project_dicts if d["project_name"] == job_project][0]
