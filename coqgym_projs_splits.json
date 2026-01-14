@@ -11,7 +11,7 @@
             "part2.v"
         ],
         "test_files": [],
-        "switch": "coq-8.10"
+        "switch": "coq-8.10",
         "extra_flags": "--sertop-flags=\"-Q .,\\\"\\\"\""
     },
     {
@@ -3954,7 +3954,7 @@
             "Examples/Querying/QueryPlusTPC.v",
             "Examples/LockResource/ResourceProtocol.v",
             "Examples/LockResource/LockProtocol.v",
-            "Examples/Greeter/Greeter.v",
+	    "Examples/Greeter/Greeter.v",
             "Examples/TwoPhaseCommit/TwoPhaseInductiveInv.v",
             "Examples/TwoPhaseCommit/TwoPhaseInductiveProof.v",
             "Examples/TwoPhaseCommit/TwoPhaseCoordinator.v",
