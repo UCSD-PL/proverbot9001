@@ -72,7 +72,10 @@ opam pin add -y coq 8.12.2
 # Install the packages that can be installed directly through opam
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add coq-extra-dev https://coq.inria.fr/opam/extra-dev
+opam pin add coq-struct-tact \
+  git+https://github.com/uwplse/StructTact.git#86682177b9a640956d3619d3f36dbdb92d9eab9a
 opam install -y coq-serapi \
+     coq-struct-tact \
      coq-smpl=8.12 \
      coq-equations \
      coq-mathcomp-ssreflect coq-mathcomp-algebra coq-mathcomp-field \
@@ -84,8 +87,6 @@ opam install -y coq-serapi \
 git clone https://github.com/uwplse/verdi.git deps/verdi
 git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
 (cd deps/verdi && opam install -y . )
-
-git clone --branch TAG_NAME --depth 1 https://github.com/OWNER/REPO.git
 
 git clone --branch v1.0-beta1-8.12 --depth 1 https://github.com/MetaRocq/metarocq.git
 (cd deps/metacoq
@@ -114,17 +115,12 @@ opam install -y \
   coq-metacoq 
 )
 
-git clone https://github.com/uwplse/StructTact.git deps/StructTact
-(cd deps/StructTact && opam install -y . )
 git clone https://github.com/DistributedComponents/InfSeqExt.git deps/InfSeqExt
 (cd deps/InfSeqExt && opam install -y . )
 # Cheerios has its own issues
 git clone https://github.com/uwplse/cheerios.git deps/cheerios
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
-git clone https://github.com/uwplse/verdi.git deps/verdi
-git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
-(cd deps/verdi && opam install -y --ignore-constraints-on=coq . )
+opam pin add coq-verdi \
+  git+https://github.com/uwplse/verdi.git#064cc4fb2347453bf695776ed820ffb5fbc1d804
+opam install -y coq-verdi
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
-
-# Finally, sync the opam state back to global. If you're not running on the swarm cluster at UMass Amherst, you can remove this line.
-# rsync -av --delete /tmp/${USER}_dot_opam/ $HOME/.opam.dir | tqdm --desc="Writing shared opam state" > /dev/null

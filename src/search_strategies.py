@@ -1522,7 +1522,7 @@ def exchange_variables(new_state:list, old_state:list):
 
         return return_dict
 
-def multimodalfunc(args, fullcontext, coq, predictor_list):
+def uniontacticfunc(args, fullcontext, coq, predictor_list):
     predictions_lists = []
     tactics_lists = []
     i = 0
@@ -1563,7 +1563,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
                                 rnn: bool,
                                 bidavg: bool,
                                 cheap_exp: bool,
-                                multimodal: bool,
+                                uniontactic: bool,
                                 continue_search_graph: SearchGraph,
                                 use_subgoals: bool) \
                                 -> SearchResult:
@@ -1575,8 +1575,8 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
     assert not (bid and rnn), "you must choose either bid or stack"
 
     if rnn:
-        hf_model = ModernBertForSequenceClassification.from_pretrained("finetuned_ModernBERT/checkpoint-18000", num_labels=2)
-        hf_tokenizer = AutoTokenizer.from_pretrained("finetuned_ModernBERT/checkpoint-18000")
+        hf_model = ModernBertForSequenceClassification.from_pretrained("finetuned_ModernBERT/load-this-one", num_labels=2)
+        hf_tokenizer = AutoTokenizer.from_pretrained("ModernBERT-large")
         os.environ["TOKENIZERS_PARALLELISM"] = "false"
 
     def cleanupSearch(num_stmts: int, msg: Optional[str] = None):
@@ -1617,7 +1617,7 @@ def augmented_dfs_proof_search_with_graph(lemma_name: str,
             predictions = rnnfunc(search_args, full_context_before, coq, predictor_list, hf_model, hf_tokenizer)
             assert len(predictions) == search_args.max_attempts
             predictions_lists = [predictions]
-        elif multimodal and mainflag:
+        elif uniontactic and mainflag:
             predictions_lists = []
             predictions_lists_beginning = [[Prediction("timeout 1 easy.", 1.0, 1.0), Prediction("timeout 1 congruence.", 1.0, 1.0), Prediction("timeout 1 lia.", 1.0, 1.0), Prediction("timeout 1 eauto.", 1.0, 1.0), Prediction("timeout 1 firstorder.", 1.0, 1.0), Prediction("timeout 1 vm_compute", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0), Prediction("nulltac.", 1.0, 1.0)]]
             for modalpredictor in predictor_list:

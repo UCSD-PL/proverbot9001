@@ -501,8 +501,8 @@ class SearchWorker(Worker):
             elif (self.predictor_list and self.total_restart < (2*len(self.predictor_list))) and (('subgoal' in self.args.search_type) or ('cheap-exp' in self.args.search_type)):
                 self.total_restart = self.total_restart + 1
                 return self.run_job_with_random(job, subgoals_seen, badhistory, goodhistory, badmodel, (restarted + 1), steps_so_far, time_initial, None, use_subs=use_subs, restart=restart)
-            # for multimodal restart up to 5n times
-            elif (self.predictor_list and self.total_restart < 5*(1 + len(self.predictor_list))) and ('multimodal' in self.args.search_type):
+            # for uniontactic restart up to 5n times
+            elif (self.predictor_list and self.total_restart < 5*(1 + len(self.predictor_list))) and ('uniontactic' in self.args.search_type):
                 self.total_restart = self.total_restart + 1
                 return self.run_job_with_random(job, subgoals_seen, badhistory, goodhistory, badmodel, (restarted), steps_so_far, time_initial, None, use_subs=use_subs, restart=restart)
             elif restart:
@@ -659,19 +659,19 @@ def attempt_search(args: argparse.Namespace,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
                                                  False, {}, badhistory, goodhistory, badmodel, False, True, False, False, True, False, search_graph, use_subgoals)
-        elif args.search_type == 'dfs-multimodal':
+        elif args.search_type == 'dfs-uniontactic':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
                                                  False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, True, search_graph, use_subgoals) 
-        elif args.search_type == 'dfs-multimodal-subgoal-combo':
+        elif args.search_type == 'dfs-uniontactic-subgoal-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
                                                  False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, False, False, False, True, search_graph, use_subgoals) 
-        elif args.search_type == 'dfs-multimodal-cheap-exp-combo':
+        elif args.search_type == 'dfs-uniontactic-cheap-exp-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
