@@ -261,7 +261,7 @@ def search_file_worker(args: argparse.Namespace,
             except queue.Empty:
                 return
             subgoals_seen = {}
-            solution = worker.run_job_with_random(current_job, subgoals_seen, [], [], [], 0, 0, time_initial, None, use_subs=False, restart=True)
+            solution = worker.run_job_with_random(next_job, subgoals_seen, [], [], [], 0, 0, time_initial, None, use_subs=False, restart=True)
             subgoals_seen = solution.subgoals_seen
             done.put((next_job, solution))
 
