@@ -160,7 +160,7 @@ def add_args_to_parser(parser: argparse.ArgumentParser) -> None:
                         choices=['local', 'hammer', 'searchabout'],
                         default='local')
     parser.add_argument("--command-limit", type=int, default=None)
-    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-vote-subgoal-combo', 'dfs-vote-cheap-exp-combo', 'dfs-bid', 'dfs-bid-subgoal-combo', 'dfs-bid-cheap-exp-combo', 'dfs-cheap-exp', 'dfs-est', 'dfs-uniontactic', 'dfs-uniontactic-subgoal-combo', 'dfs-uniontactic-cheap-exp-combo', 'beam-bfs', 'astar', 'best-first', 'rnn-dfs', 'rnn-dfs-subgoal-combo', 'rnn-dfs-cheap-exp-combo'], default='dfs')
+    parser.add_argument("--search-type", choices=['dfs', 'dfs-subgoal', 'dfs-vote', 'dfs-vote-subgoal-combo', 'dfs-vote-cheap-exp-combo', 'dfs-bid', 'dfs-bid-subgoal-combo', 'dfs-bid-cheap-exp-combo', 'dfs-cheap-exp', 'dfs-est', 'dfs-uniontactic', 'dfs-uniontactic-subgoal-combo', 'dfs-uniontactic-cheap-exp-combo', 'beam-bfs', 'astar', 'best-first', 'dfs-stack', 'dfs-stack-subgoal-combo', 'dfs-stack-cheap-exp-combo'], default='dfs')
     parser.add_argument("--scoring-function", choices=["lstd", "certainty", "pickled", "const", "norm-certainty", "pickled-normcert"], default="certainty")
     parser.add_argument("--backend", choices=['serapi', 'lsp', 'auto'], default='auto')
     parser.add_argument("--pickled-estimator", type=Path, default=None)

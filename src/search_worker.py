@@ -683,19 +683,19 @@ def attempt_search(args: argparse.Namespace,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
                                                  False, {}, badhistory, goodhistory, badmodel, False, False, False, False, True, False, search_graph, use_subgoals)
-        elif args.search_type == 'rnn-dfs':
+        elif args.search_type == 'dfs-stack':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
                                                  False, {}, badhistory, goodhistory, badmodel, False, False, True, False, False, False, search_graph, False)
-        elif args.search_type == 'rnn-dfs-subgoal-combo':
+        elif args.search_type == 'dfs-stack-subgoal-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,
                                                  args, bar_idx, time_initial, predictor, predictor_list, 
                                                  False, subgoals_seen, badhistory, goodhistory, badmodel, False, False, True, False, False, False, search_graph, use_subgoals)
-        elif args.search_type == 'rnn-dfs-cheap-exp-combo':
+        elif args.search_type == 'dfs-stack-cheap-exp-combo':
             result = augmented_dfs_proof_search_with_graph(lemma_name, module_prefix,
                                                  context_lemmas,
                                                  coq, output_dir,

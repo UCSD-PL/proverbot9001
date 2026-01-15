@@ -306,6 +306,20 @@ def safe_abbrev(filename: Path, all_files: List[Path]) -> str:
         return filename.stem
 
 class FileLock:
+    def __init__(self, file_handle, exclusive=True, timeout_s=60.0, base_sleep_s=0.01, max_sleep_s=0.5):
+        """
+        Robust advisory lock around fcntl.flock.
+
+        - timeout_s: total time to keep retrying before failing
+        - base_sleep_s/max_sleep_s: backoff bounds
+        """
+        self.file_handle = file_handle
+        self.fd = file_handle.fileno() if hasattr(file_handle, "fileno") else int(file_handle)
+        self.lock_style = fcntl.LOCK_EX if exclusive else fcntl.LOCK_SH
+        self.timeout_s = float(timeout_s)
+        self.base_sleep_s = float(base_sleep_s)
+        self.max_sleep_s = float(max_sleep_s)
+
     def __init__(self, file_handle, exclusive=True):
         self.file_handle = file_handle
         if exclusive:
@@ -319,6 +333,7 @@ class FileLock:
 
     def __exit__(self, type, value, traceback):
         fcntl.flock(self.file_handle, fcntl.LOCK_UN)
+    
 
 def read_time_taken(timestring: str) -> timedelta:
     timestring = timestring.strip()
