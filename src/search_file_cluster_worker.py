@@ -86,8 +86,10 @@ def main(arg_list: List[str]) -> None:
 def run_worker(args: argparse.Namespace, threadid: int, workerid: int) -> None:
     with (args.output_dir / "jobs.txt").open('r') as f:
         all_jobs = [ReportJob(*json.loads(line)) for line in f]
-
-    predictor = get_predictor(args)
+   
+    predictor = None
+    if args.weightsfile:
+        predictor = get_predictor(args)
 
     predictor_list = None
     if args.combo_weightsfiles:

@@ -227,7 +227,16 @@ def search_file_worker(args: argparse.Namespace,
                        device: str) -> None:
     sys.setrecursionlimit(100000)
 
-    predictor = get_predictor(args)
+    predictor = None
+    if args.weightsfile:
+        predictor = get_predictor(args)
+
+    predictor_list = None
+    if args.combo_weightsfiles:
+        predictor_list = []
+        for predfile in args.combo_weightsfiles:
+            predictor_list.append(get_predictor_by_path(predfile))
+
 
     # util.use_cuda = False
     if torch_util.use_cuda:
@@ -245,7 +254,7 @@ def search_file_worker(args: argparse.Namespace,
     else:
         switch_dict = None
 
-    with SearchWorker(args, threadid, predictor, switch_dict, predictor_list) as worker:
+    with SearchWorker(args, worker_idx, predictor, switch_dict, predictor_list) as worker:
         while True:
             try:
                 next_job = jobs.get_nowait()
