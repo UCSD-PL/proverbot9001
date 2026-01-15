@@ -93,24 +93,21 @@ def generate_project_report(args: argparse.Namespace, predictor: TacticPredictor
             copyfile(srcpath, destpath)
     for filename in tqdm(files_of_dict(args, project_dict),
                          desc="Report Files", leave=False):
-        #print("filename ")
-        #print(filename,flush=True)
         file_solutions = []
         output_file_prefix = args.output_dir / project_dict["project_name"] / \
               (safe_abbrev(Path(filename),
                                 [Path(path) for path in
                                  files_of_dict(args, project_dict)]))
         source_file = args.prelude / project_dict["project_name"] / filename
-        #print("source file")
-        #print(source_file,flush=True)
         try:
             with (Path(str(output_file_prefix) + "-proofs.txt")).open('r') as f:
                 for line in f:
                     job, sol = json.loads(line)
                     file_solutions.append((job, SearchResult.from_dict(sol)))
         except FileNotFoundError:
-            if args.jobs_file:
-                with open(args.jobs_file, 'r') as f:
+            pathname = Path(args.output_dir) / "all_jobs.txt"
+            if (pathname).exists():
+                with open(pathname, 'r') as f:
                     all_jobs = [json.loads(l) for l in f]
                 lemmas = [job for job in all_jobs if
                           job[0] == project_dict["project_name"] and

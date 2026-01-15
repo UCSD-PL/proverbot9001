@@ -445,6 +445,7 @@ def search_file_multithreaded(args: argparse.Namespace) -> None:
                                    (util.safe_abbrev(Path(done_file),
                                                      filenames)
                                     + "-proofs.txt"))
+                    proofs_file.parent.mkdir(parents=True, exist_ok=True)
                     with proofs_file.open('a') as f:
                         f.write(json.dumps(((done_project, str(done_file), done_module, done_lemma),
                                             sol.to_dict())))
