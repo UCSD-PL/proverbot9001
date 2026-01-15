@@ -33,14 +33,14 @@ opam install -y coq-serapi \
      coq-int-map \
      coq-pocklington \
      coq-mathcomp-ssreflect coq-mathcomp-bigenough coq-mathcomp-algebra\
-     coq-fcsl-pcm \
+     coq-fcsl-pcm.1.2.0 \
      coq-ext-lib \
      coq-simple-io \
      coq-list-string \
      coq-error-handlers \
      coq-function-ninjas \
      coq-algebra \
-     coq-zorns-lemma
+     coq-zorns-lemma.dev
 
 opam pin -y add menhir 20190626
 # coq-equations seems to rely on ocamlfind for it's build, but doesn't
@@ -58,10 +58,10 @@ opam install -y coq-equations \
 
 # Install the psl base-library from source
 mkdir -p deps
-git clone -b coq-8.10 git@github.com:uds-psl/base-library.git deps/base-library
+git clone -b coq-8.10 https://github.com/uds-psl/base-library.git deps/base-library
 (cd deps/base-library && make "$@" && make install)
 
-git clone git@github.com:davidnowak/bellantonicook.git deps/bellantonicook
+git clone https://github.com/davidnowak/bellantonicook.git deps/bellantonicook
 (cd deps/bellantonicook && make "$@" && make install)
 
 # Create the coq 8.12 switch
@@ -73,21 +73,55 @@ opam pin add -y coq 8.12.2
 opam repo add coq-released https://coq.inria.fr/opam/released
 opam repo add coq-extra-dev https://coq.inria.fr/opam/extra-dev
 opam install -y coq-serapi \
-     coq-smpl=8.12 coq-metacoq-template coq-metacoq-checker \
+     coq-smpl=8.12 \
      coq-equations \
      coq-mathcomp-ssreflect coq-mathcomp-algebra coq-mathcomp-field \
      menhir
 
 # Install some coqgym deps that don't have the right versions in their
 # official opam packages
-git clone git@github.com:uwplse/StructTact.git deps/StructTact
+
+git clone https://github.com/uwplse/verdi.git deps/verdi
+git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
+(cd deps/verdi && opam install -y . )
+
+git clone --branch TAG_NAME --depth 1 https://github.com/OWNER/REPO.git
+
+git clone --branch v1.0-beta1-8.12 --depth 1 https://github.com/MetaRocq/metarocq.git
+(cd deps/metacoq
+VERSION="1.0~beta1+8.12"
+DIR="$(pwd)"
+
+for pkg in \
+  coq-metacoq \
+  coq-metacoq-template \
+  coq-metacoq-pcuic \
+  coq-metacoq-erasure \
+  coq-metacoq-checker \
+  coq-metacoq-safechecker \
+  coq-metacoq-translations
+do
+  opam pin add -y "$pkg.$VERSION" "$DIR"
+done
+
+opam install -y \
+  coq-metacoq-template \
+  coq-metacoq-pcuic \
+  coq-metacoq-checker \
+  coq-metacoq-safechecker \
+  coq-metacoq-erasure \
+  coq-metacoq-translations \
+  coq-metacoq 
+)
+
+git clone https://github.com/uwplse/StructTact.git deps/StructTact
 (cd deps/StructTact && opam install -y . )
-git clone git@github.com:DistributedComponents/InfSeqExt.git deps/InfSeqExt
+git clone https://github.com/DistributedComponents/InfSeqExt.git deps/InfSeqExt
 (cd deps/InfSeqExt && opam install -y . )
 # Cheerios has its own issues
-git clone git@github.com:uwplse/cheerios.git deps/cheerios
+git clone https://github.com/uwplse/cheerios.git deps/cheerios
 (cd deps/cheerios && opam install -y --ignore-constraints-on=coq . )
-git clone git@github.com:uwplse/verdi.git deps/verdi
+git clone https://github.com/uwplse/verdi.git deps/verdi
 git -C deps/verdi checkout 064cc4fb2347453bf695776ed820ffb5fbc1d804
 (cd deps/verdi && opam install -y --ignore-constraints-on=coq . )
 (cd coq-projects/fcsl-pcm && make "$@" && make install)
