@@ -1,0 +1,128 @@
+auto
+intros
+apply
+eauto
+rewrite
+destruct
+simpl
+unfold
+inv
+eapply
+omega
+assert
+split
+easy
+constructor
+try discriminate
+simpl in
+rewrite <-
+exploit
+congruence
+subst
+econstructor
+exists
+reflexivity
+idtac
+red
+generalize
+eexact
+induction
+set
+replace
+intuition
+exact
+now apply
+left
+monadInv
+change
+intro
+tauto
+right
+discriminate
+case
+try congruence
+elim
+clear
+f_equal
+TailNoLabel
+traceEq
+trivial
+try apply
+intros until
+try contradiction
+try easy
+xomega
+try omega
+repeat solve_decode_encode_val_general
+inversion
+try monadInv
+rewrite !
+fold
+symmetry
+instantiate
+ring
+assumption
+specialize
+TrivialExists
+try rewrite
+decEq
+erewrite
+lra
+contradiction
+revert
+InvHyps
+try reflexivity
+InvBooleans
+EvalOp
+now rewrite
+transitivity
+try assumption
+ring_simplify
+pattern
+2
+repeat rewrite
+pose
+compute
+VHT'
+InvAgree
+InvEval
+by
+Simplifs
+solve_encode_val_length
+repeat constructor
+eelim
+case_eq
+zify
+SimplVM
+contradict
+try tauto
+omegaContradiction
+predSpec
+try inv
+bit_solve
+rename
+InvApproxRegs
+decide equality
+cut
+saturateTrans
+eassumption
+do
+repeat split
+bpow_simplify
+TR
+FuncInv
+smart_omega
+refine
+caseEq
+compute_this
+UNCHANGED
+functional
+try constructor
+exfalso
+Determ
+lia
+now rewrite <-
+Local
+cofix
+TranslOp
+Rec
